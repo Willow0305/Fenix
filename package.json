@@ -1,0 +1,51 @@
+{
+  "name": "fenix-volei",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Base técnica do sistema web Fênix Vôlei.",
+  "packageManager": "npm@11.11.0",
+  "engines": {
+    "node": ">=22.13.0",
+    "npm": ">=10.9.0"
+  },
+  "workspaces": [
+    "packages/*",
+    "apps/*"
+  ],
+  "overrides": {
+    "postcss": "8.5.22",
+    "sharp": "0.35.3"
+  },
+  "scripts": {
+    "build": "npm run build --workspaces --if-present",
+    "check": "npm run format:check && npm run lint && npm run typecheck && npm test && npm run prisma:validate && npm run build",
+    "dev": "concurrently --kill-others-on-fail --names web,api --prefix-colors cyan,magenta \"npm run dev:web\" \"npm run dev:api\"",
+    "dev:api": "dotenv -e .env -- npm run dev --workspace=@fenix/api",
+    "dev:web": "dotenv -e .env -- npm run dev --workspace=@fenix/web",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "lint": "eslint . --max-warnings=0",
+    "prisma:format": "prisma format",
+    "prisma:generate": "dotenv -e .env.example -- prisma generate",
+    "prisma:validate": "dotenv -e .env.example -- prisma validate",
+    "smoke": "node scripts/smoke-runtime.mjs",
+    "test": "node --test scripts/startup.spec.cjs && npm run test --workspaces --if-present",
+    "typecheck": "npm run typecheck --workspaces --if-present"
+  },
+  "devDependencies": {
+    "@eslint/js": "10.0.1",
+    "@types/jest": "30.0.0",
+    "@types/node": "22.20.1",
+    "concurrently": "9.2.4",
+    "dotenv-cli": "11.0.0",
+    "eslint": "10.7.0",
+    "eslint-config-prettier": "10.1.8",
+    "globals": "17.7.0",
+    "jest": "30.4.2",
+    "prettier": "3.9.6",
+    "prisma": "6.19.3",
+    "ts-jest": "29.4.12",
+    "typescript": "5.9.3",
+    "typescript-eslint": "8.65.0"
+  }
+}

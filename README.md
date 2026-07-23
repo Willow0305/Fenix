@@ -1,1 +1,190 @@
-# Fenix
+# Fênix Vôlei
+
+Base técnica e documental da aplicação web oficial de gestão do Time Fênix de Vôlei.
+
+> **Estado:** Fase 0 — planejamento e infraestrutura. O repositório ainda não oferece módulos funcionais de autenticação, atletas, mensalidades, Caixa, loja, parceiros, fórum ou agendamento.
+
+## Objetivo desta entrega
+
+- consolidar requisitos e dúvidas sem inventar regras;
+- registrar arquitetura, segurança, LGPD, UX, modelo de dados e decisões;
+- preparar um monorepo TypeScript executável;
+- validar Next.js, NestJS e PostgreSQL local;
+- estabelecer lint, testes e build como critérios de qualidade.
+
+A fonte original é [`referencias/documento_requisitos_fenix_volei_melhorado.pdf`](./referencias/documento_requisitos_fenix_volei_melhorado.pdf). O índice da especificação consolidada está em [`docs/README.md`](./docs/README.md), e decisões que ainda exigem aprovação estão em [`PENDENCIAS.md`](./PENDENCIAS.md).
+
+## Stack
+
+- **Web:** Next.js, React, TypeScript e SCSS Modules;
+- **API:** Node.js, NestJS, TypeScript, REST e Swagger/OpenAPI;
+- **Dados:** PostgreSQL e Prisma ORM;
+- **Validação:** `class-validator` no transporte da API e Zod nas bordas compartilháveis;
+- **Qualidade:** ESLint, Prettier, Jest e React Testing Library;
+- **Ambiente local:** Docker Compose para PostgreSQL;
+- **Organização:** npm workspaces.
+
+## Estrutura
+
+```text
+.
+├── apps/
+│   ├── api/              API NestJS
+│   └── web/              aplicação Next.js
+├── packages/
+│   ├── config/           configuração compartilhada
+│   ├── types/            tipos estáveis
+│   ├── ui/               componentes visuais
+│   └── validation/       schemas reutilizáveis
+├── prisma/
+│   └── schema.prisma     modelo lógico inicial
+├── docs/                 especificação e decisões
+├── referencias/          documento e arte oficial de origem
+├── uploads/              somente apoio local; não é storage de produção
+├── AGENTS.md
+├── PENDENCIAS.md
+├── docker-compose.yml
+└── package.json
+```
+
+### Fronteiras entre frontend e backend
+
+- `apps/web` é o frontend implantável: possui Next.js, React, SCSS e suas dependências de teste;
+- `apps/api` é o backend implantável: possui NestJS, Prisma Client e suas dependências de teste;
+- uma aplicação não importa código da outra;
+- somente contratos estáveis, validações e componentes reutilizáveis podem ficar em `packages`;
+- o `package.json` da raiz não possui dependências de runtime das aplicações: ele apenas coordena workspaces e ferramentas comuns;
+- cada aplicação mantém seu próprio `tsconfig.json`, herdando apenas regras comuns de `packages/config/typescript`.
+
+## Pré-requisitos
+
+- Node.js compatível com o campo `engines` do `package.json`;
+- npm compatível com o lockfile;
+- Docker Desktop/Engine com Compose v2;
+- Git.
+
+Confira:
+
+```bash
+node --version
+npm --version
+docker --version
+docker compose version
+```
+
+## Início rápido
+
+1. Instale exatamente as dependências do lockfile:
+
+   ```bash
+   npm ci
+   ```
+
+   Use `npm install` somente ao atualizar dependências de forma intencional e revise a alteração do `package-lock.json`.
+
+2. Copie as configurações locais:
+
+   ```bash
+   cp .env.example .env
+   ```
+
+   No PowerShell:
+
+   ```powershell
+   Copy-Item .env.example .env
+   ```
+
+   `.env` é ignorado pelo Git. Não use credenciais reais no arquivo de exemplo.
+
+3. Inicie o PostgreSQL:
+
+   ```bash
+   docker compose up -d postgres
+   docker compose ps
+   ```
+
+4. Inicie web e API:
+
+   ```bash
+   npm run dev
+   ```
+
+Os endereços padrão e as portas podem ser alterados pelas variáveis documentadas em `.env.example`.
+O Next.js lê a porta do frontend pela variável padrão `PORT`; a API usa `API_PORT`.
+
+## Comandos
+
+| Comando | Finalidade |
+|---|---|
+| `npm run dev` | inicia web e API em desenvolvimento |
+| `npm run dev:web` | inicia somente Next.js |
+| `npm run dev:api` | inicia somente NestJS |
+| `npm run lint` | executa análise estática nos workspaces |
+| `npm test` | executa os testes iniciais |
+| `npm run build` | gera builds de produção |
+| `npm run format` | aplica Prettier |
+| `npm run format:check` | confere formatação sem alterar |
+| `npm run typecheck` | valida os tipos sem emitir arquivos |
+| `npm run prisma:format` | formata o schema Prisma |
+| `npm run prisma:generate` | gera o cliente Prisma a partir do schema validado |
+| `npm run prisma:validate` | valida o modelo lógico Prisma |
+| `npm run smoke` | após o build, inicia web/API, valida web, health, Swagger e OpenAPI, e encerra os processos |
+| `npm run check` | executa o gate agregado: formatação, lint, tipos, testes, Prisma e build |
+
+Consulte os scripts de `package.json` como referência executável caso a ferramenta evolua.
+
+## Serviços locais
+
+| Serviço | Endereço padrão | Observação |
+|---|---|---|
+| Web | `http://localhost:3000` | página mínima da Fase 0 |
+| API | `http://localhost:3333` | esqueleto técnico |
+| Health | `http://localhost:3333/health` | não expõe segredos |
+| Swagger UI | `http://localhost:3333/docs` | somente fora de `production`; responde `404` em produção |
+| OpenAPI JSON | `http://localhost:3333/docs/openapi.json` | somente fora de `production`; responde `404` em produção |
+| PostgreSQL | `127.0.0.1:5433` | evita conflito com instalações locais na porta 5432; não é publicado na rede externa |
+
+Para encerrar o banco sem apagar dados:
+
+```bash
+docker compose down
+```
+
+Não use `docker compose down -v` sem intenção explícita: ele remove o volume e os dados locais.
+
+## Banco de dados
+
+O arquivo [`prisma/schema.prisma`](./prisma/schema.prisma) é um modelo inicial para revisão. Ele não representa migrations aplicadas em produção.
+
+Regras permanentes:
+
+- UUID como chave primária;
+- instantes em UTC e datas civis como `DATE`;
+- dinheiro como `Decimal/Numeric`, nunca `float`;
+- exclusão lógica e auditoria onde exigidas;
+- movimentos financeiros confirmados sem exclusão destrutiva;
+- arquivos fora do banco, com metadados e URL/chave segura.
+
+## Documentação
+
+Comece por:
+
+1. [`AGENTS.md`](./AGENTS.md);
+2. [`docs/README.md`](./docs/README.md);
+3. [`docs/16-ROADMAP.md`](./docs/16-ROADMAP.md);
+4. [`docs/19-RELATORIO-FASE-0.md`](./docs/19-RELATORIO-FASE-0.md);
+5. [`PENDENCIAS.md`](./PENDENCIAS.md).
+
+Toda mudança funcional deve atualizar requisitos, regras, fluxo, dados, testes e changelog afetados.
+
+## Segurança e privacidade
+
+- não inclua `.env`, tokens, dumps, comprovantes ou dados pessoais no Git;
+- use apenas dados fictícios durante esta fase;
+- não implemente prontuário ou coleta de saúde;
+- reporte vulnerabilidades de forma privada conforme [`SECURITY.md`](./SECURITY.md);
+- consulte [`docs/13-SEGURANCA-E-LGPD.md`](./docs/13-SEGURANCA-E-LGPD.md) antes de tratar dados reais.
+
+## Contribuição
+
+Leia [`CONTRIBUTING.md`](./CONTRIBUTING.md). Nenhum módulo é considerado pronto sem validação, tratamento de erros, autorização, testes, lint e build.

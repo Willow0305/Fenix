@@ -1,0 +1,23 @@
+{
+  "name": "@fenix/config",
+  "version": "0.1.0",
+  "private": true,
+  "files": [
+    "eslint",
+    "jest",
+    "prettier",
+    "typescript"
+  ],
+  "scripts": {
+    "test": "node --test typescript/nestjs.spec.cjs"
+  },
+  "exports": {
+    "./eslint": "./eslint/base.mjs",
+    "./jest": "./jest/preset.cjs",
+    "./prettier": "./prettier/base.mjs",
+    "./typescript/base": "./typescript/base.json",
+    "./typescript/library": "./typescript/library.json",
+    "./typescript/nestjs": "./typescript/nestjs.json",
+    "./typescript/nextjs": "./typescript/nextjs.json"
+  }
+}

@@ -1,0 +1,33 @@
+# Dependencies and generated outputs
+node_modules/
+**/node_modules/
+.next/
+**/.next/
+dist/
+**/dist/
+coverage/
+**/coverage/
+*.tsbuildinfo
+
+# Local environment and secrets
+.env
+.env.*
+!.env.example
+
+# Runtime artifacts
+*.log
+npm-debug.log*
+.swc/
+tmp/
+
+# Local uploads: preserve only repository guidance
+uploads/*
+!uploads/README.md
+!uploads/.gitkeep
+
+# Editors and operating systems
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db
+Desktop.ini
