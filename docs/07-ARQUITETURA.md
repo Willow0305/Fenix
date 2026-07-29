@@ -2,7 +2,9 @@
 
 ## 1. Estado e propósito
 
-Este documento define a arquitetura de referência da Fase 0. Ele organiza o desenvolvimento incremental, mas não declara os módulos de negócio como implementados.
+Este documento define a arquitetura de referência incremental. Em 29/07/2026 a
+base técnica da Fase 1 e as primeiras entregas verticais das Fases 2 e 3 estão
+implementadas em local/teste. Os módulos futuros continuam somente planejados.
 
 As decisões vinculantes e seus motivos estão em [17-DECISOES-TECNICAS.md](./17-DECISOES-TECNICAS.md). Questões ainda abertas estão em [`PENDENCIAS.md`](../PENDENCIAS.md).
 
@@ -27,7 +29,7 @@ flowchart LR
     staff[Diretoria e administração]
     partner[Parceiro autorizado]
     system[Sistema Fênix Vôlei]
-    mail[Serviço de e-mail futuro]
+    mail[Serviço de e-mail]
     storage[Armazenamento de objetos futuro]
     payment[Gateway de pagamento futuro]
 
@@ -51,6 +53,7 @@ flowchart TB
     web[apps/web<br/>Next.js e React]
     api[apps/api<br/>NestJS e API REST]
     db[(PostgreSQL)]
+    redis[(Redis)]
     objects[(Armazenamento de objetos)]
     email[Provedor de e-mail]
     payments[Gateway de pagamento]
@@ -59,12 +62,16 @@ flowchart TB
     web -->|HTTPS / JSON| api
     browser -. upload direto com URL assinada .-> objects
     api -->|Prisma / conexão TLS| db
+    api -->|rate limit distribuído| redis
     api -. metadados e URLs assinadas .-> objects
     api -. envio assíncrono .-> email
     api -. fase posterior, webhooks assinados .-> payments
 ```
 
-Na Fase 0, somente os contêineres `web`, `api` e PostgreSQL local possuem esqueleto. Armazenamento, e-mail e pagamentos são fronteiras planejadas, não integrações disponíveis.
+Web, API, PostgreSQL, Redis e SMTP estão integrados no ambiente local. Mailpit é
+apenas o capturador efêmero; nenhum provedor comercial foi escolhido.
+Armazenamento de objetos e gateway de pagamento permanecem fronteiras
+planejadas, não integrações disponíveis.
 
 ## 5. Organização do monorepo
 
@@ -78,7 +85,8 @@ packages/
   config/       configurações compartilhadas
   validation/   schemas reutilizáveis nas bordas permitidas
 prisma/
-  schema.prisma modelo lógico inicial
+  schema.prisma schema físico executável da fase atual
+  migrations/   histórico físico incremental
 docs/           especificação e decisões
 ```
 
@@ -130,6 +138,12 @@ flowchart LR
 
 Controllers permanecem finos. Repositórios não decidem regras. Objetos do Prisma não se tornam automaticamente contratos públicos.
 
+No recorte `fase_1_admin_auditoria`, a API está dividida em módulos NestJS de
+`auth`, `access-control`, `users`, `audit` e `database`. Guardas globais resolvem
+sessão, CSRF e permissões; serviços coordenam regras e transações; o adaptador
+Prisma permanece na infraestrutura. O frontend consome apenas REST com cookies e
+não importa código do backend.
+
 ## 8. Limites modulares
 
 | Domínio | Capacidades principais | Fase |
@@ -162,7 +176,9 @@ O lançamento contábil/gerencial não será atualizado silenciosamente por edi�
 ## 10. Modelo de dados
 
 - PostgreSQL é a fonte transacional de verdade.
-- Prisma é o ORM e o mecanismo de migrations futuro.
+- Prisma é o ORM e o mecanismo de migrations incremental.
+- `prisma/schema.prisma` contém somente modelos promovidos da fase/tarefa autorizada.
+- o modelo conceitual completo permanece em documentação e referência não executável.
 - Identificadores principais usam UUID.
 - Instantes usam UTC; datas civis usam `DATE`.
 - Dinheiro usa `Decimal`/`NUMERIC`, acompanhado de moeda.
@@ -170,14 +186,19 @@ O lançamento contábil/gerencial não será atualizado silenciosamente por edi�
 - Saldo é derivado de movimentações; valores de abertura são eventos controlados, não atalhos editáveis.
 - Arquivos ficam fora do banco; somente metadados, hash/chave e localização segura são persistidos.
 
-O detalhamento está em [08-MODELO-DE-DADOS.md](./08-MODELO-DE-DADOS.md), [09-DICIONARIO-DE-DADOS.md](./09-DICIONARIO-DE-DADOS.md) e [diagramas/ERD.md](./diagramas/ERD.md).
+O detalhamento e a distinção entre modelo conceitual e físico estão em
+[08-MODELO-DE-DADOS.md](./08-MODELO-DE-DADOS.md),
+[09-DICIONARIO-DE-DADOS.md](./09-DICIONARIO-DE-DADOS.md) e
+[diagramas/ERD.md](./diagramas/ERD.md). A estratégia vinculante está em `DT-024`.
 
 ## 11. Segurança
 
 Defesa em profundidade:
 
 1. HTTPS em qualquer ambiente exposto;
-2. autenticação planejada com sessão revogável, access token curto e refresh rotacionável, ainda condicionada à decisão provisória `DT-012`;
+2. autenticação implementada localmente com sessão revogável, access token curto,
+   refresh opaco rotacionável e detecção de reutilização; parâmetros finais ainda
+   dependem de `PEN-013`;
 3. autorização por permissão em cada caso de uso administrativo;
 4. validação e normalização de entrada no DTO e no domínio;
 5. queries parametrizadas pelo Prisma e restrições no banco;
@@ -203,7 +224,8 @@ Detalhes e pendências jurídicas estão em [13-SEGURANCA-E-LGPD.md](./13-SEGURA
 - paginação e filtros com limites defensivos;
 - nenhuma resposta administrativa expõe campos privados por conveniência.
 
-O inventário planejado e o único endpoint técnico da Fase 0 constam em [10-API.md](./10-API.md).
+O inventário implementado das Fases 1 a 3 e os recursos ainda planejados constam
+em [10-API.md](./10-API.md).
 
 ## 13. Observabilidade e auditoria
 
@@ -213,22 +235,32 @@ Observabilidade operacional e auditoria têm objetivos diferentes:
 - **traces/correlation ID:** caminho de uma requisição entre web, API e integrações;
 - **auditoria:** quem executou uma ação sensível, quando, por qual motivo e qual entidade foi afetada.
 
-Auditoria não deve copiar senha, token, comprovante ou payload pessoal completo. Campos anteriores/novos exigem minimização e mascaramento por domínio.
+Auditoria não copia senha, token, código de recuperação, comprovante ou payload
+pessoal completo. O serviço remove chaves sensíveis por allowlist negativa,
+registra IP e agente somente como hash contextual e o banco bloqueia `UPDATE` e
+`DELETE` em `audit_logs`. A consulta exige `audit.read`.
 
 ## 14. Implantação
 
-O frontend e a API são unidades implantáveis separadas. PostgreSQL gerenciado e armazenamento de objetos privado formam a **topologia de referência recomendada**, não uma escolha aprovada de provedor ou hospedagem; `DT-018`, `PEN-042` e `PEN-048` mantêm essa decisão provisória. O Docker Compose da Fase 0 serve apenas ao PostgreSQL de desenvolvimento. Imagens de produção, CI/CD, região, provedor e objetivos de recuperação dependem das decisões listadas em `PENDENCIAS.md`.
+O frontend e a API são unidades implantáveis separadas. PostgreSQL gerenciado e
+armazenamento de objetos privado formam a **topologia de referência recomendada**,
+não uma escolha aprovada de provedor ou hospedagem; `DT-018`, `PEN-042` e
+`PEN-048` mantêm essa decisão provisória. O Docker Compose local serve PostgreSQL,
+Redis e Mailpit, vinculados ao loopback; Mailpit não é provedor de produção.
+Imagens de produção, CI/CD, região, provedor e objetivos de recuperação dependem
+das decisões listadas em `PENDENCIAS.md`.
 
-## 15. Restrições desta fase
+## 15. Restrições do recorte atual
 
-Não fazem parte da Fase 0:
+As entregas atuais cobrem a base técnica da Fase 1, a vertical administrativa
+esportiva da Fase 2 e a vertical manual do Caixa Fênix da Fase 3. Não fazem
+parte:
 
-- autenticação funcional;
-- módulos de atletas, mensalidades, Caixa, loja, fórum ou agendamento;
-- upload em nuvem;
-- envio real de e-mail;
-- checkout, PIX automatizado ou gateway;
-- migrations de produção;
-- dados iniciais de negócio.
+- área pública/dependente do atleta ou responsável;
+- importação real, dados reais de menores ou qualquer dado médico;
+- mensalidade automática, multa, juros, pró-rata, PIX ou gateway;
+- upload/objeto real, loja, parceiros, fórum completo ou agendamento;
+- produção, staging público ou dados iniciais reais.
 
-O endpoint de saúde e a página mínima existem somente para validar o esqueleto e a cadeia de ferramentas.
+A logo principal oficial está aplicada; variantes e paleta canônica permanecem
+pendentes. Produção continua bloqueada pelos gates institucionais e P0.

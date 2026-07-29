@@ -62,14 +62,27 @@ Cada fluxo identifica atores, pré-condições, caminho principal, exceções, r
 
 **Atores:** visitante, usuário, administrador.
 
-1. A pessoa cria conta ou recebe convite/aprovação.
-2. O servidor valida e-mail e senha; papel privilegiado não vem do cliente.
-3. Credenciais válidas iniciam sessão limitada e renovável conforme decisão técnica.
-4. Logout revoga/invalida a sessão aplicável.
-5. Na recuperação, o usuário informa e-mail e recebe resposta indistinguível.
-6. Token único, limitado e expirável permite definir nova senha e revoga sessões conforme política aprovada.
+1. Fora de produção, um comando restrito cria o primeiro administrador somente
+   quando nenhum existe e registra auditoria.
+2. Neste recorte, administrador com `users.create` cria apenas conta comum;
+   cadastro público/convite permanece pendente e nenhum cliente autoatribui papel.
+3. O servidor normaliza e-mail, valida senha por hash adaptativo e inicia sessão
+   revogável com access token de 45 minutos em cookie `HttpOnly`.
+4. Mutações e refresh exigem CSRF vinculado à sessão; refresh é rotacionado e a
+   reutilização suspeita revoga as sessões ativas.
+5. Logout revoga a sessão atual; bloqueio/inativação, troca de senha e ação
+   administrativa explícita revogam as sessões aplicáveis.
+6. Na recuperação, o usuário informa e-mail e recebe resposta indistinguível.
+7. Código de uso único enviado por e-mail permite definir nova senha sem que o
+   valor em claro seja persistido ou registrado.
 
-**Exceções:** repetidas tentativas sofrem limitação; conta bloqueada/inativa não acessa; verificação de e-mail é futura/condicionada.
+8. E-mail é verificado por token de uso único e reenvio limitado.
+9. Papéis privilegiados concluem um desafio MFA TOTP antes de receber a sessão;
+   `USER` pode ativar MFA opcionalmente.
+
+**Exceções:** tentativas repetidas geram bloqueio temporário por conta e rate
+limit distribuído; conta bloqueada/inativa, sessão revogada e inatividade
+expirada não acessam. Endpoints públicos não confirmam se a conta existe.
 
 **Resultado:** sessão autenticada ou recuperação concluída sem revelar segredos.
 
@@ -90,6 +103,12 @@ Cada fluxo identifica atores, pré-condições, caminho principal, exceções, r
 
 **Rastreabilidade:** RF-008 a RF-010, RF-019, RF-024.
 
+**Estado da entrega vertical:** perfil esportivo é separado da conta, conversão
+ocorre somente a partir de inscrição aprovada e por usuário autorizado, o
+histórico de equipe/categoria é preservado e menor fictício exige responsável
+com autorização válida. Possível duplicidade interrompe a conversão para revisão
+humana; nunca ocorre fusão automática.
+
 ## FL-06 — Geração e pagamento de mensalidade
 
 **Atores:** diretoria financeira, atleta.
@@ -97,11 +116,14 @@ Cada fluxo identifica atores, pré-condições, caminho principal, exceções, r
 1. A diretoria mantém plano ativo e vínculo do atleta.
 2. Rotina autorizada gera mensalidade com referência, vencimento e valor aplicado.
 3. O atleta consulta cobrança aberta/atrasada.
-4. A diretoria registra pagamento manual/PIX e comprovante quando cabível.
+4. A diretoria registra pagamento manual; PIX/gateway e comprovante real não
+   integram a entrega atual.
 5. Ao confirmar, uma operação transacional atualiza a situação e cria/vincula entrada do Caixa exatamente uma vez.
 6. O atleta recebe notificação e consulta pagamento.
 
-**Exceções:** repetição é idempotente; falha em caixa desfaz/compensa a confirmação; parcial, multa, desconto e cancelamento são provisórios.
+**Exceções:** repetição é idempotente; pagamento parcial mantém saldo aberto e
+excedente exige destino explícito. Geração automática por atleta, multa, juros,
+pró-rata e gateway permanecem fora da entrega vertical.
 
 **Rastreabilidade:** RF-011 a RF-014, RF-022, RF-028, RF-029, RNF-019.
 
@@ -112,11 +134,13 @@ Cada fluxo identifica atores, pré-condições, caminho principal, exceções, r
 1. O usuário seleciona conta, tipo, categoria/centro de custo, moeda e datas.
 2. Informa valor Decimal, descrição, status e anexos aplicáveis.
 3. O servidor valida período, conta/categoria ativas e permissões.
-4. O lançamento é criado pendente ou confirmado conforme política.
-5. Confirmação passa a compor o saldo derivado.
+4. Assistente/financeiro cria lançamento sempre pendente.
+5. Tesoureiro aprova ou rejeita; somente aprovação passa a compor o saldo
+   derivado.
 6. Correção posterior usa cancelamento/estorno/reembolso vinculado, nunca edição destrutiva.
 
-**Exceções:** período fechado bloqueia ação incompatível; anexo inválido é rejeitado; aprovação e obrigatoriedade de comprovante são provisórias.
+**Exceções:** lançamento aprovado não pode ser editado/apagado; correção cria
+reversão vinculada e auditada. Upload real de comprovante permanece bloqueado.
 
 **Rastreabilidade:** RF-025 a RF-028, RNF-017, RNF-018.
 
@@ -124,14 +148,18 @@ Cada fluxo identifica atores, pré-condições, caminho principal, exceções, r
 
 **Atores:** diretoria financeira com permissões específicas.
 
-1. Transferência cria lados de saída/entrada vinculados entre contas.
+1. Transferência pendente é decidida pelo tesoureiro e cria lados de
+   saída/entrada vinculados entre contas, sem receita/despesa líquida.
 2. Na conciliação, o usuário seleciona conta/período e compara registros ao saldo externo/contado.
 3. Registra diferenças e observações.
 4. Fecha o período, registrando responsável e instante.
 5. Operações incompatíveis ficam bloqueadas.
-6. Se necessário, usuário com permissão superior reabre com motivo; o evento não substitui o fechamento anterior.
+6. Reabertura de fechamento permanece fora da entrega até política específica;
+   correções financeiras usam reversões vinculadas.
 
-**Exceções:** valor/moeda divergente invalida transferência; período sobreposto e regras de corte dependem de decisão.
+**Exceções:** valor/moeda divergente invalida transferência; só uma sessão de
+caixa pode permanecer aberta por conta; fechamento registra abertura, entradas,
+saídas, ajustes, esperado, contado e diferença.
 
 **Rastreabilidade:** RF-030, RCF-003, RCF-006, RN-FIN-009 a RN-FIN-012.
 

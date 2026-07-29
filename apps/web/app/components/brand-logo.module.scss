@@ -1,0 +1,19 @@
+.logo {
+  position: relative;
+  display: inline-block;
+  flex: 0 0 auto;
+
+  img {
+    object-fit: contain;
+  }
+}
+
+.small {
+  width: 2.8rem;
+  height: 2.8rem;
+}
+
+.medium {
+  width: 4rem;
+  height: 4rem;
+}

@@ -1,152 +1,185 @@
 .page {
-  position: relative;
-  display: grid;
+  display: flex;
   min-height: 100dvh;
-  place-items: center;
+  flex-direction: column;
   overflow: hidden;
-  padding: clamp(1.25rem, 5vw, 4rem);
+  padding: clamp(1.25rem, 4vw, 3rem);
   background:
-    radial-gradient(circle at 15% 20%, rgb(200 16 46 / 14%), transparent 28rem),
-    radial-gradient(circle at 88% 85%, rgb(212 175 55 / 12%), transparent 22rem),
-    var(--color-background);
-
-  &::before {
-    position: absolute;
-    width: min(34rem, 80vw);
-    aspect-ratio: 1;
-    border: clamp(2rem, 7vw, 5.5rem) solid rgb(200 16 46 / 5%);
-    border-radius: 50%;
-    content: '';
-    transform: translate(52%, -50%);
-  }
+    radial-gradient(circle at 90% 10%, rgb(200 16 46 / 14%), transparent 27rem),
+    radial-gradient(circle at 10% 95%, rgb(212 175 55 / 10%), transparent 22rem), #f7f7f8;
 }
 
-.card {
-  position: relative;
-  width: min(100%, 62rem);
-  padding: clamp(1.5rem, 5vw, 4.5rem);
-  border: 1px solid rgb(217 217 217 / 85%);
-  border-radius: 1.75rem;
-  background: rgb(255 255 255 / 94%);
-  box-shadow: 0 1.75rem 5rem rgb(39 39 42 / 12%);
+.navigation {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
 }
 
-.header {
-  max-width: 46rem;
+.brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.75rem;
+  color: var(--color-text);
+  font-size: 0.82rem;
+  font-weight: 900;
+  letter-spacing: 0.11em;
+  text-decoration: none;
+  text-transform: uppercase;
+}
+
+.loginLink {
+  display: inline-flex;
+  min-height: 2.65rem;
+  align-items: center;
+  padding: 0 1rem;
+  border: 1px solid var(--color-border);
+  border-radius: 0.7rem;
+  background: rgb(255 255 255 / 80%);
+  color: var(--color-text);
+  font-size: 0.84rem;
+  font-weight: 800;
+  text-decoration: none;
+}
+
+.hero {
+  display: grid;
+  width: min(100%, 78rem);
+  flex: 1;
+  grid-template-columns: minmax(0, 1.35fr) minmax(19rem, 0.65fr);
+  align-items: center;
+  gap: clamp(2rem, 7vw, 7rem);
+  margin: 0 auto;
+  padding-block: clamp(4rem, 10vw, 8rem);
+}
+
+.copy {
+  max-width: 49rem;
 
   h1 {
     margin: 0;
-    color: var(--color-text);
-    font-size: clamp(2.7rem, 8vw, 5.75rem);
-    letter-spacing: -0.065em;
-    line-height: 0.94;
+    font-size: clamp(3rem, 7.5vw, 6.8rem);
+    letter-spacing: -0.075em;
+    line-height: 0.92;
   }
 }
 
 .eyebrow {
-  margin: 0 0 1rem;
+  margin: 0 0 1.25rem;
   color: var(--color-primary);
-  font-size: 0.78rem;
-  font-weight: 800;
-  letter-spacing: 0.14em;
+  font-size: 0.74rem;
+  font-weight: 900;
+  letter-spacing: 0.13em;
   text-transform: uppercase;
 }
 
 .lead {
-  max-width: 38rem;
-  margin: 1.5rem 0 0;
+  max-width: 42rem;
+  margin: 1.75rem 0 0;
   color: var(--color-text-subtle);
-  font-size: clamp(1.05rem, 2.4vw, 1.35rem);
-  line-height: 1.6;
+  font-size: clamp(1.05rem, 2vw, 1.3rem);
+  line-height: 1.65;
 }
 
-.status {
+.actions {
   display: flex;
-  align-items: flex-start;
-  gap: 0.9rem;
-  margin-top: clamp(2rem, 5vw, 3.5rem);
-  padding: 1rem 1.1rem;
-  border: 1px solid rgb(22 163 74 / 28%);
-  border-radius: 1rem;
-  background: rgb(22 163 74 / 7%);
-
-  > div {
-    display: grid;
-    gap: 0.25rem;
-  }
-
-  strong {
-    color: var(--color-text);
-    font-size: 0.98rem;
-  }
-}
-
-.statusIndicator {
-  flex: 0 0 auto;
-  width: 0.72rem;
-  height: 0.72rem;
-  margin-top: 0.32rem;
-  border: 2px solid var(--color-surface);
-  border-radius: 50%;
-  background: var(--color-success);
-  box-shadow: 0 0 0 2px var(--color-success);
-}
-
-.statusDescription {
-  color: var(--color-text-subtle);
-  font-size: 0.9rem;
-  line-height: 1.45;
-}
-
-.stack {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  flex-wrap: wrap;
   gap: 0.75rem;
-  margin: 1rem 0 0;
+  margin-top: 2rem;
 
-  div {
-    min-width: 0;
-    padding: 1rem;
-    border: 1px solid var(--color-border);
-    border-radius: 1rem;
-    background: var(--color-surface);
+  a {
+    display: inline-flex;
+    min-height: 3.1rem;
+    align-items: center;
+    justify-content: center;
+    padding: 0 1.25rem;
+    border-radius: 0.75rem;
+    font-size: 0.86rem;
+    font-weight: 800;
+    text-decoration: none;
   }
+}
 
-  dt {
-    margin-bottom: 0.35rem;
-    color: var(--color-text-muted);
-    font-size: 0.75rem;
-    font-weight: 700;
-    letter-spacing: 0.08em;
+.primaryAction {
+  background: var(--color-primary);
+  color: #fff;
+}
+
+.secondaryAction {
+  border: 1px solid var(--color-border);
+  background: #fff;
+  color: var(--color-text);
+}
+
+.statusCard {
+  position: relative;
+  padding: 1.5rem;
+  border: 1px solid rgb(255 255 255 / 12%);
+  border-radius: 1.25rem;
+  background: #171719;
+  box-shadow: 0 2rem 5rem rgb(39 39 42 / 18%);
+  color: #fff;
+  transform: rotate(1.5deg);
+
+  p {
+    margin: 0;
+    color: rgb(255 255 255 / 48%);
+    font-size: 0.68rem;
+    font-weight: 800;
+    letter-spacing: 0.1em;
     text-transform: uppercase;
   }
 
-  dd {
-    margin: 0;
-    color: var(--color-text);
-    font-weight: 700;
+  strong {
+    display: block;
+    margin-top: 0.7rem;
+    font-size: 1.25rem;
+  }
+
+  ul {
+    display: grid;
+    gap: 0.75rem;
+    margin: 1.5rem 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  li {
+    padding: 0.7rem 0.75rem;
+    border: 1px solid rgb(255 255 255 / 9%);
+    border-radius: 0.65rem;
+    background: rgb(255 255 255 / 5%);
+    color: rgb(255 255 255 / 78%);
+    font-size: 0.8rem;
+  }
+
+  small {
+    color: rgb(255 255 255 / 44%);
   }
 }
 
 .footer {
-  margin-top: 2rem;
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
   padding-top: 1.25rem;
   border-top: 1px solid var(--color-border);
   color: var(--color-text-muted);
-  font-size: 0.82rem;
-  line-height: 1.5;
+  font-size: 0.72rem;
 }
 
-@media (max-width: 42rem) {
-  .page {
-    place-items: start center;
-  }
-
-  .card {
-    border-radius: 1.25rem;
-  }
-
-  .stack {
+@media (max-width: 52rem) {
+  .hero {
     grid-template-columns: 1fr;
+  }
+
+  .statusCard {
+    transform: none;
+  }
+}
+
+@media (max-width: 32rem) {
+  .footer {
+    flex-direction: column;
   }
 }

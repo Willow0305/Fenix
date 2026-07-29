@@ -13,10 +13,13 @@
     "apps/*"
   ],
   "overrides": {
+    "brace-expansion": "5.0.8",
+    "js-yaml": "5.2.2",
     "postcss": "8.5.22",
     "sharp": "0.35.3"
   },
   "scripts": {
+    "admin:bootstrap": "dotenv -e .env -- npm run admin:bootstrap --workspace=@fenix/api",
     "build": "npm run build --workspaces --if-present",
     "check": "npm run format:check && npm run lint && npm run typecheck && npm test && npm run prisma:validate && npm run build",
     "dev": "concurrently --kill-others-on-fail --names web,api --prefix-colors cyan,magenta \"npm run dev:web\" \"npm run dev:api\"",
@@ -27,9 +30,17 @@
     "lint": "eslint . --max-warnings=0",
     "prisma:format": "prisma format",
     "prisma:generate": "dotenv -e .env.example -- prisma generate",
+    "prisma:migrate:deploy": "prisma migrate deploy",
+    "prisma:migrate:dev": "prisma migrate dev",
+    "prisma:migrate:diff": "prisma migrate diff --from-schema-datasource prisma/schema.prisma --to-schema-datamodel prisma/schema.prisma --exit-code",
+    "prisma:migrate:status": "prisma migrate status",
+    "prisma:migrate:verify": "node --test scripts/prisma-database-scope.spec.cjs",
     "prisma:validate": "dotenv -e .env.example -- prisma validate",
     "smoke": "node scripts/smoke-runtime.mjs",
-    "test": "node --test scripts/startup.spec.cjs && npm run test --workspaces --if-present",
+    "test": "node --test scripts/startup.spec.cjs scripts/prisma-phase-scope.spec.cjs && npm run test --workspaces --if-present",
+    "test:phase1:integration": "node scripts/phase1-auth-integration.mjs",
+    "test:phase2:integration": "node scripts/phase2-sports-integration.mjs",
+    "test:phase3:integration": "node scripts/phase3-finance-integration.mjs",
     "typecheck": "npm run typecheck --workspaces --if-present"
   },
   "devDependencies": {

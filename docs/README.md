@@ -32,7 +32,10 @@ Quando as fontes divergirem, a divergência é mantida em [`PENDENCIAS.md`](../P
 | [17-DECISOES-TECNICAS](./17-DECISOES-TECNICAS.md) | registros de decisão |
 | [18-ESTUDO-DE-VIABILIDADE](./18-ESTUDO-DE-VIABILIDADE.md) | viabilidade e riscos |
 | [19-RELATORIO-FASE-0](./19-RELATORIO-FASE-0.md) | entrega, validações e próximos passos |
+| [20-RELATORIO-FASE-1-ADMIN-AUDITORIA](./20-RELATORIO-FASE-1-ADMIN-AUDITORIA.md) | implementação, validações e bloqueios do recorte administrativo da Fase 1 |
+| [21-RELATORIO-FINALIZACAO-FASE-1-INICIO-FASES-2-3](./21-RELATORIO-FINALIZACAO-FASE-1-INICIO-FASES-2-3.md) | finalização técnica da Fase 1, primeiras entregas verticais das Fases 2 e 3, migrations, testes e bloqueios |
 | [diagramas/ERD](./diagramas/ERD.md) | relacionamentos Mermaid |
+| [referencias/schema-conceitual.prisma](./referencias/schema-conceitual.prisma) | visão futura não executável; o schema físico fica em `prisma/schema.prisma` |
 
 ## Governança
 

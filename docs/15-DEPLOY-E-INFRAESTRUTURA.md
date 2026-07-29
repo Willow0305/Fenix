@@ -1,6 +1,6 @@
 # Deploy e infraestrutura
 
-## 1. Escopo da Fase 0
+## 1. Base local das Fases 1 a 3
 
 O ambiente inicial valida:
 
@@ -8,9 +8,16 @@ O ambiente inicial valida:
 - formatação, lint, tipos, testes, validação Prisma e build de web, API e pacotes;
 - inicialização local da página Next.js;
 - inicialização local da API NestJS e seu endpoint de saúde;
-- PostgreSQL via Docker Compose.
+- PostgreSQL via Docker Compose;
+- Redis local para rate limit distribuído;
+- captura de e-mail local efêmera via Mailpit;
+- migrations físicas incrementais da fase vigente em banco isolado.
 
-O Compose não representa uma topologia de produção e não inclui aplicação, proxy, armazenamento, e-mail ou gateway de pagamento.
+O Compose não representa uma topologia de produção e não inclui aplicação, proxy,
+armazenamento, provedor real de e-mail ou gateway de pagamento. Mailpit serve
+somente para capturar mensagens locais e não possui dados persistentes. As
+entregas técnicas das Fases 1 a 3 estão autorizadas somente para desenvolvimento
+local/teste com dados fictícios.
 
 ## 2. Ambientes
 
@@ -71,11 +78,16 @@ Fluxo esperado:
 
 ```bash
 npm ci
-docker compose up -d postgres
+docker compose up -d postgres redis mailpit
+npm run prisma:migrate:deploy
+npm run admin:bootstrap
 npm run dev
 ```
 
 As portas, nomes de scripts e comandos de verificação oficiais são mantidos no [`README.md`](../README.md). Copie `.env.example` para `.env` apenas localmente e nunca inclua segredos reais no exemplo.
+As três variáveis `BOOTSTRAP_ADMIN_*` devem ser fornecidas somente no ambiente do
+comando. O bootstrap usa trava transacional, falha se já houver administrador,
+não pode ser executado em produção e registra a criação na auditoria.
 
 ## 5. PostgreSQL local
 
@@ -108,25 +120,59 @@ Categorias previstas:
 | runtime | `NODE_ENV`, portas e URLs públicas | valor por ambiente |
 | banco | `DATABASE_URL` | segredo fora do repositório |
 | autenticação | chaves e durações | cofre, rotação e separação por ambiente |
+| MFA | chave de criptografia e versão | 32 bytes, rotação controlada e nunca exposta |
+| rate limit | `REDIS_URL` e limites por política | Redis obrigatório fora de desenvolvimento/teste |
 | CORS/cookies | origens e domínio | lista explícita |
 | arquivos | bucket, região e credenciais | menor privilégio |
 | e-mail | remetente e credencial | domínio verificado |
 | observabilidade | endpoint e chave | sem payload pessoal desnecessário |
 | pagamentos | chaves e segredo de webhook | somente a partir da fase autorizada |
+| governança | responsáveis, contatos e aceite de release | obrigatórios em staging/produção |
 
-A aplicação deve falhar cedo quando uma variável obrigatória estiver ausente ou inválida.
+A aplicação falha cedo quando uma variável obrigatória está ausente ou inválida.
+Em staging/produção, `RESPONSIBLE_TECHNOLOGY`, `RESPONSIBLE_PRIVACY`,
+`RESPONSIBLE_SECURITY`, `SECURITY_CONTACT_EMAIL`, `PRIVACY_CONTACT_EMAIL`,
+`PRODUCTION_RELEASE_APPROVED`, Redis, cookies seguros e segredos fortes são
+gates obrigatórios. Dados reais de menores e coleta de saúde permanecem
+desabilitados por padrão.
 No ambiente local, o Next.js recebe sua porta pela variável nativa `PORT`, enquanto a API usa `API_PORT`. Os scripts não dependem de expansão de variável específica do shell.
 
 ## 7. Banco, migrations e seed
 
-Estratégia futura:
+Estratégia vigente conforme `PEN-052` e `DT-024`:
 
-1. mudanças entram em `schema.prisma`;
-2. migration é criada e revisada no desenvolvimento;
-3. CI valida formatação, schema e compatibilidade;
-4. backup e plano de rollback são verificados para alterações de risco;
-5. deployment executa migration uma única vez antes de liberar a versão;
-6. seed de produção contém apenas dados institucionais autorizados, nunca dados pessoais de exemplo.
+1. `docs/referencias/schema-conceitual.prisma`, dicionário e ERD mantêm a visão futura e não são usados por `prisma migrate`;
+2. somente modelos da fase e tarefa autorizadas entram em `prisma/schema.prisma`;
+3. cada promoção gera migration própria, documentação, testes e allowlist contra tabelas futuras;
+4. CI valida formatação, schema, escopo e compatibilidade;
+5. a migration é aplicada desde banco vazio e reaplicada por `prisma migrate deploy` em PostgreSQL isolado;
+6. backup e plano de rollback são verificados para alterações de risco;
+7. deployment executa migrations antes de liberar a versão;
+8. seed de produção contém apenas dados institucionais autorizados, nunca dados pessoais de exemplo.
+
+Comandos oficiais:
+
+```bash
+npm run prisma:migrate:dev
+npm run prisma:migrate:deploy
+npm run prisma:migrate:verify
+npm run prisma:migrate:diff
+npm run prisma:migrate:status
+```
+
+As migrations físicas atuais, todas aditivas, são:
+
+1. `fase_1_identidade_acesso`;
+2. `fase_1_admin_auditoria`;
+3. `fase_1_seguranca_privacidade`;
+4. `fase_2_esportivo`;
+5. `fase_2_guardian_relationship`;
+6. `fase_3_caixa_fenix`.
+
+O gate aplica todas desde banco vazio, compara PostgreSQL ao schema físico e
+executa verificações de UUID, `NUMERIC(19,4)`, constraints, FKs e triggers. Um
+segundo cenário monta somente as três migrations da Fase 1 e então valida o
+upgrade incremental para as Fases 2 e 3 sem diferença de schema.
 
 Não se usa `db push` como mecanismo de mudança de produção. Migrations destrutivas exigem plano específico e aprovação.
 
@@ -148,7 +194,11 @@ flowchart LR
 
 O gate executável de validação é `npm run check`, após `npm ci`; ele agrega formatação, lint, tipos, testes, validação Prisma e build. Em pull requests, o pipeline termina antes do deploy. Produção exige branch protegida, revisão, ambiente protegido e aprovação definida pela governança do projeto.
 
-A CI da Fase 0 também executa `npm audit --audit-level=high` e o smoke de web/API. Varredura de imagem, segredos e código será adicionada somente com ferramenta aprovada e pinada; até lá, permanece requisito do pipeline-alvo, não controle já implantado.
+A CI também executa `npm audit --audit-level=high`, smoke de web/API/Swagger/
+OpenAPI, migrations em banco vazio e gates integrados independentes para Fase 1,
+Fase 2 e Fase 3. Varredura de
+imagem, segredos e código será adicionada somente com ferramenta aprovada e
+pinada; até lá, permanece requisito do pipeline-alvo, não controle já implantado.
 
 ## 9. Estratégia de release
 
@@ -203,4 +253,9 @@ Alertas precisam de severidade, janela, canal e responsável. Logs não substitu
 
 ## 13. Pendências para produção
 
-Provedor, domínio, orçamento, região de dados, escala, objetivos de recuperação, monitoramento, e-mail e armazenamento ainda precisam de aprovação. Consulte [`PENDENCIAS.md`](../PENDENCIAS.md) e [18-ESTUDO-DE-VIABILIDADE.md](./18-ESTUDO-DE-VIABILIDADE.md).
+Responsáveis formais por Tecnologia, Privacidade, Segurança e Financeiro,
+provedor, domínio, orçamento, região de dados, escala, RPO/RTO, teste operacional
+de restauração, monitoramento, canal de segurança, e-mail e armazenamento ainda
+precisam de aprovação. Nenhum gateway financeiro foi escolhido. Consulte
+[`PENDENCIAS.md`](../PENDENCIAS.md) e
+[18-ESTUDO-DE-VIABILIDADE.md](./18-ESTUDO-DE-VIABILIDADE.md).

@@ -2,7 +2,7 @@
 
 ## Modelo de autorização
 
-O sistema deve combinar papéis (RBAC) com permissões granulares. `DT-007` aceita que um usuário receba múltiplos papéis; as combinações permitidas, incompatibilidades e precedência de conflitos continuam provisórias em `PEN-007`. O papel facilita a atribuição inicial, mas cada operação administrativa é validada no servidor por permissão específica e no contexto do recurso. Ser “administrador” não elimina restrições de auditoria, privacidade ou segregação financeira.
+O sistema deve combinar papéis (RBAC) com permissões granulares. `DT-007` aceita que um usuário receba múltiplos papéis, e `PEN-007` aprova a matriz documental inicial para a Fase 1. O papel facilita a atribuição inicial, mas cada operação administrativa é validada no servidor por permissão específica e no contexto do recurso. Ser “administrador” não elimina restrições de auditoria, privacidade ou segregação financeira.
 
 ## Perfis confirmados e contextos complementares
 
@@ -15,6 +15,48 @@ O sistema deve combinar papéis (RBAC) com permissões granulares. `DT-007` acei
 | Administrador | RF-007, RF-023 | Usuários, papéis, permissões, configurações e governança técnica; operações de negócio somente quando concedidas. |
 | Parceiro/profissional | Complemento provisório | Pode confirmar agenda ou consultar operação própria apenas se um portal e suas permissões forem aprovados. |
 | Responsável por atleta | Público-alvo, provisório | Acesso depende de vínculo, representação, escopo e regras para menores ainda não definidos. |
+
+## Funções aprovadas para a Fase 1
+
+A matriz documental aprovada em 24/07/2026 define estes perfis como referência inicial de implementação:
+
+| Perfil | Diretriz de acesso |
+|---|---|
+| Administrador | Acesso total às funções administrativas, restrito a poucas pessoas de confiança, sempre com auditoria para ações sensíveis. |
+| Diretoria | Acesso administrativo conforme função, podendo consultar relatórios, acompanhar módulos operacionais e aprovar/rejeitar solicitações quando autorizado. |
+| Atleta | Acesso à própria conta, dados cadastrais, mensalidades, comunicados, eventos, loja, favoritos e fórum conforme regras de visibilidade. |
+| Responsável Legal | Acesso limitado ao atleta vinculado quando aplicável; obrigatório para atleta menor de idade antes de uso completo com dados reais, condicionado a `PEN-010`. |
+| Moderador | Moderação de fóruns, comentários e interações, com registro de autor, alvo, motivo, data/hora e penalidade. |
+| Financeiro | Controle de entradas, saídas, comprovantes, relatórios, contas a pagar/receber e status de pagamentos. |
+| Tesoureiro | Autoridade financeira para aprovar/rejeitar despesas, confirmar pagamentos, fechar caixa, autorizar reembolsos e corrigir movimentações mediante justificativa. |
+| Assistente Financeiro | Apoio ao registro financeiro; ações sensíveis permanecem pendentes de aprovação do Tesoureiro. |
+| Parceiro | Acesso não administrativo e limitado aos próprios produtos, estoque, pedidos, mensagens e vendas quando liberado. |
+| Comunicação Externa | Comunicação institucional com parceiros, fornecedores, imprensa e patrocinadores, sem acesso automático a finanças, dados sensíveis ou administração geral. |
+
+### Diretoria e responsáveis informados
+
+| Área | Função | Responsável |
+|---|---|---|
+| Executiva Administrativa | Presidente | André |
+| Executiva Administrativa | Vice-presidente | A definir |
+| Executiva Administrativa | Diretor Financeiro | Raily |
+| Executiva Administrativa | Diretor Jurídico | Kaká |
+| Executiva Administrativa | Secretário Geral | William |
+| Esportiva | Diretor de Vôlei | A definir |
+| Comissão Técnica Masculina | Técnico Principal | A definir |
+| Comissão Técnica Masculina | Auxiliar Técnico | A definir |
+| Comissão Técnica Feminina | Técnico Principal | André |
+| Comissão Técnica Feminina | Auxiliar Técnico | A definir |
+| Comissão Técnica Feminina | Auxiliar Técnico | Menezes |
+| Marketing, Comunicação e Comercial | Diretor de Marketing | André |
+| Marketing, Comunicação e Comercial | Social Media | Kaká e Madu |
+| Marketing, Comunicação e Comercial | Designer Gráfico | Vinícius |
+| Marketing, Comunicação e Comercial | Gerente Comercial | Vinícius |
+| Marketing, Comunicação e Comercial | Responsável por Eventos | André |
+| Operacional e Logística | Responsável por Material Esportivo | André |
+| Base, Formação e Projetos Sociais | Coordenador de Projetos Sociais | Beatriz |
+
+Conselheiros cadastrados: Lucas Cavalcante, Faby, Mellanie, Primo, Adê, Guillermo, Márcio, Yago, Jan, Éder, Gabriela e Ervelyn. O acesso de conselheiro é consultivo por padrão e não concede automaticamente ações administrativas, financeiras ou operacionais.
 
 ## Legenda da matriz
 
@@ -64,15 +106,34 @@ O sistema deve combinar papéis (RBAC) com permissões granulares. `DT-007` acei
 
 ## Catálogo inicial de permissões
 
-Os códigos são uma proposta técnica provisória; nomes definitivos devem coincidir com a API e os testes.
+Os códigos abaixo são a base técnica inicial para a Fase 1. Nomes definitivos devem coincidir com a API e os testes.
+
+### Recorte físico vigente das Fases 1 a 3
+
+| Papel físico | Permissões efetivas neste recorte |
+|---|---|
+| `ADMIN` | governança de usuários, papéis, sessões, MFA administrativo, privacidade, retenção e auditoria; não recebe finanças/esportivo implicitamente |
+| `BOARD` | `users.read`, `audit.read` e todas as permissões `sports.*`/esportivas da entrega vertical |
+| `FINANCE` | leitura, catálogos, planos, cobranças, registro de pagamentos, lançamentos pendentes e obrigações; sem aprovação |
+| `FINANCE_ASSISTANT` | mesmo recorte operacional pendente de decisão do tesoureiro |
+| `TREASURER` | todas as permissões `finance.*`, incluindo conciliação, aprovação, reversão, transferências e fechamento |
+| `USER` | nenhuma capacidade administrativa |
+
+O papel `ADMIN` é protegido contra alteração de seu catálogo e o sistema impede
+remover, bloquear ou inativar o último administrador ativo. Contas
+`BLOCKED`/`INACTIVE` e sessões revogadas não autenticam. O menu do frontend é
+derivado das permissões, mas a API continua sendo a autoridade.
+
+MFA é obrigatório para todos os papéis privilegiados acima. A separação entre
+`ADMIN`, `BOARD` e funções financeiras é intencional: administração técnica não
+concede acesso automático a cadastro esportivo ou razão financeiro.
 
 | Domínio | Permissões mínimas |
 |---|---|
 | Usuários | `users.read`, `users.create`, `users.update`, `roles.assign`, `permissions.manage`, `sessions.revoke` |
-| Atletas | `athletes.read`, `athletes.create`, `athletes.update`, `athletes.status.change`, `teams.assign` |
-| Inscrições | `registrations.read`, `registrations.review`, `tryouts.manage` |
-| Mensalidades | `fees.read`, `fees.generate`, `payments.record`, `payments.confirm`, `payments.correct` |
-| Caixa | `finance.read`, `transactions.create`, `transactions.confirm`, `transactions.cancel`, `refunds.create`, `cash.reconcile`, `cash.close`, `cash.reopen` |
+| Atletas | `sports.read`, `athletes.read`, `athletes.create`, `athletes.update`, `teams.assign`, `guardians.manage` |
+| Inscrições | `registrations.read`, `registrations.review`, `registrations.convert`, `tryouts.manage` |
+| Caixa | `finance.read`, `finance.catalogs.manage`, `finance.plans.manage`, `finance.charges.manage`, `finance.payments.record`, `finance.payments.reconcile`, `finance.entries.create`, `finance.entries.approve`, `finance.reverse`, `finance.transfers.manage`, `finance.obligations.manage`, `finance.cash.operate`, `finance.cash.close` |
 | Arquivos | `files.upload`, `files.read.restricted`, `files.delete.logical` |
 | Loja | `products.manage`, `inventory.adjust`, `orders.read`, `orders.status.change`, `campaigns.manage` |
 | Parceiros | `partners.manage`, `partner.documents.read`, `services.manage`, `appointments.manage`, `settlements.manage` |

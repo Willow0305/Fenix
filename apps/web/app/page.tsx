@@ -1,48 +1,55 @@
-import { TechnicalStatus } from '@fenix/ui';
+import Link from 'next/link';
 
+import { BrandLogo } from './components/brand-logo';
 import styles from './page.module.scss';
 
 export default function HomePage() {
   return (
     <main className={styles.page}>
-      <section aria-labelledby="page-title" className={styles.card}>
-        <header className={styles.header}>
-          <p className={styles.eyebrow}>Fundação técnica · Fase 0</p>
-          <h1 id="page-title">Fênix Vôlei</h1>
+      <nav className={styles.navigation} aria-label="Navegação principal">
+        <Link className={styles.brand} href="/">
+          <BrandLogo />
+          Fênix Vôlei
+        </Link>
+        <Link className={styles.loginLink} href="/login">
+          Entrar
+        </Link>
+      </nav>
+
+      <section className={styles.hero} aria-labelledby="page-title">
+        <div className={styles.copy}>
+          <p className={styles.eyebrow}>Gestão integrada · Fases 1–3</p>
+          <h1 id="page-title">Uma base segura para organizar o Fênix.</h1>
           <p className={styles.lead}>
-            Uma base segura e modular para evoluir o sistema, etapa por etapa.
+            Identidade, operação esportiva e Caixa Fênix reunidos com permissões granulares, sessões
+            revogáveis e auditoria funcional.
           </p>
-        </header>
-
-        <TechnicalStatus
-          className={styles.status}
-          indicatorClassName={styles.statusIndicator}
-          label="Esqueleto técnico operacional"
-        >
-          <span className={styles.statusDescription}>
-            Esta página confirma a renderização da interface inicial.
-          </span>
-        </TechnicalStatus>
-
-        <dl aria-label="Tecnologias validadas pela interface" className={styles.stack}>
-          <div>
-            <dt>Interface</dt>
-            <dd>Next.js e React</dd>
+          <div className={styles.actions}>
+            <Link className={styles.primaryAction} href="/login">
+              Acessar área restrita
+            </Link>
+            <Link className={styles.secondaryAction} href="/recuperar-senha">
+              Recuperar acesso
+            </Link>
           </div>
-          <div>
-            <dt>Contrato</dt>
-            <dd>TypeScript strict</dd>
-          </div>
-          <div>
-            <dt>Estilos</dt>
-            <dd>SCSS Modules</dd>
-          </div>
-        </dl>
+        </div>
 
-        <footer className={styles.footer}>
-          Esta tela valida somente a infraestrutura. Nenhum módulo de negócio está ativo.
-        </footer>
+        <aside className={styles.statusCard} aria-label="Escopo vigente">
+          <p>Escopo vigente</p>
+          <strong>Entregas técnicas das Fases 1–3</strong>
+          <ul>
+            <li>Login e recuperação segura</li>
+            <li>Equipes, atletas e seletivas</li>
+            <li>Conciliação e Caixa Fênix</li>
+          </ul>
+          <small>Somente ambiente local/teste e dados fictícios.</small>
+        </aside>
       </section>
+
+      <footer className={styles.footer}>
+        <span>Fênix Vôlei</span>
+        <span>Ambiente local/teste com dados fictícios</span>
+      </footer>
     </main>
   );
 }

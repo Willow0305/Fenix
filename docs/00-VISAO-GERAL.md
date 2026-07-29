@@ -7,14 +7,20 @@
 | Produto | Plataforma web oficial para gestão do Time Fênix de Vôlei |
 | Documento-base | `referencias/documento_requisitos_fenix_volei_melhorado.pdf`, versão 1.1 de 23/07/2026 |
 | Complemento de escopo | Briefing técnico anexado à solicitação inicial |
-| Estado desta especificação | Consolidação inicial da Fase 0; itens marcados como provisórios ainda exigem decisão |
-| Fase vigente | Fase 0 — Planejamento e infraestrutura |
+| Estado desta especificação | Baseline aprovada; Fase 1 técnica e primeiras entregas verticais das Fases 2 e 3 concluídas em local/teste |
+| Fase vigente | Fases 2 e 3 — entregas verticais administrativas com dados fictícios; produção bloqueada |
 
 ## Resumo executivo
 
 O Fênix Vôlei será uma aplicação web responsiva para centralizar processos hoje sujeitos a controles dispersos: divulgação pública, interessados e seletivas, cadastro de atletas, mensalidades, Caixa Fênix, loja, remessas, parceiros, serviços, notícias, fórum, notificações e relatórios.
 
 O produto atende principalmente à diretoria, atletas, interessados, responsáveis e compradores. A solução completa é ampla, portanto será entregue em fases. A Fase 0 prepara documentação, arquitetura, ambiente, banco inicial, integração contínua e padrões de qualidade; ela não autoriza a implementação antecipada dos módulos funcionais.
+
+Entre 27 e 29/07/2026, a Fase 1 foi tecnicamente concluída e foram entregues as
+primeiras verticais administrativas do módulo esportivo e do Caixa Fênix.
+Autenticação, MFA, RBAC, auditoria, equipes, atletas, seletivas, cobranças,
+pagamentos e razão são funcionais em local/teste. Isso não autoriza produção,
+dados reais, menores reais ou os módulos posteriores.
 
 ## Problema a resolver
 
@@ -82,7 +88,7 @@ As fontes têm papéis complementares, não uma ordem única de precedência apl
 | Documento-base em PDF | Fonte principal do escopo funcional original e dos identificadores RF/RNF; não deve ser reduzido silenciosamente |
 | Briefing técnico anexado | Ampliações, restrições e direcionadores solicitados para esta consolidação |
 | `AGENTS.md` | Regra vinculante para a forma de executar o trabalho no repositório, inclusive dados, segurança, qualidade e tratamento de divergências |
-| Documentos versionados em `docs/` | Especificação consolidada e rastreável para implementação incremental, sujeita à aprovação registrada em `PEN-001` |
+| Documentos versionados em `docs/` | Especificação consolidada e rastreável para implementação incremental; baseline aprovada em `PEN-001` |
 
 Em divergência funcional entre as fontes, a equipe não escolhe silenciosamente: registra a questão em [`PENDENCIAS.md`](../PENDENCIAS.md). Uma mudança de requisito exige aprovação explícita e os registros determinados por `AGENTS.md`.
 

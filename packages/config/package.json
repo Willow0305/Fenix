@@ -9,7 +9,7 @@
     "typescript"
   ],
   "scripts": {
-    "test": "node --test typescript/nestjs.spec.cjs"
+    "test": "node --test typescript/nestjs.spec.cjs typescript/library.spec.cjs"
   },
   "exports": {
     "./eslint": "./eslint/base.mjs",

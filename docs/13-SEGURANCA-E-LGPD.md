@@ -45,17 +45,43 @@ Este documento define controles mínimos e decisões bloqueadoras. Ele não cert
 
 ## Autenticação e sessão
 
+**Estado do recorte local/teste:** bcrypt com custo configurável (12 no exemplo),
+access JWT HS256 de 45 minutos em cookie `HttpOnly`, refresh opaco armazenado como
+HMAC, rotação com detecção de reutilização, CSRF de duplo envio vinculado à
+sessão, bloqueio temporário por conta e recuperação por código HMAC de uso único.
+IP e agente de usuário entram na auditoria somente como hashes contextuais. Em
+produção, segredos/pepper com menos de 32 caracteres, CORS ausente ou curinga e
+cookies sem a configuração segura impedem a inicialização ou violam o gate
+documentado.
+
+Os parâmetros técnicos canônicos são configuráveis e validados na inicialização:
+45 minutos de inatividade/access, 30 dias de duração absoluta, código de
+recuperação por 10 minutos com até cinco tentativas, cinco falhas de login em
+janela de 15 minutos, bloqueio inicial de 15 minutos e verificação de e-mail por
+24 horas. MFA TOTP é funcional e obrigatório para `ADMIN`, `BOARD`, `FINANCE`,
+`FINANCE_ASSISTANT` e `TREASURER`, com códigos de recuperação de uso único.
+Segredo TOTP é criptografado em repouso; tokens e códigos são persistidos somente
+como hash. Rate limit distribuído usa Redis e é obrigatório em staging/produção.
+
 - senha nunca é armazenada ou registrada em texto puro;
+- senha tem no mínimo doze caracteres nas criações administrativas e fluxos
+  operacionais críticos desta entrega;
 - usar Argon2id ou bcrypt com parâmetros calibrados no ambiente; a escolha e os parâmetros exigem decisão técnica e benchmark;
-- recuperação usa token aleatório, de uso único, expiração curta e armazenamento seguro;
+- access token tem duração de 45 minutos; renovação da sessão depende de atividade e de refresh rotacionável/revogável;
+- recuperação usa código aleatório enviado por e-mail, de uso único, armazenado
+  somente como hash e válido por 10 minutos;
 - resposta da recuperação não confirma se o e-mail está cadastrado;
 - refresh token deve ser rotacionável, revogável e protegido contra reutilização;
-- logout e troca de senha revogam sessões conforme política aprovada;
+- logout revoga a sessão atual e troca de senha revoga as sessões anteriores;
 - cookies de sessão, quando usados, devem ser `HttpOnly`, `Secure` em produção e `SameSite` adequado; proteção CSRF é definida conforme arquitetura;
 - não guardar token sensível em `localStorage` por conveniência sem decisão/ameaça documentada;
 - aplicar limitação e alerta a tentativas de login/recuperação;
-- operações de alto risco podem exigir reautenticação; MFA para perfis críticos deve ser avaliado antes de produção financeira;
-- verificação de e-mail é condicionada à fase/decisão, mas seu eventual token segue os mesmos controles.
+- desativar MFA exige senha e código válido; recuperação administrativa é
+  restrita, auditada e não pode deixar o último administrador sem acesso seguro;
+- verificação de e-mail usa token de uso único, hash, expiração de 24 horas e
+  reenvio limitado sem enumerar contas;
+- operações de alto risco continuam candidatas a reautenticação adicional
+  conforme a topologia final e o risco aprovado.
 
 ## Autorização
 
@@ -235,6 +261,11 @@ Dados de saúde/prontuário continuam fora do escopo, mesmo com responsável.
 
 Antes de produção:
 
+- [x] aplicação recusa inicialização sem responsáveis de Tecnologia, Privacidade
+  e Segurança, contatos de privacidade/segurança, Redis, cookies seguros e aceite
+  explícito de release;
+- [x] estrutura técnica de solicitação do titular, retenção configurável,
+  metadados de anexos privados e auditoria append-only implementada;
 - [ ] inventário, finalidades, bases e retenção aprovados;
 - [ ] análise LGPD/ECA Digital e de menores concluída;
 - [ ] política/termos/canal do titular publicados e coerentes;
@@ -262,7 +293,7 @@ Antes de produção:
 - agentes de tratamento, encarregado/canal e bases por finalidade;
 - enquadramento e medidas exigidas pelo ECA Digital;
 - mecanismo proporcional de idade/supervisão e acesso do responsável;
-- hash e parâmetros, sessão, MFA e reautenticação;
+- hash e parâmetros, duração exata de inatividade/recuperação, tentativas e bloqueio, refresh, limite de sessões, MFA, verificação de e-mail, CSRF e reautenticação;
 - limites de rate, upload e retenção;
 - RPO/RTO e localização de dados;
 - política de moderação, imagem e conteúdo de menores;

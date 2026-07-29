@@ -1,0 +1,34 @@
+declare const styles: {
+  readonly actions: string;
+  readonly active: string;
+  readonly badge: string;
+  readonly brand: string;
+  readonly brandMark: string;
+  readonly checks: string;
+  readonly empty: string;
+  readonly error: string;
+  readonly eyebrow: string;
+  readonly formGrid: string;
+  readonly grid: string;
+  readonly loading: string;
+  readonly main: string;
+  readonly metric: string;
+  readonly nav: string;
+  readonly notice: string;
+  readonly pageHeader: string;
+  readonly panel: string;
+  readonly panelHeader: string;
+  readonly primaryButton: string;
+  readonly profile: string;
+  readonly roleCard: string;
+  readonly roleGrid: string;
+  readonly scope: string;
+  readonly shell: string;
+  readonly sidebar: string;
+  readonly statusActive: string;
+  readonly statusBlocked: string;
+  readonly table: string;
+  readonly tableWrap: string;
+};
+
+export default styles;

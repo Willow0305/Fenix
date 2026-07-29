@@ -14,8 +14,15 @@
 | RN-AUT-002 | Autenticação deve oferecer login, logout e recuperação de senha, sem guardar senha reversível. | Definida | RF-006, RNF-003 |
 | RN-AUT-003 | Toda ação administrativa deve ser autenticada e autorizada no servidor por permissão específica. | Definida | RF-007, RNF-005 |
 | RN-AUT-004 | O front-end pode ocultar ações, mas não é autoridade de autorização. | Definida | `AGENTS.md` |
-| RN-AUT-005 | O modelo RBAC aceita múltiplos papéis por usuário conforme `DT-007`; quais combinações são permitidas e como tratar conflitos dependem da matriz aprovada em `PEN-007`. | Definida quanto ao mecanismo; matriz provisória | `DT-007`; `PEN-007`; `05-PERFIS-E-PERMISSOES.md` |
+| RN-AUT-005 | O modelo RBAC aceita múltiplos papéis por usuário conforme `DT-007`; a matriz documental inicial está aprovada em `PEN-007`, enquanto incompatibilidades finas e conflitos operacionais devem ser tratados por permissão específica e testes da Fase 1. | Definida para documentação da Fase 1 | `DT-007`; `PEN-007`; `05-PERFIS-E-PERMISSOES.md` |
 | RN-AUT-006 | Acesso de responsável a dados de atleta exige vínculo, escopo e fundamento jurídico previamente definidos. | Provisória | Público-alvo do PDF; LGPD |
+| RN-AUT-007 | Cadastro livre cria somente conta comum por e-mail e senha; qualquer papel privilegiado depende de concessão ou aprovação manual por perfil autorizado e não pode ser autoatribuído. | Definida para a base da Fase 1 local/teste | `PEN-008` |
+| RN-AUT-008 | Senha é armazenada somente com hash adaptativo; access/inatividade duram 45 minutos, sessão tem máximo absoluto de 30 dias e refresh é rotativo, revogável e de uso único. | Definida tecnicamente para a entrega local/teste | Tarefa `finalizar_fase_1`; `DT-026` |
+| RN-AUT-009 | Recuperação usa código de uso único enviado por e-mail, armazenado somente como hash, válido por 10 minutos, com até cinco tentativas e resposta não enumerável. | Definida tecnicamente para a entrega local/teste | Tarefa `finalizar_fase_1`; `DT-026` |
+| RN-AUT-010 | O primeiro administrador só pode ser criado por mecanismo operacional restrito, uma única vez, fora de produção e com auditoria; não existe criação pública de administrador. | Definida para `fase_1_admin_auditoria` | Objetivo da tarefa; `DT-025` |
+| RN-AUT-011 | Não é permitido remover o papel, bloquear ou inativar o último administrador ativo. | Definida para `fase_1_admin_auditoria` | Continuidade administrativa; `DT-025` |
+| RN-AUT-012 | Verificação de e-mail usa token de uso único armazenado como hash, válido por 24 horas e com reenvio limitado sem enumerar contas. | Definida tecnicamente para local/teste | Tarefa `finalizar_fase_1`; `DT-026` |
+| RN-AUT-013 | MFA TOTP é obrigatório para papéis privilegiados e opcional para `USER`; segredo é protegido em repouso e recuperação usa códigos de uso único sem registro em auditoria. | Definida tecnicamente para local/teste | Tarefa `finalizar_fase_1`; `DT-026` |
 
 ## Interessados, seletivas, atletas e equipes
 
@@ -23,12 +30,14 @@
 |---|---|---|---|
 | RN-ATL-001 | Cadastro de interessado e inscrição em seletiva são registros distintos, embora possam compartilhar dados de contato. | Definida | RF-003, RF-004 |
 | RN-ATL-002 | Apenas seletiva ativa e apta a receber inscrições pode aceitar nova inscrição. | Definida | RF-004 |
-| RN-ATL-003 | Estados canônicos da inscrição incluem nova, em análise, aprovada, recusada e compareceu; o PDF técnico também cita “não compareceu”. A inclusão deste último no fluxo final é provisória. | Provisória | RF-004; SQL ilustrativo do PDF |
+| RN-ATL-003 | A inscrição preserva histórico de nova, em análise, espera, aprovada, rejeitada, compareceu, não compareceu, convertida e cancelada conforme transições permitidas no domínio. | Definida para a entrega vertical fictícia | Tarefa da Fase 2; `DT-027` |
 | RN-ATL-004 | Aprovar inscrição não deve apagar sua origem; a eventual criação de atleta mantém vínculo rastreável. | Definida | Relacionamentos do PDF, RF-004, RF-008 |
 | RN-ATL-005 | Alterações importantes do atleta registram autoria e histórico na extensão permitida pela LGPD. | Definida | RF-009, RF-024 |
 | RN-ATL-006 | O vínculo atleta–equipe possui período e preserva histórico; terminar um vínculo não apaga os anteriores. | Definida | RF-010 |
-| RN-ATL-007 | Critérios de duplicidade, campos obrigatórios, sobreposição de vínculos e conversão de inscrição em atleta ainda precisam de aprovação. | Provisória | Pontos em aberto do PDF |
+| RN-ATL-007 | Possível duplicidade gera alerta por fingerprint protegido e nunca fusão automática; conversão exige inscrição aprovada, autorização e transação serializável auditada. | Definida para a entrega vertical fictícia | Tarefa da Fase 2; `DT-027` |
 | RN-ATL-008 | Dados de saúde e prontuário não integram o cadastro de atleta nesta fase. | Definida | `AGENTS.md`, briefing §10 |
+| RN-ATL-009 | Conta comum não vira atleta automaticamente e perfil esportivo permanece separado de `User`. | Definida | Tarefa da Fase 2 |
+| RN-ATL-010 | Menor exige responsável vinculado e autorização válida; dados reais de menores permanecem proibidos fora de decisão LGPD/institucional. | Definida tecnicamente; uso real bloqueado | `PEN-010`; `DT-027` |
 
 ## Planos, mensalidades e pagamentos
 
@@ -58,6 +67,11 @@
 | RN-FIN-010 | Fechamento registra conta, período, saldo esperado/contado, diferença, observação e responsável. | Definida | RF-030 |
 | RN-FIN-011 | Reabertura exige permissão específica, motivo e auditoria; o fechamento anterior permanece histórico. | Definida | Briefing §8 |
 | RN-FIN-012 | Regras de competência, aprovação, anexos obrigatórios, categorias e periodicidade de fechamento ainda precisam ser aprovadas. | Provisória | Estudo de riscos do PDF |
+| RN-FIN-013 | BRL é a moeda da entrega e todo valor físico usa `NUMERIC(19,4)`; contratos representam dinheiro como string decimal. | Definida tecnicamente | Tarefa da Fase 3; `DT-028` |
+| RN-FIN-014 | Alterar plano cria nova versão imutável; cobrança preserva versão, competência, vencimento e valor originais. | Definida para a entrega vertical | Tarefa da Fase 3; `DT-028` |
+| RN-FIN-015 | Pagamento parcial mantém saldo aberto; excedente exige destino explícito e pode gerar crédito; conciliação não pode ocorrer duas vezes. | Definida para a entrega vertical | Tarefa da Fase 3; `DT-028` |
+| RN-FIN-016 | Assistente registra pendências; tesoureiro aprova, rejeita, reverte, decide transferência e fecha caixa. | Definida para a entrega vertical | Tarefa da Fase 3; `DT-028` |
+| RN-FIN-017 | Operações críticas exigem `Idempotency-Key`, transação serializável e proteção contra concorrência. | Definida tecnicamente | Tarefa da Fase 3; `DT-028` |
 
 ## Loja, produtos, estoque e pedidos
 

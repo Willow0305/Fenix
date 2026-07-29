@@ -54,6 +54,92 @@ Os scripts raiz e o `README.md` são a fonte oficial dos comandos. O gate lógic
 
 `npm install` permanece apropriado para desenvolvimento local quando for necessário atualizar intencionalmente o lockfile. Se a nomenclatura de scripts mudar, atualizar este documento e o README no mesmo change set.
 
+## Gate incremental de persistência da Fase 1
+
+Cada recorte físico promovido conforme `PEN-052` e `DT-024` deve:
+
+1. passar em `npm run prisma:format` e `npm run prisma:validate`;
+2. ter migration SQL versionada, revisada e com nome que identifique fase e objetivo;
+3. passar no teste de allowlist de modelos, enums e tabelas autorizados;
+4. ser aplicada desde banco vazio em PostgreSQL isolado;
+5. aceitar uma segunda execução de `prisma migrate deploy` sem migration pendente;
+6. comprovar que nenhuma tabela ou enum de fase futura foi criada;
+7. consultar o catálogo real para validar UUIDs, tipos neutros de hash, índices, constraints e políticas de FK;
+8. comparar o banco migrado com `prisma/schema.prisma` e falhar diante de divergência;
+9. manter o modelo conceitual completo fora do caminho executável de migrations.
+
+O teste estático `scripts/prisma-phase-scope.spec.cjs`, incluído por `npm test`, protege a allowlist antes de acessar banco. O teste de integração `scripts/prisma-database-scope.spec.cjs` é executado por `npm run prisma:migrate:verify` depois do deploy e o comando `npm run prisma:migrate:diff` verifica a paridade física. O CI aplica a migration desde banco vazio, repete o deploy e executa as duas verificações.
+
+Em 27/07/2026, a migration `fase_1_identidade_acesso` também foi aplicada duas vezes em banco PostgreSQL temporário local: a primeira aplicação criou somente as sete tabelas autorizadas e a segunda confirmou estado idempotente sem pendências. Essa evidência valida apenas a persistência entregue, não o gate funcional completo da Fase 1 definido parcialmente em `PEN-051`.
+
+## Gate funcional de `fase_1_admin_auditoria`
+
+O script `npm run test:phase1:integration` usa PostgreSQL migrado e SMTP falso
+controlado para validar, sem expor senha ou código:
+
+1. criação única e auditada do administrador inicial;
+2. login inválido/válido, cookies, CSRF e logout;
+3. refresh rotativo, detecção de reutilização e revogação;
+4. criação de conta comum, negação de rota administrativa e auditoria do acesso;
+5. bloqueio, desbloqueio, papéis e revogação de sessões;
+6. recuperação por e-mail, código de uso único e redefinição;
+7. expiração por inatividade;
+8. presença das ações sensíveis e ausência de credenciais em `audit_logs`;
+9. rejeição física de `UPDATE` na tabela append-only.
+
+O CI executa esse gate depois de aplicar as migrations desde banco vazio,
+repetir o deploy, consultar o catálogo e verificar paridade com o schema Prisma.
+Testes unitários adicionais cobrem hash de senha/token, JWT, configuração segura,
+DTOs e componentes das telas públicas. Verificação visual interativa continua
+necessária em ambiente com navegador disponível antes do aceite integral da Fase
+1; build, renderização estática e testes de componente não a substituem.
+
+## Gates integrados das Fases 2 e 3
+
+`npm run test:phase2:integration` usa PostgreSQL/Redis isolados e dados
+exclusivamente fictícios para validar:
+
+1. MFA e RBAC da diretoria;
+2. catálogos de equipe/categoria e vínculos históricos;
+3. responsável e autorização obrigatórios para menor;
+4. estados, presença, resultado e conversão de seletiva;
+5. alerta de duplicidade sem fusão automática;
+6. concorrência na conversão, com exatamente um perfil criado;
+7. auditoria e negação de acesso.
+
+`npm run test:phase3:integration` valida:
+
+1. segregação entre assistente financeiro e tesoureiro;
+2. plano alterado como nova versão imutável;
+3. cobrança, pagamento parcial e saldo aberto;
+4. excedente convertido em crédito;
+5. idempotência e prevenção concorrente de baixa duplicada;
+6. lançamentos pendentes, aprovação, rejeição e reversão;
+7. transferências neutras com duas pernas e reversão;
+8. obrigações parciais/liquidadas;
+9. abertura e fechamento exato do caixa;
+10. auditoria sem chave idempotente, referência externa ou segredo.
+
+Em 29/07/2026, os três gates integrados passaram em bancos temporários
+independentes. As seis migrations passaram desde banco vazio e também em upgrade
+de uma baseline contendo apenas as três migrations da Fase 1. O teste físico
+validou UUID, `NUMERIC(19,4)`, constraints, FKs, triggers e histórico; o diff
+Prisma/PostgreSQL ficou vazio.
+
+O smoke validou web, health, Swagger e OpenAPI com HTTP 200. A inspeção visual
+automatizada não pôde ser executada porque a sessão não disponibilizou navegador
+integrado; isso permanece evidência pendente antes de qualquer aceite de UX para
+produção.
+
+O teste de configuração da API também valida que o schema OpenAPI do endpoint
+de saúde declara `service` e `timestamp` como `string`. Essa regressão protege a
+inicialização em desenvolvimento, na qual o carregador TypeScript precisa de
+metadados explícitos para gerar o documento Swagger.
+
+O teste de inicialização garante ainda que `dev:api` use o compilador TypeScript
+em modo watch e execute o JavaScript compilado com `node --watch`. Isso preserva
+os metadados de decorators necessários à injeção de dependência do Nest.
+
 ## Matriz de testes funcionais canônicos
 
 | Requisitos | Suítes mínimas |

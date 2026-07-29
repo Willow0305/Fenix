@@ -2,12 +2,28 @@
 
 ## 1. Situação atual
 
-Na Fase 0, a API contém somente infraestrutura e um endpoint técnico de saúde. Todos os demais recursos deste documento são **planejados**, não implementados.
+A API implementa a base técnica da Fase 1 e as primeiras entregas verticais das
+Fases 2 e 3. Todos os recursos de negócio exigem autenticação, permissão atômica
+no servidor e CSRF nas mutações autenticadas. O uso permanece restrito a
+local/teste com dados fictícios.
 
 | Método | Rota | Autenticação | Situação |
 |---|---|---|---|
-| `GET` | `/health` | não | esqueleto técnico da Fase 0 |
-| qualquer outra | `/api/v1/...` | conforme recurso | contrato futuro |
+| `GET` | `/health` | não | implementada |
+| `POST` | `/api/v1/auth/login` | não | implementada |
+| `POST` | `/api/v1/auth/refresh` | refresh + CSRF | implementada |
+| `POST` | `/api/v1/auth/logout` | sessão + CSRF | implementada |
+| `GET` | `/api/v1/auth/me` | sessão | implementada |
+| `POST` | `/api/v1/auth/password-recovery` | não | implementada; resposta não enumerável |
+| `POST` | `/api/v1/auth/password-reset` | não | implementada; código de uso único |
+| `POST` | `/api/v1/auth/email-verification/resend` e `/confirm` | público não enumerável / token | implementada; hash, frequência, 24 horas e uso único |
+| `POST` | `/api/v1/auth/mfa/...` | sessão ou desafio | matrícula, confirmação, desafio e desativação implementados |
+| `GET/POST/PATCH/PUT` | `/api/v1/users...` | sessão + permissão específica; CSRF em mutações | implementada no escopo mínimo |
+| `GET/PUT` | `/api/v1/roles...`, `/api/v1/permissions` | sessão + permissão específica; CSRF em mutações | implementada |
+| `GET` | `/api/v1/audit-logs` | `audit.read` | implementada |
+| `GET/POST/PATCH` | `/api/v1/privacy...` | permissões de privacidade; CSRF em mutações | solicitações do titular e execução de retenção |
+| `GET/POST/PATCH` | `/api/v1/sports...` | permissões `sports.*`; CSRF em mutações | equipes, categorias, atletas, responsáveis, seletivas e inscrições |
+| `GET/POST` | `/api/v1/finance...` | permissões `finance.*`; CSRF e idempotência nas operações críticas | catálogos, planos, cobranças, pagamentos, razão, transferências, obrigações e caixa |
 
 Em ambientes com `NODE_ENV` diferente de `production`, a interface Swagger fica em `/docs` e o documento JSON em `/docs/openapi.json`. Em `production`, as duas rotas respondem `404`; nenhuma delas integra o prefixo funcional `/api/v1`.
 
@@ -36,7 +52,10 @@ O JSON usa `camelCase`. Contratos não expõem nomes de colunas ou tipos interno
 
 ### 2.3 Cabeçalhos
 
-- `Authorization: Bearer <access-token>` para operações autenticadas;
+- cookies `fenix_access` e `fenix_refresh` são `HttpOnly`; o cliente não recebe
+  tokens no corpo nem os persiste em `localStorage`;
+- `X-CSRF-Token` deve repetir o cookie legível `fenix_csrf` em requisições
+  mutáveis autenticadas e no refresh;
 - `Content-Type: application/json`;
 - `X-Request-Id` aceito e devolvido quando válido, ou gerado pelo servidor;
 - `Idempotency-Key` obrigatório em confirmações de pagamento, reembolso, transferências, fechamento e webhooks futuros;
@@ -107,37 +126,49 @@ Mensagens não revelam existência de conta, hash, token, query, stack trace nem
 | 500 | falha interna sem detalhes sensíveis |
 | 503 | dependência crítica indisponível |
 
-## 4. Autenticação e autorização planejadas
+## 4. Autenticação e autorização implementadas na Fase 1
 
-Fluxo de referência:
+Fluxo vigente em ambiente local/teste:
 
 1. login valida credenciais e o estado do usuário;
-2. API emite access token de curta duração;
-3. refresh token opaco ou JWT identificável é rotacionado, armazenado somente como hash no servidor e entregue em cookie `HttpOnly`, `Secure` e com política `SameSite` adequada à topologia;
-4. logout e troca de senha revogam a sessão pertinente;
-5. recuperação de senha usa token de uso único e resposta que não enumera usuários;
-6. cada endpoint exige permissões específicas; papéis são agrupadores, não atalhos no código.
+2. API cria sessão revogável, entrega access/refresh em cookies `HttpOnly` e
+   vincula um token CSRF armazenado somente como hash no banco;
+3. access token dura 45 minutos; refresh opaco é rotacionado e sua reutilização
+   revoga as sessões ativas da conta;
+4. inatividade expira a sessão; logout, bloqueio/inativação e troca de senha
+   revogam sessões conforme o caso;
+5. falhas consecutivas bloqueiam temporariamente login ou código de recuperação;
+6. recuperação usa código numérico de uso único enviado por SMTP, com resposta
+   não enumerável e sem persistir o código em claro;
+7. cada rota administrativa exige permissões atômicas no servidor e acessos
+   negados autenticados geram auditoria;
+8. o frontend tenta um refresh seguro uma vez diante de `401` e encaminha para a
+   tela de sessão expirada se a renovação falhar.
 
-A topologia de domínios, a duração dos tokens e a proteção CSRF serão fechadas antes da implementação.
+Os parâmetros canônicos implementados aceitam variáveis de ambiente e são
+validados na inicialização: inatividade e access token de 45 minutos, duração
+absoluta de 30 dias, recuperação por 10 minutos e cinco tentativas, cinco falhas
+de login em 15 minutos, bloqueio inicial de 15 minutos e verificação de e-mail
+por 24 horas. Refresh é opaco, rotativo e de uso único; CSRF é vinculado à
+sessão. MFA TOTP é obrigatório para papéis privilegiados e opcional para
+`USER`. Rate limit usa Redis em ambiente compartilhado. Cookies usam `Secure` em
+produção e CORS exige lista explícita, nunca `*` com credenciais.
 
-## 5. Catálogo planejado
+## 5. Catálogo por estado
 
 As rotas abaixo são agrupamentos de contrato. Nomes finais serão confirmados na fase correspondente.
 
 | Grupo | Prefixo proposto | Capacidades | Fase |
 |---|---|---|---:|
-| autenticação | `/api/v1/auth` | login, refresh, logout e recuperação; verificação de e-mail somente se `RCF-015`, `PEN-008` e `PEN-013` forem aprovadas | 1; verificação condicional |
-| usuários | `/api/v1/users` | perfil, estado, sessões e administração | 1 |
-| RBAC | `/api/v1/roles`, `/api/v1/permissions` | papéis, permissões e associações | 1 |
-| configurações | `/api/v1/team-settings` | identidade, contatos, políticas e mídia | 1 |
-| atletas | `/api/v1/athletes` | cadastro, histórico e documentos | 2 |
-| equipes/categorias | `/api/v1/teams`, `/api/v1/sport-categories` | estrutura esportiva e vínculos | 2 |
-| interessados | `/api/v1/interested-people` | manifestações de interesse | 2 |
-| seletivas | `/api/v1/tryouts` | agenda, publicação e inscrições | 2 |
-| inscrições | `/api/v1/registrations` | fluxo geral e conversão controlada | 2 |
-| mensalidades | `/api/v1/monthly-fees` | planos, cobranças, baixas e inadimplência | 3 |
-| Caixa Fênix | `/api/v1/finance` | contas, categorias, centros, movimentos e fechamentos | 3 |
-| arquivos | `/api/v1/media-files` | intenção de upload, metadados e acesso autorizado | 3 |
+| autenticação | `/api/v1/auth` | login, refresh, logout, recuperação, verificação de e-mail e MFA implementados | 1 |
+| usuários | `/api/v1/users` | lista, criação de conta comum, nome, estado, papéis e revogação de sessões implementados | 1 |
+| RBAC | `/api/v1/roles`, `/api/v1/permissions` | catálogo e associação implementados; papel ADMIN é protegido | 1 |
+| privacidade | `/api/v1/privacy` | solicitações do titular e retenção implementadas; operação jurídica depende de governança | 1 |
+| esportivo | `/api/v1/sports` | equipes, categorias, atletas, histórico, responsáveis, seletivas, inscrições e conversão implementados | 2 |
+| importação esportiva | — | somente metadados físicos; processamento permanece futuro | 2 |
+| mensalidades automáticas | — | não implementadas | 3 |
+| Caixa Fênix | `/api/v1/finance` | contas, categorias, centros, planos/versionamento, cobranças, pagamentos/conciliação, razão, transferências, obrigações e fechamento implementados | 3 |
+| arquivos privados | — | somente metadados físicos; upload/objeto real bloqueado | 1–3 |
 | catálogo | `/api/v1/products` | categorias, produtos, imagens e variações | 4 |
 | estoque | `/api/v1/inventory` | movimentos, reservas, ajustes e posição | 4 |
 | carrinho/favoritos | `/api/v1/cart`, `/api/v1/favorites` | experiência da loja | 4 |
@@ -151,13 +182,13 @@ As rotas abaixo são agrupamentos de contrato. Nomes finais serão confirmados n
 | fórum | `/api/v1/forum` | categorias, tópicos, posts, reações e denúncias | 7 |
 | notificações | `/api/v1/notifications` | caixa de entrada e preferências | 7 |
 | relatórios | `/api/v1/reports` | consultas autorizadas e exportações | 8 |
-| auditoria | `/api/v1/audit-logs` | consulta restrita de trilha | 8 |
+| auditoria-base | `/api/v1/audit-logs` | consulta restrita da trilha administrativa da Fase 1 implementada; relatórios avançados permanecem na Fase 8 | 1/8 |
 
 Rotas públicas devem ser separadas por política de acesso, não por confiança no cliente. Cadastros públicos recebem rate limiting, proteção contra automação e coleta mínima.
 
 ## 6. Operações financeiras
 
-Requisitos obrigatórios para o contrato futuro:
+Requisitos aplicados ao contrato implementado:
 
 - valores nunca são `number` binário no contrato;
 - recurso confirmado não é apagado;
@@ -165,7 +196,7 @@ Requisitos obrigatórios para o contrato futuro:
 - transferência tem identificador comum para as duas pernas;
 - alteração exige motivo quando sensível;
 - confirmação usa transação no banco e chave de idempotência;
-- webhooks são autenticados, toleram repetição e registram o evento externo sem incluir segredo;
+- não existe webhook nem gateway real nesta entrega;
 - respostas indicam estado, origem, competência, vencimento e pagamento sem confundir esses conceitos;
 - relatórios derivam de movimentos, não de um saldo digitado.
 
@@ -187,17 +218,21 @@ O banco não armazena o binário. Limites, retenção, antivírus e provedor con
 - DTOs possuem exemplos sem dados pessoais reais;
 - cada operação documenta permissões, erros e idempotência;
 - mudanças no OpenAPI são revisadas no pull request;
-- lint da especificação e teste de contrato entrarão no CI quando surgirem endpoints funcionais;
-- o cliente web deve ser gerado ou tipado a partir do contrato somente após estabilização da Fase 1.
+- o smoke valida Swagger e OpenAPI em HTTP 200 fora de produção;
+- um teste garante que Swagger/OpenAPI respondem `404` em `production`;
+- DTOs, validação estrita e tipos locais mantêm o contrato usado pelo frontend;
+- lint dedicado de OpenAPI e geração automática de cliente permanecem futuros.
 
 ## 9. Itens a confirmar
 
 | Item | Pendência |
 |---|---|
-| URL pública, domínios e CORS | `PEN-043` |
+| URL pública, domínios e CORS | local/teste definido; staging e produção permanecem em `PEN-043` |
 | Paginação por cursor/offset, concorrência otimista, formatos e geração de grandes exportações | `PEN-049` |
 | Limites globais, por ator e por endpoint, capacidade e metas de desempenho | `PEN-050` |
-| Duração e topologia de access/refresh token | `PEN-013`, `PEN-043` |
+| Domínio, `SameSite` e topologia final dos cookies | `PEN-043` |
+| Governança de dados reais, menores e retenção jurídica | `PEN-010`, `PEN-011` |
+| Plano de contas, reabertura, limites monetários e operação financeira real | `PEN-020`, `PEN-022`–`PEN-025` |
 | Contrato de acesso de parceiros | `PEN-036` |
 
 As decisões e seus aprovadores devem ser registrados em [`PENDENCIAS.md`](../PENDENCIAS.md) antes de estabilizar cada contrato afetado.

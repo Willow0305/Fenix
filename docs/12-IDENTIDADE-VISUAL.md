@@ -23,11 +23,11 @@ A inspeção é técnica/visual e não substitui um manual de marca. Não se dev
 
 | Contexto | Uso | Estado do ativo |
 |---|---|---|
-| Oficial/principal | Cabeçalho, página inicial, documentos institucionais | Há um símbolo de referência; aprovação de uso e versão final ainda necessária |
+| Oficial/principal | Cabeçalho, página inicial e área administrativa | Aprovada pelo responsável de Produto e aplicada em `apps/web/public/brand/logo-fenix.png` |
 | Masculino | Página/equipe masculina | Contexto exigido; arquivo específico não localizado nesta análise |
 | Feminino | Página/equipe feminina | Contexto exigido; arquivo específico não localizado nesta análise |
 | Diretoria | Painel/documentos administrativos | Contexto exigido; arquivo específico não localizado nesta análise |
-| Favicon | Navegador/atalho | Deve ser derivado apenas após aprovação de variante; não gerar nesta fase |
+| Favicon | Navegador/atalho | Derivado do símbolo oficial sem recoloração e aplicado em `apps/web/app/icon.png` |
 | Capa | Hero/notícia/área institucional | Imagem configurável, distinta de logo |
 | Parceria Floresta | Conteúdo da parceria | Somente em contexto identificado, nunca como identidade principal |
 
@@ -102,7 +102,11 @@ Os nomes abaixo são estáveis como contrato semântico; os valores primários c
 | `--color-accent` | `#D4AF37` | Destaque opcional, não texto pequeno sem contraste testado |
 | `--color-focus` | A definir por contraste | Indicador de foco |
 
-Não usar o mesmo token vermelho para “marca” e “erro” sem distinção semântica. Em componentes, consumir tokens pelo papel (`primary`, `danger`) e não por nomes físicos como `red-500`.
+Não usar o mesmo token vermelho para “marca” e “erro” sem distinção semântica.
+Em componentes, consumir tokens pelo papel (`primary`, `danger`) e não por nomes
+físicos como `red-500`. A aprovação da logo em 29/07/2026 não alterou nem
+escolheu silenciosamente uma das duas paletas; a identidade visual já
+implementada foi preservada conforme solicitação do responsável de Produto.
 
 ## Tipografia
 
@@ -201,4 +205,3 @@ Hover não pode revelar a única forma de acessar conteúdo. Foco não deve ser 
 - token de foco e borda após teste;
 - política de uso de fotografias e direito de imagem;
 - necessidade futura de modo escuro.
-

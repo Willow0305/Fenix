@@ -241,6 +241,8 @@ Planejar access token curto e refresh token rotativo, revogável e armazenado co
 
 - exige tabela de sessões, detecção de reutilização e proteção CSRF adequada;
 - formato do refresh token (opaco ou JWT identificável), duração, domínio de cookie, transporte e estratégia exata dependem do deploy e de `PEN-013`/`PEN-043`;
+- enquanto algoritmo e codificação permanecem abertos, os hashes de sessão e recuperação usam coluna textual sem comprimento associado a uma estratégia específica;
+- a exclusão física do usuário é restringida pelas sessões e tokens; limpeza posterior exige política de retenção e operação explícita;
 - até a aprovação, os demais documentos devem tratar essa topologia como recomendação condicional, não contrato definitivo;
 - não há autenticação implementada na Fase 0.
 
@@ -371,12 +373,12 @@ Na validação da Fase 0, `npm audit` identificou versões vulneráveis de `post
 
 ### Decisão provisória
 
-Fixar `postcss` e `sharp` em versões corrigidas por `overrides` no workspace raiz e declarar as mesmas versões diretamente para que o npm 11 gere uma única resolução segura no lockfile. Manter o Next.js como dependência funcional de `apps/web` e também como restrição de resolução na raiz enquanto esse comportamento for necessário. Usar temporariamente a linha segura `9.x` de `concurrently`.
+Fixar `postcss` e `sharp` em versões corrigidas por `overrides` no workspace raiz e declarar as mesmas versões diretamente em `apps/web` para que o npm 11 gere uma resolução segura no lockfile. Manter o Next.js somente como dependência funcional de `apps/web`. Usar temporariamente a linha segura `9.x` de `concurrently`.
 
 ### Consequências
 
 - `npm audit`, testes e build precisam passar após toda atualização do lockfile;
-- a duplicidade declarativa de Next.js não representa um segundo runtime instalado;
+- os `overrides` na raiz restringem dependências transitivas sem mover o runtime do frontend para o manifesto raiz;
 - os overrides devem ser removidos quando uma versão estável do Next.js trouxer dependências corrigidas e uma instalação limpa confirmar a resolução;
 - upgrades não podem aplicar automaticamente o downgrade incompatível sugerido pelo auditor como correção de segurança.
 
@@ -399,3 +401,302 @@ Usar o par coerente `module: "Node16"` e `moduleResolution: "Node16"` na configu
 - o JavaScript emitido permanece CommonJS enquanto `apps/api/package.json` não declarar outro tipo;
 - uma migração futura para ESM exigirá decisão própria e revisão de imports, execução, Jest e artefatos;
 - o teste de configuração resolve o `apps/api/tsconfig.json` pela API do TypeScript e impede regressão para `node10`.
+
+## DT-021 — Resolução de módulos Node16 nos pacotes compartilhados
+
+- **Estado:** Aceita
+- **Data:** 2026-07-24
+
+### Contexto
+
+Após a correção do backend, `packages/config/typescript/library.json` ainda usava `moduleResolution: "Node"`, interpretado pelo TypeScript como `node10`. A configuração era herdada por `@fenix/types`, `@fenix/ui` e `@fenix/validation`, mantendo nesses pacotes a mesma estratégia descontinuada que deixará de funcionar no TypeScript 7.
+
+### Decisão
+
+Usar o par coerente `module: "Node16"` e `moduleResolution: "Node16"` também na configuração dos pacotes compartilhados. Os pacotes continuam sem emissão própria e, na ausência de `"type": "module"` em seus manifestos, preservam a semântica CommonJS necessária à configuração atual de Jest e aos consumidores.
+
+### Consequências
+
+- nenhum workspace TypeScript herda mais a resolução legada `node10`;
+- os pacotes compartilhados seguem as regras modernas de resolução de pacotes do Node sem exigir migração para ESM;
+- testes de regressão resolvem os `tsconfig.json` de `@fenix/types`, `@fenix/ui` e `@fenix/validation` pela API do TypeScript;
+- uma futura publicação com artefatos emitidos ou migração para ESM continua exigindo decisão e revisão próprias.
+
+## DT-022 — Baseline documental e abertura controlada da Fase 1
+
+- **Estado:** Aceita
+- **Data:** 2026-07-24
+
+### Contexto
+
+A Fase 0 possuía base técnica validada, mas ainda dependia da aprovação explícita da baseline documental e da nomeação de responsáveis. Em 24/07/2026, William Nascimento aprovou a baseline documental para orientar a Fase 1. William Nascimento Oliveira assumiu provisoriamente a responsabilidade de Produto, enquanto Tecnologia, Financeiro, Privacidade e Segurança seguem pendentes de nomeação formal antes da produção.
+
+### Decisão
+
+Considerar `PEN-001` resolvida e permitir a preparação da Fase 1 somente em ambiente local/teste com dados fictícios. Manter `PEN-002` parcialmente resolvida e bloqueadora para produção, staging público, dados reais e resposta formal a incidentes até a nomeação completa dos responsáveis.
+
+### Consequências
+
+- a Fase 1 pode começar pela base de identidade, autenticação, sessões, RBAC e painel administrativo mínimo;
+- nenhuma funcionalidade com dados reais, menores de idade ou exposição pública de produção fica autorizada por esta decisão;
+- mudanças futuras na baseline precisam registrar justificativa, impacto, decisão e changelog;
+- os gates P0 de LGPD, segurança, menores, infraestrutura e produção continuam aplicáveis.
+
+## DT-023 — Matriz documental inicial de papéis e permissões da Fase 1
+
+- **Estado:** Aceita
+- **Data:** 2026-07-24
+
+### Contexto
+
+`PEN-007` bloqueava a Fase 1 por falta de alçadas detalhadas para administrador, diretoria, atleta, responsável, moderador, financeiro e parceiro. O anexo aprovado em 24/07/2026 detalhou perfis, funções da diretoria, conselheiros, separação entre Tesoureiro e Assistente Financeiro, limites de parceiro e perfil de Comunicação Externa.
+
+### Decisão
+
+Adotar a matriz documental registrada em `05-PERFIS-E-PERMISSOES.md` como referência inicial da Fase 1. O sistema deve negar por padrão, permitir múltiplas funções por conta, validar permissão no servidor e auditar ações sensíveis.
+
+### Consequências
+
+- `PEN-007` fica resolvida para documentação da Fase 1;
+- `PEN-008` continua definindo o bloqueio de cadastro, aprovação e vínculo de contas;
+- `PEN-010` continua bloqueando uso real com menores até decisão jurídica, técnica e de segurança;
+- permissões técnicas, seeds e testes devem seguir a matriz aprovada sem conceder poderes implícitos por texto de interface.
+
+## DT-024 — Schema Prisma físico incremental por fase
+
+- **Estado:** Aceita
+- **Data:** 2026-07-27
+
+### Contexto
+
+O schema produzido na Fase 0 reunia os 66 modelos e 53 enums do produto futuro para
+validar o desenho conceitual. Usá-lo diretamente na primeira migration criaria
+tabelas das Fases 2 a 8 e tabelas da própria Fase 1 ainda dependentes de decisões
+abertas, contrariando o roadmap e o princípio de minimização. A resolução de
+`PEN-052` aprovou a separação entre a referência conceitual e o contrato físico
+executável.
+
+### Decisão
+
+Manter `prisma/schema.prisma` como o único schema consumido pelos comandos Prisma
+de validação, geração e migration. Esse arquivo contém somente modelos promovidos
+da fase e da tarefa autorizadas.
+
+Preservar o modelo completo em `docs/08-MODELO-DE-DADOS.md`,
+`docs/09-DICIONARIO-DE-DADOS.md`, `docs/diagramas/ERD.md` e no arquivo
+`docs/referencias/schema-conceitual.prisma`. O arquivo de referência não participa
+de `prisma migrate` e não representa tabelas existentes.
+
+O primeiro recorte físico da Fase 1 será a migration
+`fase_1_identidade_acesso`, limitada a `User`, `UserSession`, `UserToken`, `Role`,
+`Permission`, `UserRole` e `RolePermission`. `AuditLog`, configurações, mídias,
+seed administrativo, API e interface serão promovidos em tarefas próprias, sem
+antecipar módulos.
+
+### Consequências
+
+- uma migration não pode criar tabela ou enum fora da allowlist da tarefa;
+- cada promoção exige decisão/fase válida, revisão do SQL, teste de escopo,
+  documentação e changelog;
+- o CI aplica migrations em PostgreSQL vazio, repete o deploy, consulta o catálogo
+  e compara a estrutura resultante ao schema físico;
+- o schema conceitual pode evoluir como planejamento sem alterar o banco;
+- o schema físico e o histórico de migrations passam a ser a fonte da estrutura
+  realmente implantável;
+- dados fictícios e ambiente local/teste continuam obrigatórios;
+- produção, dados reais, menores, uploads e Fases 2 a 8 permanecem bloqueados
+  pelos respectivos gates.
+
+## DT-025 — Administração e auditoria defensivas com parâmetros provisórios
+
+- **Estado:** Aceita para desenvolvimento local/teste
+- **Data:** 2026-07-27
+
+### Contexto
+
+O objetivo `fase_1_admin_auditoria` exige autenticação, primeiro administrador,
+RBAC e trilha funcional sem aguardar a definição canônica de todos os parâmetros
+de `PEN-013`. A mesma pendência impede tratar duração de inatividade, bloqueios,
+refresh, MFA e verificação de e-mail como política final de produção.
+
+### Decisão
+
+Implementar o recorte com bcrypt configurável, access JWT curto em cookie
+`HttpOnly`, refresh opaco rotativo armazenado por HMAC, CSRF de duplo envio
+vinculado à sessão, bloqueio temporário por conta, recuperação por código de uso
+único armazenado por HMAC e expiração por inatividade. Os valores de
+`.env.example` são defaults defensivos locais e continuam provisórios.
+
+Criar o administrador exclusivamente por comando, sob trava transacional, apenas
+quando nenhum administrador existe e com bloqueio absoluto em `production`.
+Catalogar `ADMIN`, `BOARD`, `FINANCE` e `USER`; somente `ADMIN` recebe todas as
+permissões administrativas desta tarefa, `BOARD` recebe consulta limitada e os
+demais não recebem capacidades de fases futuras.
+
+Persistir `AuditLog` append-only, com filtro de chaves sensíveis, contexto de
+requisição hasheado, consulta protegida por `audit.read` e trigger PostgreSQL que
+rejeita `UPDATE`/`DELETE`. Usar Mailpit apenas como adaptador efêmero local; nenhum
+provedor de e-mail de produção foi escolhido.
+
+### Consequências
+
+- login, logout, recuperação, redefinição, refresh, expiração, usuários, RBAC e
+  auditoria podem ser testados localmente com dados fictícios;
+- reuso de refresh revoga sessões ativas e alterações de estado/papel também
+  revogam quando necessário;
+- senhas, tokens, códigos e cookies não entram na trilha de auditoria;
+- verificação de e-mail, MFA, rate limit distribuído, limite global de sessões e
+  parâmetros canônicos continuam pendentes em `PEN-013`/`PEN-050`;
+- identidade visual e conteúdo das telas são provisórios;
+- produção, dados reais, Fases 2 e 3 e qualquer coleta médica permanecem fora do
+  escopo.
+
+## DT-026 — Segurança canônica da Fase 1 e gates de produção
+
+- **Estado:** Aceita para a entrega técnica; produção continua bloqueada
+- **Data:** 2026-07-29
+
+### Contexto
+
+A tarefa de finalização da Fase 1 definiu parâmetros exatos, verificação de
+e-mail, MFA, rate limit distribuído, e-mail transacional, retenção e condições
+obrigatórias de inicialização. DT-025 permanece como histórico do recorte
+anterior e é sucedida por esta decisão nos pontos agora definidos.
+
+### Decisão
+
+- access/inatividade de 45 minutos e sessão absoluta de 30 dias;
+- recuperação por 10 minutos e até cinco tentativas;
+- cinco falhas de login em 15 minutos e bloqueio inicial de 15 minutos;
+- verificação de e-mail por token de uso único, hash, 24 horas e reenvio limitado;
+- refresh opaco rotativo e de uso único, CSRF vinculado à sessão;
+- MFA TOTP obrigatório para todos os papéis privilegiados e opcional para
+  `USER`, com segredo criptografado e recuperação de uso único;
+- Redis obrigatório para rate limit em staging/produção, com adaptação local
+  controlada;
+- adaptador SMTP com Mailpit local e configuração explícita fora do local;
+- aplicação recusa produção sem responsáveis, contatos, Redis, cookies seguros,
+  segredos fortes e aceite de release;
+- solicitações do titular, retenção rastreável e metadados de anexo privado são
+  estrutura técnica, não política jurídica inventada.
+
+### Consequências
+
+- nenhum token, segredo MFA ou código é persistido em claro ou auditado;
+- o último administrador não pode perder a única forma segura de acesso;
+- `PEN-013` deixa de bloquear a conclusão técnica local, mas domínio/cookies,
+  cofre, LGPD, canal de segurança, responsáveis e operação continuam bloqueando
+  produção;
+- a entrega não certifica conformidade jurídica nem autoriza dados reais.
+
+## DT-027 — Perfil esportivo separado e proteção de menores por desenho
+
+- **Estado:** Aceita para a primeira entrega vertical da Fase 2
+- **Data:** 2026-07-29
+
+### Contexto
+
+Conta de acesso, atleta, inscrição e responsável possuem ciclos de vida
+distintos. Dados reais de menores e de saúde não estão autorizados.
+
+### Decisão
+
+Promover `AthleteProfile` separado de `User`, histórico temporal de
+equipe/categoria, responsável e autorização por metadados privados, seletivas,
+inscrições e histórico de estados. Conversão ocorre somente por ator autorizado,
+em transação serializável e com auditoria. Fingerprint HMAC apenas sinaliza
+possível duplicidade; nunca há fusão automática. Menor exige responsável e
+autorização válida. Importação permanece somente modelada, sem processamento.
+
+### Consequências
+
+- criar conta comum nunca cria atleta;
+- vínculos anteriores não são sobrescritos;
+- dados fictícios de menores são permitidos apenas em local/teste;
+- não existem campos de diagnóstico, laudo, prontuário ou saúde;
+- jornadas públicas, área de atleta/responsável e dados reais dependem de LGPD,
+  ECA Digital e decisões institucionais.
+
+## DT-028 — Razão financeiro imutável e segregação do Caixa Fênix
+
+- **Estado:** Aceita para a primeira entrega vertical da Fase 3
+- **Data:** 2026-07-29
+
+### Contexto
+
+O Caixa precisa preservar valores históricos, suportar parcial/excedente,
+evitar baixa duplicada e separar registro de decisão.
+
+### Decisão
+
+Usar BRL e `Decimal`/`NUMERIC(19,4)`. Planos recebem versões imutáveis;
+cobranças preservam competência, vencimento e valor. Pagamentos são conciliados
+explicitamente por alocações; parcial mantém saldo e excedente exige destino.
+Assistente/`FINANCE` cria pendências; `TREASURER` concilia, aprova, rejeita,
+reverte, decide transferências e fecha caixa. Transferência é neutra por duas
+pernas. Saldo é derivado do razão; correção cria reversão vinculada. Operações
+críticas exigem `Idempotency-Key` e transação serializável.
+
+### Consequências
+
+- versões, conciliações, alocações, fechamentos e razão aprovado recebem
+  proteção física contra alteração/exclusão destrutiva;
+- pagamentos parciais, excedentes, concorrência e fechamento possuem testes
+  integrados;
+- estorno genérico não pode contornar fluxos específicos de pagamento ou
+  transferência;
+- gateway, PIX real, mensalidade automática, reembolso completo, comprovante
+  real e reabertura formal continuam fora da entrega.
+
+## DT-029 — Migrations das Fases 2 e 3 estritamente aditivas
+
+- **Estado:** Aceita
+- **Data:** 2026-07-29
+
+### Contexto
+
+As novas estruturas precisavam preservar bancos existentes da Fase 1 e garantir
+paridade real entre Prisma e PostgreSQL.
+
+### Decisão
+
+Criar migrations independentes para esportivo, vínculo de responsável e Caixa
+Fênix, sem apagar/renomear tabelas ou colunas anteriores. Constraints e triggers
+que o Prisma não expressa são mantidos em SQL revisado. O gate deve validar:
+
+1. aplicação desde banco vazio;
+2. upgrade de uma baseline com apenas as três migrations da Fase 1;
+3. diff vazio entre banco e schema;
+4. UUID, dinheiro exato, FKs explícitas, constraints, triggers e histórico.
+
+### Consequências
+
+- `db push` continua proibido como estratégia de evolução;
+- correções futuras são novas migrations, nunca reescrita silenciosa do
+  histórico aplicado;
+- a promoção física não autoriza produção ou dados reais.
+
+## DT-030 — Logo oficial sem mudança da linguagem visual existente
+
+- **Estado:** Aceita
+- **Data:** 2026-07-29
+
+### Contexto
+
+O responsável de Produto forneceu `logo_fenix.png`, declarou-a oficial e pediu
+preservação da identidade visual já implementada.
+
+### Decisão
+
+Manter o PNG original em `referencias/logos/logo_fenix.png`, publicar cópia
+íntegra em `apps/web/public/brand/logo-fenix.png` e usar derivação sem
+recoloração como favicon. Não alterar a paleta, layout ou componentes além do
+necessário para aplicar a marca.
+
+### Consequências
+
+- a logo principal está aprovada e deixa de ser fallback;
+- variantes masculina, feminina e diretoria e o manual de marca permanecem
+  pendentes;
+- a aprovação da logo não resolve a divergência entre as duas paletas
+  documentais.

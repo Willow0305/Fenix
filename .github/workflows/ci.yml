@@ -19,6 +19,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 20
     env:
+      DATABASE_URL: postgresql://fenix_ci:ci-only-password@127.0.0.1:5432/fenix_ci?schema=public
       POSTGRES_DB: fenix_ci
       POSTGRES_PASSWORD: ci-only-password
       POSTGRES_PORT: 5432
@@ -37,6 +38,9 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Generate Prisma Client
+        run: npm run prisma:generate
+
       - name: Audit production and development dependencies
         run: npm audit --audit-level=high
 
@@ -49,19 +53,34 @@ jobs:
       - name: Validate Compose configuration
         run: docker compose config --quiet
 
-      - name: Start PostgreSQL
-        run: docker compose up -d --wait postgres
+      - name: Start PostgreSQL and Redis
+        run: docker compose up -d --wait postgres redis
 
-      - name: Query PostgreSQL
-        run: >-
-          docker compose exec -T postgres
-          psql --username "$POSTGRES_USER" --dbname "$POSTGRES_DB"
-          --set ON_ERROR_STOP=1 --command "SELECT 1;"
+      - name: Apply migrations from an empty database
+        run: npm run prisma:migrate:deploy
 
-      - name: Show PostgreSQL logs after failure
+      - name: Confirm migration deploy is idempotent
+        run: npm run prisma:migrate:deploy
+
+      - name: Verify deployed database scope
+        run: npm run prisma:migrate:verify
+
+      - name: Verify physical schema parity
+        run: npm run prisma:migrate:diff
+
+      - name: Validate Phase 1 authentication, authorization and audit
+        run: npm run test:phase1:integration
+
+      - name: Validate Phase 2 sports vertical
+        run: npm run test:phase2:integration
+
+      - name: Validate Phase 3 Caixa Fenix vertical
+        run: npm run test:phase3:integration
+
+      - name: Show service logs after failure
         if: failure()
-        run: docker compose logs postgres
+        run: docker compose logs postgres redis mailpit
 
-      - name: Stop PostgreSQL
+      - name: Stop local services
         if: always()
         run: docker compose down --volumes

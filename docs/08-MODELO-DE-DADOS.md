@@ -2,16 +2,41 @@
 
 ## 1. Estado e escopo
 
-Este documento define o modelo conceitual e lógico inicial do Fênix Vôlei. Ele é um artefato de planejamento da Fase 0: descreve o banco-alvo das fases 1 a 8, mas não declara módulos funcionais implementados, não cria migrations e não autoriza antecipar o roadmap.
+Este documento define o modelo conceitual e lógico completo do Fênix Vôlei. Ele
+descreve o banco-alvo das Fases 1 a 8, mas não declara módulos funcionais
+implementados nem autoriza antecipar o roadmap.
 
-O modelo consolida o PDF de requisitos, o briefing técnico, `AGENTS.md` e as decisões vigentes em `17-DECISOES-TECNICAS.md`. O contrato físico de referência está em `prisma/schema.prisma`; detalhes de campos e restrições estão em `09-DICIONARIO-DE-DADOS.md`.
+Conforme `PEN-052` e `DT-024`, existem dois níveis deliberadamente distintos:
+
+| Nível | Fonte | Finalidade |
+|---|---|---|
+| Conceitual completo | este documento, `09-DICIONARIO-DE-DADOS.md`, `diagramas/ERD.md` e `referencias/schema-conceitual.prisma` | preservar a visão futura, com 66 modelos e 53 enums, sem gerar migrations |
+| Físico executável | `prisma/schema.prisma` e `prisma/migrations/` | conter somente modelos promovidos da fase e da tarefa autorizadas |
+
+O schema físico vigente promoveu os seguintes recortes:
+
+| Fase | Agregados físicos |
+|---|---|
+| 1 | `User`, sessões/tokens, MFA, RBAC, `AuditLog`, solicitações do titular, execuções de retenção e metadados de anexo privado |
+| 2 | `Category`, `Team`, vínculo equipe–categoria, `AthleteProfile`, histórico de vínculo, `Guardian`, vínculos/autorizações, seletivas, inscrições/histórico e metadados de importação |
+| 3 | contas/categorias/centros, planos/versionamento, cobranças, pagamentos/conciliações/alocações/excedentes/créditos, transferências, obrigações, sessões/fechamentos e razão financeiro |
+
+As seis migrations permanecem incrementais e aditivas. Loja, parceiros,
+comunicação, gateway, PIX real, mensalidade automática e arquivos binários
+continuam somente conceituais.
+
+O modelo consolida o PDF de requisitos, o briefing técnico, `AGENTS.md` e as
+decisões vigentes em `17-DECISOES-TECNICAS.md`. Detalhes de campos e restrições
+conceituais estão em `09-DICIONARIO-DE-DADOS.md`.
 
 ## 2. Convenções vinculantes
 
 - PostgreSQL é a fonte transacional de verdade e Prisma é o ORM.
 - Toda tabela, inclusive associação com identidade, possui `id UUID`.
 - Instantes usam `TIMESTAMPTZ` e são tratados como UTC; datas civis usam `DATE`.
-- Dinheiro usa provisoriamente `Decimal(19,4)`/`NUMERIC(19,4)` e código ISO 4217 em `CHAR(3)`. Moeda operacional, escala de exibição e arredondamento continuam pendentes; nenhum caso de uso deve inferi-los do tipo físico.
+- Dinheiro usa `Decimal(19,4)`/`NUMERIC(19,4)` e código ISO 4217 em `CHAR(3)`.
+  A entrega física da Fase 3 aceita somente BRL; apresentação usa formatação
+  monetária nas bordas.
 - Percentuais usam `Decimal(7,4)` quando representam taxa e nunca `float`/`double`.
 - Entidades mutáveis possuem `createdAt` e `updatedAt`; agregados importantes também possuem `deletedAt`.
 - Exclusão lógica não substitui retenção, anonimização ou obrigação legal definida pela LGPD.
@@ -19,12 +44,12 @@ O modelo consolida o PDF de requisitos, o briefing técnico, `AGENTS.md` e as de
 - Arquivos não são binários do banco. `MediaFile` guarda provedor, bucket, chave do objeto, MIME real, tamanho e hash de integridade.
 - Valores derivados, como saldo, estoque disponível, total pago e dívida do parceiro, não são fontes editáveis.
 
-## 3. Domínios e agregados
+## 3. Domínios e agregados conceituais
 
 | Domínio | Agregados e entidades |
 |---|---|
 | Identidade e acesso | `User`, `UserSession`, `UserToken`, `Role`, `Permission`, `UserRole`, `RolePermission` |
-| Configurações e arquivos | `TeamSettings`, `TeamBrandAsset`, `MediaFile`, `AuditLog` |
+| Configurações, arquivos e governança | `TeamSettings`, `TeamBrandAsset`, `MediaFile`, `AuditLog` |
 | Esportivo e inscrições | `Athlete`, `AthleteDocument`, `Category`, `Team`, `TeamAthlete`, `InterestedPerson`, `Registration`, `Tryout`, `TryoutRegistration` |
 | Mensalidades | `MonthlyFeePlan`, `AthleteMonthlyFeePlan`, `MonthlyFee`, `MonthlyFeePayment` |
 | Caixa Fênix | `FinancialAccount`, `FinancialCategory`, `CostCenter`, `FinancialObligation`, `FinancialTransaction`, `FinancialTransfer`, `FinancialTransactionAttachment`, `CashClosing`, `PaymentMethod` |
@@ -63,11 +88,18 @@ Senha é representada apenas por hash adaptativo em `User.passwordHash`. Refresh
 
 ### 5.2 Atletas, equipes e inscrições
 
-`Athlete` pode, mas não precisa, estar ligado a `User`; administradores não são atletas e um cadastro esportivo pode existir antes de uma conta. `TeamAthlete` preserva vínculos N:N e períodos históricos. `Category` representa categoria esportiva, enquanto `Team` representa a equipe operacional.
+No schema físico, `AthleteProfile` pode, mas não precisa, estar ligado a `User`;
+administradores não são atletas e um cadastro esportivo pode existir antes de
+uma conta. `AthleteAffiliation` preserva equipe, categoria e períodos históricos.
+`Category` representa categoria esportiva, enquanto `Team` representa a equipe
+operacional.
 
 `InterestedPerson` é uma manifestação inicial de interesse. `Registration` é uma inscrição geral no time e `TryoutRegistration` é uma inscrição em seletiva específica. Ambas preservam o retrato cadastral submetido; a conversão opcional para `Athlete` não apaga a origem.
 
-Campos obrigatórios exatos, deduplicação de candidatos e vínculo de responsável por menor continuam dependentes de decisão de negócio. O schema aceita os dados mínimos explicitamente pedidos sem conceder acesso de responsável.
+`Guardian`, `AthleteGuardian` e `GuardianAuthorization` mantêm o vínculo e apenas
+metadados protegidos da autorização. Menor exige vínculo/autorização válida no
+servidor. A detecção de duplicidade usa fingerprint HMAC e apenas produz alerta,
+sem fusão automática. Dados reais de menores continuam bloqueados.
 
 ### 5.3 Mensalidades e pagamentos
 
@@ -77,17 +109,32 @@ Campos obrigatórios exatos, deduplicação de candidatos e vínculo de respons�
 
 ### 5.4 Caixa Fênix
 
-`FinancialObligation` representa conta a pagar ou a receber, com competência, vencimento, favorecido/contraparte, valor e estado. Enquanto não liquidada, ela integra pendências e fluxo previsto, mas não o saldo. Sua liquidação opcional aponta para uma `FinancialTransaction` confirmada.
+`FinancialObligation` representa conta a pagar ou a receber, com vencimento,
+referência, contraparte minimizada, valor e estado. Enquanto não liquidada, ela
+integra pendências e fluxo previsto, mas não o saldo. Liquidações apontam para a
+obrigação por `FinancialTransaction` e permitem estado parcial.
 
-`PaymentMethod` é o catálogo comum das formas de pagamento. A obrigação pode registrar um método previsto por `plannedPaymentMethodId`; a movimentação registra o método efetivamente usado por `paymentMethodId`. Quando a movimentação deriva de `Payment`, o método efetivo precisa ser o mesmo do pagamento. Alterar o método previsto não reescreve uma liquidação já confirmada.
+Métodos externos/gateway não foram promovidos. `FinancialPayment` representa o
+pagamento manual recebido; `FinancialReconciliation` e `PaymentAllocation`
+fazem a baixa explícita em cobranças. `PaymentSurplus` e `PaymentCredit` preservam
+excedentes sem esconder o valor original.
 
-`FinancialTransaction` é uma movimentação de uma única conta, em uma única direção e moeda. Uma entrada confirmada aumenta o saldo derivado; uma saída confirmada o reduz. Não existe coluna de saldo em `FinancialAccount`.
+`FinancialTransaction` é uma movimentação de uma única conta, em uma única
+direção e moeda. Uma entrada aprovada aumenta o saldo derivado; uma saída
+aprovada o reduz. Não existe coluna de saldo em `FinancialAccount`.
 
-Origens automáticas são explicitadas por relações opcionais e exclusivas com `Payment`, `Refund` ou `PartnerSettlement`. Lançamentos manuais e ajustes usam origem enumerada, autoria e chave de idempotência. Uma reversão aponta para a movimentação original; nunca altera seu valor.
+Origens físicas da entrega são explicitadas por relações opcionais com
+`FinancialPayment`, `FinancialTransfer`, `FinancialObligation` e `CashSession`.
+Lançamentos usam autoria e hash de chave de idempotência. Uma reversão aponta
+para a movimentação original e nunca altera seu valor.
 
-`FinancialTransfer` aponta para a movimentação de saída na conta de origem e a movimentação de entrada na conta de destino. Ambas devem ter mesmo valor, moeda, estado confirmado e identificador de transferência. Essa invariante exige transação de banco e `CHECK`/trigger ou validação equivalente na migration.
+`FinancialTransfer` é o agregado comum das duas pernas. Aprovação cria
+`TRANSFER_OUT` e `TRANSFER_IN` com mesmo valor/moeda em uma única transação;
+reversão cria movimentos corretivos vinculados.
 
-`CashClosing` registra período, saldo esperado, saldo contado e diferença. Reabertura altera o estado do mesmo fechamento, exige permissão e motivo e gera `AuditLog`; não remove o fechamento anterior. Conciliação individual fica em `FinancialTransaction.reconciledAt`, `reconciledById` e `statementReference`.
+`CashSession` representa a abertura por conta e `CashClosing` congela saldo de
+abertura, entradas, saídas, ajustes, saldo esperado, saldo contado e diferença.
+O fechamento é imutável. Reabertura permanece fora desta entrega.
 
 `FinancialTransactionAttachment` pode referenciar o pagamento, a movimentação resultante ou ambos, sempre por um único `MediaFile`. Assim, um comprovante recebido antes da confirmação não perde rastreabilidade quando a entrada financeira é criada.
 
@@ -164,7 +211,9 @@ Pedidos e registros financeiros podem ter `deletedAt` somente para rascunhos ou 
 
 ## 9. Índices e constraints físicos
 
-O schema Prisma declara PKs, FKs, unicidades e índices portáveis. A primeira migration de cada módulo deverá complementar:
+Quando um modelo é promovido, o schema Prisma executável declara suas PKs, FKs,
+unicidades e índices portáveis. A migration própria da tarefa complementa, quando
+aplicável:
 
 - `CHECK` para valores, percentuais, moedas e coerência temporal;
 - `CHECK` de alvo/origem exclusiva em carrinho, denúncia, moderação e movimentação financeira;
@@ -178,8 +227,18 @@ O schema Prisma declara PKs, FKs, unicidades e índices portáveis. A primeira m
 - prevenção concorrente de sobreposição de agenda conforme a política aprovada;
 - índices de busca textual somente quando consultas reais justificarem.
 
-Não existe migration nesta entrega.
+A migration física da subentrega é `fase_1_identidade_acesso`; as constraints
+adicionais de módulos futuros continuam condicionadas às respectivas promoções.
 
 ## 10. Rastreabilidade e evolução
 
-O modelo cobre os requisitos canônicos RF-003 a RF-045 relacionados a persistência e os complementos RCF-001 a RCF-015. A implementação deve ativar tabelas apenas na fase correspondente do roadmap. Mudanças estruturais posteriores precisam atualizar, no mesmo conjunto de mudanças, este documento, o dicionário, o ERD, o schema e `17-DECISOES-TECNICAS.md` quando configurarem decisão arquitetural.
+O modelo conceitual cobre os requisitos canônicos RF-003 a RF-045 relacionados a
+persistência e os complementos RCF-001 a RCF-015. A implementação ativa tabelas
+apenas na fase correspondente do roadmap. Cada promoção precisa atualizar, no
+mesmo conjunto de mudanças, a documentação conceitual afetada, o schema físico, a
+migration, os testes de escopo e `17-DECISOES-TECNICAS.md` quando configurar
+decisão arquitetural.
+
+O dicionário e o ERD permanecem sincronizados com o modelo conceitual completo; o
+schema físico permanece sincronizado somente com o subconjunto explicitamente
+marcado como promovido. Essa diferença é intencional e protegida por teste.

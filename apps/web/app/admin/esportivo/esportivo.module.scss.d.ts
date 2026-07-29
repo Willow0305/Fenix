@@ -1,0 +1,36 @@
+declare const styles: {
+  readonly badge: string;
+  readonly boundaryList: string;
+  readonly button: string;
+  readonly cardActions: string;
+  readonly cardHeader: string;
+  readonly content: string;
+  readonly empty: string;
+  readonly environmentNotice: string;
+  readonly error: string;
+  readonly eyebrow: string;
+  readonly field: string;
+  readonly formGrid: string;
+  readonly headerAction: string;
+  readonly hubCard: string;
+  readonly hubGrid: string;
+  readonly inlineForm: string;
+  readonly metaList: string;
+  readonly muted: string;
+  readonly notice: string;
+  readonly pageHeader: string;
+  readonly panel: string;
+  readonly panelHeader: string;
+  readonly privacyNote: string;
+  readonly recordCard: string;
+  readonly recordGrid: string;
+  readonly secondaryButton: string;
+  readonly section: string;
+  readonly sectionNav: string;
+  readonly sectionNavActive: string;
+  readonly textLink: string;
+  readonly warningBadge: string;
+  readonly wideField: string;
+};
+
+export default styles;

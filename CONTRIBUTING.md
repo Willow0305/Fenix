@@ -63,11 +63,15 @@ test(rbac): cover denied administrative action
 
 ## Banco de dados
 
-- altere `prisma/schema.prisma` e gere migration versionada quando essa etapa estiver habilitada;
+- mantenha `prisma/schema.prisma` restrito aos modelos promovidos da fase e tarefa autorizadas;
+- não copie modelos futuros de `docs/referencias/schema-conceitual.prisma` para o schema físico sem promoção documentada;
+- gere uma migration versionada por recorte, com nome que identifique fase e objetivo;
 - revise SQL gerado, índices, constraints e política `onDelete`;
 - não use `db push` em produção;
 - não remova coluna ou tabela com dados sem plano de migração, retenção e rollback;
 - testes de persistência devem usar PostgreSQL, não um banco com semântica diferente;
+- valide por allowlist que a migration não criou tabelas ou enums de fases futuras;
+- em banco descartável migrado, execute `prisma:migrate:verify` e `prisma:migrate:diff` para conferir catálogo e paridade com o schema;
 - seeds não podem conter dados reais.
 
 ## Testes

@@ -2,16 +2,21 @@
 
 ## Regra de progressão
 
-Este roadmap é incremental. A única fase vigente na consolidação inicial é a **Fase 0 — Planejamento e infraestrutura**. Nenhum agente deve iniciar automaticamente a fase seguinte: é obrigatório concluir os critérios, registrar evidências e obter validação explícita.
+Este roadmap é incremental. A Fase 0 e a base técnica da Fase 1 estão concluídas.
+Em 29/07/2026 foram concluídas também as primeiras entregas verticais das Fases 2
+e 3, sempre em ambiente local/teste e com dados fictícios. “Entrega vertical
+concluída” não equivale à conclusão de todo o escopo macro da fase. Nenhum
+piloto, staging público ou produção com dados reais está autorizado enquanto as
+pendências institucionais e P0 aplicáveis permanecerem abertas.
 
 ## Visão resumida
 
 | Fase | Tema | Estado inicial | Dependência |
 |---:|---|---|---|
-| 0 | Planejamento e infraestrutura | Em andamento | Nenhuma |
-| 1 | Autenticação e administração básica | Bloqueada | Aceite da Fase 0 |
-| 2 | Atletas e inscrições | Bloqueada | Aceite da Fase 1 |
-| 3 | Mensalidades e Caixa Fênix | Bloqueada | Aceite da Fase 2 e regras financeiras aprovadas |
+| 0 | Planejamento e infraestrutura | Concluída tecnicamente; baseline aprovada | Nenhuma |
+| 1 | Autenticação e administração básica | Concluída tecnicamente em local/teste | Pendências P0 bloqueiam produção |
+| 2 | Atletas e inscrições | Primeira entrega vertical concluída | Dados reais/menores dependem de LGPD e aceite institucional |
+| 3 | Mensalidades e Caixa Fênix | Primeira entrega vertical concluída | Operação real depende de governança financeira e produção |
 | 4 | Loja | Bloqueada | Aceite da Fase 3 e regras de pedido/estoque aprovadas |
 | 5 | Remessas | Bloqueada | Aceite da Fase 4 e política de campanha/reembolso |
 | 6 | Parceiros e profissionais | Bloqueada | Aceite da Fase 5 e regras contratuais |
@@ -44,12 +49,26 @@ Este roadmap é incremental. A única fase vigente na consolidação inicial é 
 4. `npm ci` e `npm run check` passam em ambiente limpo;
 5. nenhum segredo real está versionado;
 6. `PEN-001` está resolvida com aprovação explícita da especificação consolidada;
-7. `PEN-002` está resolvida com responsáveis e aprovadores nomeados para produto, tecnologia, financeiro, privacidade e segurança;
-8. o responsável autorizado em `PEN-002` valida o pacote e autoriza formalmente a Fase 1.
+7. `PEN-002` está ao menos parcialmente resolvida para desenvolvimento local/teste, com responsável de Produto nomeado, e permanece bloqueadora para produção até nomeação de tecnologia, financeiro, privacidade e segurança;
+8. o responsável autorizado valida o pacote e autoriza formalmente a preparação da Fase 1.
 
 ## Fase 1 — Autenticação e administração básica
 
 **Objetivo:** estabelecer identidade, autorização e configurações antes dos domínios operacionais.
+
+**Estado em 29/07/2026:** concluída tecnicamente somente para local/teste com
+dados fictícios. Além de login/logout, recuperação, refresh rotativo, RBAC,
+administrador inicial e auditoria, existem verificação de e-mail, MFA TOTP,
+códigos de recuperação, rate limit Redis, envio SMTP/Mailpit, retenção
+configurável, solicitações do titular, metadados de anexo privado e validação
+obrigatória de produção. A logo oficial fornecida está aplicada sem mudança
+relevante da identidade visual existente.
+
+**Bloqueio remanescente:** a conclusão técnica não é aceite de produção.
+Responsáveis formais, bases legais, menores, canal de segurança, domínio,
+armazenamento, backup/restauração operacional, observabilidade e aprovação de
+release permanecem em `PEN-002`, `PEN-010`, `PEN-011`, `PEN-014`,
+`PEN-041`–`PEN-045` e pendências correlatas.
 
 **Gate de proteção de menores:** a estrutura técnica pode ser desenvolvida e testada com dados fictícios e acesso restrito. Conta, recuperação, área autenticada ou site público em produção com acesso provável por crianças ou adolescentes não podem ser liberados enquanto `PEN-010` não tiver análise LGPD/ECA Digital documentada e decisões de idade, supervisão e minimização aprovadas.
 
@@ -78,6 +97,19 @@ Este roadmap é incremental. A única fase vigente na consolidação inicial é 
 
 **Objetivo:** digitalizar interessados, seletivas, atletas e vínculos de equipe.
 
+**Estado em 29/07/2026:** primeira entrega vertical tecnicamente concluída para
+uso administrativo local/teste com dados fictícios. Foram promovidos `Team`,
+`Category`, vínculo equipe–categoria, `AthleteProfile`, histórico de vínculos,
+`Guardian`, vínculo responsável–atleta, metadados de autorização, `Tryout`,
+`TryoutRegistration`, histórico de estados e metadados de importação. A API e as
+telas aplicam RBAC e auditoria; conversão é transacional, duplicidade apenas
+alerta e menor exige responsável/autorização válida.
+
+**Ainda não concluído no escopo macro:** cadastro público de interessados, área
+do atleta/responsável, indicadores avançados, importação executável e uso com
+dados reais. Esses itens dependem das decisões de LGPD, menores, retenção e
+regras operacionais listadas em `PENDENCIAS.md`.
+
 **Entregas:**
 
 - equipes/categorias e variações públicas;
@@ -104,6 +136,20 @@ Este roadmap é incremental. A única fase vigente na consolidação inicial é 
 ## Fase 3 — Mensalidades e Caixa Fênix
 
 **Objetivo:** criar controle financeiro confiável antes de conectar a loja.
+
+**Estado em 29/07/2026:** primeira entrega vertical tecnicamente concluída para
+local/teste. Foram promovidos contas, categorias, centros de custo, planos e
+versões, cobranças por competência, pagamentos e alocações, excedentes/créditos,
+transferências, razão financeiro, contas a pagar/receber, sessões e fechamentos
+de caixa. Operações críticas usam BRL, `NUMERIC(19,4)`, idempotência, transações
+serializáveis, segregação assistente/tesoureiro, reversão vinculada, auditoria e
+proteção física de registros confirmados.
+
+**Ainda não concluído no escopo macro:** mensalidades automáticas por atleta,
+multas/juros/pró-rata, PIX ou gateway real, reembolso financeiro completo,
+comprovante real, relatórios/exportações, notificações de cobrança e
+reabertura formal de caixa. Produção depende de plano de contas aprovado,
+responsáveis financeiros, infraestrutura, LGPD, backup e observabilidade.
 
 **Entregas:**
 

@@ -60,6 +60,28 @@ Agrupar a navegação reduz uma lista de 28 itens:
 
 Os catálogos abaixo herdam esses padrões. “Padrão” na coluna de estados significa carregamento, vazio, erro, sucesso, teclado e responsividade acima, além das particularidades citadas.
 
+## Estado implementado nas Fases 1 a 3
+
+Estão implementadas as rotas públicas de autenticação, recuperação, redefinição,
+verificação de e-mail, desafio/configuração MFA, acesso negado e sessão expirada.
+O shell administrativo inclui dashboard, usuários, perfis, auditoria e
+privacidade, além das áreas:
+
+- `/admin/esportivo` com equipes, categorias, atletas, responsáveis, seletivas,
+  inscrições e conversão;
+- `/admin/financeiro` com contas, categorias, centros de custo, planos,
+  cobranças, pagamentos, lançamentos, transferências, obrigações e caixa.
+
+O shell administrativo
+consulta a identidade/permissões no servidor antes de renderizar o conteúdo,
+oculta navegação não autorizada e trata falha de refresh como sessão expirada.
+
+As telas preservam a composição responsiva da Fase 1 e usam a logo oficial
+fornecida, sem alterar de forma relevante a identidade existente. Conteúdo
+institucional, paleta canônica e matriz formal de navegadores continuam
+pendentes. Telas comerciais, de parceiros, fórum completo, área pública
+esportiva e upload real abaixo continuam catálogo futuro, não implementação.
+
 ## Catálogo — área pública
 
 | Tela | Objetivo e perfis | Componentes e campos | Ações e validações | Estados e responsividade |

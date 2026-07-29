@@ -2,7 +2,19 @@
 
 ## Leitura
 
-Os diagramas estão separados por domínio para permanecerem legíveis. Entidades repetidas são fronteiras compartilhadas, não tabelas duplicadas. Cardinalidades representam `prisma/schema.prisma`; campos, índices, nulabilidade, `onDelete` e constraints estão em `09-DICIONARIO-DE-DADOS.md`.
+Os diagramas estão separados por domínio para permanecerem legíveis. Entidades
+repetidas são fronteiras compartilhadas, não tabelas duplicadas. Eles representam
+o modelo conceitual completo das Fases 1 a 8, preservado conforme `PEN-052` e
+`DT-024`; não representam automaticamente tabelas existentes.
+
+O schema físico vigente contém as seis migrations incrementais das Fases 1 a 3:
+identidade/RBAC, administração/auditoria, segurança/privacidade, esportivo,
+vínculo de responsável e Caixa Fênix. Os nomes e relações físicas podem ser mais
+especializados que os diagramas conceituais; `prisma/schema.prisma` e as
+migrations são a autoridade executável. Loja, parceiros, comunicação,
+mensalidade automática e gateway continuam apenas conceituais. Campos, índices,
+nulabilidade, `onDelete` e constraints estão em
+`09-DICIONARIO-DE-DADOS.md`.
 
 - `||`: exatamente um;
 - `o|`: zero ou um;

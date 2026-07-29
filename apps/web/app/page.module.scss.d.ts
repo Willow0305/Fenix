@@ -1,14 +1,17 @@
 declare const styles: {
-  readonly card: string;
+  readonly actions: string;
+  readonly brand: string;
+  readonly copy: string;
   readonly eyebrow: string;
   readonly footer: string;
-  readonly header: string;
+  readonly hero: string;
   readonly lead: string;
+  readonly loginLink: string;
+  readonly navigation: string;
   readonly page: string;
-  readonly stack: string;
-  readonly status: string;
-  readonly statusDescription: string;
-  readonly statusIndicator: string;
+  readonly primaryAction: string;
+  readonly secondaryAction: string;
+  readonly statusCard: string;
 };
 
 export default styles;

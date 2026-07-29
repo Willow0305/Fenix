@@ -2,7 +2,27 @@
 
 ## 1. Escopo e notação
 
-Este dicionário descreve o schema lógico inicial. Ele não é migration nem autoriza implementar os módulos antes de sua fase. Nomes apresentados são os nomes Prisma; `@@map` e `@map` os convertem para `snake_case` no PostgreSQL.
+Este dicionário descreve o modelo conceitual completo. Ele não é migration nem
+autoriza implementar os módulos antes de sua fase. Nomes apresentados são os
+nomes Prisma de referência; `@@map` e `@map` os convertem para `snake_case` no
+PostgreSQL quando o modelo é promovido.
+
+Conforme `PEN-052` e `DT-024`, `prisma/schema.prisma` contém somente o subconjunto
+físico autorizado. O estado vigente em 29/07/2026 é:
+
+| Estado físico | Modelos |
+|---|---|
+| Promovidos em `fase_1_identidade_acesso` | `User`, `UserSession`, `UserToken`, `Role`, `Permission`, `UserRole`, `RolePermission` |
+| Promovido em `fase_1_admin_auditoria` | `AuditLog`; campos defensivos adicionais em `User` e `UserSession` |
+| Promovidos em `fase_1_seguranca_privacidade` | `MfaCredential`, `MfaRecoveryCode`, `DataSubjectRequest`, `RetentionRun`, `PrivateAttachment`; verificação de e-mail e expiração absoluta |
+| Promovidos na Fase 2 | `Category`, `Team`, `TeamCategory`, `AthleteProfile`, `AthleteAffiliation`, `Guardian`, `AthleteGuardian`, `GuardianAuthorization`, `Tryout`, `TryoutRegistration`, `TryoutRegistrationHistory`, `ImportBatch`, `ImportRow` |
+| Promovidos na Fase 3 | `FinancialAccount`, `FinancialCategory`, `CostCenter`, `FinancialPlan`, `FinancialPlanVersion`, `FinancialCharge`, `FinancialPayment`, `FinancialReconciliation`, `PaymentAllocation`, `PaymentSurplus`, `PaymentCredit`, `FinancialTransfer`, `FinancialObligation`, `CashSession`, `CashClosing`, `FinancialTransaction` |
+| Somente conceituais | configurações institucionais persistidas, upload binário, mensalidade automática, gateway/PIX, loja, parceiros e comunicação |
+
+O schema físico pode conter menos campos ou valores que a referência conceitual.
+O contrato exato dos modelos promovidos é sempre `prisma/schema.prisma` e suas
+migrations. `UserTokenType` físico contém `PASSWORD_RESET`,
+`EMAIL_VERIFICATION` e `MFA_LOGIN_CHALLENGE`.
 
 Convenções:
 
@@ -27,7 +47,8 @@ Salvo indicação explícita, toda tabela possui `id: UUID` obrigatório como PK
 
 Tipos e regras transversais:
 
-- dinheiro: `DECIMAL(19,4)` provisório, acompanhado de `currency: CHAR(3)`; escala de exibição e arredondamento são decisões pendentes;
+- dinheiro: `DECIMAL(19,4)`, acompanhado de `currency: CHAR(3)`; a Fase 3 física
+  aceita BRL e apresenta valores formatados nas bordas;
 - percentual: `DECIMAL(7,4)` provisório;
 - data civil: `DATE`;
 - instante: `TIMESTAMPTZ`, recebido e devolvido em UTC;
@@ -163,11 +184,16 @@ Enums de estados descrevem o vocabulário inicial; transições e responsáveis 
 
 ## 3. Identidade, acesso, configurações e arquivos
 
+Os oito modelos indicados na tabela de estado físico estão autorizados nos dois
+recortes já promovidos. As descrições de configurações e arquivos continuam sendo
+referência para promoções posteriores da Fase 1.
+
 ### `User` — grupo M
 
 - Finalidade: conta autenticável e identidade técnica.
 - Campos O: `name`, `email`, `passwordHash`, `status`.
-- Campos P: `phone`, `emailVerifiedAt`, `lastLoginAt`, `deletedAt`.
+- Campos O: também `failedLoginAttempts` com valor inicial zero.
+- Campos P: `phone`, `emailVerifiedAt`, `blockedUntil`, `lastLoginAt`, `deletedAt`.
 - FKs: nenhuma.
 - Índices/restrições: UK `email`; IX `(status, deletedAt)`. E-mail é normalizado antes da persistência; reutilização após exclusão depende de índice parcial futuro.
 - Exclusão/auditoria: soft delete; senha nunca entra em log/auditoria. Mudança de estado, senha, e-mail ou RBAC gera `AuditLog`.
@@ -175,20 +201,20 @@ Enums de estados descrevem o vocabulário inicial; transições e responsáveis 
 ### `UserSession` — grupo T
 
 - Finalidade: refresh token rotacionável e revogável.
-- Campos O: `userId`, `refreshTokenHash`, `expiresAt`.
+- Campos O: `userId`, `refreshTokenHash`, `csrfTokenHash`, `lastActivityAt`, `expiresAt`.
 - Campos P: `rotatedFromSessionId`, `revokedAt`, `revocationReason`, `userAgentHash`, `ipAddressHash`.
-- FKs: `userId -> User` (C); `rotatedFromSessionId -> UserSession` (N).
-- Índices/restrições: UK `refreshTokenHash`; IX `(userId, revokedAt, expiresAt)`. Apenas hash do token é persistido.
-- Exclusão/auditoria: revogação é preservada; limpeza física só após retenção aprovada. Reutilização suspeita e revogação em massa geram auditoria de segurança.
+- FKs: `userId -> User` (R); `rotatedFromSessionId -> UserSession` (N).
+- Índices/restrições: UK `refreshTokenHash`; IX `(userId, revokedAt, expiresAt)`. Token, agente e IP, quando persistidos, usam somente hashes não vazios em tipo textual neutro quanto ao algoritmo.
+- Exclusão/auditoria: exclusão física do usuário é restringida; revogação é preservada e a limpeza só ocorre explicitamente após retenção aprovada. Reutilização suspeita e revogação em massa geram auditoria de segurança.
 
 ### `UserToken` — grupo T
 
 - Finalidade: token de uso único para recuperação de senha/verificação de e-mail.
-- Campos O: `userId`, `type`, `tokenHash`, `expiresAt`.
-- Campos P: `consumedAt`.
-- FKs: `userId -> User` (C).
-- Índices/restrições: UK `tokenHash`; IX `(userId, type, expiresAt)`. Token consumido/expirado não pode voltar a ser válido.
-- Exclusão/auditoria: limpeza por retenção; valor em claro nunca é persistido nem logado.
+- Campos O: `userId`, `type`, `tokenHash`, `failedAttempts`, `expiresAt`.
+- Campos P: `blockedUntil`, `consumedAt`.
+- FKs: `userId -> User` (R).
+- Índices/restrições: UK `tokenHash`; IX `(userId, type, expiresAt)`. O hash não vazio usa tipo textual neutro quanto ao algoritmo; token consumido/expirado não pode voltar a ser válido.
+- Exclusão/auditoria: exclusão física do usuário é restringida; limpeza por retenção é explícita e o valor em claro nunca é persistido nem logado.
 
 ### `Role` — grupo M
 
@@ -257,10 +283,12 @@ Enums de estados descrevem o vocabulário inicial; transições e responsáveis 
 
 - Finalidade: trilha imutável de ação sensível.
 - Campos O: `action`, `entityType`, `occurredAt`.
-- Campos P: `actorUserId`, `entityId`, `reason`, `beforeData`, `afterData`, `metadata`, `requestId`, `ipAddressHash`, `userAgent`.
+- Campos P: `actorUserId`, `entityId`, `reason`, `beforeData`, `afterData`, `metadata`, `requestId`, `ipAddressHash`, `userAgentHash`.
 - FKs: `actorUserId -> User` (N).
 - Índices/restrições: IX `(entityType, entityId, occurredAt)`, `(actorUserId, occurredAt)` e `requestId`.
-- Exclusão/auditoria: a própria tabela é append-only; payloads são minimizados/mascarados e nunca contêm credencial, token ou arquivo.
+- Exclusão/auditoria: a própria tabela é append-only; trigger físico rejeita
+  `UPDATE` e `DELETE`. Payloads são minimizados/mascarados e nunca contêm
+  credencial, token, código de recuperação ou arquivo.
 
 ## 4. Atletas, equipes, interessados e inscrições
 
@@ -801,4 +829,8 @@ O Prisma expressa PKs, FKs, índices e grande parte das unicidades, mas não tod
 | Conteúdo | publicar, editar material publicado, ocultar, fixar, fechar, restaurar e resolver denúncia |
 | Configurações/arquivos | alteração institucional/bancária, upload, acesso sensível e remoção lógica |
 
-Este dicionário deve permanecer sincronizado com `08-MODELO-DE-DADOS.md`, `diagramas/ERD.md` e `prisma/schema.prisma`.
+Este dicionário deve permanecer sincronizado com
+`08-MODELO-DE-DADOS.md`, `diagramas/ERD.md` e a referência conceitual. Para o
+subconjunto promovido, também deve coincidir com `prisma/schema.prisma` e com o
+histórico de migrations. Diferenças entre o futuro conceitual e o físico atual são
+intencionais somente quando identificadas pelo estado de promoção.

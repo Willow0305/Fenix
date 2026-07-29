@@ -39,6 +39,13 @@ export default tseslint.config(
     }
   },
   {
+    // NestJS usa os valores importados na metadata de injeção e validação.
+    files: ['apps/api/src/**/*.ts'],
+    rules: {
+      '@typescript-eslint/consistent-type-imports': 'off'
+    }
+  },
+  {
     files: ['**/*.cjs'],
     languageOptions: {
       sourceType: 'commonjs'
