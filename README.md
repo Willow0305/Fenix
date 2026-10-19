@@ -2,15 +2,15 @@
 
 Base técnica e documental da aplicação web oficial de gestão do Time Fênix de Vôlei.
 
-> **Estado:** Fase 0 — planejamento e infraestrutura. O repositório ainda não oferece módulos funcionais de autenticação, atletas, mensalidades, Caixa, loja, parceiros, fórum ou agendamento.
+> **Estado:** desenvolvimento incremental por fases (ver [`docs/16-ROADMAP.md`](./docs/16-ROADMAP.md)). Fase 0 aceita; Fase 1 — autenticação, permissões, configurações e site institucional — implementada.
 
-## Objetivo desta entrega
+## O que já funciona
 
-- consolidar requisitos e dúvidas sem inventar regras;
-- registrar arquitetura, segurança, LGPD, UX, modelo de dados e decisões;
-- preparar um monorepo TypeScript executável;
-- validar Next.js, NestJS e PostgreSQL local;
-- estabelecer lint, testes e build como critérios de qualidade.
+- site público com identidade Fênix (início, sobre, contato, termos e privacidade), editável pelo painel;
+- cadastro, login, logout, recuperação e troca de senha, sessões rotativas e revogáveis;
+- papéis (administrador, diretoria, atleta, usuário) e permissões granulares verificadas na API;
+- painel administrativo: usuários, papéis/permissões, configurações do time, logos e auditoria;
+- trilha de auditoria imutável de ações sensíveis.
 
 A fonte original é [`referencias/documento_requisitos_fenix_volei_melhorado.pdf`](./referencias/documento_requisitos_fenix_volei_melhorado.pdf). O índice da especificação consolidada está em [`docs/README.md`](./docs/README.md), e decisões que ainda exigem aprovação estão em [`PENDENCIAS.md`](./PENDENCIAS.md).
 
@@ -103,11 +103,19 @@ docker compose version
    docker compose ps
    ```
 
-4. Inicie web e API:
+4. Aplique as migrations e crie o catálogo de permissões, a configuração do time e o administrador inicial (`SEED_ADMIN_*` do `.env`):
+
+   ```bash
+   npm run db:setup
+   ```
+
+5. Inicie web e API:
 
    ```bash
    npm run dev
    ```
+
+   Acesse `http://localhost:3000/entrar` com `SEED_ADMIN_EMAIL`/`SEED_ADMIN_PASSWORD`. E-mails (como recuperação de senha) são gravados em `var/mail-outbox/` durante o desenvolvimento.
 
 Os endereços padrão e as portas podem ser alterados pelas variáveis documentadas em `.env.example`.
 O Next.js lê a porta do frontend pela variável padrão `PORT`; a API usa `API_PORT`.
@@ -128,6 +136,11 @@ O Next.js lê a porta do frontend pela variável padrão `PORT`; a API usa `API_
 | `npm run prisma:format` | formata o schema Prisma |
 | `npm run prisma:generate` | gera o cliente Prisma a partir do schema validado |
 | `npm run prisma:validate` | valida o modelo lógico Prisma |
+| `npm run db:migrate` | aplica migrations pendentes (`prisma migrate deploy`) |
+| `npm run db:migrate:dev` | cria nova migration a partir do schema (desenvolvimento) |
+| `npm run db:seed` | sincroniza permissões/papéis e cria o administrador inicial, se não houver |
+| `npm run db:setup` | `db:migrate` + `db:seed` |
+| `npm run test:integration` | testes de integração da API contra o PostgreSQL do `.env` |
 | `npm run smoke` | após o build, inicia web/API, valida web, health, Swagger e OpenAPI, e encerra os processos |
 | `npm run check` | executa o gate agregado: formatação, lint, tipos, testes, Prisma e build |
 

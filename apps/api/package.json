@@ -7,22 +7,27 @@
     "dev": "nest start --watch",
     "start": "node dist/main.js",
     "test": "jest --runInBand",
+    "test:integration": "jest --runInBand --config jest.integration.config.cjs",
     "typecheck": "tsc --noEmit -p tsconfig.build.json && tsc --noEmit -p tsconfig.spec.json"
   },
   "dependencies": {
-    "@nestjs/common": "11.1.28",
-    "@nestjs/core": "11.1.28",
-    "@nestjs/platform-express": "11.1.28",
-    "@nestjs/swagger": "11.4.6",
+    "@nestjs/common": "11.2.7",
+    "@nestjs/core": "11.2.7",
+    "@nestjs/platform-express": "11.2.7",
+    "@nestjs/swagger": "11.4.7",
+    "@nestjs/throttler": "6.7.1",
     "@prisma/client": "6.19.3",
     "class-transformer": "0.5.1",
     "class-validator": "0.15.1",
+    "cookie-parser": "1.4.7",
+    "helmet": "8.3.0",
     "reflect-metadata": "0.2.2",
     "rxjs": "7.8.2"
   },
   "devDependencies": {
     "@nestjs/cli": "11.0.24",
-    "@nestjs/testing": "11.1.28",
+    "@nestjs/testing": "11.2.7",
+    "@types/cookie-parser": "1.4.10",
     "@types/supertest": "7.2.1",
     "supertest": "7.2.2"
   }

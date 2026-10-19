@@ -399,3 +399,117 @@ Usar o par coerente `module: "Node16"` e `moduleResolution: "Node16"` na configu
 - o JavaScript emitido permanece CommonJS enquanto `apps/api/package.json` não declarar outro tipo;
 - uma migração futura para ESM exigirá decisão própria e revisão de imports, execução, Jest e artefatos;
 - o teste de configuração resolve o `apps/api/tsconfig.json` pela API do TypeScript e impede regressão para `node10`.
+
+## DT-021 — Aceite da Fase 0 e responsável único
+
+- **Estado:** Aceita
+- **Data:** 2026-10-18
+
+### Contexto
+
+A Fase 0 estava tecnicamente concluída, mas dependia de `PEN-001` e `PEN-002`. O responsável do projeto informou ser, por ora, a única pessoa envolvida e autorizou a continuidade até a aplicação completa, delegando decisões técnicas ao agente.
+
+### Decisão
+
+Aceitar a baseline documental v1.2, registrar o responsável único para todas as áreas e autorizar as fases 1 a 8 em sequência, mantendo os gates técnicos (lint, testes e build) de cada fase.
+
+### Consequências
+
+- cada fase continua entregue de forma incremental, com changelog e decisões;
+- pendências jurídicas (menores, retenção, políticas) seguem abertas como gate de **produção com dados reais**, não de desenvolvimento;
+- quando houver mais pessoas, as permissões separáveis permitem segregar funções sem refatoração.
+
+## DT-022 — Implementação de autenticação, sessões e RBAC
+
+- **Estado:** Aceita
+- **Data:** 2026-10-18
+
+### Contexto
+
+`DT-012` deixou duração, formato e topologia em aberto.
+
+### Decisão
+
+- senha com `scrypt` nativo do Node (N=2^15, r=8, p=1, sal aleatório de 16 bytes, formato versionado) e comparação em tempo constante;
+- access token JWT HS256 de 15 minutos, assinado com `AUTH_ACCESS_TOKEN_SECRET`, contendo apenas `sub` e `sid`; permissões são recarregadas do banco a cada requisição para revogação imediata;
+- refresh token opaco de 32 bytes, guardado como SHA-256 em `user_sessions`, entregue em cookie `HttpOnly`, `SameSite=Strict`, `Path=/api/v1/auth`, `Secure` fora de desenvolvimento; validade de 30 dias;
+- cada uso rotaciona a sessão; reuso de token já rotacionado revoga todas as sessões do usuário;
+- o navegador fala com uma única origem: o Next.js reescreve `/api/v1/*` para a API;
+- papéis de sistema `admin`, `board`, `athlete` e `user`; autorização por permissão granular via decorator `@RequirePermissions`;
+- rate limiting por IP em login, cadastro e recuperação.
+
+### Consequências
+
+- logout e troca de senha revogam sessões imediatamente;
+- CSRF mitigado por `SameSite=Strict`, cookie restrito ao caminho de autenticação e validação de `Origin` no refresh;
+- MFA para perfis privilegiados continua necessário antes de produção (`PEN-013`).
+
+## DT-023 — Organização interna dos módulos da API
+
+- **Estado:** Aceita
+- **Data:** 2026-10-18
+
+### Contexto
+
+`07-ARQUITETURA.md` pede limites entre transporte, aplicação, domínio e infraestrutura sem burocracia desnecessária.
+
+### Decisão
+
+Cada módulo em `apps/api/src/modules/<modulo>` contém:
+
+- `domain/`: funções e políticas puras (transições de estado, cálculos monetários, invariantes), sem NestJS nem Prisma, com testes unitários;
+- `application/`: serviços de caso de uso que orquestram transação, autorização contextual, auditoria e chamam o domínio; acessam dados pelo `PrismaService` injetado (infraestrutura compartilhada);
+- `http/`: controllers finos e DTOs com `class-validator`.
+
+Repositórios dedicados só são criados quando a consulta for reutilizada por mais de um caso de uso ou quando houver necessidade de troca de adaptador.
+
+### Consequências
+
+- regras de negócio testáveis sem banco;
+- menos camadas de repasse; o acoplamento a Prisma fica limitado à aplicação;
+- testes de integração com PostgreSQL cobrem as consultas.
+
+## DT-024 — Adaptadores locais de e-mail e armazenamento
+
+- **Estado:** Provisória
+- **Data:** 2026-10-18
+
+### Contexto
+
+Provedores de e-mail e objetos ainda não foram escolhidos (`PEN-042`).
+
+### Decisão
+
+Definir portas `MailSender` e `ObjectStorage`. Em desenvolvimento, e-mails são gravados como arquivos em `var/mail-outbox/` e objetos em `var/storage/`, ambos ignorados pelo Git. Nenhum token ou conteúdo de e-mail vai para logs. Uploads validam tamanho, extensão e assinatura binária real (PNG, JPEG, WebP, PDF); SVG não é aceito.
+
+### Consequências
+
+- trocar por SMTP/S3 exige apenas um novo adaptador;
+- em produção, os adaptadores locais são recusados na inicialização, salvo opt-in explícito.
+
+## DT-025 — Paginação por offset limitada
+
+- **Estado:** Provisória
+- **Data:** 2026-10-18
+
+### Decisão
+
+Listas administrativas usam `page`/`pageSize` (máximo 100) e retornam `{ data, meta: { page, pageSize, total } }`. Os volumes previstos são pequenos; cursor pode ser adotado por endpoint quando medição justificar (`PEN-049`).
+
+## DT-026 — Menores de idade
+
+- **Estado:** Provisória (requer revisão jurídica antes de dados reais)
+- **Data:** 2026-10-18
+
+### Decisão
+
+Conta própria somente com declaração de idade mínima de 12 anos. Cadastro de atleta calcula a idade pela data de nascimento: menor de 18 exige nome e telefone do responsável; menor de 12 exige ainda a confirmação de ciência do responsável e só é feito pela diretoria. Nenhum dado de saúde é coletado.
+
+## DT-027 — Mensalidades sem encargos automáticos e com pagamento parcial
+
+- **Estado:** Aceita
+- **Data:** 2026-10-18
+
+### Decisão
+
+Mensalidade preserva o valor do plano no momento da geração; chave única atleta + mês de referência. Não há multa ou juros automáticos; desconto/isenção é ajuste manual motivado e auditado. Pagamentos parciais são somados; a cobrança passa a `PAID` quando a soma confirmada atinge o valor devido; excedente é rejeitado. Cada pagamento confirmado gera exatamente uma entrada no Caixa (idempotente por pagamento). Atraso é derivado da data de vencimento.

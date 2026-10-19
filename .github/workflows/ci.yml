@@ -58,6 +58,16 @@ jobs:
           psql --username "$POSTGRES_USER" --dbname "$POSTGRES_DB"
           --set ON_ERROR_STOP=1 --command "SELECT 1;"
 
+      - name: Apply migrations
+        run: npx prisma migrate deploy
+        env:
+          DATABASE_URL: postgresql://fenix_ci:ci-only-password@127.0.0.1:5432/fenix_ci?schema=public
+
+      - name: Integration tests against PostgreSQL
+        run: npm run test:integration --workspace=@fenix/api
+        env:
+          DATABASE_URL: postgresql://fenix_ci:ci-only-password@127.0.0.1:5432/fenix_ci?schema=public
+
       - name: Show PostgreSQL logs after failure
         if: failure()
         run: docker compose logs postgres

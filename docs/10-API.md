@@ -2,12 +2,30 @@
 
 ## 1. Situação atual
 
-Na Fase 0, a API contém somente infraestrutura e um endpoint técnico de saúde. Todos os demais recursos deste documento são **planejados**, não implementados.
+O contrato completo e executável fica no OpenAPI (`/docs` fora de produção). Endpoints implementados:
 
-| Método | Rota | Autenticação | Situação |
+| Método | Rota | Acesso | Fase |
 |---|---|---|---|
-| `GET` | `/health` | não | esqueleto técnico da Fase 0 |
-| qualquer outra | `/api/v1/...` | conforme recurso | contrato futuro |
+| `GET` | `/health` | público | 0 |
+| `POST` | `/api/v1/auth/register` · `login` · `refresh` · `logout` | público (refresh/logout por cookie) | 1 |
+| `POST` | `/api/v1/auth/password/forgot` · `password/reset` | público, com rate limiting | 1 |
+| `GET`/`PATCH` | `/api/v1/me` | autenticado (próprio) | 1 |
+| `POST` | `/api/v1/me/password` | autenticado | 1 |
+| `GET`/`DELETE` | `/api/v1/me/sessions[/:id]` | autenticado | 1 |
+| `GET`/`POST` | `/api/v1/users` | `users.read` / `users.create`+`roles.assign` | 1 |
+| `PUT` | `/api/v1/users/:id/roles` · `:id/status` | `roles.assign` / `users.update` | 1 |
+| `POST` | `/api/v1/users/:id/sessions/revoke` | `sessions.revoke` | 1 |
+| `GET` | `/api/v1/roles` · `/api/v1/permissions` | `users.read` | 1 |
+| `PUT` | `/api/v1/roles/:code/permissions` | `permissions.manage` | 1 |
+| `GET` | `/api/v1/audit-logs` | `audit.read` | 1 |
+| `GET` | `/api/v1/public/team` | público | 1 |
+| `GET` | `/api/v1/team-settings` · `PATCH` | `dashboard.read` · `settings.public.manage` | 1 |
+| `PUT` | `/api/v1/team-settings/financial` | `settings.financial.manage` | 1 |
+| `GET` | `/api/v1/team-settings/payment-info` | autenticado | 1 |
+| `PUT` | `/api/v1/team-settings/brand-assets/:context` | `logos.manage` (multipart) | 1 |
+| `GET` | `/api/v1/media/:id` | público se `PUBLIC`; senão autorizado | 1 |
+
+Listas usam `page`/`pageSize` (máx. 100) e retornam `{ data, meta }` (`DT-025`).
 
 Em ambientes com `NODE_ENV` diferente de `production`, a interface Swagger fica em `/docs` e o documento JSON em `/docs/openapi.json`. Em `production`, as duas rotas respondem `404`; nenhuma delas integra o prefixo funcional `/api/v1`.
 

@@ -19,6 +19,8 @@ coverage/
 npm-debug.log*
 .swc/
 tmp/
+var/
+**/var/
 
 # Local uploads: preserve only repository guidance
 uploads/*

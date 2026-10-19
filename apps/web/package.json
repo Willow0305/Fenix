@@ -11,10 +11,10 @@
   },
   "dependencies": {
     "@fenix/ui": "0.1.0",
-    "next": "16.2.11",
+    "next": "16.4.2",
     "react": "19.2.8",
     "react-dom": "19.2.8",
-    "sharp": "0.35.3"
+    "sharp": "0.35.5"
   },
   "devDependencies": {
     "@testing-library/jest-dom": "7.0.0",
@@ -22,7 +22,7 @@
     "@types/react": "19.2.17",
     "@types/react-dom": "19.2.3",
     "jest-environment-jsdom": "30.4.1",
-    "postcss": "8.5.22",
+    "postcss": "8.5.31",
     "sass": "1.101.6"
   }
 }

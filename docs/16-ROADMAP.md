@@ -2,21 +2,23 @@
 
 ## Regra de progressão
 
-Este roadmap é incremental. A única fase vigente na consolidação inicial é a **Fase 0 — Planejamento e infraestrutura**. Nenhum agente deve iniciar automaticamente a fase seguinte: é obrigatório concluir os critérios, registrar evidências e obter validação explícita.
+Este roadmap é incremental. Nenhuma fase é iniciada sem que a anterior cumpra os critérios técnicos e tenha autorização registrada. Em 2026-10-18 o responsável do projeto aceitou a Fase 0 e autorizou a execução sequencial das fases 1 a 8 (`DT-021`); cada fase continua exigindo lint, testes e build aprovados antes da seguinte.
 
 ## Visão resumida
 
-| Fase | Tema | Estado inicial | Dependência |
+| Fase | Tema | Estado | Dependência |
 |---:|---|---|---|
-| 0 | Planejamento e infraestrutura | Em andamento | Nenhuma |
-| 1 | Autenticação e administração básica | Bloqueada | Aceite da Fase 0 |
-| 2 | Atletas e inscrições | Bloqueada | Aceite da Fase 1 |
-| 3 | Mensalidades e Caixa Fênix | Bloqueada | Aceite da Fase 2 e regras financeiras aprovadas |
-| 4 | Loja | Bloqueada | Aceite da Fase 3 e regras de pedido/estoque aprovadas |
-| 5 | Remessas | Bloqueada | Aceite da Fase 4 e política de campanha/reembolso |
-| 6 | Parceiros e profissionais | Bloqueada | Aceite da Fase 5 e regras contratuais |
-| 7 | Comunicação | Bloqueada | Aceite da Fase 6 e política editorial/moderação |
-| 8 | Relatórios, auditoria e otimizações | Bloqueada | Módulos anteriores estabilizados |
+| 0 | Planejamento e infraestrutura | Aceita (2026-10-18) | Nenhuma |
+| 1 | Autenticação e administração básica | Implementada (2026-10-18) | Aceite da Fase 0 |
+| 2 | Atletas e inscrições | Autorizada | Fase 1 implementada |
+| 3 | Mensalidades e Caixa Fênix | Autorizada | Fase 2 e regras financeiras (`DT-027`) |
+| 4 | Loja | Autorizada | Fase 3 |
+| 5 | Remessas | Autorizada | Fase 4 |
+| 6 | Parceiros e profissionais | Autorizada | Fase 5 |
+| 7 | Comunicação | Autorizada | Fase 6 |
+| 8 | Relatórios, auditoria e otimizações | Autorizada | Módulos anteriores |
+
+Produção com dados reais continua condicionada às pendências P0 jurídicas e operacionais (`PEN-010`, `PEN-011`, `PEN-014`, `PEN-041`, `PEN-044`).
 
 ## Fase 0 — Planejamento e infraestrutura
 

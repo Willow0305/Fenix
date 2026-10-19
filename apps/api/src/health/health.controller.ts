@@ -1,9 +1,11 @@
 import { Controller, Get } from '@nestjs/common';
 import { ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
 
+import { Public } from '../modules/auth/http/auth.decorators';
 import { HealthResponseDto } from './health-response.dto';
 
 @ApiTags('health')
+@Public()
 @Controller('health')
 export class HealthController {
   @Get()

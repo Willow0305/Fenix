@@ -1,0 +1,38 @@
+.footer {
+  margin-top: 4rem;
+  padding: 2.5rem 0 1rem;
+  background: var(--color-ink);
+  color: #d9d6e0;
+
+  a {
+    color: #fff;
+  }
+
+  ul {
+    margin: 0.5rem 0 0;
+    padding: 0;
+    list-style: none;
+    display: grid;
+    gap: 0.3rem;
+  }
+}
+
+.grid {
+  display: grid;
+  gap: 2rem;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+}
+
+.title {
+  color: #fff;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-size: 0.85rem;
+}
+
+.copy {
+  margin-top: 2rem;
+  padding-top: 1rem;
+  border-top: 1px solid rgb(255 255 255 / 12%);
+  font-size: 0.85rem;
+}

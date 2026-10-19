@@ -81,17 +81,29 @@ As fontes apresentam duas paletas. Nenhuma deve ser descartada silenciosamente.
 
 O briefing é posterior e solicita explicitamente o conjunto B; por isso ele é a **recomendação provisória para protótipos**, enquanto o conjunto A permanece a referência original. Layout final e tokens de produção exigem aprovação expressa. Contraste deve ser testado para cada combinação, não inferido apenas pelo valor hexadecimal.
 
-## Tokens semânticos provisórios
+### Paleta oficial (aprovada em 2026-10-18)
 
-Os nomes abaixo são estáveis como contrato semântico; os valores primários continuam provisórios:
+O responsável do projeto enviou o brasão oficial "Time Fênix Volleyball", o símbolo isolado da fênix e as aplicações sobre fundo vermelho e escuro. A paleta passa a ser derivada dessas artes e substitui os conjuntos A e B:
 
-| Token | Valor provisório | Uso |
+| Cor | Hex | Origem |
 |---|---:|---|
-| `--color-primary` | `#C8102E` | Ação/destaque principal |
-| `--color-primary-dark` | `#8F001A` | Estado forte/hover quando o contraste permitir |
+| Vermelho Fênix | `#CD151D` | medido em `referencias/logos/logo_fenix.png` (cor dominante) |
+| Vermelho escuro | `#9E0F16` | derivado para hover/estado forte |
+| Preto Fênix | `#0B0613` | fundo escuro das aplicações do brasão (estimado visualmente) |
+| Branco | `#FFFFFF` | contorno e aplicações negativas |
+
+`#CD151D` sobre branco tem contraste aproximado de 5,6:1 (WCAG AA para texto normal). Branco sobre `#0B0613` excede 19:1. Arquivos dos logos devem ser salvos em `referencias/logos/` e cadastrados pelo painel em Configurações → Marca.
+
+## Tokens semânticos
+
+| Token | Valor | Uso |
+|---|---:|---|
+| `--color-primary` | `#CD151D` | Ação/destaque principal |
+| `--color-primary-dark` | `#9E0F16` | Estado forte/hover |
+| `--color-ink` | `#0B0613` | Cabeçalho, rodapé, sidebar |
 | `--color-background` | `#F4F4F5` | Fundo geral |
 | `--color-surface` | `#FFFFFF` | Superfícies/cards |
-| `--color-text` | `#111111` | Texto principal |
+| `--color-text` | `#0B0613` | Texto principal |
 | `--color-text-subtle` | `#27272A` | Texto secundário de alto contraste |
 | `--color-text-muted` | `#71717A` | Texto auxiliar, somente em tamanho/fundo aprovados |
 | `--color-border` | A validar entre `#D9D9D9` e derivação acessível | Bordas/divisórias |

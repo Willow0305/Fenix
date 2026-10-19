@@ -39,6 +39,15 @@ export default tseslint.config(
     }
   },
   {
+    files: ['apps/api/**/*.ts'],
+    languageOptions: {
+      parserOptions: {
+        emitDecoratorMetadata: true,
+        experimentalDecorators: true
+      }
+    }
+  },
+  {
     files: ['**/*.cjs'],
     languageOptions: {
       sourceType: 'commonjs'

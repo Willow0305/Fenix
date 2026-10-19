@@ -394,3 +394,21 @@ Ao resolver uma pendência:
 3. adicionar ou atualizar a decisão em `docs/17-DECISOES-TECNICAS.md`;
 4. mover a entrada para uma seção “Resolvidas”, sem apagar o histórico;
 5. atualizar `CHANGELOG.md`.
+
+## 12. Resolvidas
+
+As entradas acima permanecem como histórico da questão original. As decisões abaixo foram tomadas em 2026-10-18 pelo responsável único do projeto (Product Owner e responsável técnico, financeiro, de privacidade e de segurança até nova designação), que delegou ao agente de desenvolvimento as decisões técnicas e a adoção das recomendações já documentadas.
+
+| Pendência | Decisão | Aprovador | Registro |
+|---|---|---|---|
+| PEN-001 | Documentos de `docs/` aprovados como baseline v1.2; o PDF continua como origem rastreável. | Responsável do projeto | `DT-021` |
+| PEN-002 | Há um único responsável por todas as áreas até nova designação. Alçadas que exigiriam segregação de funções ficam como permissões separáveis, prontas para distribuição futura. | Responsável do projeto | `DT-021` |
+| PEN-004 | Paleta oficial derivada do brasão enviado pelo responsável: `#CD151D` (vermelho), `#9E0F16` (vermelho escuro), `#0B0613` (preto) e branco. | Responsável do projeto | `12-IDENTIDADE-VISUAL.md` |
+| PEN-007 | Matriz adotada conforme `05-PERFIS-E-PERMISSOES.md` com papéis de sistema `admin`, `board` (diretoria), `athlete` e `user`; negação por padrão. | Delegada | `DT-022` |
+| PEN-008 | Cadastro livre cria conta `user` ativa; atleta, diretoria e administrador são atribuídos somente por administrador e auditados. Interessado/inscrição não criam acesso automaticamente. Verificação de e-mail não bloqueia o login nesta versão. | Responsável do projeto | `DT-022` |
+| PEN-010 | Parcialmente resolvida: conta própria exige declaração de idade mínima de 12 anos; atleta menor de 18 exige nome e telefone do responsável; atleta menor de 12 só é cadastrado pela diretoria com registro de ciência do responsável. **Revisão jurídica recomendada antes de dados reais.** | Responsável do projeto | `DT-026` |
+| PEN-013 | Access token de 15 min em memória; refresh opaco rotativo de 30 dias em cookie `HttpOnly`/`SameSite=Strict`, com hash no banco, revogação e detecção de reuso; rate limiting nas rotas de autenticação. MFA administrativo permanece pendente antes da produção. | Delegada | `DT-022` |
+| PEN-018 | Sem multa ou juros automáticos; descontos e isenções são manuais e motivados; valor da cobrança é preservado. | Responsável do projeto | `DT-027` |
+| PEN-019 | Pagamentos parciais permitidos; cobrança fica `PARTIALLY_PAID` até a soma confirmada atingir o valor e então `PAID`; excedente é recusado. Confirmação é idempotente. | Responsável do projeto | `DT-027` |
+| PEN-021 | BRL e arredondamento comercial em duas casas; escala conforme schema. | Delegada | `DT-006` |
+| PEN-043 | Web e API sob a mesma origem pública: o Next.js encaminha `/api/v1` para a API; CORS restrito à lista explícita. | Delegada | `DT-022` |
