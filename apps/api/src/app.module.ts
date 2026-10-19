@@ -10,6 +10,7 @@ import { DashboardModule } from './modules/dashboard/dashboard.module';
 import { FinanceModule } from './modules/finance/finance.module';
 import { MediaModule } from './modules/media/media.module';
 import { NotificationsModule } from './modules/notifications/notifications.module';
+import { PartnersModule } from './modules/partners/partners.module';
 import { SettingsModule } from './modules/settings/settings.module';
 import { SportsModule } from './modules/sports/sports.module';
 import { StoreModule } from './modules/store/store.module';
@@ -33,6 +34,7 @@ import { StoreModule } from './modules/store/store.module';
     FinanceModule,
     StoreModule,
     CampaignsModule,
+    PartnersModule,
     DashboardModule
   ]
 })

@@ -385,6 +385,13 @@ Prioridades:
 - **Questão:** não foram aprovados percentuais de cobertura, ferramentas de E2E, acessibilidade, contrato, carga e segurança, política de snapshot visual ou uso de teste de mutação.
 - **Recomendação:** manter cobertura orientada a risco e casos positivos/negativos obrigatórios para finanças, permissões e transições; estabelecer linha de base antes de qualquer percentual global e aprovar ferramentas por fase.
 
+### PEN-052 — Estorno de venda de parceiro já repassada
+
+- **Prioridade:** P2
+- **Bloqueia:** nada; afeta a conciliação com parceiros
+- **Questão:** quando um pedido com item já repassado (repasse pago) é estornado, o valor pago ao parceiro precisa ser recuperado. Hoje isso é feito manualmente por ajuste negativo motivado no próximo repasse.
+- **Recomendação:** listar automaticamente, na criação do repasse, os itens repassados e depois estornados como sugestão de ajuste; combinar com o parceiro prazo e forma de devolução.
+
 ## 11. Critério de resolução
 
 Ao resolver uma pendência:
@@ -421,4 +428,8 @@ As entradas acima permanecem como histórico da questão original. As decisões 
 | PEN-029 | Estoque e SKU na variação; preço por variação; promoção simples (sem período); limite por comprador; preço congelado no item. | Delegada | `DT-031` |
 | PEN-031 | Máquina de estados de remessa, extensão por reabertura, configuração imutável após encomenda e relatório conferível. Reabertura após encomenda não é permitida (cancelar e criar nova). | Delegada | `DT-032` |
 | PEN-032 | Parcialmente resolvida: cobrança antes da encomenda, mínimo pago verificado, estorno vinculado; o texto da política de devolução precisa ser aprovado e publicado em cada remessa. | Delegada | `DT-032` |
+| PEN-034 | Parcialmente resolvida: aprovação exige vigência; venda e publicação só dentro da vigência; documentos confidenciais com acesso auditado. Textos contratuais, tributação e responsabilidades seguem com o responsável. | Delegada | `DT-033` |
+| PEN-035 | Comissão percentual, fixa por unidade ou nenhuma, com sobreposição por produto e snapshot no item; repasse agrupado, aprovado e pago com saída única no Caixa. Documento fiscal fica fora do sistema. | Delegada | `DT-033` |
+| PEN-036 | Parceiro sem login nesta versão; a diretoria opera; o profissional recebe e-mail de confirmação e cancelamento. | Delegada | `DT-033` |
+| PEN-037 | Parcialmente resolvida: agendamento manual por horários livres, confirmação pela diretoria, cancelamento com motivo, realizado/ausência; antecedência mínima, recorrência e avaliações continuam abertas. | Delegada | `DT-033` |
 | PEN-043 | Web e API sob a mesma origem pública: o Next.js encaminha `/api/v1` para a API; CORS restrito à lista explícita. | Delegada | `DT-022` |

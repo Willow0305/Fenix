@@ -1,5 +1,11 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { Gender, OrderStatus, ProductFulfillmentType, ProductStatus } from '@prisma/client';
+import {
+  CommissionType,
+  Gender,
+  OrderStatus,
+  ProductFulfillmentType,
+  ProductStatus
+} from '@prisma/client';
 import { Transform } from 'class-transformer';
 import {
   IsBoolean,
@@ -15,7 +21,8 @@ import {
   Max,
   MaxLength,
   Min,
-  MinLength
+  MinLength,
+  ValidateIf
 } from 'class-validator';
 
 import { PageQueryDto } from '../../../common/http/pagination';
@@ -25,6 +32,24 @@ const AMOUNT_MSG = { message: 'Valor inválido: use ponto e até 2 casas (ex.: 8
 const DATE = /^\d{4}-\d{2}-\d{2}$/;
 const DATE_MSG = { message: 'Data inválida (AAAA-MM-DD).' };
 const PHONE = /^[0-9+()\s-]{8,30}$/;
+const PERCENT = /^(100(\.0{1,2})?|\d{1,2}(\.\d{1,2})?)$/;
+const PERCENT_MSG = { message: 'Percentual inválido: de 0 a 100, até 2 casas.' };
+
+/** Comissão própria do produto (PEN-035); tipo vazio volta a usar a regra do parceiro. */
+export class ProductCommissionFields {
+  @ApiPropertyOptional({ enum: [...Object.values(CommissionType), ''] })
+  @IsOptional()
+  @IsIn([...Object.values(CommissionType), ''])
+  commissionTypeOverride?: CommissionType | '';
+  @ApiPropertyOptional({ example: '15' })
+  @IsOptional()
+  @Matches(PERCENT, PERCENT_MSG)
+  commissionPercentageOverride?: string;
+  @ApiPropertyOptional({ example: '5.00' })
+  @IsOptional()
+  @Matches(AMOUNT, AMOUNT_MSG)
+  commissionFixedOverride?: string;
+}
 
 export class StoreCategoryDto {
   @ApiProperty() @IsString() @MinLength(2) @MaxLength(120) name!: string;
@@ -37,7 +62,7 @@ export class UpdateStoreCategoryDto {
   @ApiPropertyOptional() @IsOptional() @IsBoolean() isActive?: boolean;
 }
 
-export class ProductDto {
+export class ProductDto extends ProductCommissionFields {
   @ApiProperty() @IsString() @MinLength(2) @MaxLength(160) name!: string;
   @ApiProperty() @IsUUID() categoryId!: string;
   @ApiProperty({ enum: ProductFulfillmentType })
@@ -57,7 +82,7 @@ export class ProductDto {
   @ApiPropertyOptional() @IsOptional() @IsUUID() partnerId?: string;
 }
 
-export class UpdateProductDto {
+export class UpdateProductDto extends ProductCommissionFields {
   @ApiPropertyOptional() @IsOptional() @IsString() @MinLength(2) @MaxLength(160) name?: string;
   @ApiPropertyOptional() @IsOptional() @IsUUID() categoryId?: string;
   @ApiPropertyOptional({ enum: ProductFulfillmentType })
@@ -81,7 +106,11 @@ export class UpdateProductDto {
   @ApiPropertyOptional() @IsOptional() @IsISO8601() availableUntil?: string;
   @ApiPropertyOptional() @IsOptional() @IsInt() @Min(0) @Max(365) productionLeadDays?: number;
   @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(2000) pickupInstructions?: string;
-  @ApiPropertyOptional() @IsOptional() @IsUUID() partnerId?: string;
+  @ApiPropertyOptional({ description: 'String vazia remove o vínculo com o parceiro.' })
+  @IsOptional()
+  @ValidateIf((_, value) => value !== '')
+  @IsUUID()
+  partnerId?: string;
 }
 
 export class ProductStatusDto {

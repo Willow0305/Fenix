@@ -607,7 +607,7 @@ Enums de estados descrevem o vocabulário inicial; transições e responsáveis 
 
 - Finalidade: parceiro aprovado, fornecedor, loja, profissional ou patrocinador.
 - Campos O: `legalName`, `displayName`, `type`, `status`, `commissionType`.
-- Campos P: `documentNumberEncrypted`, `documentNumberHash`, `contactName`, `email`, `phone`, `description`, `contractStartsOn`, `contractEndsOn`, `logoMediaFileId`, `commissionPercentage`, `commissionFixedAmount`, `commissionCurrency`, `contractNotes`, `deletedAt`.
+- Campos P: `documentNumberEncrypted`, `documentNumberHash`, `contactName`, `email`, `phone`, `description`, `websiteUrl`, `contractStartsOn`, `contractEndsOn`, `logoMediaFileId`, `commissionPercentage`, `commissionFixedAmount`, `commissionCurrency`, `contractNotes`, `deletedAt`.
 - FKs: `logoMediaFileId -> MediaFile` (N).
 - Índices/restrições: UK `documentNumberHash` quando preenchido; IX `(status, type, deletedAt)` e `displayName`. Contrato válido; percentual/faixa e valor fixo não negativos; campos de comissão coerentes com o tipo.
 - Exclusão/auditoria: soft delete/inativação; aprovação, contrato e comissão geram `AuditLog`. Documento é cifrado + hash cego.
@@ -625,7 +625,7 @@ Enums de estados descrevem o vocabulário inicial; transições e responsáveis 
 
 - Finalidade: profissional vinculado a parceiro aprovado.
 - Campos O: `partnerId`, `fullName`, `profession`, `status`.
-- Campos P: `userId`, `licenseNumberEncrypted`, `licenseNumberHash`, `email`, `phone`, `publicBio`, `deletedAt`.
+- Campos P: `userId`, `licenseNumberEncrypted`, `licenseNumberHash`, `email`, `phone`, `publicBio`, `publicContact` (padrão `false`: contato só fica público com autorização), `deletedAt`.
 - FKs: `partnerId -> Partner` (R); `userId -> User` (N).
 - Índices/restrições: UK `userId`; UK `(partnerId, licenseNumberHash)` quando preenchido; IX `(partnerId, status, deletedAt)` e `profession`.
 - Exclusão/auditoria: soft delete/inativação; eventual acesso próprio depende de permissão aprovada. Não armazena informação clínica.
@@ -645,14 +645,14 @@ Enums de estados descrevem o vocabulário inicial; transições e responsáveis 
 - Campos O: `professionalId`, `startsAt`, `endsAt`, `status`.
 - Campos P: `partnerServiceId`, `notes`.
 - FKs: `professionalId -> PartnerProfessional` (R); `partnerServiceId -> PartnerService` (N).
-- Índices/restrições: IX `(professionalId, startsAt, endsAt, status)` e `(partnerServiceId, startsAt)`; fim posterior ao início. Sobreposição/recorrência dependem de política futura.
+- Índices/restrições: IX `(professionalId, startsAt, endsAt, status)` e `(partnerServiceId, startsAt)`; fim posterior ao início. Intervalos ativos (livre/reservado) do mesmo profissional não se sobrepõem (`DT-033`); recorrência depende de política futura.
 - Exclusão/auditoria: não apagado depois de usado; bloqueio e reserva preservam histórico de transição.
 
 ### `Appointment` — grupo H
 
 - Finalidade: solicitação e eventual confirmação de serviço parceiro.
 - Campos O: `partnerServiceId`, `requesterUserId`, `status`.
-- Campos P: `professionalId`, `availabilityId`, `athleteId`, `requestedStartsAt`, `requestedEndsAt`, `scheduledStartsAt`, `scheduledEndsAt`, `quotedPrice`, `currency`, `administrativeNotes`, `confirmedAt`, `cancelledAt`, `cancellationReason`.
+- Campos P: `professionalId`, `availabilityId`, `athleteId`, `requestedStartsAt`, `requestedEndsAt`, `scheduledStartsAt`, `scheduledEndsAt`, `quotedPrice`, `currency`, `requesterNotes` (até 500, sem dados de saúde), `administrativeNotes`, `confirmedAt`, `cancelledAt`, `cancellationReason`.
 - FKs: `partnerServiceId -> PartnerService` (R); `professionalId -> PartnerProfessional` (N); `availabilityId -> ProfessionalAvailability` (N); `requesterUserId -> User` (R); `athleteId -> Athlete` (N).
 - Índices/restrições: UK `availabilityId` quando preenchido; IX `(requesterUserId, status, createdAt)`, `(professionalId, scheduledStartsAt)` e `(partnerServiceId, status)`. Intervalos válidos; preço exige moeda; serviço/profissional/parceiro coerentes.
 - Exclusão/auditoria: não excluído; confirmação/cancelamento/no-show são auditados. Notas clínicas ou dados de saúde são proibidos.
@@ -661,10 +661,10 @@ Enums de estados descrevem o vocabulário inicial; transições e responsáveis 
 
 - Finalidade: repasse financeiro apurado para um parceiro em um período.
 - Campos O: `partnerId`, `periodStart`, `periodEnd`, `grossSalesAmount`, `commissionAmount`, `adjustmentAmount`, `netPayableAmount`, `currency`, `status`, `idempotencyKey`.
-- Campos P: `dueDate`, `paidAt`, `notes`, `createdById`, `approvedById`, `approvedAt`, `cancelledAt`, `cancellationReason`.
+- Campos P: `adjustmentReason` (obrigatório com ajuste), `dueDate`, `paidAt`, `notes`, `createdById`, `approvedById`, `approvedAt`, `cancelledAt`, `cancellationReason`.
 - FKs: `partnerId -> Partner` (R); `createdById -> User` (N); `approvedById -> User` (N).
 - Índices/restrições: UK `idempotencyKey`; IX `(partnerId, status, periodEnd)` e `(status, dueDate)`. Período válido; bruto, comissão e líquido são não negativos; `adjustmentAmount` é assinado; valores são coerentes; aprovação/pagamento exigem autor/instante correspondente.
-- Exclusão/auditoria: não excluído; cancelamento/correção preserva composição e auditoria. Pagamento gera saída financeira vinculada.
+- Exclusão/auditoria: não excluído; cancelamento antes do pagamento libera os itens e registra a composição liberada na auditoria (`DT-033`). Pagamento gera uma única saída financeira vinculada; repasse pago não é cancelado.
 
 ### `PartnerSettlementItem` — grupo A
 
@@ -673,7 +673,7 @@ Enums de estados descrevem o vocabulário inicial; transições e responsáveis 
 - Campos P: nenhum.
 - FKs: `partnerSettlementId -> PartnerSettlement` (R); `orderItemId -> OrderItem` (R).
 - Índices/restrições: UK `orderItemId`; IX `partnerSettlementId`. Valores não negativos, mesma moeda e `net = gross - commission` conforme ajustes que pertencem ao cabeçalho. O parceiro do `OrderItem` corresponde ao parceiro do repasse.
-- Exclusão/auditoria: append-only depois da aprovação; alteração exige cancelar e recalcular novo repasse.
+- Exclusão/auditoria: imutável; itens de repasse não pago só são removidos no cancelamento do repasse (`DT-033`), e alteração exige cancelar e gerar novo repasse.
 
 ## 9. Conteúdo, eventos, fórum e notificações
 

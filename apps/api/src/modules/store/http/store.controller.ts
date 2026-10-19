@@ -17,11 +17,12 @@ import {
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { ApiBearerAuth, ApiConsumes, ApiHeader, ApiTags } from '@nestjs/swagger';
+import type { CommissionType } from '@prisma/client';
 import { Throttle } from '@nestjs/throttler';
 import type { CookieOptions, Response } from 'express';
 
 import { AppConfig } from '../../../common/config/app-config';
-import { type Money, parseMoney } from '../../../common/domain/money';
+import { type Money, money, parseMoney } from '../../../common/domain/money';
 import { IdempotencyKey } from '../../../common/http/idempotency';
 import type { Page } from '../../../common/http/pagination';
 import {
@@ -67,6 +68,7 @@ import {
   OrderProofDto,
   OrderQueryDto,
   OrderStatusDto,
+  ProductCommissionFields,
   ProductDto,
   ProductStatusDto,
   PublicProductQueryDto,
@@ -88,6 +90,27 @@ function optionalMoney(value: string | undefined, field: string): Money | null |
   }
 
   return value === '' ? null : parseMoney(value, field);
+}
+
+/** Converte os campos de comissão própria do produto (percentual com 2 casas). */
+function commissionOverride(body: ProductCommissionFields): {
+  commissionTypeOverride?: CommissionType | null;
+  commissionPercentageOverride?: Money | null;
+  commissionFixedOverride?: Money | null;
+} {
+  if (body.commissionTypeOverride === undefined) {
+    return {};
+  }
+
+  return {
+    commissionTypeOverride: body.commissionTypeOverride || null,
+    commissionPercentageOverride: body.commissionPercentageOverride
+      ? money(body.commissionPercentageOverride)
+      : null,
+    commissionFixedOverride: body.commissionFixedOverride
+      ? parseMoney(body.commissionFixedOverride, 'commissionFixedOverride', { allowZero: true })
+      : null
+  };
 }
 
 function sendFile(
@@ -362,12 +385,23 @@ export class StoreAdminController {
     @Body() body: ProductDto,
     @ReqMeta() meta: RequestMeta
   ): Promise<ProductDetail> {
-    const { basePrice, promotionalPrice, costPrice, ...rest } = body;
+    const {
+      basePrice,
+      promotionalPrice,
+      costPrice,
+      commissionTypeOverride,
+      commissionPercentageOverride,
+      commissionFixedOverride,
+      ...rest
+    } = body;
 
     return this.catalog.create(
       actor,
       {
         ...defined(rest),
+        ...commissionOverride(
+          defined({ commissionTypeOverride, commissionPercentageOverride, commissionFixedOverride })
+        ),
         basePrice: parseMoney(basePrice, 'basePrice'),
         ...(promotionalPrice === undefined
           ? {}
@@ -388,7 +422,17 @@ export class StoreAdminController {
     @Body() body: UpdateProductDto,
     @ReqMeta() meta: RequestMeta
   ): Promise<ProductDetail> {
-    const { basePrice, promotionalPrice, costPrice, buyerLimit, ...rest } = body;
+    const {
+      basePrice,
+      promotionalPrice,
+      costPrice,
+      buyerLimit,
+      partnerId,
+      commissionTypeOverride,
+      commissionPercentageOverride,
+      commissionFixedOverride,
+      ...rest
+    } = body;
     const promo = optionalMoney(promotionalPrice, 'promotionalPrice');
     const cost = optionalMoney(costPrice, 'costPrice');
 
@@ -397,6 +441,10 @@ export class StoreAdminController {
       id,
       {
         ...defined(rest),
+        ...(partnerId === undefined ? {} : { partnerId: partnerId || null }),
+        ...commissionOverride(
+          defined({ commissionTypeOverride, commissionPercentageOverride, commissionFixedOverride })
+        ),
         ...(basePrice === undefined ? {} : { basePrice: parseMoney(basePrice, 'basePrice') }),
         ...(promo === undefined ? {} : { promotionalPrice: promo }),
         ...(cost === undefined ? {} : { costPrice: cost }),

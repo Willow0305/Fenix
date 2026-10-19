@@ -6,6 +6,23 @@ O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) e o 
 
 ## [Não publicado]
 
+### Fase 6 — Parceiros e profissionais (2026-10-19)
+
+#### Adicionado
+
+- parceiros com aprovação, vigência de contrato, comissão, logo, documentos confidenciais e documento cifrado (RF-031, RCF-010);
+- publicação e venda somente de parceiro ativo dentro da vigência (loja, carrinho e páginas públicas `/parceiros`);
+- snapshot da regra de comissão em cada item vendido, com sobreposição por produto (RF-032, PEN-035);
+- repasses com rascunho, aprovação e pagamento que lança uma única saída no Caixa; relatório de vendas por parceiro separando receita do time e valor devido (RN-PAR-003);
+- profissionais, serviços e disponibilidade sem sobreposição (RF-033, RCF-011);
+- agendamento manual: solicitação em horário livre, confirmação, cancelamento, realizado e ausência, com notificações e e-mail ao profissional (RF-034);
+- telas `/admin/parceiros`, `/admin/servicos`, `/admin/agendamentos`, `/admin/repasses`, `/minha-conta/agendamentos` e seletor de parceiro/comissão na ficha do produto;
+- migration `fase6_parceiros`, 7 testes unitários e 6 testes de integração (DT-033).
+
+#### Alterado
+
+- pedido com item em repasse ainda não pago não pode ser estornado antes de cancelar o repasse.
+
 ### Documentação (2026-10-19)
 
 - guia `docs/COMO-EXECUTAR.md` e guia de continuidade `CONTINUAR.md` para outro agente;

@@ -3,10 +3,12 @@ import type { Prisma } from '@prisma/client';
 
 import { generateOpaqueToken, sha256Hex } from '../../../common/crypto/tokens';
 import { type MoneyView, moneyView, round2, sum } from '../../../common/domain/money';
+import { civilDateOf } from '../../../common/domain/time-zone';
 import { AppError } from '../../../common/errors/app-error';
 import type { Principal } from '../../../common/http/request-context';
 import { PrismaService, type PrismaTx } from '../../../common/prisma/prisma.service';
 import { mediaUrl } from '../../media/application/media.service';
+import { partnerOperational } from '../../partners/domain/partner-rules';
 import {
   effectiveUnitPrice,
   isPurchasable,
@@ -61,7 +63,17 @@ const CART_INCLUDE = {
                 orderBy: [{ isPrimary: 'desc' }, { sortOrder: 'asc' }],
                 take: 1
               },
-              partner: { select: { status: true } }
+              partner: {
+                select: {
+                  status: true,
+                  deletedAt: true,
+                  contractStartsOn: true,
+                  contractEndsOn: true,
+                  commissionType: true,
+                  commissionPercentage: true,
+                  commissionFixedAmount: true
+                }
+              }
             }
           }
         }
@@ -90,7 +102,9 @@ export function cartItemSellable(item: CartItemRow, now: Date): boolean {
     item.productVariant.isActive &&
     item.productVariant.deletedAt === null &&
     product.deletedAt === null;
-  const partnerOk = product.partnerId === null || product.partner?.status === 'ACTIVE';
+  const partnerOk =
+    product.partnerId === null ||
+    (product.partner !== null && partnerOperational(product.partner, civilDateOf(now)));
 
   if (!variantOk || !partnerOk) {
     return false;
@@ -270,7 +284,14 @@ export class CartService {
       include: {
         product: {
           include: {
-            partner: { select: { status: true } },
+            partner: {
+              select: {
+                status: true,
+                deletedAt: true,
+                contractStartsOn: true,
+                contractEndsOn: true
+              }
+            },
             campaignProducts: {
               where: {
                 isActive: true,
@@ -298,7 +319,8 @@ export class CartService {
       product.fulfillmentType === 'CAMPAIGN' ? (product.campaignProducts[0]?.id ?? null) : null;
     const sellable =
       variant.isActive &&
-      (product.partnerId === null || product.partner?.status === 'ACTIVE') &&
+      (product.partnerId === null ||
+        (product.partner !== null && partnerOperational(product.partner, civilDateOf(now)))) &&
       (product.fulfillmentType === 'CAMPAIGN'
         ? product.status === 'ACTIVE' && campaignLinkId !== null
         : isPurchasable(product, now));

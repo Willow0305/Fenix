@@ -101,7 +101,7 @@ Atualizado em 19/10/2026. "Parcial" indica que a parte da fase entregue está im
 | RF-016 | implementado | 4 | estoque por movimentações | `store/variants/:id/stock` |
 | RF-017 | implementado | 4 | pedido de usuário ou visitante | `orders/checkout` |
 | RF-018 | implementado | 4 | estados do pedido | `store/orders/:id/status` |
-| RF-019 | parcial | 2–4 | área do atleta/cliente: dados, inscrições, mensalidades, pedidos, favoritos; agendamentos na Fase 6 | `/minha-conta` |
+| RF-019 | implementado | 2–6 | área do atleta/cliente: dados, inscrições, mensalidades, pedidos, favoritos e agendamentos | `/minha-conta` |
 | RF-020 | implementado | 2–4 | atletas ativos, inscrições novas, mensalidades em aberto, saldo e vendas do mês | `dashboard/summary` |
 | RF-021 | pendente | 8 | relatórios integrados e exportações | — |
 | RF-022 | parcial | 2–5 | notificações internas de inscrição, cobrança, pedido e chegada; envio por e-mail real pendente | `me/notifications` |
@@ -113,10 +113,10 @@ Atualizado em 19/10/2026. "Parcial" indica que a parte da fase entregue está im
 | RF-028 | implementado | 3 | comprovantes fora do banco | `.../attachments` |
 | RF-029 | implementado | 3–4 | entrada automática de mensalidade e pedido | pagamento confirmado |
 | RF-030 | implementado | 3 | conciliação e fechamento | `finance/closings` |
-| RF-031 | pendente | 6 | cadastro de parceiros | — |
-| RF-032 | pendente | 6 | venda de parceiro com repasse | — |
-| RF-033 | pendente | 6 | profissionais e serviços | — |
-| RF-034 | pendente | 6 | agendamento | — |
+| RF-031 | implementado | 6 | cadastro, aprovação, vigência, comissão e documentos de parceiros | `partners` |
+| RF-032 | implementado | 6 | produto de parceiro com snapshot de comissão, repasse e relatório | `partners/:id/settlements`, `partners/sales-report` |
+| RF-033 | implementado | 6 | profissionais e serviços com contato público autorizado | `partners/:id/professionals`, `partner-services` |
+| RF-034 | implementado | 6 | solicitação, confirmação, cancelamento, realização e ausência | `appointments` |
 | RF-035 | implementado | 4–5 | estoque, encomenda e remessa; digital reservado | produto `fulfillmentType` |
 | RF-036 | implementado | 5 | controle de remessa | `campaigns` |
 | RF-037 | implementado | 4 | carrinho no servidor | `cart` |
@@ -134,11 +134,11 @@ Atualizado em 19/10/2026. "Parcial" indica que a parte da fase entregue está im
 | RCF-004 | implementado | 3 | contas a pagar e receber (sem recorrência) | `finance/obligations` |
 | RCF-005 | implementado | 3–4 | estornos e reembolsos vinculados | estorno/reembolso |
 | RCF-006 | implementado | 3 | reabertura com permissão | `closings/:id/reopen` |
-| RCF-007 | parcial | 4–6 | estoque, encomenda e remessa; parceiro na Fase 6 | loja |
+| RCF-007 | implementado | 4–6 | estoque, encomenda, remessa e produto de parceiro | loja |
 | RCF-008 | implementado | 4–5 | imagens, promoção, custo, SKU, variações, limites | loja |
 | RCF-009 | implementado | 5 | mínimos, consolidação, chegada, cancelamento | `campaigns` |
-| RCF-010 | pendente | 6 | documentos e repasses de parceiros | — |
-| RCF-011 | pendente | 6 | disponibilidade de profissionais | — |
+| RCF-010 | implementado | 6 | vigência, documentos confidenciais, logo, comissão, repasse e relatório | `partners` |
+| RCF-011 | implementado | 6 | disponibilidade sem sobreposição e consulta pública de horários | `professionals/:id/availability`, `public/partner-services/:id/slots` |
 | RCF-012 | pendente | 7 | reações, denúncias e moderação | — |
 | RCF-013 | pendente | 7 | notícias agendadas e slug | — |
 | RCF-014 | parcial | 1–7 | história, cores, PIX, termos, regras; notificações configuráveis pendentes | `team-settings` |

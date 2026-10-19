@@ -95,7 +95,7 @@
 | RN-PAR-004 | Documentos e termos comerciais possuem acesso restrito e retenção definida. | Definida quanto à proteção; prazo provisório | RNF-004, RCF-010 |
 | RN-PAR-005 | Profissional é vinculado a parceiro aprovado e publica apenas contatos/serviços autorizados. | Definida | RF-033 |
 | RN-PAR-006 | Solicitação de atendimento não equivale a confirmação; diretoria ou parceiro autorizado confirma/cancela. | Definida | RF-034 |
-| RN-PAR-007 | Perfil próprio de parceiro, agenda, antecedência, conflito de horário, cancelamento, ausência e avaliação dependem de decisão. | Provisória | Briefing §10 |
+| RN-PAR-007 | Perfil próprio de parceiro, agenda, antecedência, conflito de horário, cancelamento, ausência e avaliação dependem de decisão. Adotado provisoriamente: sem login de parceiro, agenda manual por horários livres, sem conflito confirmado, cancelamento com motivo e registro de ausência; antecedência e avaliações seguem pendentes (`DT-033`). | Provisória | Briefing §10 |
 | RN-PAR-008 | Nenhum serviço pode registrar prontuário ou dado de saúde nesta fase. | Definida | Briefing §10, `AGENTS.md` |
 
 ## Fórum, notícias, eventos e notificações

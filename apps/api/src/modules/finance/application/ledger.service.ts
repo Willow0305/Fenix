@@ -125,7 +125,12 @@ const LOCKABLE_TABLES = {
   order: 'orders',
   variant: 'product_variants',
   campaign: 'sales_campaigns',
-  obligation: 'financial_obligations'
+  obligation: 'financial_obligations',
+  partner: 'partners',
+  settlement: 'partner_settlements',
+  professional: 'partner_professionals',
+  availability: 'professional_availabilities',
+  appointment: 'appointments'
 } as const;
 
 /** `SELECT ... FOR UPDATE` para serializar alterações concorrentes na mesma linha (DT-013). */

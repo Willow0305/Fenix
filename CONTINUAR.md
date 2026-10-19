@@ -4,7 +4,7 @@ Este arquivo permite que outro chat ou agente continue exatamente de onde o trab
 
 ## Prompt para colar no novo chat
 
-> Você vai continuar o desenvolvimento do sistema Fênix Vôlei no repositório `C:\Users\William\Desktop\Fenix`, branch `desenvolvimento`. Leia, nesta ordem: `CONTINUAR.md`, `AGENTS.md`, `docs/16-ROADMAP.md`, `PENDENCIAS.md` (seção 12, "Resolvidas") e `docs/24-RELATORIO-FASE-5.md`. As fases 0 a 5 estão implementadas e commitadas. Continue pela **Fase 6 — Parceiros e profissionais**, depois Fase 7 e Fase 8, seguindo o "Plano das próximas fases" do `CONTINUAR.md`. O responsável único do projeto autorizou todas as fases e delegou as decisões técnicas: decida sozinho usando as recomendações de `PENDENCIAS.md` e registre-as em `docs/17-DECISOES-TECNICAS.md`. Pergunte apenas o que for decisão de negócio impossível de inferir. Ao fim de cada fase: `npm run check` e `npm run test:integration` verdes, relatório `docs/2X-RELATORIO-FASE-N.md` no padrão dos anteriores, atualização de CHANGELOG, roadmap, 02-REQUISITOS (matriz de estado), 10-API e decisões, e commit com a linha `Co-Authored-By` usada nos commits anteriores. Responda sempre em português.
+> Você vai continuar o desenvolvimento do sistema Fênix Vôlei no repositório `C:\Users\William\Desktop\Fenix`, branch `desenvolvimento`. Leia, nesta ordem: `CONTINUAR.md`, `AGENTS.md`, `docs/16-ROADMAP.md`, `PENDENCIAS.md` (seção 12, "Resolvidas") e `docs/25-RELATORIO-FASE-6.md`. As fases 0 a 6 estão implementadas e commitadas. Continue pela **Fase 7 — Comunicação**, depois a Fase 8, seguindo o "Plano das próximas fases" do `CONTINUAR.md`. O responsável único do projeto autorizou todas as fases e delegou as decisões técnicas: decida sozinho usando as recomendações de `PENDENCIAS.md` e registre-as em `docs/17-DECISOES-TECNICAS.md`. Pergunte apenas o que for decisão de negócio impossível de inferir. Ao fim de cada fase: `npm run check` e `npm run test:integration` verdes, relatório `docs/2X-RELATORIO-FASE-N.md` no padrão dos anteriores, atualização de CHANGELOG, roadmap, 02-REQUISITOS (matriz de estado), 10-API e decisões, e commit com a linha `Co-Authored-By` usada nos commits anteriores. Responda sempre em português.
 
 ## 1. Contexto
 
@@ -23,11 +23,11 @@ Este arquivo permite que outro chat ou agente continue exatamente de onde o trab
 | 4 | Loja, estoque, carrinho, pedidos | `0291d5c` | `docs/23` |
 | 5 | Remessas (pré-vendas) | `93c6d87` | `docs/24` |
 | — | Documentação atualizada, `db:demo`, este guia | commits seguintes | — |
-| 6 | Parceiros e profissionais | **próxima** | — |
-| 7 | Comunicação (notícias, eventos, fórum) | pendente | — |
+| 6 | Parceiros e profissionais | ver `git log` | `docs/25` |
+| 7 | Comunicação (notícias, eventos, fórum) | **próxima** | — |
 | 8 | Relatórios, auditoria final, otimizações | pendente | — |
 
-Testes: cerca de 65 unitários de API e 7 web (`npm test`), mais 55 de integração em `apps/api/test/phase1..5-*.int-spec.ts` (`npm run test:integration`).
+Testes: 72 unitários de API e 7 web (`npm test`), mais 61 de integração em `apps/api/test/phase1..6-*.int-spec.ts` (`npm run test:integration`).
 
 ## 3. Arquitetura (resumo operacional)
 

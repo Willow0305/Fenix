@@ -66,6 +66,18 @@ O contrato completo e executável fica no OpenAPI (`/docs` fora de produção). 
 | `PUT` | `/api/v1/campaigns/:id/products` · `:id/status` | `campaigns.manage` (cancelar exige `payments.correct`) | 5 |
 | `GET` | `/api/v1/campaigns/:id/report` · `report.csv?kind=supplier\|pickup` | `campaigns.manage` | 5 |
 | `POST` | `/api/v1/campaigns/:id/orders/:orderId/pickup` · `campaigns/close-expired` | `campaigns.manage` | 5 |
+| `GET` | `/api/v1/public/partners[/:id]` · `public/partner-services/:id/slots` | público (só parceiro operacional) | 6 |
+| `POST` | `/api/v1/appointments` | autenticado, rate limiting | 6 |
+| `GET`/`POST` | `/api/v1/me/appointments` · `:id/cancel` | próprio | 6 |
+| `GET`/`POST`/`PATCH`/`PUT` | `/api/v1/partners[/:id]` · `:id/status` · `:id/logo` (multipart) | `partners.manage` | 6 |
+| `POST`/`DELETE`/`GET` | `/api/v1/partners/:id/documents[/:docId]` · `:docId/file` | `partners.manage` + `partner.documents.read` / `partner.documents.read` | 6 |
+| `GET`/`POST`/`PATCH` | `/api/v1/professionals[/:id]` · `partners/:id/professionals` | `services.manage` | 6 |
+| `GET`/`POST`/`PATCH`/`PUT` | `/api/v1/partner-services[/:id]` · `:id/status` · `partners/:id/services` | `services.manage` | 6 |
+| `GET`/`POST` | `/api/v1/professionals/:id/availability` · `availability/:id/block` | `services.manage` | 6 |
+| `GET`/`PUT` | `/api/v1/appointments[/:id]` · `:id/status` | `appointments.manage` | 6 |
+| `GET`/`POST`/`PUT` | `/api/v1/settlements[/:id]` · `partners/:id/settlements` (Idempotency-Key) · `:id/status` | `settlements.manage` | 6 |
+| `POST` | `/api/v1/settlements/:id/pay` (Idempotency-Key) | `settlements.manage` + `transactions.confirm` | 6 |
+| `GET` | `/api/v1/partners/sales-report?from&to&partnerId` | `settlements.manage` | 6 |
 
 Listas usam `page`/`pageSize` (máx. 100) e retornam `{ data, meta }` (`DT-025`).
 

@@ -64,6 +64,11 @@ export interface ProductDetail extends ProductSummary {
   costPrice?: MoneyView | null;
   basePrice?: MoneyView;
   promotionalPrice?: MoneyView | null;
+  commissionOverride?: {
+    type: 'NONE' | 'PERCENTAGE' | 'FIXED';
+    percentage: string | null;
+    fixedAmount: MoneyView | null;
+  } | null;
 }
 
 export interface CartLine {

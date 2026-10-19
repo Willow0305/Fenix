@@ -14,7 +14,7 @@ Este roadmap é incremental. Nenhuma fase é iniciada sem que a anterior cumpra 
 | 3 | Mensalidades e Caixa Fênix | Implementada (2026-10-18) | Fase 2 e regras financeiras (`DT-027`) |
 | 4 | Loja | Implementada (2026-10-18) | Fase 3 |
 | 5 | Remessas | Implementada (2026-10-19) | Fase 4 |
-| 6 | Parceiros e profissionais | Autorizada | Fase 5 |
+| 6 | Parceiros e profissionais | Implementada (2026-10-19) | Fase 5 |
 | 7 | Comunicação | Autorizada | Fase 6 |
 | 8 | Relatórios, auditoria e otimizações | Autorizada | Módulos anteriores |
 

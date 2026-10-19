@@ -56,6 +56,31 @@ export class NotificationsService {
     return result.count;
   }
 
+  /** Usuários ativos que têm a permissão por algum papel vigente (destinatários operacionais). */
+  async permissionHolders(permission: string, tx?: PrismaTx, limit = 50): Promise<string[]> {
+    const now = new Date();
+    const users = await (tx ?? this.prisma).user.findMany({
+      where: {
+        status: 'ACTIVE',
+        deletedAt: null,
+        userRoles: {
+          some: {
+            OR: [{ expiresAt: null }, { expiresAt: { gt: now } }],
+            role: {
+              deletedAt: null,
+              rolePermissions: { some: { permission: { code: permission, deletedAt: null } } }
+            }
+          }
+        }
+      },
+      select: { id: true },
+      orderBy: { createdAt: 'asc' },
+      take: limit
+    });
+
+    return users.map((user) => user.id);
+  }
+
   async list(
     userId: string,
     query: PageQueryDto & { unread?: boolean }

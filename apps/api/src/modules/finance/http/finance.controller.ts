@@ -85,7 +85,7 @@ import {
   UpdatePlanDto
 } from './finance.dto';
 
-function sendFile(
+export function sendFile(
   res: Response,
   file: { content: Buffer; mimeType: string; fileName: string }
 ): void {

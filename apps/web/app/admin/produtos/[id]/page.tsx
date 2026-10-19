@@ -29,6 +29,8 @@ import {
   type Variant
 } from '../../../../lib/store-types';
 import { useResource } from '../../../../lib/use-resource';
+import type { Page } from '../../../../lib/api-types';
+import { COMMISSION_TYPE, type Partner } from '../../../../lib/partner-types';
 
 interface Movement {
   id: string;
@@ -123,6 +125,10 @@ export default function ProductAdminPage() {
   const { id } = useParams<{ id: string }>();
   const product = useResource<ProductDetail>(`/store/products/${id}`);
   const categories = useResource<StoreCategory[]>('/store/categories');
+  const { can } = useAuth();
+  const partners = useResource<Page<Partner>>(can('partners.manage') ? '/partners' : null, {
+    pageSize: 100
+  });
   const [notice, setNotice] = useState<string | null>(null);
   const [archiving, setArchiving] = useState(false);
   const [form, setForm] = useState<Record<string, string>>({});
@@ -152,7 +158,11 @@ export default function ProductAdminPage() {
         buyerLimit: p.buyerLimit ? String(p.buyerLimit) : '',
         productionLeadDays: p.productionLeadDays ? String(p.productionLeadDays) : '',
         pickupInstructions: p.pickupInstructions ?? '',
-        isFeatured: p.isFeatured ? 'true' : 'false'
+        isFeatured: p.isFeatured ? 'true' : 'false',
+        partnerId: p.partner?.id ?? '',
+        commissionTypeOverride: p.commissionOverride?.type ?? '',
+        commissionPercentageOverride: p.commissionOverride?.percentage ?? '',
+        commissionFixedOverride: p.commissionOverride?.fixedAmount?.amount ?? ''
       });
     }
   }, [product.data]);
@@ -177,7 +187,19 @@ export default function ProductAdminPage() {
             ? { productionLeadDays: Number(form['productionLeadDays']) }
             : {}),
           pickupInstructions: form['pickupInstructions'] ?? '',
-          isFeatured: form['isFeatured'] === 'true'
+          isFeatured: form['isFeatured'] === 'true',
+          partnerId: form['partnerId'] ?? '',
+          commissionTypeOverride: form['partnerId'] ? (form['commissionTypeOverride'] ?? '') : '',
+          ...(form['partnerId'] && form['commissionTypeOverride'] === 'PERCENTAGE'
+            ? {
+                commissionPercentageOverride: normalizeAmount(
+                  form['commissionPercentageOverride'] ?? ''
+                )
+              }
+            : {}),
+          ...(form['partnerId'] && form['commissionTypeOverride'] === 'FIXED'
+            ? { commissionFixedOverride: normalizeAmount(form['commissionFixedOverride'] ?? '') }
+            : {})
         }
       })
     );
@@ -375,6 +397,53 @@ export default function ProductAdminPage() {
             ]}
           />
         </div>
+        {partners.data ? (
+          <div className="form-grid">
+            <SelectField
+              label="Parceiro (origem do produto)"
+              value={form['partnerId'] ?? ''}
+              onChange={set('partnerId')}
+              hint="Produto de parceiro só é vendido enquanto o parceiro estiver ativo e no contrato."
+              options={[
+                { value: '', label: 'Produto próprio do time' },
+                ...partners.data.data
+                  .filter(
+                    (partner) => partner.status !== 'ENDED' || partner.id === form['partnerId']
+                  )
+                  .map((partner) => ({ value: partner.id, label: partner.displayName }))
+              ]}
+            />
+            {form['partnerId'] ? (
+              <SelectField
+                label="Comissão deste produto"
+                value={form['commissionTypeOverride'] ?? ''}
+                onChange={set('commissionTypeOverride')}
+                options={[
+                  { value: '', label: 'Usar a regra do parceiro' },
+                  ...Object.entries(COMMISSION_TYPE).map(([value, label]) => ({ value, label }))
+                ]}
+              />
+            ) : null}
+            {form['partnerId'] && form['commissionTypeOverride'] === 'PERCENTAGE' ? (
+              <TextField
+                label="Percentual (%)"
+                inputMode="decimal"
+                required
+                value={form['commissionPercentageOverride'] ?? ''}
+                onChange={set('commissionPercentageOverride')}
+              />
+            ) : null}
+            {form['partnerId'] && form['commissionTypeOverride'] === 'FIXED' ? (
+              <TextField
+                label="Valor por unidade (R$)"
+                inputMode="decimal"
+                required
+                value={form['commissionFixedOverride'] ?? ''}
+                onChange={set('commissionFixedOverride')}
+              />
+            ) : null}
+          </div>
+        ) : null}
         <TextArea
           label="Descrição"
           value={form['description'] ?? ''}

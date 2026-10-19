@@ -1,5 +1,11 @@
 import { Injectable } from '@nestjs/common';
-import type { Gender, Prisma, ProductFulfillmentType, ProductStatus } from '@prisma/client';
+import type {
+  CommissionType,
+  Gender,
+  Prisma,
+  ProductFulfillmentType,
+  ProductStatus
+} from '@prisma/client';
 
 import { AuditService } from '../../../common/audit/audit.service';
 import {
@@ -9,6 +15,7 @@ import {
   type MoneyView,
   moneyView
 } from '../../../common/domain/money';
+import { civilDateOf } from '../../../common/domain/time-zone';
 import { AppError } from '../../../common/errors/app-error';
 import { type Page, pageArgs, type PageQueryDto, toPage } from '../../../common/http/pagination';
 import type { Principal, RequestMeta } from '../../../common/http/request-context';
@@ -19,6 +26,11 @@ import {
   MediaService,
   mediaUrl
 } from '../../media/application/media.service';
+import {
+  invalidCommission,
+  operationalPartnerWhere,
+  partnerOperational
+} from '../../partners/domain/partner-rules';
 import { slugify } from '../../sports/domain/sports-rules';
 import { effectiveUnitPrice, isPurchasable, listPrice, requiresStock } from '../domain/store-rules';
 import { InventoryService, type StockLevel } from './inventory.service';
@@ -75,6 +87,12 @@ export interface ProductDetail extends ProductSummary {
   readonly costPrice?: MoneyView | null;
   readonly basePrice?: MoneyView;
   readonly promotionalPrice?: MoneyView | null;
+  /** Somente na visão administrativa: regra própria do produto (sobrepõe a do parceiro). */
+  readonly commissionOverride?: {
+    type: CommissionType;
+    percentage: string | null;
+    fixedAmount: MoneyView | null;
+  } | null;
 }
 
 export interface ProductInput {
@@ -93,6 +111,9 @@ export interface ProductInput {
   readonly productionLeadDays?: number | null;
   readonly pickupInstructions?: string | null;
   readonly partnerId?: string | null;
+  readonly commissionTypeOverride?: CommissionType | null;
+  readonly commissionPercentageOverride?: Money | null;
+  readonly commissionFixedOverride?: Money | null;
 }
 
 export interface VariantInput {
@@ -109,7 +130,16 @@ export interface VariantInput {
 
 const PRODUCT_INCLUDE = {
   category: { select: { id: true, name: true, slug: true } },
-  partner: { select: { id: true, displayName: true, status: true } },
+  partner: {
+    select: {
+      id: true,
+      displayName: true,
+      status: true,
+      deletedAt: true,
+      contractStartsOn: true,
+      contractEndsOn: true
+    }
+  },
   images: {
     where: { deletedAt: null },
     orderBy: [{ isPrimary: 'desc' }, { sortOrder: 'asc' }],
@@ -278,7 +308,8 @@ export class CatalogService {
         ? listPrices.reduce((min, p) => (money(p).lessThan(money(min)) ? p : min))
         : row.basePrice.toFixed(2);
     const primary = row.images[0];
-    const partnerVisible = row.partner && (options.admin || row.partner.status === 'ACTIVE');
+    const partnerVisible =
+      row.partner && (options.admin || partnerOperational(row.partner, civilDateOf(options.now)));
 
     return {
       id: row.id,
@@ -315,7 +346,18 @@ export class CatalogService {
       })),
       variants: variantViews,
       ...(options.admin
-        ? { costPrice: row.costPrice ? moneyView(row.costPrice, row.currency) : null }
+        ? {
+            costPrice: row.costPrice ? moneyView(row.costPrice, row.currency) : null,
+            commissionOverride: row.commissionTypeOverride
+              ? {
+                  type: row.commissionTypeOverride,
+                  percentage: row.commissionPercentageOverride?.toFixed(2) ?? null,
+                  fixedAmount: row.commissionFixedOverride
+                    ? moneyView(row.commissionFixedOverride, row.currency)
+                    : null
+                }
+              : null
+          }
         : {})
     };
   }
@@ -336,7 +378,7 @@ export class CatalogService {
         deletedAt: null,
         ...(query.category ? { slug: query.category } : {})
       },
-      OR: [{ partnerId: null }, { partner: { status: 'ACTIVE', deletedAt: null } }],
+      OR: [{ partnerId: null }, { partner: operationalPartnerWhere(civilDateOf(now)) }],
       AND: [
         { OR: [{ availableFrom: null }, { availableFrom: { lte: now } }] },
         { OR: [{ availableUntil: null }, { availableUntil: { gte: now } }] },
@@ -385,7 +427,7 @@ export class CatalogService {
         slug,
         deletedAt: null,
         status: { in: ['ACTIVE', 'SOLD_OUT'] },
-        OR: [{ partnerId: null }, { partner: { status: 'ACTIVE', deletedAt: null } }]
+        OR: [{ partnerId: null }, { partner: operationalPartnerWhere(civilDateOf(now)) }]
       },
       include: PRODUCT_INCLUDE
     });
@@ -469,6 +511,18 @@ export class CatalogService {
       }
     }
 
+    if (input.commissionTypeOverride) {
+      const invalid = invalidCommission({
+        type: input.commissionTypeOverride,
+        percentage: input.commissionPercentageOverride ?? null,
+        fixedAmount: input.commissionFixedOverride ?? null
+      });
+
+      if (invalid) {
+        throw AppError.validation('INVALID_COMMISSION', invalid);
+      }
+    }
+
     if (input.fulfillmentType === 'DIGITAL') {
       throw AppError.validation(
         'DIGITAL_NOT_AVAILABLE',
@@ -499,6 +553,26 @@ export class CatalogService {
     }
   }
 
+  /** Regra de comissão própria do produto (PEN-035); `null` volta a usar a do parceiro. */
+  private commissionOverrideData(input: Partial<ProductInput>): {
+    commissionTypeOverride?: CommissionType | null;
+    commissionPercentageOverride?: Money | null;
+    commissionFixedOverride?: Money | null;
+  } {
+    if (input.commissionTypeOverride === undefined) {
+      return {};
+    }
+
+    const type = input.commissionTypeOverride;
+
+    return {
+      commissionTypeOverride: type,
+      commissionPercentageOverride:
+        type === 'PERCENTAGE' ? (input.commissionPercentageOverride ?? null) : null,
+      commissionFixedOverride: type === 'FIXED' ? (input.commissionFixedOverride ?? null) : null
+    };
+  }
+
   async create(actor: Principal, input: ProductInput, meta: RequestMeta): Promise<ProductDetail> {
     await this.assertRefs(input);
     const slug = await this.uniqueSlug('product', input.name);
@@ -521,6 +595,7 @@ export class CatalogService {
         availableUntil: iso(input.availableUntil),
         productionLeadDays: input.productionLeadDays ?? null,
         pickupInstructions: input.pickupInstructions ?? null,
+        ...this.commissionOverrideData(input),
         status: 'DRAFT',
         variants: { create: { sku: `${slug.slice(0, 60).toUpperCase()}-UN`, name: 'Único' } }
       }
@@ -580,7 +655,8 @@ export class CatalogService {
           : { productionLeadDays: input.productionLeadDays }),
         ...(input.pickupInstructions === undefined
           ? {}
-          : { pickupInstructions: input.pickupInstructions })
+          : { pickupInstructions: input.pickupInstructions }),
+        ...this.commissionOverrideData(input)
       }
     });
     await this.audit.record({

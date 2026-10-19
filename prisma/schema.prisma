@@ -1685,6 +1685,7 @@ model Partner {
   email                   String?        @db.VarChar(180)
   phone                   String?        @db.VarChar(30)
   description             String?        @db.Text
+  websiteUrl              String?        @map("website_url") @db.VarChar(300)
   contractStartsOn        DateTime?      @map("contract_starts_on") @db.Date
   contractEndsOn          DateTime?      @map("contract_ends_on") @db.Date
   logoMediaFileId         String?        @map("logo_media_file_id") @db.Uuid
@@ -1743,6 +1744,7 @@ model PartnerProfessional {
   email                  String?            @db.VarChar(180)
   phone                  String?            @db.VarChar(30)
   publicBio              String?            @map("public_bio") @db.Text
+  publicContact          Boolean            @default(false) @map("public_contact")
   status                 ProfessionalStatus @default(ACTIVE)
   createdAt              DateTime           @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt              DateTime           @updatedAt @map("updated_at") @db.Timestamptz(6)
@@ -1818,6 +1820,7 @@ model Appointment {
   quotedPrice         Decimal?          @map("quoted_price") @db.Decimal(19, 4)
   currency            String?           @db.Char(3)
   status              AppointmentStatus @default(REQUESTED)
+  requesterNotes      String?           @map("requester_notes") @db.VarChar(500)
   administrativeNotes String?           @map("administrative_notes") @db.Text
   confirmedAt         DateTime?         @map("confirmed_at") @db.Timestamptz(6)
   cancelledAt         DateTime?         @map("cancelled_at") @db.Timestamptz(6)
@@ -1845,6 +1848,7 @@ model PartnerSettlement {
   grossSalesAmount   Decimal                 @map("gross_sales_amount") @db.Decimal(19, 4)
   commissionAmount   Decimal                 @map("commission_amount") @db.Decimal(19, 4)
   adjustmentAmount   Decimal                 @default(0) @map("adjustment_amount") @db.Decimal(19, 4)
+  adjustmentReason   String?                 @map("adjustment_reason") @db.Text
   netPayableAmount   Decimal                 @map("net_payable_amount") @db.Decimal(19, 4)
   currency           String                  @db.Char(3)
   status             PartnerSettlementStatus @default(DRAFT)

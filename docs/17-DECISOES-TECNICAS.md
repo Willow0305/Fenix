@@ -605,3 +605,29 @@ Fase 3 exige saldo derivado, confirmação idempotente, histórico imutável e b
 - "pronta para retirada" muda pedidos pagos para pronto e notifica (in-app e e-mail) somente os compradores afetados, uma única vez por item (`arrival_notified_at`); retirada registra `picked_up_at` e entrega o pedido;
 - cancelamento exige motivo e permissão de estorno: cada pedido é cancelado com reembolso vinculado (lançamento original preservado);
 - política para mínimo não atingido (PEN-032) é texto obrigatório-recomendado exibido na loja antes da compra; o sistema só cobra antes da encomenda, e a devolução é estorno manual registrado.
+
+## DT-033 — Parceiros, comissão, repasses e agendamento manual
+
+- **Estado:** Aceita
+- **Data:** 2026-10-19
+
+### Decisão
+
+- parceiro nasce `PENDING`; aprovar (`ACTIVE`) exige início de vigência; `INACTIVE` e `ENDED` exigem motivo, e `ENDED` é terminal. Publicação no site e venda na loja exigem `ACTIVE` **e** data atual (fuso do time) dentro da vigência (`partnerOperational`/`operationalPartnerWhere`, usados pela loja, carrinho e páginas públicas — RN-PAR-001, PEN-034);
+- CNPJ/CPF do parceiro e registro do profissional são cifrados (AES-GCM) com hash cego para duplicidade; documentos são arquivos `CONFIDENTIAL`, enviados com `partners.manage` + `partner.documents.read`, lidos só com `partner.documents.read` por rota própria, e cada leitura é auditada; listagens nunca trazem documentos;
+- comissão (PEN-035) é a parte do time: `NONE` (repasse integral), `PERCENTAGE` (0–100% do total do item) ou `FIXED` (valor por unidade), limitada ao total do item, arredondamento comercial em 2 casas. O produto pode sobrepor a regra do parceiro. No checkout o item grava `commissionTypeSnapshot`, taxa ou valor fixo e `partnerAmountSnapshot`; mudanças posteriores de regra não alteram vendas feitas;
+- a receita da venda continua entrando inteira no Caixa (categoria `vendas-parceiros`); o valor devido ao parceiro sai no repasse (categoria `repasses-parceiros`, origem `PARTNER_SETTLEMENT`). O relatório de vendas por parceiro separa receita do time, valor devido, já repassado e a pagar (RN-PAR-003);
+- repasse agrupa itens de pedidos pagos (pago, em separação, pronto, entregue) no período por `paidAt` e ainda não repassados; criação idempotente (`Idempotency-Key`) e serializada por trava no parceiro; ajuste assinado exige motivo e o líquido não pode ficar negativo. Estados `DRAFT → PENDING → APPROVED → PAID`, com volta de `PENDING` a `DRAFT` e cancelamento antes do pagamento;
+- pagar exige `transactions.confirm` e lança **uma** saída confirmada com chave natural `partner-settlement:<id>` (reenvios devolvem o mesmo estado); repasse com líquido zero é marcado pago sem lançamento;
+- cancelar repasse não pago remove seus itens (que voltam a ficar elegíveis, já que `order_item_id` é único) e registra a lista liberada na auditoria; como não houve efeito financeiro, não há histórico financeiro a preservar. Repasse pago não é cancelado;
+- pedido com item em repasse ainda não pago não pode ser cancelado/estornado (`IN_PARTNER_SETTLEMENT`): cancele o repasse antes. Estorno de venda já repassada é permitido e o valor é recuperado por ajuste negativo motivado no próximo repasse (detecção automática pendente, `PEN-052`);
+- profissionais e serviços só são cadastrados para parceiro `ACTIVE`; serviço nasce rascunho; inativar ou encerrar o parceiro desativa os serviços. Contato do profissional só aparece no site com autorização explícita (`publicContact`);
+- disponibilidade por intervalos (máximo de 12 h) sem sobreposição para o mesmo profissional, com trava na linha do profissional; horários são bloqueados, nunca apagados;
+- agendamento manual (PEN-037): usuário autenticado escolhe um horário livre; o horário fica `RESERVED` e o agendamento `REQUESTED` (máximo de 5 pendentes por pessoa); a diretoria confirma (verificando conflito com atendimentos confirmados do profissional), cancela com motivo ou registra realizado/ausência após o horário. Cancelar libera o horário. O solicitante pode cancelar antes do horário. Notificações in-app ao solicitante e a quem tem `appointments.manage`; e-mail mínimo ao profissional na confirmação e no cancelamento;
+- nenhum dado de saúde (RN-PAR-008): só observação livre de até 500 caracteres com aviso explícito; a observação interna da diretoria não aparece para o solicitante;
+- parceiro não tem login nesta fase (PEN-036): a diretoria opera tudo.
+
+### Consequências
+
+- `NotificationsService.permissionHolders` resolve destinatários operacionais por permissão (limite defensivo de 50);
+- migration `fase6_parceiros` adiciona `partners.website_url`, `partner_professionals.public_contact`, `appointments.requester_notes` e `partner_settlements.adjustment_reason`.

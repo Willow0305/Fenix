@@ -23,6 +23,7 @@ import {
   MediaService
 } from '../../media/application/media.service';
 import { NotificationsService } from '../../notifications/application/notifications.service';
+import { effectiveCommission, splitCommission } from '../../partners/domain/partner-rules';
 import { SettingsService } from '../../settings/application/settings.service';
 import {
   buyerLimitExceeded,
@@ -413,6 +414,20 @@ export class OrdersService implements OnModuleInit, OnModuleDestroy {
 
       for (const line of lines) {
         const product = line.item.productVariant.product;
+        // RN-PAR-002: congela a regra de comissão vigente no item (PEN-035, DT-033).
+        const commission = product.partner
+          ? (() => {
+              const rule = effectiveCommission(product.partner, product);
+              const split = splitCommission(rule, line.total, line.item.quantity);
+
+              return {
+                commissionTypeSnapshot: rule.type,
+                commissionRateSnapshot: rule.type === 'PERCENTAGE' ? rule.percentage : null,
+                commissionFixedSnapshot: rule.type === 'FIXED' ? rule.fixedAmount : null,
+                partnerAmountSnapshot: split.partnerAmount
+              };
+            })()
+          : {};
         const created = await tx.orderItem.create({
           data: {
             orderId: order.id,
@@ -430,7 +445,8 @@ export class OrdersService implements OnModuleInit, OnModuleDestroy {
             quantity: line.item.quantity,
             unitPrice: line.unitPrice,
             totalAmount: line.total,
-            currency: 'BRL'
+            currency: 'BRL',
+            ...commission
           }
         });
 
@@ -934,6 +950,21 @@ export class OrdersService implements OnModuleInit, OnModuleDestroy {
     restock: boolean,
     keyBase: string
   ): Promise<void> {
+    const settling = await tx.partnerSettlementItem.count({
+      where: {
+        orderItem: { orderId: row.id },
+        partnerSettlement: { status: { in: ['DRAFT', 'PENDING', 'APPROVED'] } }
+      }
+    });
+
+    // Item em repasse ainda não pago: cancele o repasse antes, para não repassar venda estornada.
+    if (settling > 0) {
+      throw AppError.conflict(
+        'IN_PARTNER_SETTLEMENT',
+        `O pedido ${row.orderNumber} está em um repasse a parceiro em andamento. Cancele o repasse antes de estornar.`
+      );
+    }
+
     for (const item of row.items) {
       const reserved = await tx.inventoryMovement.aggregate({
         where: { orderItemId: item.id, type: { in: ['RESERVATION', 'RELEASE'] } },
