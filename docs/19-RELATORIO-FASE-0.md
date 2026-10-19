@@ -1,7 +1,7 @@
 # Relatório de entrega — Fase 0
 
 **Data da validação:** 23/07/2026  
-**Estado:** tecnicamente concluída; aceite formal pendente  
+**Estado:** concluída e aceita em 18/10/2026 (`DT-021`)  
 **Escopo:** planejamento, documentação e infraestrutura inicial
 
 ## 1. Resultado
@@ -92,6 +92,13 @@ As justificativas e alternativas estão em `17-DECISOES-TECNICAS.md`.
 
 Os avisos de descontinuação exibidos pelo npm pertencem a dependências transitivas da toolchain. A auditoria não encontrou vulnerabilidades conhecidas, mas sua evolução deve continuar sendo acompanhada.
 
-## 7. Próximo passo recomendado
+## 7. Aceite e revalidação (18/10/2026)
+
+- `PEN-001` e `PEN-002` foram resolvidas: o responsável único do projeto aprovou a baseline documental v1.2 e autorizou as fases 1 a 8 (`DT-021`).
+- Na revalidação em Windows, `npm run check` falhou na formatação porque `core.autocrlf=true` convertia o checkout para CRLF. Foi adicionado `.gitattributes` fixando LF; o gate voltou a passar em ambiente limpo.
+- Avisos de segurança publicados após a Fase 0 (Next.js crítico, Nest, `multer`, `sharp` e outras dependências de ferramentas) foram tratados com atualização de versões e overrides; `npm audit --audit-level=high` sem achados.
+- A continuidade está registrada nos relatórios [20-RELATORIO-FASE-1](./20-RELATORIO-FASE-1.md) em diante.
+
+## 8. Próximo passo recomendado (registro original)
 
 Realizar a revisão formal da Fase 0, decidir `PEN-001`, `PEN-002` e os gates P0 aplicáveis e somente então abrir a Fase 1. A primeira implementação funcional deve seguir o roadmap, criar migrations por módulo e atualizar requisitos, regras, testes, documentação e changelog no mesmo conjunto de mudanças.

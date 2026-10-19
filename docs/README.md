@@ -31,7 +31,12 @@ Quando as fontes divergirem, a divergência é mantida em [`PENDENCIAS.md`](../P
 | [16-ROADMAP](./16-ROADMAP.md) | fases e critérios de saída |
 | [17-DECISOES-TECNICAS](./17-DECISOES-TECNICAS.md) | registros de decisão |
 | [18-ESTUDO-DE-VIABILIDADE](./18-ESTUDO-DE-VIABILIDADE.md) | viabilidade e riscos |
-| [19-RELATORIO-FASE-0](./19-RELATORIO-FASE-0.md) | entrega, validações e próximos passos |
+| [19-RELATORIO-FASE-0](./19-RELATORIO-FASE-0.md) | planejamento e infraestrutura: entrega e aceite |
+| [20-RELATORIO-FASE-1](./20-RELATORIO-FASE-1.md) | autenticação, permissões, configurações e site |
+| [21-RELATORIO-FASE-2](./21-RELATORIO-FASE-2.md) | atletas, equipes, interessados e seletivas |
+| [22-RELATORIO-FASE-3](./22-RELATORIO-FASE-3.md) | mensalidades e Caixa Fênix |
+| [23-RELATORIO-FASE-4](./23-RELATORIO-FASE-4.md) | loja, estoque e pedidos |
+| [24-RELATORIO-FASE-5](./24-RELATORIO-FASE-5.md) | remessas e pré-vendas |
 | [diagramas/ERD](./diagramas/ERD.md) | relacionamentos Mermaid |
 
 ## Governança

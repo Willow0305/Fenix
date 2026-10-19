@@ -87,7 +87,14 @@ Antes do pull request:
 npm run check
 ```
 
-O comando agregado inclui formatação, lint, tipos, testes, validação do Prisma e build. Execute também E2E e verificações específicas quando os scripts correspondentes existirem.
+O comando agregado inclui formatação, lint, tipos, testes, validação do Prisma e build. Com o PostgreSQL local ativo, execute também:
+
+```bash
+npm run db:migrate
+npm run test:integration
+```
+
+Cada fase tem sua suíte em `apps/api/test/phase*.int-spec.ts`; novas regras de negócio devem ganhar casos positivos e negativos ali. Ao concluir uma fase, crie o relatório correspondente em `docs/` seguindo o padrão de `docs/19-RELATORIO-FASE-0.md`.
 
 ## Documentação e decisões
 
@@ -104,6 +111,7 @@ O comando agregado inclui formatação, lint, tipos, testes, validação do Pris
 - [ ] validação, erros e autorização foram tratados;
 - [ ] testes relevantes foram adicionados;
 - [ ] `npm run check` passou;
+- [ ] `npm run test:integration` passou;
 - [ ] migrations e contratos foram revisados;
 - [ ] documentação e changelog foram atualizados;
 - [ ] não há segredo, dado pessoal, dump ou arquivo privado;

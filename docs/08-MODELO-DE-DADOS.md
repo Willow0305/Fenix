@@ -2,7 +2,15 @@
 
 ## 1. Estado e escopo
 
-Este documento define o modelo conceitual e lógico inicial do Fênix Vôlei. Ele é um artefato de planejamento da Fase 0: descreve o banco-alvo das fases 1 a 8, mas não declara módulos funcionais implementados, não cria migrations e não autoriza antecipar o roadmap.
+Este documento define o modelo conceitual e lógico inicial do Fênix Vôlei. Ele descreve o banco-alvo das fases 1 a 8. O schema completo é aplicado por migrations versionadas em `prisma/migrations/`:
+
+| Migration | Conteúdo |
+|---|---|
+| `20261019032632_baseline` | modelo lógico completo (66 modelos, 53 enums) |
+| `20261019040153_fase2_menores_consentimento` | responsável e ciência em atletas; responsável, versão do aviso de privacidade e consentimento em interessados e inscrições de seletiva |
+| `20261019043523_fase4_loja_pedidos` | hash do código de acesso de visitante e expiração da reserva em pedidos; índice por status e expiração |
+
+Novas mudanças entram por migration revisada; `db push` não é usado.
 
 O modelo consolida o PDF de requisitos, o briefing técnico, `AGENTS.md` e as decisões vigentes em `17-DECISOES-TECNICAS.md`. O contrato físico de referência está em `prisma/schema.prisma`; detalhes de campos e restrições estão em `09-DICIONARIO-DE-DADOS.md`.
 

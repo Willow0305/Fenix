@@ -1,5 +1,12 @@
 # Dicionário de dados
 
+> **Atualizações após a baseline (fases 2 e 4):**
+>
+> - `athletes.guardian_acknowledged_at` (`TIMESTAMPTZ`, opcional): instante da confirmação de ciência do responsável para atleta menor de 12 anos (`DT-026`).
+> - `interested_people.guardian_name`, `guardian_phone` e `tryout_registrations.guardian_name`, `guardian_phone`, `privacy_notice_version`, `consent_at`: responsável de menor e prova do consentimento ao aviso de privacidade.
+> - `orders.guest_access_token_hash` (`CHAR(64)`, único, opcional): SHA-256 do código de consulta do visitante; o código nunca é armazenado em claro.
+> - `orders.reservation_expires_at` (`TIMESTAMPTZ`, opcional): fim da reserva de estoque de pedido não pago; nulo enquanto há comprovante em análise. Índice `(status, reservation_expires_at)`.
+
 ## 1. Escopo e notação
 
 Este dicionário descreve o schema lógico inicial. Ele não é migration nem autoriza implementar os módulos antes de sua fase. Nomes apresentados são os nomes Prisma; `@@map` e `@map` os convertem para `snake_case` no PostgreSQL.

@@ -6,6 +6,13 @@ O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) e o 
 
 ## [Não publicado]
 
+### Documentação (2026-10-19)
+
+- relatórios de entrega das fases 1 a 5 (`docs/20` a `docs/24`) e registro do aceite na Fase 0;
+- matriz de estado de implementação por requisito (`02-REQUISITOS-FUNCIONAIS.md`);
+- arquitetura, modelo de dados, dicionário, perfis, UX, segurança/LGPD, testes, deploy, visão geral, README e CONTRIBUTING atualizados ao estado implementado;
+- `npm run db:demo` com dados fictícios para demonstração local.
+
 ### Fase 5 — Remessas (2026-10-19)
 
 #### Adicionado

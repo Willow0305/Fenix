@@ -77,6 +77,73 @@
 | RCF-014 | Configurar história, favicon, capa, cores, PIX, dados bancários, termos, privacidade, regras e notificações do time. | Campo é editável sem deploy por autorizado e possui visibilidade pública/privada explícita. | Briefing §12 | 1–7 |
 | RCF-015 | Verificar e-mail somente se a capacidade e sua fase forem aprovadas em `PEN-008`/`PEN-013`. | Quando implementado, o token é único, expira, não aparece em log e a verificação é idempotente. | Briefing §15 | Condicional |
 
+## Estado de implementação
+
+Atualizado em 19/10/2026. "Parcial" indica que a parte da fase entregue está implementada e o restante pertence a fase posterior.
+
+| ID | Estado | Fase | Escopo entregue | Onde |
+|---|---|---|---|---|
+| RF-001 | implementado | 1, 4 | site institucional, CTAs, destaques da loja; notícias na Fase 7 | web `(site)/` |
+| RF-002 | implementado | 2 | páginas e filtro por time | `/times`, `public/teams` |
+| RF-003 | implementado | 2 | interessados com consentimento | `/interesse`, `public/interest` |
+| RF-004 | implementado | 2 | seletivas e estados da inscrição | `/seletivas`, `tryouts` |
+| RF-005 | implementado | 1 | cadastro livre; privilégios só por administrador | `auth/register`, `users` |
+| RF-006 | implementado | 1 | login, logout, recuperação | `auth/*` |
+| RF-007 | implementado | 1 | RBAC com permissões granulares | `access`, guard global |
+| RF-008 | implementado | 2 | cadastro de atleta | `athletes` |
+| RF-009 | implementado | 2 | edição com histórico | `athletes/:id`, auditoria |
+| RF-010 | implementado | 2 | vínculos com equipes ao longo do tempo | `athletes/:id/memberships` |
+| RF-011 | implementado | 3 | planos de mensalidade | `fee-plans` |
+| RF-012 | implementado | 3 | geração mensal idempotente | `monthly-fees/generate` |
+| RF-013 | implementado | 3 | pagamento manual/PIX, comprovante | `monthly-fees/:id/payments` |
+| RF-014 | implementado | 3 | consulta com filtros | `monthly-fees` |
+| RF-015 | implementado | 4 | cadastro de produtos | `store/products` |
+| RF-016 | implementado | 4 | estoque por movimentações | `store/variants/:id/stock` |
+| RF-017 | implementado | 4 | pedido de usuário ou visitante | `orders/checkout` |
+| RF-018 | implementado | 4 | estados do pedido | `store/orders/:id/status` |
+| RF-019 | parcial | 2–4 | área do atleta/cliente: dados, inscrições, mensalidades, pedidos, favoritos; agendamentos na Fase 6 | `/minha-conta` |
+| RF-020 | implementado | 2–4 | atletas ativos, inscrições novas, mensalidades em aberto, saldo e vendas do mês | `dashboard/summary` |
+| RF-021 | pendente | 8 | relatórios integrados e exportações | — |
+| RF-022 | parcial | 2–5 | notificações internas de inscrição, cobrança, pedido e chegada; envio por e-mail real pendente | `me/notifications` |
+| RF-023 | implementado | 1 | configurações públicas sem deploy | `team-settings` |
+| RF-024 | parcial | 1–5 | auditoria em todos os módulos entregues; consulta disponível | `audit-logs` |
+| RF-025 | implementado | 3 | Caixa com saldos derivados | `finance/summary` |
+| RF-026 | implementado | 3 | lançamentos manuais | `finance/transactions` |
+| RF-027 | implementado | 3 | categorias (plano provisório) | `finance/categories` |
+| RF-028 | implementado | 3 | comprovantes fora do banco | `.../attachments` |
+| RF-029 | implementado | 3–4 | entrada automática de mensalidade e pedido | pagamento confirmado |
+| RF-030 | implementado | 3 | conciliação e fechamento | `finance/closings` |
+| RF-031 | pendente | 6 | cadastro de parceiros | — |
+| RF-032 | pendente | 6 | venda de parceiro com repasse | — |
+| RF-033 | pendente | 6 | profissionais e serviços | — |
+| RF-034 | pendente | 6 | agendamento | — |
+| RF-035 | implementado | 4–5 | estoque, encomenda e remessa; digital reservado | produto `fulfillmentType` |
+| RF-036 | implementado | 5 | controle de remessa | `campaigns` |
+| RF-037 | implementado | 4 | carrinho no servidor | `cart` |
+| RF-038 | implementado | 4 | favoritos | `me/favorites` |
+| RF-039 | implementado | 1 | logos por contexto | `team-settings/brand-assets` |
+| RF-040 | pendente | 7 | fórum | — |
+| RF-041 | pendente | 7 | notícias | — |
+| RF-042 | pendente | 7 | notícia em vários canais | — |
+| RF-043 | pendente | 7 | moderação | — |
+| RF-044 | implementado | 5 | aviso de chegada da remessa | remessa "pronta para retirada" |
+| RF-045 | parcial | 3, 8 | resumo do Caixa por período, conta, categoria e origem; relatórios completos e exportação na Fase 8 | `finance/summary` |
+| RCF-001 | pendente | 7 | eventos e partidas | — |
+| RCF-002 | implementado | 3 | contas, centros de custo | `finance/accounts`, `cost-centers` |
+| RCF-003 | implementado | 3 | transferência entre contas | `finance/transfers` |
+| RCF-004 | implementado | 3 | contas a pagar e receber (sem recorrência) | `finance/obligations` |
+| RCF-005 | implementado | 3–4 | estornos e reembolsos vinculados | estorno/reembolso |
+| RCF-006 | implementado | 3 | reabertura com permissão | `closings/:id/reopen` |
+| RCF-007 | parcial | 4–6 | estoque, encomenda e remessa; parceiro na Fase 6 | loja |
+| RCF-008 | implementado | 4–5 | imagens, promoção, custo, SKU, variações, limites | loja |
+| RCF-009 | implementado | 5 | mínimos, consolidação, chegada, cancelamento | `campaigns` |
+| RCF-010 | pendente | 6 | documentos e repasses de parceiros | — |
+| RCF-011 | pendente | 6 | disponibilidade de profissionais | — |
+| RCF-012 | pendente | 7 | reações, denúncias e moderação | — |
+| RCF-013 | pendente | 7 | notícias agendadas e slug | — |
+| RCF-014 | parcial | 1–7 | história, cores, PIX, termos, regras; notificações configuráveis pendentes | `team-settings` |
+| RCF-015 | pendente | condicional | verificação de e-mail (não bloqueante por decisão, `PEN-008`) | — |
+
 ## Rastreabilidade por módulo
 
 | Módulo | Requisitos |

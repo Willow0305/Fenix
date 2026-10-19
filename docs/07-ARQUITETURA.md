@@ -2,7 +2,7 @@
 
 ## 1. Estado e propósito
 
-Este documento define a arquitetura de referência da Fase 0. Ele organiza o desenvolvimento incremental, mas não declara os módulos de negócio como implementados.
+Este documento define a arquitetura de referência do Fênix Vôlei e registra o estado implementado. As fases 0 a 5 estão entregues (ver relatórios `19` a `24`); a tabela da seção 8 indica o estado de cada domínio.
 
 As decisões vinculantes e seus motivos estão em [17-DECISOES-TECNICAS.md](./17-DECISOES-TECNICAS.md). Questões ainda abertas estão em [`PENDENCIAS.md`](../PENDENCIAS.md).
 
@@ -64,7 +64,7 @@ flowchart TB
     api -. fase posterior, webhooks assinados .-> payments
 ```
 
-Na Fase 0, somente os contêineres `web`, `api` e PostgreSQL local possuem esqueleto. Armazenamento, e-mail e pagamentos são fronteiras planejadas, não integrações disponíveis.
+Estado atual: `web`, `api` e PostgreSQL estão operacionais. Armazenamento de objetos e e-mail usam adaptadores locais atrás das portas `ObjectStorage` e `MailSender` (`DT-024`), substituíveis por provedores reais sem alterar os módulos. O navegador fala apenas com a origem da web: o Next.js encaminha `/api/v1/*` para a API (`DT-022`). Gateway de pagamento permanece fora do escopo implementado.
 
 ## 5. Organização do monorepo
 
@@ -132,19 +132,21 @@ Controllers permanecem finos. Repositórios não decidem regras. Objetos do Pris
 
 ## 8. Limites modulares
 
-| Domínio | Capacidades principais | Fase |
-|---|---|---:|
-| Identidade e acesso | autenticação, sessões, usuários, papéis e permissões | 1 |
-| Configurações | dados institucionais, marca, termos e parâmetros | 1 |
-| Esportivo | atletas, equipes, categorias, interessados, inscrições e seletivas | 2 |
-| Mensalidades | planos, cobranças e pagamentos de mensalidade | 3 |
-| Caixa Fênix | contas, categorias, centros de custo, movimentos, conciliação e fechamento | 3 |
-| Comércio | catálogo, variações, estoque, carrinho, favoritos, pedidos e pagamentos | 4 |
-| Campanhas | remessas, janelas de venda, produção, chegada e retirada | 5 |
-| Parceiros | contratos, produtos, profissionais, serviços, agenda e repasses | 6 |
-| Conteúdo | notícias, eventos, partidas e publicação relacionada | 7 |
-| Comunidade | fórum, reações, denúncias e moderação | 7 |
-| Plataforma | arquivos, notificações, auditoria, relatórios e observabilidade | transversal |
+| Domínio | Capacidades principais | Fase | Módulo da API | Estado |
+|---|---|---:|---|---|
+| Identidade e acesso | autenticação, sessões, usuários, papéis e permissões | 1 | `auth`, `access` | implementado |
+| Configurações | dados institucionais, marca, termos e parâmetros | 1 | `settings` | implementado |
+| Esportivo | atletas, equipes, categorias, interessados, inscrições e seletivas | 2 | `sports` | implementado |
+| Mensalidades | planos, cobranças e pagamentos de mensalidade | 3 | `finance` (`FeesService`) | implementado |
+| Caixa Fênix | contas, categorias, centros de custo, movimentos, conciliação e fechamento | 3 | `finance` | implementado |
+| Comércio | catálogo, variações, estoque, carrinho, favoritos, pedidos e pagamentos | 4 | `store` | implementado |
+| Campanhas | remessas, janelas de venda, produção, chegada e retirada | 5 | `campaigns` | implementado |
+| Parceiros | contratos, produtos, profissionais, serviços, agenda e repasses | 6 | — | em andamento |
+| Conteúdo | notícias, eventos, partidas e publicação relacionada | 7 | — | autorizado |
+| Comunidade | fórum, reações, denúncias e moderação | 7 | — | autorizado |
+| Plataforma | arquivos, notificações, auditoria, painel, relatórios e observabilidade | transversal | `media`, `notifications`, `dashboard`, `common` | parcial (relatórios completos na Fase 8) |
+
+Cada módulo segue `DT-023`: `domain/` (regras puras testadas), `application/` (casos de uso, transação, auditoria) e `http/` (controllers finos e DTOs).
 
 Dependências entre domínios ocorrem por identificadores e casos de uso explícitos. Um módulo não consulta tabelas internas de outro para contornar sua política.
 
@@ -217,18 +219,17 @@ Auditoria não deve copiar senha, token, comprovante ou payload pessoal completo
 
 ## 14. Implantação
 
-O frontend e a API são unidades implantáveis separadas. PostgreSQL gerenciado e armazenamento de objetos privado formam a **topologia de referência recomendada**, não uma escolha aprovada de provedor ou hospedagem; `DT-018`, `PEN-042` e `PEN-048` mantêm essa decisão provisória. O Docker Compose da Fase 0 serve apenas ao PostgreSQL de desenvolvimento. Imagens de produção, CI/CD, região, provedor e objetivos de recuperação dependem das decisões listadas em `PENDENCIAS.md`.
+O frontend e a API são unidades implantáveis separadas. PostgreSQL gerenciado e armazenamento de objetos privado formam a **topologia de referência recomendada**, não uma escolha aprovada de provedor ou hospedagem; `DT-018`, `PEN-042` e `PEN-048` mantêm essa decisão provisória. O Docker Compose serve apenas ao PostgreSQL de desenvolvimento. Imagens de produção, CI/CD, região, provedor e objetivos de recuperação dependem das decisões listadas em `PENDENCIAS.md`.
 
-## 15. Restrições desta fase
+## 15. Restrições vigentes
 
-Não fazem parte da Fase 0:
+Ainda não fazem parte do escopo implementado:
 
-- autenticação funcional;
-- módulos de atletas, mensalidades, Caixa, loja, fórum ou agendamento;
-- upload em nuvem;
-- envio real de e-mail;
-- checkout, PIX automatizado ou gateway;
-- migrations de produção;
-- dados iniciais de negócio.
+- upload em nuvem e envio real de e-mail (adaptadores locais, `DT-024`);
+- checkout com cartão, PIX automatizado ou gateway (`PEN-026`);
+- MFA para perfis privilegiados (`PEN-013`, exigido antes de produção);
+- módulos das fases 6 a 8 ainda não entregues.
 
-O endpoint de saúde e a página mínima existem somente para validar o esqueleto e a cadeia de ferramentas.
+### Rotinas internas
+
+A API executa, a cada 10 minutos, a expiração de reservas de pedidos não pagos e o encerramento de remessas com prazo vencido. Ambas são idempotentes, auditadas, podem ser disparadas pelo painel e são desligadas em testes (`ORDER_EXPIRY_JOB=off` desativa em qualquer ambiente).

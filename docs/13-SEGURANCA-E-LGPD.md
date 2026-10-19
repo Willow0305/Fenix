@@ -4,6 +4,29 @@
 
 Este documento define controles mínimos e decisões bloqueadoras. Ele não certifica conformidade nem substitui avaliação jurídica, teste de segurança ou plano de resposta. O Fênix tratará dados pessoais, financeiros, comprovantes e dados prováveis de crianças/adolescentes; por isso, segurança e privacidade são requisitos de produto, não uma etapa final.
 
+### Controles implementados (fases 1 a 5)
+
+| Controle | Implementação |
+|---|---|
+| Senhas | scrypt (N=2^15, r=8, p=1) com sal por usuário, formato versionado e comparação em tempo constante; política mínima de 10 caracteres com letras e números, sem nome/e-mail |
+| Sessão | access token HS256 de 15 min em memória; refresh opaco de 30 dias em cookie `HttpOnly`/`SameSite=Strict` restrito a `/api/v1/auth`, armazenado como SHA-256; rotação a cada uso e revogação total ao detectar reuso |
+| Revogação | logout, troca e redefinição de senha, bloqueio de conta e ação administrativa invalidam sessões imediatamente; permissões são recarregadas a cada requisição |
+| Recuperação de senha | token de uso único com 1 h de validade; resposta idêntica exista ou não a conta |
+| Autorização | guard global que nega por padrão; permissões granulares por rota; recursos próprios verificados por titularidade; acesso negado é auditado |
+| CSRF e origem | `SameSite=Strict` e validação de `Origin` nas rotas por cookie; CORS por lista explícita; origem única via proxy do Next.js |
+| Abuso | rate limiting por IP em login, cadastro, recuperação, formulários públicos e checkout |
+| Erros | Problem Details sem stack, query ou dados internos; `X-Request-Id` para correlação |
+| Cabeçalhos | helmet na API; `nosniff`, `Referrer-Policy`, `X-Frame-Options` e `Permissions-Policy` na web |
+| Dados sensíveis | PIX, dados bancários e documentos de atletas cifrados com AES-256-GCM; documentos com hash para duplicidade; PIX exibido apenas a autenticados ou ao dono do pedido |
+| Uploads | tamanho máximo, extensão permitida e assinatura binária real (PNG, JPEG, WebP, PDF; SVG recusado); comprovantes confidenciais servidos só a autorizados, com `Content-Security-Policy: sandbox` |
+| Auditoria | trilha somente de inserção, com autor, instante, motivo e antes/depois; campos proibidos (senha, tokens, documentos, PIX) removidos automaticamente |
+| Menores | declaração de idade mínima na conta, responsável obrigatório para menores de 18 e bloqueio de inscrição pública de menores de 12 (`DT-026`) |
+| Consentimento | versão do aviso de privacidade e instante registrados em inscrições e interesses |
+| Visitantes | consulta de pedido por número + código secreto (hash), nunca na URL |
+| Inicialização | em produção, a API não inicia sem segredos válidos nem com adaptadores locais sem opt-in explícito |
+
+Itens ainda exigidos antes de produção: MFA administrativo, provedores reais de arquivos/e-mail com bucket privado e URLs assinadas, antivírus de uploads, backup testado, canal de segurança e revisão jurídica (ver `PENDENCIAS.md`).
+
 ## Princípios
 
 - privilégio mínimo e negação por padrão;

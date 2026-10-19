@@ -40,7 +40,18 @@ Demonstrar que requisitos, regras, permissões, transições e atributos de qual
 - datas são fixadas e testadas em fusos distintos;
 - segredos de CI são mínimos, rotacionáveis e nunca impressos.
 
-## Gate da Fase 0
+## Suítes implementadas
+
+| Suíte | Comando | Escopo | Dependências |
+|---|---|---|---|
+| Unitária (API) | `npm test` | domínio puro (autenticação, criptografia, datas e fusos, dinheiro, mensalidades, Caixa, estoque, remessas), inicialização da aplicação | nenhuma |
+| Componentes (web) | `npm test` | formatação de datas/dinheiro, formulários acessíveis, erros e paginação | nenhuma |
+| Integração (API) | `npm run test:integration` | fluxos HTTP reais contra PostgreSQL, uma suíte por fase (`apps/api/test/phase*.int-spec.ts`) | PostgreSQL do `.env` |
+| Smoke | `npm run smoke` | web, health, Swagger e OpenAPI | build |
+
+A suíte de integração cobre, para cada domínio, caso autorizado, sem autenticação, sem permissão, recurso de outro titular, estados inválidos e auditoria, além de concorrência real em pagamentos e estoque. Ela também roda no CI após aplicar as migrations. Os dados criados usam e-mails e nomes fictícios aleatórios.
+
+## Gate de cada fase
 
 Os scripts raiz e o `README.md` são a fonte oficial dos comandos. O gate lógico deve executar:
 
@@ -50,7 +61,8 @@ Os scripts raiz e o `README.md` são a fonte oficial dos comandos. O gate lógic
 4. `npm run dev:api` e resposta saudável de `GET http://localhost:3333/health`;
 5. `npm run dev:web` e abertura de `http://localhost:3000`;
 6. em ambiente com `NODE_ENV` diferente de `production`, disponibilidade do Swagger em `/docs` e `/docs/openapi.json`;
-7. em `production`, resposta `404` tanto em `/docs` quanto em `/docs/openapi.json`.
+7. em `production`, resposta `404` tanto em `/docs` quanto em `/docs/openapi.json`;
+8. `npm run db:migrate` e `npm run test:integration` aprovados contra PostgreSQL.
 
 `npm install` permanece apropriado para desenvolvimento local quando for necessário atualizar intencionalmente o lockfile. Se a nomenclatura de scripts mudar, atualizar este documento e o README no mesmo change set.
 

@@ -1,16 +1,21 @@
 # Fênix Vôlei
 
-Base técnica e documental da aplicação web oficial de gestão do Time Fênix de Vôlei.
+Aplicação web oficial de gestão do Time Fênix de Vôlei: site institucional, área do atleta e do cliente, loja e painel administrativo esportivo e financeiro.
 
-> **Estado:** desenvolvimento incremental por fases (ver [`docs/16-ROADMAP.md`](./docs/16-ROADMAP.md)). Fase 0 aceita; Fase 1 — autenticação, permissões, configurações e site institucional — implementada.
+> **Estado:** desenvolvimento incremental por fases (ver [`docs/16-ROADMAP.md`](./docs/16-ROADMAP.md)). Fases 0 a 5 implementadas e validadas; relatórios em [`docs/19`](./docs/19-RELATORIO-FASE-0.md) a [`docs/24`](./docs/24-RELATORIO-FASE-5.md).
 
 ## O que já funciona
 
-- site público com identidade Fênix (início, sobre, contato, termos e privacidade), editável pelo painel;
-- cadastro, login, logout, recuperação e troca de senha, sessões rotativas e revogáveis;
-- papéis (administrador, diretoria, atleta, usuário) e permissões granulares verificadas na API;
-- painel administrativo: usuários, papéis/permissões, configurações do time, logos e auditoria;
-- trilha de auditoria imutável de ações sensíveis.
+| Área | Funcionalidades |
+|---|---|
+| Site público | início, sobre, times, seletivas com inscrição, "Quero jogar no Fênix", loja, pré-vendas, contato, termos e privacidade — conteúdo editável pelo painel |
+| Conta | cadastro, login, recuperação e troca de senha, sessões revogáveis; área do atleta (dados, mensalidades, PIX e comprovante), inscrições, pedidos, favoritos e notificações |
+| Esportivo | atletas com histórico, equipes e categorias, interessados, seletivas e análise de inscrições, conversão rastreável em atleta |
+| Mensalidades | planos, geração mensal, pagamentos parciais, comprovante PIX, desconto/isenção, estorno |
+| Caixa Fênix | contas, categorias, centros de custo, lançamentos, estornos, transferências, saldo inicial, contas a pagar/receber, conciliação, fechamento e reabertura |
+| Loja | produtos com variações e estoque, carrinho, checkout (também sem conta), pagamento PIX manual, pedidos, favoritos |
+| Remessas | pré-vendas por período, mínimo pago, relatório para a malharia, chegada com aviso aos compradores e retirada |
+| Governança | papéis e permissões granulares, auditoria imutável, painel com indicadores, notificações internas |
 
 A fonte original é [`referencias/documento_requisitos_fenix_volei_melhorado.pdf`](./referencias/documento_requisitos_fenix_volei_melhorado.pdf). O índice da especificação consolidada está em [`docs/README.md`](./docs/README.md), e decisões que ainda exigem aprovação estão em [`PENDENCIAS.md`](./PENDENCIAS.md).
 
@@ -115,6 +120,8 @@ docker compose version
    npm run dev
    ```
 
+   Opcional: carregue dados fictícios para explorar o sistema com `npm run db:demo`.
+
    Acesse `http://localhost:3000/entrar` com `SEED_ADMIN_EMAIL`/`SEED_ADMIN_PASSWORD`. E-mails (como recuperação de senha) são gravados em `var/mail-outbox/` durante o desenvolvimento.
 
 Os endereços padrão e as portas podem ser alterados pelas variáveis documentadas em `.env.example`.
@@ -140,6 +147,7 @@ O Next.js lê a porta do frontend pela variável padrão `PORT`; a API usa `API_
 | `npm run db:migrate:dev` | cria nova migration a partir do schema (desenvolvimento) |
 | `npm run db:seed` | sincroniza permissões/papéis e cria o administrador inicial, se não houver |
 | `npm run db:setup` | `db:migrate` + `db:seed` |
+| `npm run db:demo` | dados fictícios de demonstração (recusa produção) |
 | `npm run test:integration` | testes de integração da API contra o PostgreSQL do `.env` |
 | `npm run smoke` | após o build, inicia web/API, valida web, health, Swagger e OpenAPI, e encerra os processos |
 | `npm run check` | executa o gate agregado: formatação, lint, tipos, testes, Prisma e build |
@@ -150,8 +158,8 @@ Consulte os scripts de `package.json` como referência executável caso a ferram
 
 | Serviço | Endereço padrão | Observação |
 |---|---|---|
-| Web | `http://localhost:3000` | página mínima da Fase 0 |
-| API | `http://localhost:3333` | esqueleto técnico |
+| Web | `http://localhost:3000` | site; painel em `/admin` |
+| API | `http://localhost:3333` | REST em `/api/v1` (o navegador usa o proxy da web) |
 | Health | `http://localhost:3333/health` | não expõe segredos |
 | Swagger UI | `http://localhost:3333/docs` | somente fora de `production`; responde `404` em produção |
 | OpenAPI JSON | `http://localhost:3333/docs/openapi.json` | somente fora de `production`; responde `404` em produção |
@@ -167,7 +175,7 @@ Não use `docker compose down -v` sem intenção explícita: ele remove o volume
 
 ## Banco de dados
 
-O arquivo [`prisma/schema.prisma`](./prisma/schema.prisma) é um modelo inicial para revisão. Ele não representa migrations aplicadas em produção.
+O modelo está em [`prisma/schema.prisma`](./prisma/schema.prisma) e é aplicado por migrations versionadas em [`prisma/migrations/`](./prisma/migrations/) (`npm run db:migrate`).
 
 Regras permanentes:
 

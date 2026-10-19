@@ -1,8 +1,8 @@
 # Deploy e infraestrutura
 
-## 1. Escopo da Fase 0
+## 1. Escopo do ambiente local
 
-O ambiente inicial valida:
+O ambiente de desenvolvimento valida:
 
 - instalação das dependências do monorepo;
 - formatação, lint, tipos, testes, validação Prisma e build de web, API e pacotes;
@@ -114,12 +114,40 @@ Categorias previstas:
 | observabilidade | endpoint e chave | sem payload pessoal desnecessário |
 | pagamentos | chaves e segredo de webhook | somente a partir da fase autorizada |
 
-A aplicação deve falhar cedo quando uma variável obrigatória estiver ausente ou inválida.
+Variáveis implementadas (valores de exemplo em `.env.example`):
+
+| Variável | Uso | Obrigatória em produção |
+|---|---|---|
+| `NODE_ENV`, `PORT`, `API_PORT` | runtime e portas | sim |
+| `API_INTERNAL_URL` | endereço interno da API usado pelo Next.js (servidor e proxy) | sim |
+| `WEB_ORIGIN` | origem pública: CORS, validação de `Origin` e links de e-mail | sim |
+| `DATABASE_URL`, `POSTGRES_*` | banco | sim |
+| `AUTH_ACCESS_TOKEN_SECRET` | assinatura do access token (mín. 32 caracteres) | sim |
+| `DATA_ENCRYPTION_KEY` | chave AES-256 (32 bytes base64) de PIX, banco e documentos | sim |
+| `STORAGE_DRIVER`, `STORAGE_LOCAL_DIR` | armazenamento de arquivos | adaptador real pendente |
+| `MAIL_DRIVER`, `MAIL_OUTBOX_DIR`, `MAIL_FROM` | e-mail | adaptador real pendente |
+| `ALLOW_LOCAL_ADAPTERS_IN_PRODUCTION` | opt-in explícito para adaptadores locais | — |
+| `STORE_RESERVATION_HOURS` | validade da reserva de pedido não pago (padrão 72) | não |
+| `ORDER_EXPIRY_JOB` | `off` desativa rotinas internas | não |
+| `THROTTLE_DISABLED` | desliga rate limit fora de produção (testes) | não |
+| `SEED_ADMIN_*` | administrador inicial criado pelo seed | apenas no primeiro deploy |
+
+A aplicação falha cedo quando uma variável obrigatória está ausente ou inválida.
 No ambiente local, o Next.js recebe sua porta pela variável nativa `PORT`, enquanto a API usa `API_PORT`. Os scripts não dependem de expansão de variável específica do shell.
 
 ## 7. Banco, migrations e seed
 
-Estratégia futura:
+Comandos implementados:
+
+| Comando | Efeito |
+|---|---|
+| `npm run db:migrate` | `prisma migrate deploy` (aplica migrations pendentes) |
+| `npm run db:migrate:dev` | cria nova migration em desenvolvimento |
+| `npm run db:seed` | idempotente: catálogo de permissões e papéis, plano de contas, contas e formas de pagamento padrão, configuração do time e administrador inicial (somente se não houver administrador) |
+| `npm run db:setup` | `db:migrate` + `db:seed` |
+| `npm run db:demo` | dados fictícios de demonstração; recusa `NODE_ENV=production` |
+
+Estratégia de mudança:
 
 1. mudanças entram em `schema.prisma`;
 2. migration é criada e revisada no desenvolvimento;

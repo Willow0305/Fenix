@@ -7,14 +7,14 @@
 | Produto | Plataforma web oficial para gestão do Time Fênix de Vôlei |
 | Documento-base | `referencias/documento_requisitos_fenix_volei_melhorado.pdf`, versão 1.1 de 23/07/2026 |
 | Complemento de escopo | Briefing técnico anexado à solicitação inicial |
-| Estado desta especificação | Consolidação inicial da Fase 0; itens marcados como provisórios ainda exigem decisão |
-| Fase vigente | Fase 0 — Planejamento e infraestrutura |
+| Estado desta especificação | Baseline v1.2 aprovada em 18/10/2026 (`DT-021`); itens provisórios seguem em `PENDENCIAS.md` |
+| Fase vigente | Fases 0 a 5 implementadas; Fase 6 — Parceiros e profissionais em andamento (ver `16-ROADMAP.md`) |
 
 ## Resumo executivo
 
 O Fênix Vôlei será uma aplicação web responsiva para centralizar processos hoje sujeitos a controles dispersos: divulgação pública, interessados e seletivas, cadastro de atletas, mensalidades, Caixa Fênix, loja, remessas, parceiros, serviços, notícias, fórum, notificações e relatórios.
 
-O produto atende principalmente à diretoria, atletas, interessados, responsáveis e compradores. A solução completa é ampla, portanto será entregue em fases. A Fase 0 prepara documentação, arquitetura, ambiente, banco inicial, integração contínua e padrões de qualidade; ela não autoriza a implementação antecipada dos módulos funcionais.
+O produto atende principalmente à diretoria, atletas, interessados, responsáveis e compradores. A solução completa é ampla, portanto será entregue em fases. A Fase 0 preparou documentação, arquitetura, ambiente, banco, integração contínua e padrões de qualidade; cada fase seguinte entrega um conjunto de módulos com testes e relatório próprio (`19` a `24-RELATORIO-FASE-*`).
 
 ## Problema a resolver
 
@@ -59,7 +59,7 @@ O produto atende principalmente à diretoria, atletas, interessados, responsáve
 - Scout, estatísticas avançadas e controle detalhado de treinos são possibilidades futuras, não requisitos vigentes.
 - Não haverá marketplace aberto: parceiros precisam de cadastro, aprovação e regras de repasse.
 - Prontuário médico e dados de saúde estão fora do escopo até avaliação jurídica, técnica e de segurança específica.
-- Checkout real, gateway, caixa completo, fórum funcional, loja funcional, agendamento funcional, nuvem real e integrações externas não fazem parte da Fase 0.
+- Gateway de pagamento, checkout com cartão, armazenamento em nuvem, e-mail transacional real e integrações externas ainda não fazem parte do escopo implementado; o sistema usa registro manual/PIX e adaptadores locais substituíveis (`DT-024`).
 
 ## Princípios de produto e engenharia
 

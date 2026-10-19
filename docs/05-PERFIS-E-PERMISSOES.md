@@ -62,6 +62,19 @@ O sistema deve combinar papéis (RBAC) com permissões granulares. `DT-007` acei
 | Gerir usuários/papéis/permissões | — | — | — | — por padrão | Permissão | — |
 | Consultar auditoria | — | — | — | Permissão limitada | Permissão | — |
 
+## Papéis implementados
+
+O catálogo executável está em `apps/api/src/modules/access/domain/permission-catalog.ts` e é sincronizado por `npm run db:seed` (`DT-022`).
+
+| Papel | Código | Permissões padrão |
+|---|---|---|
+| Administrador | `admin` | todas (fixo; não editável pelo painel) |
+| Diretoria | `board` | todas exceto governança: criar usuários, atribuir papéis, gerir permissões, revogar sessões de terceiros, dados públicos e financeiros do time, auditoria e solicitações de titulares |
+| Atleta | `athlete` | nenhuma administrativa; acesso aos próprios dados por titularidade |
+| Usuário | `user` | nenhuma administrativa; loja, favoritos, pedidos, inscrições e notificações próprias |
+
+O administrador pode ajustar as permissões dos papéis não fixos e criar novas atribuições. Ninguém altera os próprios papéis nem o próprio status, e o sistema sempre mantém ao menos um administrador ativo. Permissões adicionadas no código posteriormente: `teams.manage`, `fees.plans.manage`, `fees.adjust`, `finance.setup` e `dashboard.read`.
+
 ## Catálogo inicial de permissões
 
 Os códigos são uma proposta técnica provisória; nomes definitivos devem coincidir com a API e os testes.

@@ -60,6 +60,25 @@ Agrupar a navegação reduz uma lista de 28 itens:
 
 Os catálogos abaixo herdam esses padrões. “Padrão” na coluna de estados significa carregamento, vazio, erro, sucesso, teclado e responsividade acima, além das particularidades citadas.
 
+## Telas implementadas
+
+| Área | Rota | Fase |
+|---|---|---:|
+| Público | `/`, `/sobre`, `/contato`, `/termos`, `/privacidade` | 1 |
+| Público | `/times`, `/seletivas`, `/seletivas/[slug]`, `/interesse` | 2 |
+| Público | `/loja`, `/loja/[slug]`, `/loja/carrinho`, `/loja/pedido` | 4–5 |
+| Autenticação | `/entrar`, `/cadastro`, `/recuperar-senha`, `/redefinir-senha` | 1 |
+| Minha conta | `/minha-conta`, `/seguranca`, `/notificacoes`, `/inscricoes` | 1–2 |
+| Minha conta | `/atleta`, `/mensalidades` (somente atleta vinculado) | 2–3 |
+| Minha conta | `/pedidos`, `/pedidos/[id]`, `/favoritos` | 4 |
+| Painel | `/admin` (indicadores e atalhos) | 2–4 |
+| Painel — Pessoas | `/admin/atletas`, `/admin/atletas/novo`, `/admin/atletas/[id]`, `/admin/interessados`, `/admin/seletivas`, `/admin/seletivas/[id]`, `/admin/equipes` | 2 |
+| Painel — Financeiro | `/admin/mensalidades`, `/admin/mensalidades/[id]`, `/admin/planos`, `/admin/caixa`, `/admin/caixa/obrigacoes`, `/admin/caixa/fechamentos`, `/admin/caixa/cadastros` | 3 |
+| Painel — Loja | `/admin/produtos`, `/admin/produtos/[id]`, `/admin/pedidos`, `/admin/pedidos/[id]`, `/admin/remessas`, `/admin/remessas/[id]` | 4–5 |
+| Painel — Governança | `/admin/usuarios`, `/admin/papeis`, `/admin/configuracoes`, `/admin/auditoria` | 1 |
+
+Todas as telas seguem os padrões da seção anterior: rótulos visíveis, erros associados aos campos e resumo focável, estados de carregamento e vazio, ações sensíveis com confirmação e motivo, e navegação filtrada por permissão (sem substituir a autorização da API).
+
 ## Catálogo — área pública
 
 | Tela | Objetivo e perfis | Componentes e campos | Ações e validações | Estados e responsividade |
