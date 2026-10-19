@@ -8,6 +8,9 @@ O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) e o 
 
 ### Documentação (2026-10-19)
 
+- guia `docs/COMO-EXECUTAR.md` e guia de continuidade `CONTINUAR.md` para outro agente;
+- o logo do site passa a usar, nesta ordem, o brasão enviado pelo painel, `public/brand/brasao-fenix.png` e o símbolo da fênix como reserva;
+
 - relatórios de entrega das fases 1 a 5 (`docs/20` a `docs/24`) e registro do aceite na Fase 0;
 - matriz de estado de implementação por requisito (`02-REQUISITOS-FUNCIONAIS.md`);
 - arquitetura, modelo de dados, dicionário, perfis, UX, segurança/LGPD, testes, deploy, visão geral, README e CONTRIBUTING atualizados ao estado implementado;

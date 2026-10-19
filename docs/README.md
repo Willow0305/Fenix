@@ -8,6 +8,11 @@
 
 Quando as fontes divergirem, a divergência é mantida em [`PENDENCIAS.md`](../PENDENCIAS.md) e uma decisão provisória pode ser registrada em [17-DECISOES-TECNICAS.md](./17-DECISOES-TECNICAS.md). Nenhum requisito é removido silenciosamente.
 
+## Começo rápido
+
+- executar o sistema no Windows: [COMO-EXECUTAR](./COMO-EXECUTAR.md);
+- continuar o desenvolvimento em outro chat/agente: [`CONTINUAR.md`](../CONTINUAR.md).
+
 ## Ordem recomendada
 
 | Documento | Conteúdo |

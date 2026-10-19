@@ -19,6 +19,8 @@ Aplicação web oficial de gestão do Time Fênix de Vôlei: site institucional,
 
 A fonte original é [`referencias/documento_requisitos_fenix_volei_melhorado.pdf`](./referencias/documento_requisitos_fenix_volei_melhorado.pdf). O índice da especificação consolidada está em [`docs/README.md`](./docs/README.md), e decisões que ainda exigem aprovação estão em [`PENDENCIAS.md`](./PENDENCIAS.md).
 
+> **Guias rápidos:** [como executar no Windows](./docs/COMO-EXECUTAR.md) · [como continuar o desenvolvimento](./CONTINUAR.md)
+
 ## Stack
 
 - **Web:** Next.js, React, TypeScript e SCSS Modules;
