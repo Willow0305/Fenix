@@ -1,0 +1,15 @@
+# Normaliza finais de linha para LF em qualquer sistema operacional.
+# O Prettier exige `endOfLine: 'lf'`; sem esta regra, `core.autocrlf=true`
+# no Windows converte o checkout para CRLF e quebra `npm run check`.
+* text=auto eol=lf
+
+# Arquivos binários nunca devem ser convertidos.
+*.pdf binary
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.webp binary
+*.ico binary
+*.woff binary
+*.woff2 binary
