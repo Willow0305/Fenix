@@ -6,6 +6,19 @@ O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) e o 
 
 ## [Não publicado]
 
+### Fase 3 — Mensalidades e Caixa Fênix (2026-10-18)
+
+#### Adicionado
+
+- planos de mensalidade, vínculo atleta–plano com valor individual (bolsa) e geração mensal idempotente (RF-011, RF-012);
+- pagamentos manuais parciais, confirmação com entrada automática no Caixa, estorno com reembolso vinculado, desconto/isenção motivados e cancelamento (RF-013, RF-029, DT-027);
+- consulta de mensalidades por mês, atleta, equipe e situação, com atraso derivado do vencimento (RF-014);
+- área do atleta: mensalidades, chave PIX e envio de comprovante (RF-019);
+- Caixa Fênix: contas, categorias, centros de custo, formas de pagamento, lançamentos manuais, confirmação, estorno, conciliação, comprovantes, transferências, saldo inicial, contas a pagar/receber e fechamento/reabertura (RF-025 a RF-030, RCF-002 a RCF-006);
+- resumo financeiro por período, conta, categoria e origem (RF-045 inicial) e indicadores no painel;
+- idempotência por cabeçalho `Idempotency-Key` e travas de linha para concorrência (DT-030);
+- 13 testes de integração financeiros, incluindo concorrência e período fechado.
+
 ### Fase 2 — Atletas, equipes e inscrições (2026-10-18)
 
 #### Adicionado

@@ -6,6 +6,7 @@ import { HealthModule } from './health/health.module';
 import { AccessModule } from './modules/access/access.module';
 import { AuthModule } from './modules/auth/auth.module';
 import { DashboardModule } from './modules/dashboard/dashboard.module';
+import { FinanceModule } from './modules/finance/finance.module';
 import { MediaModule } from './modules/media/media.module';
 import { NotificationsModule } from './modules/notifications/notifications.module';
 import { SettingsModule } from './modules/settings/settings.module';
@@ -27,6 +28,7 @@ import { SportsModule } from './modules/sports/sports.module';
     NotificationsModule,
     SettingsModule,
     SportsModule,
+    FinanceModule,
     DashboardModule
   ]
 })

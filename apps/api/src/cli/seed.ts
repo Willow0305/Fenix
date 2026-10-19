@@ -2,6 +2,7 @@ import { PrismaClient } from '@prisma/client';
 
 import { hashPassword } from '../common/crypto/password-hasher';
 import { syncAccessCatalog } from '../modules/access/application/roles.service';
+import { syncFinanceCatalog } from '../modules/finance/application/finance-setup.service';
 import { SYSTEM_ROLES } from '../modules/access/domain/permission-catalog';
 import { normalizeEmail, validatePassword } from '../modules/auth/domain/auth-rules';
 import {
@@ -20,13 +21,14 @@ async function main(): Promise<void> {
   try {
     await prisma.$transaction(async (tx) => {
       await syncAccessCatalog(tx);
+      await syncFinanceCatalog(tx);
       await tx.teamSettings.upsert({
         where: { singletonKey: SETTINGS_KEY },
         create: defaultSettingsData(),
         update: {}
       });
     });
-    console.log('Catálogo de permissões e configurações sincronizados.');
+    console.log('Catálogo de permissões, plano financeiro e configurações sincronizados.');
 
     const admins = await prisma.user.count({
       where: { deletedAt: null, userRoles: { some: { role: { code: SYSTEM_ROLES.admin } } } }

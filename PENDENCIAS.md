@@ -411,4 +411,9 @@ As entradas acima permanecem como histórico da questão original. As decisões 
 | PEN-018 | Sem multa ou juros automáticos; descontos e isenções são manuais e motivados; valor da cobrança é preservado. | Responsável do projeto | `DT-027` |
 | PEN-019 | Pagamentos parciais permitidos; cobrança fica `PARTIALLY_PAID` até a soma confirmada atingir o valor e então `PAID`; excedente é recusado. Confirmação é idempotente. | Responsável do projeto | `DT-027` |
 | PEN-021 | BRL e arredondamento comercial em duas casas; escala conforme schema. | Delegada | `DT-006` |
+| PEN-020 | Parcialmente resolvida: plano de contas provisório semeado (receitas, despesas, transferências e categorias de sistema); validação contábil pendente. | Delegada | `DT-030` |
+| PEN-022 | Saldo inicial como lançamento único e auditado por conta. | Delegada | `DT-030` |
+| PEN-023 | Fechamento por conta e período; bloqueio de datas fechadas; reabertura com permissão e motivo. Periodicidade fica a critério da diretoria. | Delegada | `DT-030` |
+| PEN-024 | Transferência com duas pernas vinculadas; estorno e reembolso como novos lançamentos vinculados. | Delegada | `DT-030` |
+| PEN-025 | Parcialmente resolvida: contas a pagar/receber com competência, vencimento, quitação e cancelamento; recorrência e parcelamento ficam para evolução. | Delegada | `DT-030` |
 | PEN-043 | Web e API sob a mesma origem pública: o Next.js encaminha `/api/v1` para a API; CORS restrito à lista explícita. | Delegada | `DT-022` |

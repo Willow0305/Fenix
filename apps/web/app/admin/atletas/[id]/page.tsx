@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import { useState } from 'react';
 
+import { AthleteFeePlans } from '../../../../components/athlete-fee-plans';
 import { AthleteForm } from '../../../../components/athlete-form';
 import {
   Alert,
@@ -248,6 +249,8 @@ export default function AthleteDetailPage() {
           </form>
         ) : null}
       </section>
+
+      {can('fees.read') ? <AthleteFeePlans athleteId={id} /> : null}
 
       {history.data ? (
         <section className="card stack" aria-labelledby="historico">

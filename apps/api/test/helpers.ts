@@ -12,6 +12,7 @@ import { AppModule } from '../src/app.module';
 import { hashPassword } from '../src/common/crypto/password-hasher';
 import { configureApplication } from '../src/configure-application';
 import { syncAccessCatalog } from '../src/modules/access/application/roles.service';
+import { syncFinanceCatalog } from '../src/modules/finance/application/finance-setup.service';
 
 export const PASSWORD = 'senha-de-teste-2026';
 
@@ -34,7 +35,10 @@ export async function createTestContext(): Promise<TestContext> {
 
   const prisma = new PrismaClient();
 
-  await prisma.$transaction((tx) => syncAccessCatalog(tx));
+  await prisma.$transaction(async (tx) => {
+    await syncAccessCatalog(tx);
+    await syncFinanceCatalog(tx);
+  });
 
   const moduleRef = await Test.createTestingModule({ imports: [AppModule] }).compile();
   const app = moduleRef.createNestApplication();

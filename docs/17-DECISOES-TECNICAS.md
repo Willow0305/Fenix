@@ -545,3 +545,30 @@ O schema possui `InterestedPerson`, `Registration` (inscrição geral) e `Tryout
 ### Decisão
 
 `NotificationsService.notify` grava notificações in-app com `deduplicationKey` única por usuário (`createMany ... skipDuplicates`), permitindo chamar o mesmo evento mais de uma vez sem duplicar. Mensagens não carregam dados de terceiros; o link é relativo à área do usuário. E-mail transacional permanece pendente de provedor (`PEN-040`).
+
+## DT-030 — Livro-caixa, pagamentos e fechamento
+
+- **Estado:** Aceita
+- **Data:** 2026-10-18
+
+### Contexto
+
+Fase 3 exige saldo derivado, confirmação idempotente, histórico imutável e bloqueio de períodos (RN-FIN-001..012, RF-025..030).
+
+### Decisão
+
+- todo lançamento passa por `LedgerService.post`, que valida conta/categoria ativas, natureza da categoria × direção, moeda da conta e período fechado;
+- valores são `Decimal` (armazenados em `NUMERIC(19,4)`), recebidos e devolvidos como string com 2 casas; arredondamento half-up;
+- operações financeiras exigem o cabeçalho `Idempotency-Key`; o mesmo autor reenviando a mesma chave recebe o resultado original, outro autor recebe 409;
+- alterações concorrentes na mesma mensalidade, pagamento, lançamento, conta ou obrigação são serializadas com `SELECT … FOR UPDATE` dentro da transação;
+- pagamento é criado `PENDING`; confirmá-lo cria exatamente um lançamento (`payment_id` único) na conta escolhida; estorno de pagamento confirmado cria `Refund` e lançamento oposto vinculado (`reverses_transaction_id`, origem `REFUND`); pendente é apenas cancelado;
+- lançamento confirmado nunca é cancelado nem editado; correção é estorno datado de hoje; estorno de estorno e estorno duplo são recusados; transferências e lançamentos de pagamento só são corrigidos pelos fluxos de origem;
+- a data contábil de filtro e de fechamento é o dia civil de `occurred_at` no fuso do time;
+- fechamento por conta/período: saldo esperado = soma assinada dos confirmados até o fim do período; exige zero pendências no período; bloqueia confirmar/criar movimentos datados no período; reabertura exige `cash.reopen` e motivo; refechar atualiza o mesmo registro e a auditoria guarda os valores anteriores;
+- saldo inicial é um lançamento `OPENING_BALANCE` único por conta;
+- plano de contas provisório semeado por código (`finance-catalog.ts`); categorias de sistema não podem ser inativadas (`PEN-020` segue aberta para validação contábil).
+
+### Consequências
+
+- `npm run db:seed` também semeia contas, categorias e formas de pagamento padrão;
+- a área do atleta permite enviar comprovante PIX, que vira pagamento pendente com anexo confidencial.

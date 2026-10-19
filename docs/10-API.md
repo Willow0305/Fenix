@@ -37,6 +37,20 @@ O contrato completo e executável fica no OpenAPI (`/docs` fora de produção). 
 | `GET` | `/api/v1/me/athlete` · `me/tryout-registrations` | próprio | 2 |
 | `GET`/`POST` | `/api/v1/me/notifications` · `unread-count` · `read-all` · `:id/read` | próprio | 2 |
 | `GET` | `/api/v1/dashboard/summary` | `dashboard.read` | 2 |
+| `GET`/`POST`/`PATCH` | `/api/v1/fee-plans` · `athletes/:id/fee-plans` · `:id/fee-plans/:link/end` | `fees.read` / `fees.plans.manage` | 3 |
+| `POST` | `/api/v1/monthly-fees/generate` | `fees.generate` | 3 |
+| `GET` | `/api/v1/monthly-fees[/:id]` | `fees.read` | 3 |
+| `POST` | `/api/v1/monthly-fees/:id/payments` (Idempotency-Key) · `payments/:pid/confirm` · `payments/:pid/reverse` | `payments.record` / `payments.confirm` / `payments.correct` | 3 |
+| `POST` | `/api/v1/monthly-fees/:id/adjust` · `:id/cancel` | `fees.adjust` | 3 |
+| `GET`/`POST` | `/api/v1/me/monthly-fees[/:id]` · `:id/proof` (multipart, Idempotency-Key) | próprio | 3 |
+| `GET` | `/api/v1/payments/:pid/attachments/:aid` | pagador ou `fees.read` | 3 |
+| `GET`/`POST`/`PATCH` | `/api/v1/finance/accounts` · `categories` · `cost-centers` · `payment-methods` | `finance.read` / `finance.setup` | 3 |
+| `POST` | `/api/v1/finance/accounts/:id/opening-balance` (Idempotency-Key) | `finance.setup` + `transactions.confirm` | 3 |
+| `GET` | `/api/v1/finance/summary` · `transactions[/:id]` | `finance.read` | 3 |
+| `POST` | `/api/v1/finance/transactions` (Idempotency-Key) · `:id/confirm` · `:id/cancel` · `:id/reverse` · `:id/reconcile` · `:id/attachments` | `transactions.*` / `cash.reconcile` | 3 |
+| `POST` | `/api/v1/finance/transfers` (Idempotency-Key) | `transactions.create` + `transactions.confirm` | 3 |
+| `GET`/`POST` | `/api/v1/finance/obligations` · `:id/settle` · `:id/cancel` | `finance.read` / `transactions.*` | 3 |
+| `GET`/`POST` | `/api/v1/finance/closings` · `closings/preview` · `:id/reopen` | `finance.read` / `cash.reconcile` / `cash.close` / `cash.reopen` | 3 |
 
 Listas usam `page`/`pageSize` (máx. 100) e retornam `{ data, meta }` (`DT-025`).
 
