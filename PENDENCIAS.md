@@ -419,4 +419,6 @@ As entradas acima permanecem como histórico da questão original. As decisões 
 | PEN-027 | Reserva no checkout, saída efetiva no pagamento confirmado, expiração configurável (72 h). | Delegada | `DT-031` |
 | PEN-028 | Checkout de visitante permitido com dados mínimos; retirada combinada com o time; frete fora do escopo atual. | Delegada | `DT-031` |
 | PEN-029 | Estoque e SKU na variação; preço por variação; promoção simples (sem período); limite por comprador; preço congelado no item. | Delegada | `DT-031` |
+| PEN-031 | Máquina de estados de remessa, extensão por reabertura, configuração imutável após encomenda e relatório conferível. Reabertura após encomenda não é permitida (cancelar e criar nova). | Delegada | `DT-032` |
+| PEN-032 | Parcialmente resolvida: cobrança antes da encomenda, mínimo pago verificado, estorno vinculado; o texto da política de devolução precisa ser aprovado e publicado em cada remessa. | Delegada | `DT-032` |
 | PEN-043 | Web e API sob a mesma origem pública: o Next.js encaminha `/api/v1` para a API; CORS restrito à lista explícita. | Delegada | `DT-022` |

@@ -588,3 +588,20 @@ Fase 3 exige saldo derivado, confirmação idempotente, histórico imutável e b
 - pedido de visitante exige nome, e-mail, telefone e aceite; a consulta usa número + código secreto (hash no banco) enviados por e-mail, nunca na URL; a chave PIX só aparece para o dono do pedido aguardando pagamento;
 - carrinho fica no servidor (usuário ou visitante com cookie `HttpOnly` de token opaco), preço sempre recalculado, mesclado ao fazer login;
 - exclusão de produto é arquivamento com motivo auditado; produto digital continua indisponível.
+
+
+## DT-032 — Remessas (campanhas de pré-venda)
+
+- **Estado:** Aceita
+- **Data:** 2026-10-19
+
+### Decisão
+
+- ciclo: rascunho → agendada/aberta → encerrada → encomendada → em produção → recebida → pronta para retirada → concluída; cancelamento até antes do recebimento; encerrada pode ser reaberta informando novo prazo (extensão, PEN-031);
+- produtos com modo "Remessa" só são vendidos com remessa aberta e dentro da janela; preço da remessa prevalece; máximo da remessa e do produto conferido no checkout com trava da remessa; sem estoque físico;
+- pedido de remessa não se mistura com outros itens nem com outra remessa, para que o cancelamento da remessa cancele pedidos inteiros sem afetar compras comuns;
+- encomendar exige mínimo de unidades **pagas**, nenhum comprovante pendente e cancela pedidos sem pagamento; configuração (produtos, período, quantidades) fica imutável após a encomenda;
+- relatório consolidado e CSV (separador ";", BOM UTF-8) consideram apenas pedidos pagos;
+- "pronta para retirada" muda pedidos pagos para pronto e notifica (in-app e e-mail) somente os compradores afetados, uma única vez por item (`arrival_notified_at`); retirada registra `picked_up_at` e entrega o pedido;
+- cancelamento exige motivo e permissão de estorno: cada pedido é cancelado com reembolso vinculado (lançamento original preservado);
+- política para mínimo não atingido (PEN-032) é texto obrigatório-recomendado exibido na loja antes da compra; o sistema só cobra antes da encomenda, e a devolução é estorno manual registrado.

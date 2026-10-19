@@ -6,6 +6,17 @@ O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) e o 
 
 ## [Não publicado]
 
+### Fase 5 — Remessas (2026-10-19)
+
+#### Adicionado
+
+- remessas/campanhas com janela de venda, mínimo/máximo, produtos e preço próprios (RF-035, RF-036, RCF-009);
+- encerramento automático por prazo, reabertura com extensão, encomenda condicionada ao mínimo pago;
+- relatório consolidado para a malharia e lista de retirada em CSV;
+- etapas de produção e recebimento, aviso idempotente aos compradores e retirada rastreável (RF-044);
+- cancelamento com estorno vinculado de todos os pedidos; pré-vendas destacadas na loja;
+- 6 testes de integração da Fase 5 (DT-032).
+
 ### Fase 4 — Loja (2026-10-18)
 
 #### Adicionado

@@ -61,6 +61,11 @@ O contrato completo e executável fica no OpenAPI (`/docs` fora de produção). 
 | `POST`/`GET` | `/api/v1/store/variants/:id/stock` · `:id/movements` | `inventory.adjust` / `products.manage` | 4 |
 | `GET` | `/api/v1/store/orders[/:id]` | `orders.read` | 4 |
 | `POST`/`PUT` | `/api/v1/store/orders/:id/payments` (Idempotency-Key) · `payments/:pid/confirm` · `:id/status` · `expire-reservations` | `orders.status.change` / `payments.*` | 4 |
+| `GET` | `/api/v1/public/campaigns[/:slug]` | público | 5 |
+| `GET`/`POST`/`PATCH` | `/api/v1/campaigns[/:id]` | `campaigns.manage` | 5 |
+| `PUT` | `/api/v1/campaigns/:id/products` · `:id/status` | `campaigns.manage` (cancelar exige `payments.correct`) | 5 |
+| `GET` | `/api/v1/campaigns/:id/report` · `report.csv?kind=supplier\|pickup` | `campaigns.manage` | 5 |
+| `POST` | `/api/v1/campaigns/:id/orders/:orderId/pickup` · `campaigns/close-expired` | `campaigns.manage` | 5 |
 
 Listas usam `page`/`pageSize` (máx. 100) e retornam `{ data, meta }` (`DT-025`).
 

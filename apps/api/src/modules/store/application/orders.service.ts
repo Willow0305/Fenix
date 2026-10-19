@@ -305,6 +305,18 @@ export class OrdersService implements OnModuleInit, OnModuleDestroy {
         throw AppError.validation('EMPTY_CART', 'Seu carrinho está vazio.');
       }
 
+      const campaignsInCart = new Set(
+        cart.items.map((item) => item.salesCampaignProduct?.salesCampaignId ?? null)
+      );
+
+      // Pedido de remessa não se mistura com outros itens (DT-032).
+      if (campaignsInCart.size > 1 && [...campaignsInCart].some((id) => id !== null)) {
+        throw AppError.validation(
+          'MIXED_CAMPAIGN_CART',
+          'Produtos de remessa (pré-venda) precisam ser finalizados em um pedido separado, uma remessa por pedido.'
+        );
+      }
+
       const variantIds = [...new Set(cart.items.map((item) => item.productVariantId))].sort();
 
       for (const variantId of variantIds) {
@@ -1033,6 +1045,110 @@ export class OrdersService implements OnModuleInit, OnModuleDestroy {
     });
 
     return this.get(id);
+  }
+
+  /** Cancelamento sistêmico (ex.: remessa cancelada): estorna pagamentos e libera reservas. */
+  async systemCancelInTx(
+    tx: PrismaTx,
+    actorId: string | null,
+    orderId: string,
+    reason: string,
+    restock = false
+  ): Promise<boolean> {
+    await lockRow(tx, 'order', orderId);
+    const row = await this.load(tx, orderId);
+
+    if (row.status === 'CANCELLED' || row.status === 'REFUNDED' || row.status === 'DELIVERED') {
+      return false;
+    }
+
+    await this.unwind(tx, actorId, row, reason, restock, `order-system-cancel:${orderId}`);
+    await tx.order.update({
+      where: { id: orderId },
+      data: { status: 'CANCELLED', cancelledAt: new Date(), cancellationReason: reason }
+    });
+    await this.audit.record(
+      {
+        actorUserId: actorId,
+        action: 'order.cancelled_by_system',
+        entityType: 'Order',
+        entityId: orderId,
+        reason,
+        before: { status: row.status },
+        after: { status: 'CANCELLED' }
+      },
+      tx
+    );
+    await this.notifyStatus(tx, row, 'CANCELLED');
+
+    return true;
+  }
+
+  /** Pedido pago passa a "pronto para retirada" (chegada da remessa). */
+  async markReadyInTx(tx: PrismaTx, actorId: string, orderId: string): Promise<boolean> {
+    await lockRow(tx, 'order', orderId);
+    const row = await this.load(tx, orderId);
+
+    if (row.status !== 'PAID' && row.status !== 'PROCESSING') {
+      return false;
+    }
+
+    await tx.order.update({
+      where: { id: orderId },
+      data: { status: 'READY_FOR_PICKUP', readyForPickupAt: new Date() }
+    });
+    await this.audit.record(
+      {
+        actorUserId: actorId,
+        action: 'order.status.changed',
+        entityType: 'Order',
+        entityId: orderId,
+        before: { status: row.status },
+        after: { status: 'READY_FOR_PICKUP' }
+      },
+      tx
+    );
+
+    return true;
+  }
+
+  /** Retirada rastreável: registra itens retirados e entrega o pedido (RN-REM-006). */
+  async markPickedUpInTx(
+    tx: PrismaTx,
+    actorId: string,
+    orderId: string,
+    note: string | null
+  ): Promise<void> {
+    await lockRow(tx, 'order', orderId);
+    const row = await this.load(tx, orderId);
+
+    if (row.status !== 'READY_FOR_PICKUP') {
+      throw AppError.conflict('NOT_READY', 'O pedido não está pronto para retirada.');
+    }
+
+    const now = new Date();
+
+    await tx.orderItem.updateMany({
+      where: { orderId, pickedUpAt: null },
+      data: { pickedUpAt: now }
+    });
+    await tx.order.update({
+      where: { id: orderId },
+      data: { status: 'DELIVERED', deliveredAt: now }
+    });
+    await this.audit.record(
+      {
+        actorUserId: actorId,
+        action: 'order.picked_up',
+        entityType: 'Order',
+        entityId: orderId,
+        reason: note,
+        before: { status: row.status },
+        after: { status: 'DELIVERED' }
+      },
+      tx
+    );
+    await this.notifyStatus(tx, row, 'DELIVERED');
   }
 
   /** Cancela pedidos aguardando pagamento com reserva vencida e sem comprovante (PEN-027). */

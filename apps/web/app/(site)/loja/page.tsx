@@ -3,6 +3,8 @@ import Link from 'next/link';
 
 import { ProductCard } from '../../../components/product-card';
 import type { Page } from '../../../lib/api-types';
+import type { Campaign } from '../../../lib/campaign-types';
+import { formatDateTime } from '../../../lib/format';
 import { serverGet } from '../../../lib/server-api';
 import type { ProductSummary, StoreCategory } from '../../../lib/store-types';
 import { StoreToolbar } from './store-toolbar';
@@ -30,6 +32,7 @@ export default async function StorePage({
     serverGet<Page<ProductSummary>>(`/public/products?${query.toString()}`, 30),
     serverGet<StoreCategory[]>('/public/product-categories', 60)
   ]);
+  const campaigns = (await serverGet<Campaign[]>('/public/campaigns', 30)) ?? [];
   const totalPages = products ? Math.ceil(products.meta.total / products.meta.pageSize) : 1;
   const link = (overrides: Record<string, string | undefined>) => {
     const next = new URLSearchParams();
@@ -53,6 +56,41 @@ export default async function StorePage({
         </div>
         <StoreToolbar />
       </div>
+      {campaigns.map((campaign) => (
+        <section
+          key={campaign.id}
+          className="card stack"
+          style={{ borderLeft: '4px solid var(--color-primary)' }}
+        >
+          <div className="row">
+            <strong>Pré-venda: {campaign.name}</strong>
+            <span className="badge badge-success">até {formatDateTime(campaign.salesEndAt)}</span>
+          </div>
+          {campaign.description ? (
+            <p className="prose" style={{ margin: 0 }}>
+              {campaign.description}
+            </p>
+          ) : null}
+          {campaign.minimumQuantity ? (
+            <small className="muted">
+              A encomenda ao fornecedor acontece se forem atingidas {campaign.minimumQuantity}{' '}
+              unidades pagas.
+              {campaign.refundPolicy ? ` ${campaign.refundPolicy}` : ''}
+            </small>
+          ) : null}
+          <div className="row">
+            {campaign.products.map((product) => (
+              <Link
+                key={product.id}
+                href={`/loja/${product.productSlug}`}
+                className="btn btn-secondary btn-sm"
+              >
+                {product.productName}
+              </Link>
+            ))}
+          </div>
+        </section>
+      ))}
       <nav aria-label="Categorias" className="row">
         <Link
           href={link({ categoria: undefined, pagina: undefined })}
