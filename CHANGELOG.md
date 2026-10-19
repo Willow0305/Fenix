@@ -6,6 +6,19 @@ O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) e o 
 
 ## [Não publicado]
 
+### Fase 2 — Atletas, equipes e inscrições (2026-10-18)
+
+#### Adicionado
+
+- equipes e categorias com páginas públicas e filtro por time (RF-002);
+- interessados com consentimento versionado e conversão rastreável em atleta (RF-003, DT-028);
+- seletivas com período, vagas e máquina de estados; inscrição pública com regras de menores (RF-004, DT-026);
+- atletas: cadastro com documento cifrado e detecção de duplicidade, edição com histórico antes/depois, status com motivo, vínculo com conta e com equipes ao longo do tempo (RF-008 a RF-010);
+- área do atleta e do usuário: dados próprios, inscrições e notificações (RF-019, RF-022, DT-029);
+- indicadores do painel com definição e origem (RF-020);
+- migration `fase2_menores_consentimento` (responsável, ciência e consentimento);
+- testes de domínio e 12 testes de integração da Fase 2.
+
 ### Fase 1 — Autenticação, permissões e configurações (2026-10-18)
 
 #### Decisões

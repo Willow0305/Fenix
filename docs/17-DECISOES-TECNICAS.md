@@ -513,3 +513,35 @@ Conta própria somente com declaração de idade mínima de 12 anos. Cadastro de
 ### Decisão
 
 Mensalidade preserva o valor do plano no momento da geração; chave única atleta + mês de referência. Não há multa ou juros automáticos; desconto/isenção é ajuste manual motivado e auditado. Pagamentos parciais são somados; a cobrança passa a `PAID` quando a soma confirmada atinge o valor devido; excedente é rejeitado. Cada pagamento confirmado gera exatamente uma entrada no Caixa (idempotente por pagamento). Atraso é derivado da data de vencimento.
+
+## DT-028 — Modelo de recrutamento: interessados e inscrições em seletiva
+
+- **Estado:** Aceita
+- **Data:** 2026-10-18
+
+### Contexto
+
+O schema possui `InterestedPerson`, `Registration` (inscrição geral) e `TryoutRegistration`. `PEN-016` recomenda manter entidades separadas e conversão explícita.
+
+### Decisão
+
+- "Quero jogar no Fênix" grava `InterestedPerson`; inscrição em seletiva grava `TryoutRegistration`. Nenhum dos dois cria conta ou atleta;
+- a tabela `Registration` (inscrição geral sem seletiva) permanece reservada no schema, sem endpoint, porque o fluxo de interessado cobre o caso sem duplicar dados;
+- conversão em atleta é uma ação da diretoria que recebe os dados completos revisados e grava a origem (`InterestedPerson`/`TryoutRegistration`) na auditoria do atleta criado;
+- estados e transições seguem `sports-rules.ts`; recusa e cancelamento exigem motivo; "não compareceu" foi incluído como estado (`RN-ATL-003`);
+- inscrição pública registra versão do aviso de privacidade e instante do consentimento; menores de 12 não se inscrevem publicamente (`DT-026`);
+- vagas são verificadas em transação serializável; conflito concorrente responde 409.
+
+### Consequências
+
+- `Registration` pode ser ativada no futuro sem migração;
+- atletas convertidos mantêm rastreabilidade até a inscrição de origem.
+
+## DT-029 — Notificações internas idempotentes
+
+- **Estado:** Aceita
+- **Data:** 2026-10-18
+
+### Decisão
+
+`NotificationsService.notify` grava notificações in-app com `deduplicationKey` única por usuário (`createMany ... skipDuplicates`), permitindo chamar o mesmo evento mais de uma vez sem duplicar. Mensagens não carregam dados de terceiros; o link é relativo à área do usuário. E-mail transacional permanece pendente de provedor (`PEN-040`).

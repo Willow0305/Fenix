@@ -24,6 +24,19 @@ O contrato completo e executável fica no OpenAPI (`/docs` fora de produção). 
 | `GET` | `/api/v1/team-settings/payment-info` | autenticado | 1 |
 | `PUT` | `/api/v1/team-settings/brand-assets/:context` | `logos.manage` (multipart) | 1 |
 | `GET` | `/api/v1/media/:id` | público se `PUBLIC`; senão autorizado | 1 |
+| `GET` | `/api/v1/public/teams[/:slug]` · `public/categories` · `public/tryouts[/:slug]` | público | 2 |
+| `POST` | `/api/v1/public/tryouts/:slug/registrations` · `public/interest` | público, rate limiting | 2 |
+| `GET`/`POST`/`PATCH` | `/api/v1/teams` · `/api/v1/sport-categories` | `athletes.read` / `teams.manage` | 2 |
+| `GET`/`POST`/`PATCH` | `/api/v1/athletes[/:id]` | `athletes.read` / `athletes.create` / `athletes.update` | 2 |
+| `PUT` | `/api/v1/athletes/:id/status` | `athletes.status.change` | 2 |
+| `PUT`/`POST` | `/api/v1/athletes/:id/user` · `:id/user/unlink` | `athletes.update` | 2 |
+| `POST` | `/api/v1/athletes/:id/memberships` · `memberships/:mid/end` | `teams.assign` | 2 |
+| `GET`/`PUT`/`POST` | `/api/v1/interested-people` · `:id/status` · `:id/convert` | `registrations.read` / `registrations.review` | 2 |
+| `GET`/`POST`/`PATCH`/`PUT` | `/api/v1/tryouts[/:id]` · `:id/status` · `:id/registrations` | `registrations.read` / `tryouts.manage` | 2 |
+| `PUT`/`POST` | `/api/v1/tryout-registrations/:id/status` · `:id/convert` | `registrations.review` | 2 |
+| `GET` | `/api/v1/me/athlete` · `me/tryout-registrations` | próprio | 2 |
+| `GET`/`POST` | `/api/v1/me/notifications` · `unread-count` · `read-all` · `:id/read` | próprio | 2 |
+| `GET` | `/api/v1/dashboard/summary` | `dashboard.read` | 2 |
 
 Listas usam `page`/`pageSize` (máx. 100) e retornam `{ data, meta }` (`DT-025`).
 

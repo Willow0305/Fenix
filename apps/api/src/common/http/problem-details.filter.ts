@@ -134,6 +134,10 @@ export class ProblemDetailsFilter implements ExceptionFilter {
         return base(404, 'NOT_FOUND', 'Recurso não encontrado.');
       }
 
+      if (exception.code === 'P2034') {
+        return base(409, 'CONCURRENT_UPDATE', 'Houve uma alteração simultânea. Tente novamente.');
+      }
+
       if (exception.code === 'P2003') {
         return base(409, 'REFERENCE_CONSTRAINT', 'O registro está vinculado a outros dados.');
       }

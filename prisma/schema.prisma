@@ -706,6 +706,7 @@ model Athlete {
   emergencyContactPhone   String?       @map("emergency_contact_phone") @db.VarChar(30)
   guardianName            String?       @map("guardian_name") @db.VarChar(160)
   guardianPhone           String?       @map("guardian_phone") @db.VarChar(30)
+  guardianAcknowledgedAt  DateTime?     @map("guardian_acknowledged_at") @db.Timestamptz(6)
   status                  AthleteStatus @default(PENDING)
   notes                   String?       @db.Text
   createdAt               DateTime      @default(now()) @map("created_at") @db.Timestamptz(6)
@@ -820,6 +821,8 @@ model InterestedPerson {
   desiredPosition      String?                @map("desired_position") @db.VarChar(80)
   source               String?                @db.VarChar(100)
   notes                String?                @db.Text
+  guardianName         String?                @map("guardian_name") @db.VarChar(160)
+  guardianPhone        String?                @map("guardian_phone") @db.VarChar(30)
   privacyNoticeVersion String?                @map("privacy_notice_version") @db.VarChar(40)
   consentAt            DateTime?              @map("consent_at") @db.Timestamptz(6)
   status               InterestedPersonStatus @default(NEW)
@@ -899,25 +902,29 @@ model Tryout {
 }
 
 model TryoutRegistration {
-  id                 String                   @id @default(uuid()) @db.Uuid
-  tryoutId           String                   @map("tryout_id") @db.Uuid
-  applicantUserId    String?                  @map("applicant_user_id") @db.Uuid
-  athleteId          String?                  @map("athlete_id") @db.Uuid
-  interestedPersonId String?                  @map("interested_person_id") @db.Uuid
-  fullName           String                   @map("full_name") @db.VarChar(160)
-  birthDate          DateTime?                @map("birth_date") @db.Date
-  email              String?                  @db.VarChar(180)
-  phone              String?                  @db.VarChar(30)
-  gender             Gender?
-  desiredPosition    String?                  @map("desired_position") @db.VarChar(80)
-  experience         String?                  @db.Text
-  status             TryoutRegistrationStatus @default(NEW)
-  reviewedById       String?                  @map("reviewed_by_id") @db.Uuid
-  reviewedAt         DateTime?                @map("reviewed_at") @db.Timestamptz(6)
-  reviewReason       String?                  @map("review_reason") @db.Text
-  createdAt          DateTime                 @default(now()) @map("created_at") @db.Timestamptz(6)
-  updatedAt          DateTime                 @updatedAt @map("updated_at") @db.Timestamptz(6)
-  deletedAt          DateTime?                @map("deleted_at") @db.Timestamptz(6)
+  id                   String                   @id @default(uuid()) @db.Uuid
+  tryoutId             String                   @map("tryout_id") @db.Uuid
+  applicantUserId      String?                  @map("applicant_user_id") @db.Uuid
+  athleteId            String?                  @map("athlete_id") @db.Uuid
+  interestedPersonId   String?                  @map("interested_person_id") @db.Uuid
+  fullName             String                   @map("full_name") @db.VarChar(160)
+  birthDate            DateTime?                @map("birth_date") @db.Date
+  email                String?                  @db.VarChar(180)
+  phone                String?                  @db.VarChar(30)
+  gender               Gender?
+  desiredPosition      String?                  @map("desired_position") @db.VarChar(80)
+  experience           String?                  @db.Text
+  guardianName         String?                  @map("guardian_name") @db.VarChar(160)
+  guardianPhone        String?                  @map("guardian_phone") @db.VarChar(30)
+  privacyNoticeVersion String?                  @map("privacy_notice_version") @db.VarChar(40)
+  consentAt            DateTime?                @map("consent_at") @db.Timestamptz(6)
+  status               TryoutRegistrationStatus @default(NEW)
+  reviewedById         String?                  @map("reviewed_by_id") @db.Uuid
+  reviewedAt           DateTime?                @map("reviewed_at") @db.Timestamptz(6)
+  reviewReason         String?                  @map("review_reason") @db.Text
+  createdAt            DateTime                 @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt            DateTime                 @updatedAt @map("updated_at") @db.Timestamptz(6)
+  deletedAt            DateTime?                @map("deleted_at") @db.Timestamptz(6)
 
   tryout           Tryout            @relation(fields: [tryoutId], references: [id], onDelete: Restrict, onUpdate: Cascade)
   applicantUser    User?             @relation("TryoutApplicant", fields: [applicantUserId], references: [id], onDelete: SetNull, onUpdate: Cascade)
