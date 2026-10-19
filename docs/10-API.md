@@ -51,6 +51,16 @@ O contrato completo e executável fica no OpenAPI (`/docs` fora de produção). 
 | `POST` | `/api/v1/finance/transfers` (Idempotency-Key) | `transactions.create` + `transactions.confirm` | 3 |
 | `GET`/`POST` | `/api/v1/finance/obligations` · `:id/settle` · `:id/cancel` | `finance.read` / `transactions.*` | 3 |
 | `GET`/`POST` | `/api/v1/finance/closings` · `closings/preview` · `:id/reopen` | `finance.read` / `cash.reconcile` / `cash.close` / `cash.reopen` | 3 |
+| `GET` | `/api/v1/public/product-categories` · `public/products[/:slug]` | público | 4 |
+| `GET`/`PUT` | `/api/v1/cart` · `cart/items` | público (cookie de visitante ou conta) | 4 |
+| `POST` | `/api/v1/orders/checkout` | público, rate limiting | 4 |
+| `POST` | `/api/v1/public/orders/lookup` · `public/orders/proof` (Idempotency-Key) | número + código | 4 |
+| `GET`/`POST` | `/api/v1/me/orders[/:id]` · `:id/proof` | próprio | 4 |
+| `GET`/`PUT`/`DELETE` | `/api/v1/me/favorites[/:productId]` | próprio | 4 |
+| `GET`/`POST`/`PATCH`/`PUT`/`DELETE` | `/api/v1/store/categories` · `store/products` · `:id/status` · `:id/variants` · `:id/images` | `products.manage` | 4 |
+| `POST`/`GET` | `/api/v1/store/variants/:id/stock` · `:id/movements` | `inventory.adjust` / `products.manage` | 4 |
+| `GET` | `/api/v1/store/orders[/:id]` | `orders.read` | 4 |
+| `POST`/`PUT` | `/api/v1/store/orders/:id/payments` (Idempotency-Key) · `payments/:pid/confirm` · `:id/status` · `expire-reservations` | `orders.status.change` / `payments.*` | 4 |
 
 Listas usam `page`/`pageSize` (máx. 100) e retornam `{ data, meta }` (`DT-025`).
 

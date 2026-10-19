@@ -11,6 +11,7 @@ import { MediaModule } from './modules/media/media.module';
 import { NotificationsModule } from './modules/notifications/notifications.module';
 import { SettingsModule } from './modules/settings/settings.module';
 import { SportsModule } from './modules/sports/sports.module';
+import { StoreModule } from './modules/store/store.module';
 
 @Module({
   imports: [
@@ -29,6 +30,7 @@ import { SportsModule } from './modules/sports/sports.module';
     SettingsModule,
     SportsModule,
     FinanceModule,
+    StoreModule,
     DashboardModule
   ]
 })

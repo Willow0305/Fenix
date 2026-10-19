@@ -416,4 +416,7 @@ As entradas acima permanecem como histórico da questão original. As decisões 
 | PEN-023 | Fechamento por conta e período; bloqueio de datas fechadas; reabertura com permissão e motivo. Periodicidade fica a critério da diretoria. | Delegada | `DT-030` |
 | PEN-024 | Transferência com duas pernas vinculadas; estorno e reembolso como novos lançamentos vinculados. | Delegada | `DT-030` |
 | PEN-025 | Parcialmente resolvida: contas a pagar/receber com competência, vencimento, quitação e cancelamento; recorrência e parcelamento ficam para evolução. | Delegada | `DT-030` |
+| PEN-027 | Reserva no checkout, saída efetiva no pagamento confirmado, expiração configurável (72 h). | Delegada | `DT-031` |
+| PEN-028 | Checkout de visitante permitido com dados mínimos; retirada combinada com o time; frete fora do escopo atual. | Delegada | `DT-031` |
+| PEN-029 | Estoque e SKU na variação; preço por variação; promoção simples (sem período); limite por comprador; preço congelado no item. | Delegada | `DT-031` |
 | PEN-043 | Web e API sob a mesma origem pública: o Next.js encaminha `/api/v1` para a API; CORS restrito à lista explícita. | Delegada | `DT-022` |

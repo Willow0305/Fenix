@@ -8,6 +8,9 @@ import { PERMISSIONS } from '../access/domain/permission-catalog';
 import { RequirePermissions } from '../auth/http/auth.decorators';
 import { FinanceReportsService } from '../finance/application/finance-reports.service';
 import { FinanceModule } from '../finance/finance.module';
+import { OrdersService } from '../store/application/orders.service';
+import { StoreModule } from '../store/store.module';
+import { endOfDayExclusive, startOfDayInZone } from '../../common/domain/time-zone';
 
 export interface DashboardIndicator {
   readonly key: string;
@@ -26,7 +29,8 @@ export interface DashboardIndicator {
 export class DashboardService {
   constructor(
     private readonly prisma: PrismaService,
-    private readonly reports: FinanceReportsService
+    private readonly reports: FinanceReportsService,
+    private readonly orders: OrdersService
   ) {}
 
   async summary(principal: Principal): Promise<DashboardIndicator[]> {
@@ -94,6 +98,22 @@ export class DashboardService {
       }
     }
 
+    if (principal.permissions.has(PERMISSIONS.ordersRead)) {
+      const today = todayIn();
+      const sales = await this.orders.salesTotal(
+        startOfDayInZone(`${today.slice(0, 7)}-01`),
+        endOfDayExclusive(today)
+      );
+
+      indicators.push({
+        key: 'monthSales',
+        label: 'Vendas do mês',
+        value: `R$ ${sales.amount.amount.replace('.', ',')}`,
+        definition: `${sales.count} pedido(s) pago(s) no mês corrente, excluindo cancelados e reembolsados.`,
+        link: '/admin/pedidos'
+      });
+    }
+
     return indicators;
   }
 }
@@ -112,7 +132,7 @@ export class DashboardController {
 }
 
 @Module({
-  imports: [FinanceModule],
+  imports: [FinanceModule, StoreModule],
   controllers: [DashboardController],
   providers: [DashboardService]
 })

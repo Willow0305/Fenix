@@ -6,6 +6,22 @@ O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) e o 
 
 ## [Não publicado]
 
+### Fase 4 — Loja (2026-10-18)
+
+#### Adicionado
+
+- catálogo com categorias, produtos, variações (SKU, tamanho, cor, preço próprio), imagens, promoção, custo, limite por comprador e modos de venda (RF-015, RF-035, RCF-007/008);
+- estoque por razão de movimentações com entrada, perda, ajuste auditado, reserva, liberação, saída e devolução (RF-016);
+- carrinho no servidor para usuário e visitante, favoritos privados (RF-037, RF-038);
+- checkout transacional com preço congelado, consulta segura de pedido de visitante, comprovante PIX, confirmação de pagamento com entrada no Caixa e estados do pedido (RF-017, RF-018, RF-029);
+- cancelamento/reembolso com estorno vinculado e devolução ao estoque; expiração automática de reservas;
+- área do cliente (pedidos, favoritos), painel de produtos e pedidos, indicador "Vendas do mês" (RF-019, RF-020);
+- migration `fase4_loja_pedidos` e 9 testes de integração (incluindo concorrência de estoque).
+
+#### Pendente de decisão
+
+- `PEN-030` (política de devolução/reembolso da loja) segue aberta: o sistema suporta, mas os termos precisam ser publicados antes de vendas reais.
+
 ### Fase 3 — Mensalidades e Caixa Fênix (2026-10-18)
 
 #### Adicionado

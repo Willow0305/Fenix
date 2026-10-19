@@ -1,0 +1,845 @@
+import { Injectable } from '@nestjs/common';
+import type { Gender, Prisma, ProductFulfillmentType, ProductStatus } from '@prisma/client';
+
+import { AuditService } from '../../../common/audit/audit.service';
+import {
+  DEFAULT_CURRENCY,
+  type Money,
+  money,
+  type MoneyView,
+  moneyView
+} from '../../../common/domain/money';
+import { AppError } from '../../../common/errors/app-error';
+import { type Page, pageArgs, type PageQueryDto, toPage } from '../../../common/http/pagination';
+import type { Principal, RequestMeta } from '../../../common/http/request-context';
+import { PrismaService } from '../../../common/prisma/prisma.service';
+import {
+  IMAGE_POLICY,
+  type IncomingFile,
+  MediaService,
+  mediaUrl
+} from '../../media/application/media.service';
+import { slugify } from '../../sports/domain/sports-rules';
+import { effectiveUnitPrice, isPurchasable, listPrice, requiresStock } from '../domain/store-rules';
+import { InventoryService, type StockLevel } from './inventory.service';
+
+export interface ProductCategoryView {
+  readonly id: string;
+  readonly name: string;
+  readonly slug: string;
+  readonly description: string | null;
+  readonly isActive: boolean;
+}
+
+export interface VariantView {
+  readonly id: string;
+  readonly sku: string;
+  readonly name: string;
+  readonly size: string | null;
+  readonly color: string | null;
+  readonly gender: Gender | null;
+  readonly price: MoneyView;
+  readonly listPrice: MoneyView;
+  readonly isActive: boolean;
+  readonly minimumStock: number;
+  readonly stock: StockLevel | null;
+  readonly inStock: boolean;
+}
+
+export interface ProductSummary {
+  readonly id: string;
+  readonly name: string;
+  readonly slug: string;
+  readonly brand: string | null;
+  readonly category: { id: string; name: string; slug: string };
+  readonly fulfillmentType: ProductFulfillmentType;
+  readonly status: ProductStatus;
+  readonly isFeatured: boolean;
+  readonly priceFrom: MoneyView;
+  readonly listPriceFrom: MoneyView;
+  readonly image: { url: string; altText: string | null } | null;
+  readonly purchasable: boolean;
+  readonly partner: { id: string; name: string } | null;
+  readonly campaign: { slug: string; name: string } | null;
+}
+
+export interface ProductDetail extends ProductSummary {
+  readonly description: string | null;
+  readonly buyerLimit: number | null;
+  readonly productionLeadDays: number | null;
+  readonly pickupInstructions: string | null;
+  readonly availableFrom: string | null;
+  readonly availableUntil: string | null;
+  readonly images: { id: string; url: string; altText: string | null; isPrimary: boolean }[];
+  readonly variants: VariantView[];
+  readonly costPrice?: MoneyView | null;
+  readonly basePrice?: MoneyView;
+  readonly promotionalPrice?: MoneyView | null;
+}
+
+export interface ProductInput {
+  readonly name: string;
+  readonly categoryId: string;
+  readonly fulfillmentType: ProductFulfillmentType;
+  readonly basePrice: Money;
+  readonly promotionalPrice?: Money | null;
+  readonly costPrice?: Money | null;
+  readonly brand?: string | null;
+  readonly description?: string | null;
+  readonly buyerLimit?: number | null;
+  readonly isFeatured?: boolean;
+  readonly availableFrom?: string | null;
+  readonly availableUntil?: string | null;
+  readonly productionLeadDays?: number | null;
+  readonly pickupInstructions?: string | null;
+  readonly partnerId?: string | null;
+}
+
+export interface VariantInput {
+  readonly name: string;
+  readonly sku?: string;
+  readonly size?: string | null;
+  readonly color?: string | null;
+  readonly gender?: Gender | null;
+  readonly priceOverride?: Money | null;
+  readonly promotionalPriceOverride?: Money | null;
+  readonly minimumStock?: number;
+  readonly isActive?: boolean;
+}
+
+const PRODUCT_INCLUDE = {
+  category: { select: { id: true, name: true, slug: true } },
+  partner: { select: { id: true, displayName: true, status: true } },
+  images: {
+    where: { deletedAt: null },
+    orderBy: [{ isPrimary: 'desc' }, { sortOrder: 'asc' }],
+    select: { id: true, mediaFileId: true, altText: true, isPrimary: true }
+  },
+  variants: { where: { deletedAt: null }, orderBy: { createdAt: 'asc' } },
+  campaignProducts: {
+    where: { isActive: true, deletedAt: null, salesCampaign: { status: 'OPEN', deletedAt: null } },
+    select: { campaignPrice: true, salesCampaign: { select: { slug: true, name: true } } },
+    take: 1
+  }
+} satisfies Prisma.ProductInclude;
+
+type ProductRow = Prisma.ProductGetPayload<{ include: typeof PRODUCT_INCLUDE }>;
+
+function iso(value: string | null | undefined): Date | null {
+  return value ? new Date(value) : null;
+}
+
+/** Catálogo da loja (RF-015, RF-035, RCF-007/008). */
+@Injectable()
+export class CatalogService {
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly audit: AuditService,
+    private readonly media: MediaService,
+    private readonly inventory: InventoryService
+  ) {}
+
+  // ---------- Categorias ----------
+
+  async categories(includeInactive: boolean): Promise<ProductCategoryView[]> {
+    const rows = await this.prisma.productCategory.findMany({
+      where: { deletedAt: null, ...(includeInactive ? {} : { isActive: true }) },
+      orderBy: { name: 'asc' }
+    });
+
+    return rows.map((row) => ({
+      id: row.id,
+      name: row.name,
+      slug: row.slug,
+      description: row.description,
+      isActive: row.isActive
+    }));
+  }
+
+  private async uniqueSlug(kind: 'product' | 'category', name: string): Promise<string> {
+    const base = slugify(name) || kind;
+
+    for (let n = 1; n < 200; n += 1) {
+      const slug = n === 1 ? base : `${base}-${n}`;
+      const exists =
+        kind === 'product'
+          ? await this.prisma.product.findUnique({ where: { slug }, select: { id: true } })
+          : await this.prisma.productCategory.findUnique({ where: { slug }, select: { id: true } });
+
+      if (exists === null) {
+        return slug;
+      }
+    }
+
+    throw AppError.conflict('SLUG_UNAVAILABLE', 'Não foi possível gerar identificador único.');
+  }
+
+  async createCategory(
+    actor: Principal,
+    input: { name: string; description?: string },
+    meta: RequestMeta
+  ): Promise<ProductCategoryView> {
+    const row = await this.prisma.productCategory.create({
+      data: {
+        name: input.name.trim(),
+        slug: await this.uniqueSlug('category', input.name),
+        description: input.description?.trim() || null
+      }
+    });
+
+    await this.audit.record({
+      actorUserId: actor.userId,
+      action: 'store.category.created',
+      entityType: 'ProductCategory',
+      entityId: row.id,
+      after: { name: row.name },
+      meta
+    });
+
+    return {
+      id: row.id,
+      name: row.name,
+      slug: row.slug,
+      description: row.description,
+      isActive: row.isActive
+    };
+  }
+
+  async updateCategory(
+    actor: Principal,
+    id: string,
+    input: { name?: string; description?: string; isActive?: boolean },
+    meta: RequestMeta
+  ): Promise<ProductCategoryView> {
+    const row = await this.prisma.productCategory.update({
+      where: { id },
+      data: {
+        ...(input.name === undefined ? {} : { name: input.name.trim() }),
+        ...(input.description === undefined ? {} : { description: input.description || null }),
+        ...(input.isActive === undefined ? {} : { isActive: input.isActive })
+      }
+    });
+
+    await this.audit.record({
+      actorUserId: actor.userId,
+      action: 'store.category.updated',
+      entityType: 'ProductCategory',
+      entityId: id,
+      after: input as Record<string, unknown>,
+      meta
+    });
+
+    return {
+      id: row.id,
+      name: row.name,
+      slug: row.slug,
+      description: row.description,
+      isActive: row.isActive
+    };
+  }
+
+  // ---------- Produtos ----------
+
+  private async toDetail(
+    row: ProductRow,
+    options: { admin: boolean; now: Date }
+  ): Promise<ProductDetail> {
+    const variants = row.variants.filter((variant) => options.admin || variant.isActive);
+    const stock = await this.inventory.levels(variants.map((variant) => variant.id));
+    const campaign = row.campaignProducts[0] ?? null;
+    const tracked = requiresStock(row.fulfillmentType);
+    const variantViews: VariantView[] = variants.map((variant) => {
+      const level = stock.get(variant.id) ?? { available: 0, reserved: 0, onHand: 0 };
+      const price = campaign?.campaignPrice ?? effectiveUnitPrice(row, variant);
+
+      return {
+        id: variant.id,
+        sku: variant.sku,
+        name: variant.name,
+        size: variant.size,
+        color: variant.color,
+        gender: variant.gender,
+        price: moneyView(price, row.currency),
+        listPrice: moneyView(listPrice(row, variant), row.currency),
+        isActive: variant.isActive,
+        minimumStock: variant.minimumStock,
+        stock: options.admin ? level : null,
+        inStock: !tracked || level.available > 0
+      };
+    });
+    const prices = variantViews.map((v) => v.price.amount);
+    const lowest =
+      prices.length > 0
+        ? prices.reduce((min, p) => (money(p).lessThan(money(min)) ? p : min))
+        : row.basePrice.toFixed(2);
+    const listPrices = variantViews.map((v) => v.listPrice.amount);
+    const lowestList =
+      listPrices.length > 0
+        ? listPrices.reduce((min, p) => (money(p).lessThan(money(min)) ? p : min))
+        : row.basePrice.toFixed(2);
+    const primary = row.images[0];
+    const partnerVisible = row.partner && (options.admin || row.partner.status === 'ACTIVE');
+
+    return {
+      id: row.id,
+      name: row.name,
+      slug: row.slug,
+      brand: row.brand,
+      category: row.category,
+      fulfillmentType: row.fulfillmentType,
+      status: row.status,
+      isFeatured: row.isFeatured,
+      priceFrom: { amount: lowest, currency: row.currency },
+      listPriceFrom: { amount: lowestList, currency: row.currency },
+      image: primary ? { url: mediaUrl(primary.mediaFileId), altText: primary.altText } : null,
+      purchasable:
+        (isPurchasable(row, options.now) ||
+          (row.fulfillmentType === 'CAMPAIGN' && campaign !== null)) &&
+        variantViews.some((v) => v.isActive && v.inStock),
+      partner:
+        partnerVisible && row.partner
+          ? { id: row.partner.id, name: row.partner.displayName }
+          : null,
+      campaign: campaign ? campaign.salesCampaign : null,
+      description: row.description,
+      buyerLimit: row.buyerLimit,
+      productionLeadDays: row.productionLeadDays,
+      pickupInstructions: row.pickupInstructions,
+      availableFrom: row.availableFrom?.toISOString() ?? null,
+      availableUntil: row.availableUntil?.toISOString() ?? null,
+      images: row.images.map((image) => ({
+        id: image.id,
+        url: mediaUrl(image.mediaFileId),
+        altText: image.altText,
+        isPrimary: image.isPrimary
+      })),
+      variants: variantViews,
+      ...(options.admin
+        ? { costPrice: row.costPrice ? moneyView(row.costPrice, row.currency) : null }
+        : {})
+    };
+  }
+
+  /** Vitrine pública: somente produtos ativos e de parceiros aprovados (RN-PAR-001). */
+  async publicList(
+    query: PageQueryDto & { category?: string; featured?: boolean }
+  ): Promise<Page<ProductSummary>> {
+    const { skip, take, page, pageSize } = pageArgs(query);
+    const now = new Date();
+    const search = query.search?.trim();
+    const where: Prisma.ProductWhereInput = {
+      deletedAt: null,
+      status: { in: ['ACTIVE', 'SOLD_OUT'] },
+      fulfillmentType: { not: 'DIGITAL' },
+      category: {
+        isActive: true,
+        deletedAt: null,
+        ...(query.category ? { slug: query.category } : {})
+      },
+      OR: [{ partnerId: null }, { partner: { status: 'ACTIVE', deletedAt: null } }],
+      AND: [
+        { OR: [{ availableFrom: null }, { availableFrom: { lte: now } }] },
+        { OR: [{ availableUntil: null }, { availableUntil: { gte: now } }] },
+        {
+          OR: [
+            { fulfillmentType: { not: 'CAMPAIGN' } },
+            { campaignProducts: { some: { isActive: true, salesCampaign: { status: 'OPEN' } } } }
+          ]
+        },
+        ...(search
+          ? [
+              {
+                OR: [
+                  { name: { contains: search, mode: 'insensitive' as const } },
+                  { brand: { contains: search, mode: 'insensitive' as const } }
+                ]
+              }
+            ]
+          : [])
+      ],
+      ...(query.featured ? { isFeatured: true } : {})
+    };
+    const [rows, total] = await this.prisma.$transaction([
+      this.prisma.product.findMany({
+        where,
+        include: PRODUCT_INCLUDE,
+        orderBy: [{ isFeatured: 'desc' }, { name: 'asc' }],
+        skip,
+        take
+      }),
+      this.prisma.product.count({ where })
+    ]);
+
+    return toPage(
+      await Promise.all(rows.map((row) => this.toDetail(row, { admin: false, now }))),
+      total,
+      page,
+      pageSize
+    );
+  }
+
+  async publicDetail(slug: string): Promise<ProductDetail> {
+    const now = new Date();
+    const row = await this.prisma.product.findFirst({
+      where: {
+        slug,
+        deletedAt: null,
+        status: { in: ['ACTIVE', 'SOLD_OUT'] },
+        OR: [{ partnerId: null }, { partner: { status: 'ACTIVE', deletedAt: null } }]
+      },
+      include: PRODUCT_INCLUDE
+    });
+
+    if (row === null) {
+      throw AppError.notFound('Produto não encontrado.');
+    }
+
+    return this.toDetail(row, { admin: false, now });
+  }
+
+  async adminList(
+    query: PageQueryDto & { status?: ProductStatus; categoryId?: string }
+  ): Promise<Page<ProductSummary>> {
+    const { skip, take, page, pageSize } = pageArgs(query);
+    const search = query.search?.trim();
+    const where: Prisma.ProductWhereInput = {
+      deletedAt: null,
+      ...(query.status ? { status: query.status } : { status: { not: 'ARCHIVED' } }),
+      ...(query.categoryId ? { productCategoryId: query.categoryId } : {}),
+      ...(search
+        ? {
+            OR: [
+              { name: { contains: search, mode: 'insensitive' } },
+              { variants: { some: { sku: { contains: search, mode: 'insensitive' } } } }
+            ]
+          }
+        : {})
+    };
+    const [rows, total] = await this.prisma.$transaction([
+      this.prisma.product.findMany({
+        where,
+        include: PRODUCT_INCLUDE,
+        orderBy: { name: 'asc' },
+        skip,
+        take
+      }),
+      this.prisma.product.count({ where })
+    ]);
+    const now = new Date();
+
+    return toPage(
+      await Promise.all(rows.map((row) => this.toDetail(row, { admin: true, now }))),
+      total,
+      page,
+      pageSize
+    );
+  }
+
+  async adminDetail(id: string): Promise<ProductDetail> {
+    const row = await this.prisma.product.findFirst({
+      where: { id, deletedAt: null },
+      include: PRODUCT_INCLUDE
+    });
+
+    if (row === null) {
+      throw AppError.notFound('Produto não encontrado.');
+    }
+
+    return this.toDetail(row, { admin: true, now: new Date() });
+  }
+
+  private async assertRefs(input: Partial<ProductInput>): Promise<void> {
+    if (input.categoryId) {
+      const category = await this.prisma.productCategory.findFirst({
+        where: { id: input.categoryId, deletedAt: null }
+      });
+
+      if (category === null) {
+        throw AppError.validation('INVALID_CATEGORY', 'Categoria inexistente.');
+      }
+    }
+
+    if (input.partnerId) {
+      const partner = await this.prisma.partner.findFirst({
+        where: { id: input.partnerId, deletedAt: null }
+      });
+
+      if (partner === null) {
+        throw AppError.validation('INVALID_PARTNER', 'Parceiro inexistente.');
+      }
+    }
+
+    if (input.fulfillmentType === 'DIGITAL') {
+      throw AppError.validation(
+        'DIGITAL_NOT_AVAILABLE',
+        'Produto digital ainda não está disponível (fase futura).'
+      );
+    }
+
+    if (
+      input.promotionalPrice &&
+      input.basePrice &&
+      input.promotionalPrice.greaterThanOrEqualTo(input.basePrice)
+    ) {
+      throw AppError.validation(
+        'INVALID_PROMOTION',
+        'O preço promocional deve ser menor que o preço base.'
+      );
+    }
+
+    if (
+      input.availableFrom &&
+      input.availableUntil &&
+      input.availableFrom >= input.availableUntil
+    ) {
+      throw AppError.validation(
+        'INVALID_WINDOW',
+        'O início da disponibilidade deve ser anterior ao fim.'
+      );
+    }
+  }
+
+  async create(actor: Principal, input: ProductInput, meta: RequestMeta): Promise<ProductDetail> {
+    await this.assertRefs(input);
+    const slug = await this.uniqueSlug('product', input.name);
+    const row = await this.prisma.product.create({
+      data: {
+        name: input.name.trim(),
+        slug,
+        productCategoryId: input.categoryId,
+        partnerId: input.partnerId ?? null,
+        fulfillmentType: input.fulfillmentType,
+        basePrice: input.basePrice,
+        promotionalPrice: input.promotionalPrice ?? null,
+        costPrice: input.costPrice ?? null,
+        currency: DEFAULT_CURRENCY,
+        brand: input.brand?.trim() || null,
+        description: input.description ?? null,
+        buyerLimit: input.buyerLimit ?? null,
+        isFeatured: input.isFeatured ?? false,
+        availableFrom: iso(input.availableFrom),
+        availableUntil: iso(input.availableUntil),
+        productionLeadDays: input.productionLeadDays ?? null,
+        pickupInstructions: input.pickupInstructions ?? null,
+        status: 'DRAFT',
+        variants: { create: { sku: `${slug.slice(0, 60).toUpperCase()}-UN`, name: 'Único' } }
+      }
+    });
+
+    await this.audit.record({
+      actorUserId: actor.userId,
+      action: 'store.product.created',
+      entityType: 'Product',
+      entityId: row.id,
+      after: { name: row.name, basePrice: input.basePrice.toFixed(2) },
+      meta
+    });
+
+    return this.adminDetail(row.id);
+  }
+
+  async update(
+    actor: Principal,
+    id: string,
+    input: Partial<ProductInput>,
+    meta: RequestMeta
+  ): Promise<ProductDetail> {
+    const before = await this.prisma.product.findFirst({ where: { id, deletedAt: null } });
+
+    if (before === null) {
+      throw AppError.notFound('Produto não encontrado.');
+    }
+
+    await this.assertRefs({
+      ...input,
+      basePrice: input.basePrice ?? before.basePrice,
+      ...(input.promotionalPrice === undefined ? {} : { promotionalPrice: input.promotionalPrice })
+    });
+    await this.prisma.product.update({
+      where: { id },
+      data: {
+        ...(input.name === undefined ? {} : { name: input.name.trim() }),
+        ...(input.categoryId === undefined ? {} : { productCategoryId: input.categoryId }),
+        ...(input.partnerId === undefined ? {} : { partnerId: input.partnerId }),
+        ...(input.fulfillmentType === undefined ? {} : { fulfillmentType: input.fulfillmentType }),
+        ...(input.basePrice === undefined ? {} : { basePrice: input.basePrice }),
+        ...(input.promotionalPrice === undefined
+          ? {}
+          : { promotionalPrice: input.promotionalPrice }),
+        ...(input.costPrice === undefined ? {} : { costPrice: input.costPrice }),
+        ...(input.brand === undefined ? {} : { brand: input.brand }),
+        ...(input.description === undefined ? {} : { description: input.description }),
+        ...(input.buyerLimit === undefined ? {} : { buyerLimit: input.buyerLimit }),
+        ...(input.isFeatured === undefined ? {} : { isFeatured: input.isFeatured }),
+        ...(input.availableFrom === undefined ? {} : { availableFrom: iso(input.availableFrom) }),
+        ...(input.availableUntil === undefined
+          ? {}
+          : { availableUntil: iso(input.availableUntil) }),
+        ...(input.productionLeadDays === undefined
+          ? {}
+          : { productionLeadDays: input.productionLeadDays }),
+        ...(input.pickupInstructions === undefined
+          ? {}
+          : { pickupInstructions: input.pickupInstructions })
+      }
+    });
+    await this.audit.record({
+      actorUserId: actor.userId,
+      action: 'store.product.updated',
+      entityType: 'Product',
+      entityId: id,
+      before: {
+        name: before.name,
+        basePrice: before.basePrice.toFixed(2),
+        promotionalPrice: before.promotionalPrice?.toFixed(2) ?? null
+      },
+      after: {
+        ...input,
+        ...(input.basePrice ? { basePrice: input.basePrice.toFixed(2) } : {}),
+        ...(input.promotionalPrice ? { promotionalPrice: input.promotionalPrice.toFixed(2) } : {}),
+        ...(input.costPrice ? { costPrice: input.costPrice.toFixed(2) } : {})
+      },
+      meta
+    });
+
+    return this.adminDetail(id);
+  }
+
+  /** "Exclusão" de produto é arquivamento auditado com motivo (RF-024). */
+  async setStatus(
+    actor: Principal,
+    id: string,
+    status: ProductStatus,
+    reason: string | null,
+    meta: RequestMeta
+  ): Promise<ProductDetail> {
+    const before = await this.prisma.product.findFirst({
+      where: { id, deletedAt: null },
+      include: { variants: { where: { deletedAt: null, isActive: true } } }
+    });
+
+    if (before === null) {
+      throw AppError.notFound('Produto não encontrado.');
+    }
+
+    if (status === 'ACTIVE' && before.variants.length === 0) {
+      throw AppError.validation(
+        'NO_VARIANTS',
+        'Cadastre ao menos uma variação ativa antes de publicar.'
+      );
+    }
+
+    if (status === 'ARCHIVED' && !reason) {
+      throw AppError.validation('REASON_REQUIRED', 'Informe o motivo da exclusão.');
+    }
+
+    await this.prisma.product.update({ where: { id }, data: { status } });
+    await this.audit.record({
+      actorUserId: actor.userId,
+      action: status === 'ARCHIVED' ? 'store.product.archived' : 'store.product.status.changed',
+      entityType: 'Product',
+      entityId: id,
+      reason,
+      before: { status: before.status },
+      after: { status },
+      meta
+    });
+
+    return this.adminDetail(id);
+  }
+
+  async addVariant(
+    actor: Principal,
+    productId: string,
+    input: VariantInput,
+    meta: RequestMeta
+  ): Promise<ProductDetail> {
+    const product = await this.prisma.product.findFirst({
+      where: { id: productId, deletedAt: null },
+      select: { slug: true }
+    });
+
+    if (product === null) {
+      throw AppError.notFound('Produto não encontrado.');
+    }
+
+    const sku = (
+      input.sku?.trim() || `${product.slug.slice(0, 50)}-${slugify(input.name) || 'var'}`
+    ).toUpperCase();
+    const variant = await this.prisma.productVariant.create({
+      data: {
+        productId,
+        sku,
+        name: input.name.trim(),
+        size: input.size ?? null,
+        color: input.color ?? null,
+        gender: input.gender ?? null,
+        priceOverride: input.priceOverride ?? null,
+        promotionalPriceOverride: input.promotionalPriceOverride ?? null,
+        minimumStock: input.minimumStock ?? 0,
+        isActive: input.isActive ?? true
+      }
+    });
+
+    await this.audit.record({
+      actorUserId: actor.userId,
+      action: 'store.variant.created',
+      entityType: 'ProductVariant',
+      entityId: variant.id,
+      after: { sku, name: variant.name },
+      meta
+    });
+
+    return this.adminDetail(productId);
+  }
+
+  async updateVariant(
+    actor: Principal,
+    productId: string,
+    variantId: string,
+    input: Partial<VariantInput>,
+    meta: RequestMeta
+  ): Promise<ProductDetail> {
+    const before = await this.prisma.productVariant.findFirst({
+      where: { id: variantId, productId, deletedAt: null }
+    });
+
+    if (before === null) {
+      throw AppError.notFound('Variação não encontrada.');
+    }
+
+    await this.prisma.productVariant.update({
+      where: { id: variantId },
+      data: {
+        ...(input.name === undefined ? {} : { name: input.name.trim() }),
+        ...(input.sku === undefined ? {} : { sku: input.sku.trim().toUpperCase() }),
+        ...(input.size === undefined ? {} : { size: input.size }),
+        ...(input.color === undefined ? {} : { color: input.color }),
+        ...(input.gender === undefined ? {} : { gender: input.gender }),
+        ...(input.priceOverride === undefined ? {} : { priceOverride: input.priceOverride }),
+        ...(input.promotionalPriceOverride === undefined
+          ? {}
+          : { promotionalPriceOverride: input.promotionalPriceOverride }),
+        ...(input.minimumStock === undefined ? {} : { minimumStock: input.minimumStock }),
+        ...(input.isActive === undefined ? {} : { isActive: input.isActive })
+      }
+    });
+    await this.audit.record({
+      actorUserId: actor.userId,
+      action: 'store.variant.updated',
+      entityType: 'ProductVariant',
+      entityId: variantId,
+      before: {
+        sku: before.sku,
+        priceOverride: before.priceOverride?.toFixed(2) ?? null,
+        isActive: before.isActive
+      },
+      after: {
+        ...input,
+        ...(input.priceOverride ? { priceOverride: input.priceOverride.toFixed(2) } : {}),
+        ...(input.promotionalPriceOverride
+          ? { promotionalPriceOverride: input.promotionalPriceOverride.toFixed(2) }
+          : {})
+      },
+      meta
+    });
+
+    return this.adminDetail(productId);
+  }
+
+  async addImage(
+    actor: Principal,
+    productId: string,
+    file: IncomingFile | undefined,
+    altText: string | null,
+    meta: RequestMeta
+  ): Promise<ProductDetail> {
+    await this.prisma.$transaction(async (tx) => {
+      const product = await tx.product.findFirst({
+        where: { id: productId, deletedAt: null },
+        include: { images: { where: { deletedAt: null } } }
+      });
+
+      if (product === null) {
+        throw AppError.notFound('Produto não encontrado.');
+      }
+
+      const stored = await this.media.store(
+        file,
+        { ...IMAGE_POLICY, kind: 'IMAGE', classification: 'PUBLIC' },
+        actor.userId,
+        tx
+      );
+
+      await tx.productImage.create({
+        data: {
+          productId,
+          mediaFileId: stored.id,
+          altText,
+          sortOrder: product.images.length,
+          isPrimary: product.images.length === 0
+        }
+      });
+      await this.audit.record(
+        {
+          actorUserId: actor.userId,
+          action: 'store.image.added',
+          entityType: 'Product',
+          entityId: productId,
+          after: { mediaFileId: stored.id },
+          meta
+        },
+        tx
+      );
+    });
+
+    return this.adminDetail(productId);
+  }
+
+  async removeImage(
+    actor: Principal,
+    productId: string,
+    imageId: string,
+    meta: RequestMeta
+  ): Promise<ProductDetail> {
+    const image = await this.prisma.productImage.findFirst({
+      where: { id: imageId, productId, deletedAt: null }
+    });
+
+    if (image === null) {
+      throw AppError.notFound('Imagem não encontrada.');
+    }
+
+    await this.prisma.$transaction(async (tx) => {
+      await tx.productImage.update({
+        where: { id: imageId },
+        data: { deletedAt: new Date(), isPrimary: false }
+      });
+
+      if (image.isPrimary) {
+        const next = await tx.productImage.findFirst({
+          where: { productId, deletedAt: null },
+          orderBy: { sortOrder: 'asc' }
+        });
+
+        if (next) {
+          await tx.productImage.update({ where: { id: next.id }, data: { isPrimary: true } });
+        }
+      }
+
+      await this.audit.record(
+        {
+          actorUserId: actor.userId,
+          action: 'store.image.removed',
+          entityType: 'Product',
+          entityId: productId,
+          after: { imageId },
+          meta
+        },
+        tx
+      );
+    });
+
+    return this.adminDetail(productId);
+  }
+}

@@ -572,7 +572,7 @@ export class LedgerService {
    */
   async reverseInTx(
     tx: PrismaTx,
-    actorId: string,
+    actorId: string | null,
     id: string,
     reason: string,
     idempotencyKey: string,

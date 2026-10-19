@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from 'next';
 import type { ReactNode } from 'react';
 
 import { AuthProvider } from '../lib/auth-context';
+import { CartProvider } from '../lib/cart-context';
 import './globals.scss';
 
 export const metadata: Metadata = {
@@ -25,7 +26,9 @@ export default function RootLayout({ children }: RootLayoutProps) {
         <a href="#conteudo" className="skip-link">
           Pular para o conteúdo
         </a>
-        <AuthProvider>{children}</AuthProvider>
+        <AuthProvider>
+          <CartProvider>{children}</CartProvider>
+        </AuthProvider>
       </body>
     </html>
   );

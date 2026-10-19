@@ -5,6 +5,7 @@ import { usePathname } from 'next/navigation';
 import { useState } from 'react';
 
 import { useAuth } from '../lib/auth-context';
+import { useCart } from '../lib/cart-context';
 import { BrandLogo } from './brand-logo';
 import styles from './site-header.module.scss';
 
@@ -36,6 +37,7 @@ export function SiteHeader({
   readonly logoAlt?: string | undefined;
 }) {
   const { status, profile, can } = useAuth();
+  const { cart } = useCart();
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
   const isAdmin = can('dashboard.read');
@@ -78,6 +80,15 @@ export function SiteHeader({
             ))}
           </ul>
           <div className={styles.account}>
+            {cart && cart.itemCount > 0 ? (
+              <Link
+                href="/loja/carrinho"
+                className="btn btn-secondary btn-sm"
+                onClick={() => setOpen(false)}
+              >
+                Carrinho ({cart.itemCount})
+              </Link>
+            ) : null}
             {status === 'authenticated' && profile ? (
               <>
                 {isAdmin ? (

@@ -79,7 +79,7 @@ export class PaymentsService {
   /** Cria pagamento pendente; reenvio com a mesma chave pelo mesmo autor devolve o existente. */
   async createInTx(
     tx: PrismaTx,
-    actorId: string,
+    actorId: string | null,
     input: NewPayment
   ): Promise<{ id: string; replayed: boolean }> {
     const existing = await tx.payment.findUnique({
@@ -203,7 +203,7 @@ export class PaymentsService {
   /** Pendente: cancela. Confirmado: reembolso/estorno vinculado e saída no Caixa. */
   async reverseInTx(
     tx: PrismaTx,
-    actorId: string,
+    actorId: string | null,
     paymentId: string,
     reason: string,
     idempotencyKey: string

@@ -572,3 +572,19 @@ Fase 3 exige saldo derivado, confirmação idempotente, histórico imutável e b
 
 - `npm run db:seed` também semeia contas, categorias e formas de pagamento padrão;
 - a área do atleta permite enviar comprovante PIX, que vira pagamento pendente com anexo confidencial.
+
+## DT-031 — Loja: estoque por razão, reserva, pedido e visitante
+
+- **Estado:** Aceita
+- **Data:** 2026-10-18
+
+### Decisão
+
+- estoque é derivado de `inventory_movements`; não existe quantidade editável. Disponível = soma dos deltas; reservado = reservas não liberadas;
+- checkout trava as variações (`FOR UPDATE`, em ordem de id), revalida preço, disponibilidade, janela de venda, limite por comprador e limites de remessa, cria o pedido com itens congelados (nome, SKU, variação, preço) e registra `RESERVATION` por item de pronta entrega — tudo em uma transação;
+- reservas expiram após `STORE_RESERVATION_HOURS` (padrão 72 h) sem pagamento e sem comprovante em análise; uma rotina interna a cada 10 min e um endpoint administrativo cancelam e liberam o estoque;
+- "pedido confirmado" (RF-016) = pagamento confirmado: a reserva vira `RELEASE` + `STOCK_OUT` (efeito líquido zero no disponível, saída registrada) e a venda gera uma entrada única no Caixa (categoria vendas da loja ou de parceiros, origem `ORDER`);
+- `PAID` só é alcançado pela confirmação do pagamento; cancelar pedido pago exige `payments.correct`, estorna os pagamentos com reembolso vinculado e, opcionalmente, devolve ao estoque (`RETURN`);
+- pedido de visitante exige nome, e-mail, telefone e aceite; a consulta usa número + código secreto (hash no banco) enviados por e-mail, nunca na URL; a chave PIX só aparece para o dono do pedido aguardando pagamento;
+- carrinho fica no servidor (usuário ou visitante com cookie `HttpOnly` de token opaco), preço sempre recalculado, mesclado ao fazer login;
+- exclusão de produto é arquivamento com motivo auditado; produto digital continua indisponível.
