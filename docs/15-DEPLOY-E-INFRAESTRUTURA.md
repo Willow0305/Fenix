@@ -204,7 +204,7 @@ Um backup não testado não é considerado estratégia de recuperação.
 
 ### 10.1 Runbook de backup e restauração (PostgreSQL + arquivos)
 
-Procedimento validado em 19/10/2026 no ambiente local (Fase 8). Os valores de RPO, RTO, frequência e retenção continuam pendentes (`PEN-044`).
+Procedimento validado em 19/10/2026 no ambiente local (Fase 8). **Metas aprovadas pelo responsável em 20/10/2026 (`PEN-044`):** backup diário automático entre 01h e 03h (fuso do time), perda máxima de 1 dia de dados (RPO 24 h) e restabelecimento em até 1 dia (RTO 24 h). Recomendação de retenção até a escolha do provedor: 30 cópias diárias e teste de restauração mensal.
 
 **O que compõe um backup completo**
 
@@ -249,7 +249,7 @@ Para promover: colocar a aplicação em manutenção, restaurar no banco definit
 | saldo derivado (BRL) | 9044,20 | 9044,20 |
 | migrations concluídas | 5 | 5 |
 
-Os dados são fictícios de desenvolvimento e teste. O teste periódico deve ser repetido em homologação com cópia anonimizada, com a frequência que for aprovada em `PEN-044`.
+Os dados são fictícios de desenvolvimento e teste. O teste periódico deve ser repetido em homologação com cópia anonimizada, mensalmente.
 
 ### 10.2 Teste de carga básico
 

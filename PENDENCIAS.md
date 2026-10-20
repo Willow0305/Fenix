@@ -1,6 +1,6 @@
 # Pendências
 
-Este arquivo registra decisões que não podem ser inventadas durante a implementação. Todas estão abertas até aprovação explícita, salvo quando indicadas de outra forma.
+Este arquivo registra decisões que não podem ser inventadas durante a implementação. As decisões que ainda dependem do responsável estão explicadas em linguagem direta em `docs/28-DECISOES-PENDENTES-DO-RESPONSAVEL.md`. Todas estão abertas até aprovação explícita, salvo quando indicadas de outra forma.
 
 Prioridades:
 
@@ -439,5 +439,6 @@ As entradas acima permanecem como histórico da questão original. As decisões 
 | PEN-049 | Parcialmente resolvida: paginação por offset limitada; exportação CSV síncrona com período de até 2 anos, permissão própria e auditoria. Exportação assíncrona e concorrência otimista ficam para quando houver volume medido. | Delegada | `DT-035` |
 | PEN-050 | Parcialmente resolvida: linha de base local medida (485 req/s, p95 até 89 ms nas rotas públicas) com `scripts/load-test.mjs`; metas de SLO e limites por rota em produção continuam com o responsável. | Delegada | `DT-035` |
 | PEN-013 (MFA) | Decidido em 2026-10-20: login em duas etapas por aplicativo autenticador (TOTP) obrigatório para administrador e diretoria (quem acessa o painel). Implementação antes da produção. | Responsável do projeto | a registrar em `DT` na implementação |
+| PEN-044 | Decidido em 2026-10-20: backup diário de madrugada, entre 01h e 03h (fuso do time); perda máxima aceitável de 1 dia de dados (RPO 24 h) e até 1 dia fora do ar (RTO 24 h). Retenção e teste periódico de restauração seguem a recomendação do runbook até a escolha do provedor. | Responsável do projeto | `15-DEPLOY-E-INFRAESTRUTURA.md` §10.1 |
 | PEN-042 | Adiada pelo responsável em 2026-10-20: o sistema é um protótipo funcional em desenvolvimento; provedores serão escolhidos antes da homologação. | Responsável do projeto | — |
 | PEN-043 | Web e API sob a mesma origem pública: o Next.js encaminha `/api/v1` para a API; CORS restrito à lista explícita. | Delegada | `DT-022` |

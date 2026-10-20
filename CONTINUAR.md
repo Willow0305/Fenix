@@ -130,4 +130,4 @@ Schema: `NewsCategory`, `News`, `Event`, `Match`, `ForumCategory`, `ForumTopic`,
 
 ## 6. Pendências que continuam do responsável (não decidir sozinho)
 
-`PEN-010` (revisão jurídica sobre menores), `PEN-011` (bases legais e retenção), `PEN-014` (canal de segurança), `PEN-030` e `PEN-032` (textos de reembolso), `PEN-042` (provedores de hospedagem, e-mail e arquivos), `PEN-044` (backup, RPO e RTO) e MFA antes de produção. O sistema já está preparado tecnicamente para elas; faltam decisões e documentos jurídicos.
+Todas estão explicadas em `docs/28-DECISOES-PENDENTES-DO-RESPONSAVEL.md`. O responsável pediu para retomar esses pontos quando o sistema estiver sendo finalizado: **não pergunte sobre elas antes disso**. Já decidido em 2026-10-20: MFA obrigatório para administrador e diretoria (implementar antes da produção), backup diário entre 01h e 03h com RPO e RTO de 1 dia, e hospedagem adiada até a homologação.
