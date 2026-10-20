@@ -89,7 +89,7 @@ Os códigos são uma proposta técnica provisória; nomes definitivos devem coin
 | Arquivos | `files.upload`, `files.read.restricted`, `files.delete.logical` |
 | Loja | `products.manage`, `inventory.adjust`, `orders.read`, `orders.status.change`, `campaigns.manage` |
 | Parceiros | `partners.manage`, `partner.documents.read`, `services.manage`, `appointments.manage`, `settlements.manage` |
-| Comunicação | `forum.publish`, `forum.moderate`, `news.manage`, `events.manage`, `notifications.send` |
+| Comunicação | `forum.publish`, `forum.moderate`, `forum.members.access` (área de membros do fórum; papel atleta e diretoria), `news.manage`, `events.manage`, `notifications.send` |
 | Configuração | `settings.public.manage`, `settings.financial.manage`, `logos.manage` |
 | Governança | `reports.export`, `audit.read`, `privacy.requests.manage` |
 

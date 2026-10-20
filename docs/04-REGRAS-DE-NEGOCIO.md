@@ -109,7 +109,7 @@
 | RN-COM-005 | Publicação agendada usa instante UTC e só se torna pública no momento/estado configurado. | Definida | RCF-013, regra UTC |
 | RN-COM-006 | Notícia pode relacionar-se a evento/partida em vez de copiar seus dados. | Definida | RCF-001 |
 | RN-COM-007 | Notificação é destinada ao ator correto, não expõe dados desnecessários e deve evitar duplicidade para o mesmo evento. | Definida quanto à segurança/consistência | RF-022, RF-044 |
-| RN-COM-008 | Categorias, quem publica, limites de reação/denúncia e SLA de moderação ainda precisam de política. | Provisória | Briefing §11 |
+| RN-COM-008 | Categorias, quem publica, limites de reação/denúncia e SLA de moderação ainda precisam de política. Adotado provisoriamente: categorias criadas pela moderação, participação de contas ativas, limites de 6 mensagens/min, 5 tópicos/h e 10 denúncias/h; SLA e recurso de moderação seguem pendentes (`DT-034`). | Provisória | Briefing §11 |
 
 ## Configurações, arquivos e auditoria
 

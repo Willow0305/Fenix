@@ -104,7 +104,7 @@ Atualizado em 19/10/2026. "Parcial" indica que a parte da fase entregue está im
 | RF-019 | implementado | 2–6 | área do atleta/cliente: dados, inscrições, mensalidades, pedidos, favoritos e agendamentos | `/minha-conta` |
 | RF-020 | implementado | 2–4 | atletas ativos, inscrições novas, mensalidades em aberto, saldo e vendas do mês | `dashboard/summary` |
 | RF-021 | pendente | 8 | relatórios integrados e exportações | — |
-| RF-022 | parcial | 2–5 | notificações internas de inscrição, cobrança, pedido e chegada; envio por e-mail real pendente | `me/notifications` |
+| RF-022 | parcial | 2–7 | notificações internas de inscrição, cobrança, pedido, chegada, agenda, fórum e avisos da diretoria; envio por e-mail real pendente (`PEN-042`) | `me/notifications`, `notifications/broadcast` |
 | RF-023 | implementado | 1 | configurações públicas sem deploy | `team-settings` |
 | RF-024 | parcial | 1–5 | auditoria em todos os módulos entregues; consulta disponível | `audit-logs` |
 | RF-025 | implementado | 3 | Caixa com saldos derivados | `finance/summary` |
@@ -122,13 +122,13 @@ Atualizado em 19/10/2026. "Parcial" indica que a parte da fase entregue está im
 | RF-037 | implementado | 4 | carrinho no servidor | `cart` |
 | RF-038 | implementado | 4 | favoritos | `me/favorites` |
 | RF-039 | implementado | 1 | logos por contexto | `team-settings/brand-assets` |
-| RF-040 | pendente | 7 | fórum | — |
-| RF-041 | pendente | 7 | notícias | — |
-| RF-042 | pendente | 7 | notícia em vários canais | — |
-| RF-043 | pendente | 7 | moderação | — |
+| RF-040 | implementado | 7 | fórum com categorias, visibilidade, tópicos, respostas e reações | `forum` |
+| RF-041 | implementado | 7 | notícias com rascunho, publicação/agendamento, capa, destaque e autor | `news` |
+| RF-042 | implementado | 7 | canais página inicial e fórum sobre a mesma notícia | `public/news?channel=` |
+| RF-043 | implementado | 7 | ocultar, restaurar, remover, fechar e fixar com motivo e histórico | `forum/*/moderation` |
 | RF-044 | implementado | 5 | aviso de chegada da remessa | remessa "pronta para retirada" |
 | RF-045 | parcial | 3, 8 | resumo do Caixa por período, conta, categoria e origem; relatórios completos e exportação na Fase 8 | `finance/summary` |
-| RCF-001 | pendente | 7 | eventos e partidas | — |
+| RCF-001 | implementado | 7 | eventos e partidas com placar, ligados a notícia e seletiva | `events` |
 | RCF-002 | implementado | 3 | contas, centros de custo | `finance/accounts`, `cost-centers` |
 | RCF-003 | implementado | 3 | transferência entre contas | `finance/transfers` |
 | RCF-004 | implementado | 3 | contas a pagar e receber (sem recorrência) | `finance/obligations` |
@@ -139,8 +139,8 @@ Atualizado em 19/10/2026. "Parcial" indica que a parte da fase entregue está im
 | RCF-009 | implementado | 5 | mínimos, consolidação, chegada, cancelamento | `campaigns` |
 | RCF-010 | implementado | 6 | vigência, documentos confidenciais, logo, comissão, repasse e relatório | `partners` |
 | RCF-011 | implementado | 6 | disponibilidade sem sobreposição e consulta pública de horários | `professionals/:id/availability`, `public/partner-services/:id/slots` |
-| RCF-012 | pendente | 7 | reações, denúncias e moderação | — |
-| RCF-013 | pendente | 7 | notícias agendadas e slug | — |
+| RCF-012 | implementado | 7 | reações idempotentes, denúncias restritas, fixação, fechamento e histórico | `forum` |
+| RCF-013 | implementado | 7 | categoria, resumo, slug estável e agendamento em UTC | `news/:id/publish` |
 | RCF-014 | parcial | 1–7 | história, cores, PIX, termos, regras; notificações configuráveis pendentes | `team-settings` |
 | RCF-015 | pendente | condicional | verificação de e-mail (não bloqueante por decisão, `PEN-008`) | — |
 

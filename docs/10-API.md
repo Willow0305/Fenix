@@ -78,6 +78,15 @@ O contrato completo e executável fica no OpenAPI (`/docs` fora de produção). 
 | `GET`/`POST`/`PUT` | `/api/v1/settlements[/:id]` · `partners/:id/settlements` (Idempotency-Key) · `:id/status` | `settlements.manage` | 6 |
 | `POST` | `/api/v1/settlements/:id/pay` (Idempotency-Key) | `settlements.manage` + `transactions.confirm` | 6 |
 | `GET` | `/api/v1/partners/sales-report?from&to&partnerId` | `settlements.manage` | 6 |
+| `GET` | `/api/v1/public/news[/:slug]?channel=home\|forum&category` · `public/news-categories` | público (somente publicadas) | 7 |
+| `GET`/`POST`/`PATCH` | `/api/v1/news[/:id]` · `news-categories[/:id]` | `news.manage` | 7 |
+| `POST`/`PUT` | `/api/v1/news/:id/publish` (agora ou `scheduledAt`) · `:id/status` · `:id/cover` (multipart) | `news.manage` | 7 |
+| `GET` | `/api/v1/public/events[/:slug]?scope=upcoming\|past` | público | 7 |
+| `GET`/`POST`/`PATCH`/`PUT` | `/api/v1/events[/:id]` · `:id/status` | `events.manage` | 7 |
+| `GET` | `/api/v1/forum/categories` · `categories/:slug/topics` · `topics/:id` | público conforme visibilidade | 7 |
+| `POST`/`PATCH`/`DELETE`/`PUT` | `/api/v1/forum/categories/:slug/topics` · `topics/:id/posts` · `posts/:id` · `posts/:id/reaction` · `forum/reports` | autenticado, limites antiabuso | 7 |
+| `GET`/`POST`/`PATCH`/`PUT` | `/api/v1/forum/admin/categories[/:id]` · `topics/:id/moderation` · `posts/:id/moderation` · `forum/reports[/:id]` · `forum/moderation-actions` | `forum.moderate` | 7 |
+| `POST`/`GET` | `/api/v1/notifications/broadcast` (Idempotency-Key) · `notifications/broadcasts` | `notifications.send` | 7 |
 
 Listas usam `page`/`pageSize` (máx. 100) e retornam `{ data, meta }` (`DT-025`).
 

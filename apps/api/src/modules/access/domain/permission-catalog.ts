@@ -58,6 +58,7 @@ export const PERMISSIONS = {
 
   forumPublish: 'forum.publish',
   forumModerate: 'forum.moderate',
+  forumMembersAccess: 'forum.members.access',
   newsManage: 'news.manage',
   eventsManage: 'events.manage',
   notificationsSend: 'notifications.send',
@@ -124,6 +125,7 @@ export const PERMISSION_LABELS: Record<PermissionCode, string> = {
   'settlements.manage': 'Gerenciar repasses',
   'forum.publish': 'Publicar comunicados no fórum',
   'forum.moderate': 'Moderar fórum',
+  'forum.members.access': 'Acessar a área de membros do fórum',
   'news.manage': 'Gerenciar notícias',
   'events.manage': 'Gerenciar eventos e partidas',
   'notifications.send': 'Enviar notificações',
@@ -180,8 +182,9 @@ export const SYSTEM_ROLE_DEFINITIONS: readonly SystemRoleDefinition[] = [
   {
     code: 'athlete',
     name: 'Atleta',
-    description: 'Acesso aos próprios dados, mensalidades, pedidos e inscrições.',
-    permissions: []
+    description:
+      'Acesso aos próprios dados, mensalidades, pedidos, inscrições e área de membros do fórum.',
+    permissions: ['forum.members.access']
   },
   {
     code: 'user',

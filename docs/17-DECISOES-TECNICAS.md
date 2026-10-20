@@ -631,3 +631,24 @@ Fase 3 exige saldo derivado, confirmação idempotente, histórico imutável e b
 
 - `NotificationsService.permissionHolders` resolve destinatários operacionais por permissão (limite defensivo de 50);
 - migration `fase6_parceiros` adiciona `partners.website_url`, `partner_professionals.public_contact`, `appointments.requester_notes` e `partner_settlements.adjustment_reason`.
+
+## DT-034 — Comunicação: notícias, eventos, fórum e avisos
+
+- **Estado:** Aceita
+- **Data:** 2026-10-19
+
+### Decisão
+
+- **fonte editorial única (PEN-038, DT-016):** a notícia é a fonte; "página inicial" e "comunicados do fórum" são canais (`showOnHome`, `showOnForum`) consultados sobre a mesma linha, sem cópia. Editar, ocultar ou arquivar reflete em todos os canais. `News.forumTopicId` fica reservado para um futuro tópico de discussão ligado à notícia;
+- **publicação agendada (RN-COM-005):** publicar grava `publishedAt` (agora ou o instante UTC agendado) e o estado `PUBLISHED` ou `SCHEDULED`; o público vê notícias publicadas/agendadas com `publishedAt ≤ agora`, sem depender de rotina. Reagendar é permitido; o slug fica fixo após a primeira publicação; ocultar exige motivo;
+- **eventos e partidas (RCF-001, RN-COM-006):** evento rascunho → confirmado (publica se público) → realizado ou cancelado (com motivo); partida guarda adversário, competição, mando, equipe e placar; seletiva e notícia ligam-se ao evento por referência. O evento só lista notícias já visíveis;
+- **texto simples:** títulos e textos de notícias, eventos e fórum passam por `sanitizeText` (remove marcação HTML e caracteres de controle) e a interface renderiza sempre como texto (`white-space: pre-line`), nunca como HTML;
+- **fórum (PEN-039):** "usuário verificado" é conta ativa autenticada, porque a verificação de e-mail não bloqueia o login (`PEN-008`). Visibilidades: `PUBLIC` (qualquer pessoa lê, contas participam), `MEMBERS` (nova permissão `forum.members.access`, concedida a atleta e diretoria) e `STAFF` (`forum.moderate`). O tópico herda a visibilidade da categoria, e mudar a categoria propaga aos tópicos. Conteúdo restrito responde 404 e não entra em listas nem contagens;
+- participação: criar tópico, responder, editar ou apagar a própria mensagem em até 24 h (o texto anterior fica na auditoria), reação única por pessoa e mensagem (idempotente, trocável) e denúncia (uma aberta por pessoa e alvo). Limites antiabuso no servidor: 6 mensagens por minuto, 5 tópicos por hora e 10 denúncias por hora, além do rate limit HTTP;
+- moderação (`forum.moderate`): ocultar, restaurar, remover mensagem; ocultar, restaurar, fechar, reabrir, fixar e desafixar tópico. Toda ação exige motivo, grava `ForumModerationAction` (antes/depois) e auditoria, e avisa o autor quando o conteúdo é ocultado ou removido. Exclusão é sempre lógica. Comunicados fixados na criação exigem `forum.publish`;
+- **avisos (`notifications.send`):** envio manual a atletas ativos, atletas de uma equipe, diretoria ou todos os usuários ativos; somente in-app (PEN-040), link apenas interno, idempotente pela `Idempotency-Key` (a chave vira a deduplicação de cada notificação) e registrado na auditoria, que também serve de histórico.
+
+### Consequências
+
+- nova permissão `forum.members.access` no catálogo, sincronizada por `npm run db:seed` (concedida uma vez ao papel atleta e, como as demais, à diretoria e ao administrador);
+- sem migration: o schema da Fase 0 já tinha as entidades de comunicação.

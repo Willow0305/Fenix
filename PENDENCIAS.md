@@ -432,4 +432,7 @@ As entradas acima permanecem como histórico da questão original. As decisões 
 | PEN-035 | Comissão percentual, fixa por unidade ou nenhuma, com sobreposição por produto e snapshot no item; repasse agrupado, aprovado e pago com saída única no Caixa. Documento fiscal fica fora do sistema. | Delegada | `DT-033` |
 | PEN-036 | Parceiro sem login nesta versão; a diretoria opera; o profissional recebe e-mail de confirmação e cancelamento. | Delegada | `DT-033` |
 | PEN-037 | Parcialmente resolvida: agendamento manual por horários livres, confirmação pela diretoria, cancelamento com motivo, realizado/ausência; antecedência mínima, recorrência e avaliações continuam abertas. | Delegada | `DT-033` |
+| PEN-038 | Notícia é a fonte única; página inicial e comunicados do fórum são canais sobre a mesma linha; evento e seletiva relacionados por referência. | Delegada | `DT-034` |
+| PEN-039 | Parcialmente resolvida: fórum com participação de contas ativas autenticadas, visibilidades pública/membros/diretoria, moderação motivada e auditada, exclusão lógica e limites antiabuso. Política publicada de convivência, SLA e recurso continuam com o responsável. | Delegada | `DT-034` |
+| PEN-040 | Parcialmente resolvida: avisos e notificações somente in-app; e-mail transacional pelo adaptador local até a escolha do provedor (`PEN-042`); preferências por finalidade e WhatsApp seguem abertos. | Delegada | `DT-034` |
 | PEN-043 | Web e API sob a mesma origem pública: o Next.js encaminha `/api/v1` para a API; CORS restrito à lista explícita. | Delegada | `DT-022` |

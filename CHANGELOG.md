@@ -6,6 +6,18 @@ O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) e o 
 
 ## [Não publicado]
 
+### Fase 7 — Comunicação (2026-10-19)
+
+#### Adicionado
+
+- notícias com categorias, rascunho, publicação imediata ou agendada (UTC), slug estável, capa, destaque e canais página inicial/fórum sem duplicação (RF-041, RF-042, RCF-013);
+- eventos e partidas com placar, públicos ou internos, ligados a notícias e seletivas (RCF-001);
+- fórum com visibilidade pública, de membros e da diretoria; tópicos, respostas, edição e remoção pelo autor, reações idempotentes, denúncias e limites antiabuso (RF-040, RCF-012);
+- moderação com motivo, histórico (`ForumModerationAction`), auditoria e aviso ao autor; fila de denúncias (RF-043);
+- avisos manuais da diretoria a grupos, idempotentes (`notifications.send`);
+- páginas `/noticias`, `/noticias/[slug]`, `/eventos`, `/forum` e destaques na página inicial; painel de notícias, eventos, fórum e avisos;
+- permissão `forum.members.access`; 5 testes unitários e 6 testes de integração (DT-034).
+
 ### Fase 6 — Parceiros e profissionais (2026-10-19)
 
 #### Adicionado

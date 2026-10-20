@@ -5,6 +5,7 @@ import { CommonModule } from './common/common.module';
 import { HealthModule } from './health/health.module';
 import { AccessModule } from './modules/access/access.module';
 import { AuthModule } from './modules/auth/auth.module';
+import { ContentModule } from './modules/content/content.module';
 import { CampaignsModule } from './modules/campaigns/http/campaigns.controller';
 import { DashboardModule } from './modules/dashboard/dashboard.module';
 import { FinanceModule } from './modules/finance/finance.module';
@@ -35,6 +36,7 @@ import { StoreModule } from './modules/store/store.module';
     StoreModule,
     CampaignsModule,
     PartnersModule,
+    ContentModule,
     DashboardModule
   ]
 })
