@@ -78,7 +78,12 @@ export const ADMIN_NAV: readonly AdminGroup[] = [
       { href: '/admin/usuarios', label: 'Usuários', permission: 'users.read' },
       { href: '/admin/papeis', label: 'Papéis e permissões', permission: 'users.read' },
       { href: '/admin/configuracoes', label: 'Configurações', permission: 'dashboard.read' },
-      { href: '/admin/auditoria', label: 'Auditoria', permission: 'audit.read' }
+      { href: '/admin/auditoria', label: 'Auditoria', permission: 'audit.read' },
+      {
+        href: '/admin/privacidade',
+        label: 'Privacidade (LGPD)',
+        permission: 'privacy.requests.manage'
+      }
     ]
   }
 ];

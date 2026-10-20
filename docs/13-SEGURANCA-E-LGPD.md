@@ -4,7 +4,7 @@
 
 Este documento define controles mínimos e decisões bloqueadoras. Ele não certifica conformidade nem substitui avaliação jurídica, teste de segurança ou plano de resposta. O Fênix tratará dados pessoais, financeiros, comprovantes e dados prováveis de crianças/adolescentes; por isso, segurança e privacidade são requisitos de produto, não uma etapa final.
 
-### Controles implementados (fases 1 a 5)
+### Controles implementados (fases 1 a 8)
 
 | Controle | Implementação |
 |---|---|
@@ -24,6 +24,11 @@ Este documento define controles mínimos e decisões bloqueadoras. Ele não cert
 | Consentimento | versão do aviso de privacidade e instante registrados em inscrições e interesses |
 | Visitantes | consulta de pedido por número + código secreto (hash), nunca na URL |
 | Inicialização | em produção, a API não inicia sem segredos válidos nem com adaptadores locais sem opt-in explícito |
+| Parceiros | CNPJ/CPF e registro profissional cifrados; documentos confidenciais com permissão própria e leitura auditada; contato de profissional público só com autorização |
+| Saúde | nenhum campo clínico; observação de agendamento limitada e com aviso explícito (RN-PAR-008) |
+| Conteúdo | texto simples (HTML removido) e renderização sempre como texto; visibilidade do fórum verificada no servidor, inclusive em listas e contagens; limites antiabuso de postagem e denúncia |
+| Exportações | permissão `reports.export` separada da leitura, auditoria de cada exportação e neutralização de fórmulas em CSV |
+| Titular | cópia dos próprios dados a qualquer momento; pedido de eliminação atendido por anonimização auditada que preserva registros com dever legal de guarda |
 
 Itens ainda exigidos antes de produção: MFA administrativo, provedores reais de arquivos/e-mail com bucket privado e URLs assinadas, antivírus de uploads, backup testado, canal de segurança e revisão jurídica (ver `PENDENCIAS.md`).
 
@@ -201,7 +206,7 @@ A orientação oficial vigente da ANPD informa comunicação pelo controlador à
 
 ### Direitos do titular
 
-Preparar canal e processo autenticado para:
+Implementado (Fase 8, `DT-035`): cópia dos dados pelo próprio titular em Minha conta e pedido de eliminação atendido pela fila `/admin/privacidade`. Ainda dependem de decisão: canal para quem não tem conta, prazos e verificação de identidade fora do login (`PEN-011`). O processo completo deve cobrir:
 
 - informação e confirmação da existência de tratamento;
 - acesso/exportação compreensível;

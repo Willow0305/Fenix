@@ -22,7 +22,8 @@ const ACCOUNT_LINKS: readonly AccountLink[] = [
   { href: '/minha-conta/favoritos', label: 'Favoritos' },
   { href: '/minha-conta/agendamentos', label: 'Agendamentos' },
   { href: '/minha-conta/notificacoes', label: 'Notificações' },
-  { href: '/minha-conta/seguranca', label: 'Segurança' }
+  { href: '/minha-conta/seguranca', label: 'Segurança' },
+  { href: '/minha-conta/privacidade', label: 'Privacidade e dados' }
 ];
 
 function AccountNav() {

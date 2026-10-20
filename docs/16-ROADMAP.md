@@ -16,7 +16,7 @@ Este roadmap é incremental. Nenhuma fase é iniciada sem que a anterior cumpra 
 | 5 | Remessas | Implementada (2026-10-19) | Fase 4 |
 | 6 | Parceiros e profissionais | Implementada (2026-10-19) | Fase 5 |
 | 7 | Comunicação | Implementada (2026-10-19) | Fase 6 |
-| 8 | Relatórios, auditoria e otimizações | Autorizada | Módulos anteriores |
+| 8 | Relatórios, auditoria e otimizações | Implementada (2026-10-19) | Módulos anteriores |
 
 Produção com dados reais continua condicionada às pendências P0 jurídicas e operacionais (`PEN-010`, `PEN-011`, `PEN-014`, `PEN-041`, `PEN-044`).
 

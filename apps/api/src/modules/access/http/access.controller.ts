@@ -146,4 +146,18 @@ export class AuditController {
   list(@Query() query: AuditQueryDto): Promise<Page<AuditLogView>> {
     return this.audit.list(query);
   }
+
+  @Get('entity-types')
+  @RequirePermissions(PERMISSIONS.auditRead)
+  entityTypes(): Promise<string[]> {
+    return this.audit.entityTypes();
+  }
+
+  @Get(':id')
+  @RequirePermissions(PERMISSIONS.auditRead)
+  get(
+    @Param('id', new ParseUUIDPipe()) id: string
+  ): Promise<AuditLogView & { related: AuditLogView[] }> {
+    return this.audit.get(id);
+  }
 }

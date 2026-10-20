@@ -652,3 +652,24 @@ Fase 3 exige saldo derivado, confirmação idempotente, histórico imutável e b
 
 - nova permissão `forum.members.access` no catálogo, sincronizada por `npm run db:seed` (concedida uma vez ao papel atleta e, como as demais, à diretoria e ao administrador);
 - sem migration: o schema da Fase 0 já tinha as entidades de comunicação.
+
+## DT-035 — Relatórios, exportação, auditoria e direitos do titular
+
+- **Estado:** Aceita
+- **Data:** 2026-10-19
+
+### Decisão
+
+- **relatórios integrados (RF-021, RF-045):** módulo `reports` com catálogo fixo (atletas por status e equipe, inscrições por seletiva, mensalidades e inadimplência por mês, Caixa agrupado por categoria/conta/centro de custo/origem, pendências de comprovante, vendas por produto, vendas por parceiro e remessas). Todos devolvem a mesma estrutura de tabela, com período, fuso, moeda, instante de geração e totais calculados em Decimal; nenhum relatório expõe dados pessoais além do necessário (atletas só em contagem);
+- consultas síncronas com período limitado a 2 anos e listas limitadas; relatórios assíncronos e volumes maiores ficam para quando houver medição (`PEN-049`);
+- **exportação (`reports.export`):** permissão separada de `reports.read`; CSV com separador `;`, BOM UTF-8, cabeçalho com relatório, período, fuso e geração e linha de total; **toda célula de texto iniciada por `=`, `+`, `-`, `@`, tabulação ou retorno de carro recebe apóstrofo** contra injeção de fórmulas (`common/util/csv.ts`, também usado pelas remessas); cada exportação gera `report.exported` na auditoria com relatório, filtros e quantidade de linhas;
+- **auditoria:** filtros por ação, entidade, ID da entidade, autor, requisição e período (datas civis no fuso do time); detalhe com antes/depois, metadados e as demais ações da mesma requisição;
+- **direitos do titular (LGPD art. 18):** o titular baixa a cópia dos próprios dados a qualquer momento (`me/privacy/export`, JSON sem segredos nem dados de terceiros, auditado) e pede eliminação; um pedido aberto por tipo. A fila é atendida por quem tem `privacy.requests.manage` (somente administrador, como já definido no catálogo);
+- **anonimização:** exige também `users.update`, não pode ser feita pela própria pessoa nem sobre conta com papel além de usuário/atleta. Substitui nome, e-mail, telefone e senha, inativa a conta, revoga sessões, remove tokens, favoritos, reações e papéis, apaga logicamente notificações e mensagens do fórum (texto substituído), limpa observações de agendamento e desvincula o cadastro de atleta. **Mantém** pedidos, pagamentos, lançamentos, repasses e auditoria (obrigação legal e prestação de contas) e o cadastro esportivo até a política de retenção (`PEN-011`);
+- **otimizações medidas:** índices em `notifications(deduplication_key)`, `audit_logs(action, occurred_at)` e `orders(status, paid_at)`; a lista pública de parceiros passou de uma consulta por parceiro para uma única consulta (p50 de 104 ms para 41 ms no teste de carga local);
+- **teste de carga básico:** `scripts/load-test.mjs`, sem dependências; **backup/restauração:** runbook em `15-DEPLOY-E-INFRAESTRUTURA.md` §10.1, validado com restauração e conferência de contagens e saldo.
+
+### Consequências
+
+- migration `fase8_privacidade_indices` (tabela `privacy_requests`, enums e índices);
+- o gerador de CSV das remessas passa a neutralizar fórmulas.

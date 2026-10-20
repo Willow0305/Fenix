@@ -116,4 +116,9 @@ export class AuditQueryDto extends PageQueryDto {
   @IsOptional()
   @IsISO8601()
   to?: string;
+
+  @ApiPropertyOptional({ description: 'Correlaciona todas as ações de uma mesma requisição.' })
+  @IsOptional()
+  @IsUUID()
+  requestId?: string;
 }

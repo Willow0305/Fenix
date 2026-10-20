@@ -103,10 +103,10 @@ Atualizado em 19/10/2026. "Parcial" indica que a parte da fase entregue está im
 | RF-018 | implementado | 4 | estados do pedido | `store/orders/:id/status` |
 | RF-019 | implementado | 2–6 | área do atleta/cliente: dados, inscrições, mensalidades, pedidos, favoritos e agendamentos | `/minha-conta` |
 | RF-020 | implementado | 2–4 | atletas ativos, inscrições novas, mensalidades em aberto, saldo e vendas do mês | `dashboard/summary` |
-| RF-021 | pendente | 8 | relatórios integrados e exportações | — |
+| RF-021 | implementado | 8 | relatórios integrados com exportação CSV por permissão própria e auditada | `reports`, `reports/:key/csv` |
 | RF-022 | parcial | 2–7 | notificações internas de inscrição, cobrança, pedido, chegada, agenda, fórum e avisos da diretoria; envio por e-mail real pendente (`PEN-042`) | `me/notifications`, `notifications/broadcast` |
 | RF-023 | implementado | 1 | configurações públicas sem deploy | `team-settings` |
-| RF-024 | parcial | 1–5 | auditoria em todos os módulos entregues; consulta disponível | `audit-logs` |
+| RF-024 | implementado | 1–8 | auditoria em todos os módulos; filtros avançados e detalhe por requisição | `audit-logs`, `audit-logs/:id` |
 | RF-025 | implementado | 3 | Caixa com saldos derivados | `finance/summary` |
 | RF-026 | implementado | 3 | lançamentos manuais | `finance/transactions` |
 | RF-027 | implementado | 3 | categorias (plano provisório) | `finance/categories` |
@@ -127,7 +127,7 @@ Atualizado em 19/10/2026. "Parcial" indica que a parte da fase entregue está im
 | RF-042 | implementado | 7 | canais página inicial e fórum sobre a mesma notícia | `public/news?channel=` |
 | RF-043 | implementado | 7 | ocultar, restaurar, remover, fechar e fixar com motivo e histórico | `forum/*/moderation` |
 | RF-044 | implementado | 5 | aviso de chegada da remessa | remessa "pronta para retirada" |
-| RF-045 | parcial | 3, 8 | resumo do Caixa por período, conta, categoria e origem; relatórios completos e exportação na Fase 8 | `finance/summary` |
+| RF-045 | implementado | 3, 8 | Caixa por período, conta, categoria, centro de custo e origem, pendências de comprovante e exportação | `finance/summary`, `reports/cash` |
 | RCF-001 | implementado | 7 | eventos e partidas com placar, ligados a notícia e seletiva | `events` |
 | RCF-002 | implementado | 3 | contas, centros de custo | `finance/accounts`, `cost-centers` |
 | RCF-003 | implementado | 3 | transferência entre contas | `finance/transfers` |

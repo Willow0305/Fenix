@@ -141,10 +141,10 @@ Controllers permanecem finos. Repositórios não decidem regras. Objetos do Pris
 | Caixa Fênix | contas, categorias, centros de custo, movimentos, conciliação e fechamento | 3 | `finance` | implementado |
 | Comércio | catálogo, variações, estoque, carrinho, favoritos, pedidos e pagamentos | 4 | `store` | implementado |
 | Campanhas | remessas, janelas de venda, produção, chegada e retirada | 5 | `campaigns` | implementado |
-| Parceiros | contratos, produtos, profissionais, serviços, agenda e repasses | 6 | — | em andamento |
-| Conteúdo | notícias, eventos, partidas e publicação relacionada | 7 | — | autorizado |
-| Comunidade | fórum, reações, denúncias e moderação | 7 | — | autorizado |
-| Plataforma | arquivos, notificações, auditoria, painel, relatórios e observabilidade | transversal | `media`, `notifications`, `dashboard`, `common` | parcial (relatórios completos na Fase 8) |
+| Parceiros | contratos, produtos, profissionais, serviços, agenda e repasses | 6 | `partners` | implementado |
+| Conteúdo | notícias, eventos, partidas e publicação relacionada | 7 | `content` (`NewsService`, `EventsService`) | implementado |
+| Comunidade | fórum, reações, denúncias, moderação e avisos | 7 | `content` (`ForumService`, `AnnouncementsService`) | implementado |
+| Plataforma | arquivos, notificações, auditoria, painel, relatórios, privacidade e observabilidade | transversal | `media`, `notifications`, `dashboard`, `reports`, `privacy`, `common` | implementado (observabilidade de produção depende de `PEN-045`) |
 
 Cada módulo segue `DT-023`: `domain/` (regras puras testadas), `application/` (casos de uso, transação, auditoria) e `http/` (controllers finos e DTOs).
 
@@ -228,7 +228,7 @@ Ainda não fazem parte do escopo implementado:
 - upload em nuvem e envio real de e-mail (adaptadores locais, `DT-024`);
 - checkout com cartão, PIX automatizado ou gateway (`PEN-026`);
 - MFA para perfis privilegiados (`PEN-013`, exigido antes de produção);
-- módulos das fases 6 a 8 ainda não entregues.
+- relatórios assíncronos, monitoramento e alertas de produção (`PEN-045`, `PEN-049`).
 
 ### Rotinas internas
 

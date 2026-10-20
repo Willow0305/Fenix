@@ -86,17 +86,3 @@ export function consolidate(lines: readonly ConsolidationLine[]): ConsolidationL
       a.variantName.localeCompare(b.variantName, 'pt-BR')
   );
 }
-
-/** CSV com separador ";" (padrão de planilhas pt-BR) e escape de aspas. */
-export function toCsv(
-  header: readonly string[],
-  rows: readonly (readonly (string | number)[])[]
-): string {
-  const escape = (value: string | number): string => {
-    const text = String(value);
-
-    return /[;"\n]/.test(text) ? `"${text.replaceAll('"', '""')}"` : text;
-  };
-
-  return [header, ...rows].map((row) => row.map(escape).join(';')).join('\n');
-}

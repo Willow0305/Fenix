@@ -6,6 +6,21 @@ O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) e o 
 
 ## [Não publicado]
 
+### Fase 8 — Relatórios, auditoria e otimizações (2026-10-19)
+
+#### Adicionado
+
+- relatórios integrados: atletas, inscrições, mensalidades/inadimplência, Caixa por agrupamento, pendências de comprovante, vendas por produto e por parceiro, remessas (RF-021, RF-045);
+- exportação CSV com permissão própria, cabeçalho de período e fuso, auditoria e proteção contra injeção de fórmulas;
+- auditoria com filtros avançados e detalhe por requisição (RF-024);
+- direitos do titular: cópia dos próprios dados, pedido de eliminação e anonimização auditada (`/minha-conta/privacidade`, `/admin/privacidade`);
+- índices medidos, lista pública de parceiros sem N+1, teste de carga básico e runbook de backup/restauração validado;
+- migration `fase8_privacidade_indices`, 5 testes unitários e 4 testes de integração (DT-035).
+
+#### Alterado
+
+- o CSV das remessas passa a neutralizar fórmulas de planilha.
+
 ### Fase 7 — Comunicação (2026-10-19)
 
 #### Adicionado

@@ -136,6 +136,26 @@ const PARTNER_INCLUDE = {
 
 type PartnerRow = Prisma.PartnerGetPayload<{ include: typeof PARTNER_INCLUDE }>;
 
+const PUBLIC_PARTNER_INCLUDE = {
+  professionals: {
+    where: { deletedAt: null, status: 'ACTIVE' },
+    orderBy: { fullName: 'asc' }
+  },
+  services: {
+    where: { deletedAt: null, status: 'ACTIVE' },
+    include: { professional: { select: { id: true, fullName: true, status: true } } },
+    orderBy: { name: 'asc' }
+  },
+  products: {
+    where: { deletedAt: null, status: { in: ['ACTIVE', 'SOLD_OUT'] } },
+    select: { id: true, name: true, slug: true },
+    orderBy: { name: 'asc' },
+    take: 12
+  }
+} satisfies Prisma.PartnerInclude;
+
+type PublicPartnerRow = Prisma.PartnerGetPayload<{ include: typeof PUBLIC_PARTNER_INCLUDE }>;
+
 function civilOrNull(value: string | null | undefined): Date | null {
   return value ? civilToDate(value) : null;
 }
@@ -688,43 +708,32 @@ export class PartnersService {
 
   // ---------- Público ----------
 
+  /** Uma única consulta para a lista pública (evita N+1; medido no teste de carga, DT-035). */
   async publicList(): Promise<PublicPartnerView[]> {
     const rows = await this.prisma.partner.findMany({
       where: operationalPartnerWhere(todayIn()),
-      orderBy: { displayName: 'asc' },
-      select: { id: true }
+      include: PUBLIC_PARTNER_INCLUDE,
+      orderBy: { displayName: 'asc' }
     });
 
-    return Promise.all(rows.map((row) => this.publicGet(row.id)));
+    return rows.map((row) => this.publicView(row));
   }
 
   /** Visão pública: só parceiro operacional; profissionais exibem contato apenas se autorizado. */
   async publicGet(id: string): Promise<PublicPartnerView> {
     const row = await this.prisma.partner.findFirst({
       where: { id, ...operationalPartnerWhere(todayIn()) },
-      include: {
-        professionals: {
-          where: { deletedAt: null, status: 'ACTIVE' },
-          orderBy: { fullName: 'asc' }
-        },
-        services: {
-          where: { deletedAt: null, status: 'ACTIVE' },
-          include: { professional: { select: { id: true, fullName: true, status: true } } },
-          orderBy: { name: 'asc' }
-        },
-        products: {
-          where: { deletedAt: null, status: { in: ['ACTIVE', 'SOLD_OUT'] } },
-          select: { id: true, name: true, slug: true },
-          orderBy: { name: 'asc' },
-          take: 12
-        }
-      }
+      include: PUBLIC_PARTNER_INCLUDE
     });
 
     if (row === null) {
       throw AppError.notFound('Parceiro não encontrado.');
     }
 
+    return this.publicView(row);
+  }
+
+  private publicView(row: PublicPartnerRow): PublicPartnerView {
     return {
       id: row.id,
       displayName: row.displayName,

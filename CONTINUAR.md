@@ -4,7 +4,7 @@ Este arquivo permite que outro chat ou agente continue exatamente de onde o trab
 
 ## Prompt para colar no novo chat
 
-> Você vai continuar o desenvolvimento do sistema Fênix Vôlei no repositório `C:\Users\William\Desktop\Fenix`, branch `desenvolvimento`. Leia, nesta ordem: `CONTINUAR.md`, `AGENTS.md`, `docs/16-ROADMAP.md`, `PENDENCIAS.md` (seção 12, "Resolvidas") e `docs/26-RELATORIO-FASE-7.md`. As fases 0 a 7 estão implementadas e commitadas. Continue pela **Fase 8 — Relatórios, auditoria e otimizações**, seguindo o "Plano das próximas fases" do `CONTINUAR.md`. O responsável único do projeto autorizou todas as fases e delegou as decisões técnicas: decida sozinho usando as recomendações de `PENDENCIAS.md` e registre-as em `docs/17-DECISOES-TECNICAS.md`. Pergunte apenas o que for decisão de negócio impossível de inferir. Ao fim de cada fase: `npm run check` e `npm run test:integration` verdes, relatório `docs/2X-RELATORIO-FASE-N.md` no padrão dos anteriores, atualização de CHANGELOG, roadmap, 02-REQUISITOS (matriz de estado), 10-API e decisões, e commit com a linha `Co-Authored-By` usada nos commits anteriores. Responda sempre em português.
+> Você vai continuar o desenvolvimento do sistema Fênix Vôlei no repositório `C:\Users\William\Desktop\Fenix`, branch `desenvolvimento`. Leia, nesta ordem: `CONTINUAR.md`, `AGENTS.md`, `docs/16-ROADMAP.md`, `PENDENCIAS.md` (seção 12, "Resolvidas") e `docs/27-RELATORIO-FASE-8.md`. As fases 0 a 8 estão implementadas e commitadas. Antes de qualquer novo desenvolvimento, confirme com o responsável qual pendência de produção atacar (ver `docs/27-RELATORIO-FASE-8.md` §7); a seção 5 deste guia ficou como histórico do plano executado. O responsável único do projeto autorizou todas as fases e delegou as decisões técnicas: decida sozinho usando as recomendações de `PENDENCIAS.md` e registre-as em `docs/17-DECISOES-TECNICAS.md`. Pergunte apenas o que for decisão de negócio impossível de inferir. Ao fim de cada fase: `npm run check` e `npm run test:integration` verdes, relatório `docs/2X-RELATORIO-FASE-N.md` no padrão dos anteriores, atualização de CHANGELOG, roadmap, 02-REQUISITOS (matriz de estado), 10-API e decisões, e commit com a linha `Co-Authored-By` usada nos commits anteriores. Responda sempre em português.
 
 ## 1. Contexto
 
@@ -25,9 +25,11 @@ Este arquivo permite que outro chat ou agente continue exatamente de onde o trab
 | — | Documentação atualizada, `db:demo`, este guia | commits seguintes | — |
 | 6 | Parceiros e profissionais | ver `git log` | `docs/25` |
 | 7 | Comunicação (notícias, eventos, fórum) | ver `git log` | `docs/26` |
-| 8 | Relatórios, auditoria final, otimizações | **próxima** | — |
+| 8 | Relatórios, auditoria final, otimizações | ver `git log` | `docs/27` |
 
-Testes: 77 unitários de API e 7 web (`npm test`), mais 67 de integração em `apps/api/test/phase1..7-*.int-spec.ts` (`npm run test:integration`).
+Testes: 82 unitários de API e 7 web (`npm test`), mais 71 de integração em `apps/api/test/phase1..8-*.int-spec.ts` (`npm run test:integration`).
+
+**Todas as fases do roadmap (0 a 8) estão implementadas.** O próximo trabalho depende das decisões listadas em `docs/27-RELATORIO-FASE-8.md` §7 (jurídico, provedores, backup, MFA). Não implemente funcionalidades da lista "Itens futuros sem fase autorizada" do roadmap sem autorização registrada.
 
 ## 3. Arquitetura (resumo operacional)
 
@@ -89,7 +91,7 @@ Testes: 77 unitários de API e 7 web (`npm test`), mais 67 de integração em `a
     Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
     ```
 
-## 5. Plano das próximas fases
+## 5. Plano executado nas fases 6 a 8 (histórico)
 
 ### Fase 6 — Parceiros e profissionais (RF-031 a RF-034, RCF-010, RCF-011)
 

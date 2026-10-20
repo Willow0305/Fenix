@@ -87,6 +87,11 @@ O contrato completo e executável fica no OpenAPI (`/docs` fora de produção). 
 | `POST`/`PATCH`/`DELETE`/`PUT` | `/api/v1/forum/categories/:slug/topics` · `topics/:id/posts` · `posts/:id` · `posts/:id/reaction` · `forum/reports` | autenticado, limites antiabuso | 7 |
 | `GET`/`POST`/`PATCH`/`PUT` | `/api/v1/forum/admin/categories[/:id]` · `topics/:id/moderation` · `posts/:id/moderation` · `forum/reports[/:id]` · `forum/moderation-actions` | `forum.moderate` | 7 |
 | `POST`/`GET` | `/api/v1/notifications/broadcast` (Idempotency-Key) · `notifications/broadcasts` | `notifications.send` | 7 |
+| `GET` | `/api/v1/reports` · `reports/:key?from&to&groupBy` | `reports.read` | 8 |
+| `GET` | `/api/v1/reports/:key/csv` | `reports.read` + `reports.export` (auditado) | 8 |
+| `GET` | `/api/v1/audit-logs?action&entityType&entityId&actorUserId&requestId&from&to` · `audit-logs/entity-types` · `audit-logs/:id` | `audit.read` | 8 |
+| `GET`/`POST` | `/api/v1/me/privacy/export` · `me/privacy/requests` | próprio, rate limiting | 8 |
+| `GET`/`PUT`/`POST` | `/api/v1/privacy-requests` · `:id` · `:id/anonymize` | `privacy.requests.manage` (anonimizar também `users.update`) | 8 |
 
 Listas usam `page`/`pageSize` (máx. 100) e retornam `{ data, meta }` (`DT-025`).
 

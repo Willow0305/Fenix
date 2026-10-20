@@ -28,9 +28,9 @@ import {
   type ConsolidationLine,
   consolidate,
   isEditable,
-  minimumReached,
-  toCsv
+  minimumReached
 } from '../domain/campaign-rules';
+import { toCsv } from '../../../common/util/csv';
 
 export interface CampaignProductView {
   readonly id: string;

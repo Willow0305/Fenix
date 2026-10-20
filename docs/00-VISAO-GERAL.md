@@ -8,13 +8,13 @@
 | Documento-base | `referencias/documento_requisitos_fenix_volei_melhorado.pdf`, versão 1.1 de 23/07/2026 |
 | Complemento de escopo | Briefing técnico anexado à solicitação inicial |
 | Estado desta especificação | Baseline v1.2 aprovada em 18/10/2026 (`DT-021`); itens provisórios seguem em `PENDENCIAS.md` |
-| Fase vigente | Fases 0 a 5 implementadas; Fase 6 — Parceiros e profissionais em andamento (ver `16-ROADMAP.md`) |
+| Fase vigente | Fases 0 a 8 implementadas; próximos passos dependem das pendências de produção (ver `16-ROADMAP.md` e `27-RELATORIO-FASE-8.md`) |
 
 ## Resumo executivo
 
 O Fênix Vôlei será uma aplicação web responsiva para centralizar processos hoje sujeitos a controles dispersos: divulgação pública, interessados e seletivas, cadastro de atletas, mensalidades, Caixa Fênix, loja, remessas, parceiros, serviços, notícias, fórum, notificações e relatórios.
 
-O produto atende principalmente à diretoria, atletas, interessados, responsáveis e compradores. A solução completa é ampla, portanto será entregue em fases. A Fase 0 preparou documentação, arquitetura, ambiente, banco, integração contínua e padrões de qualidade; cada fase seguinte entrega um conjunto de módulos com testes e relatório próprio (`19` a `24-RELATORIO-FASE-*`).
+O produto atende principalmente à diretoria, atletas, interessados, responsáveis e compradores. A solução completa é ampla, portanto será entregue em fases. A Fase 0 preparou documentação, arquitetura, ambiente, banco, integração contínua e padrões de qualidade; cada fase seguinte entrega um conjunto de módulos com testes e relatório próprio (`19` a `27-RELATORIO-FASE-*`).
 
 ## Problema a resolver
 

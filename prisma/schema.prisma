@@ -396,6 +396,18 @@ enum EventStatus {
   COMPLETED
 }
 
+enum PrivacyRequestType {
+  DATA_EXPORT
+  ERASURE
+}
+
+enum PrivacyRequestStatus {
+  OPEN
+  IN_PROGRESS
+  COMPLETED
+  REJECTED
+}
+
 enum NotificationChannel {
   IN_APP
   EMAIL
@@ -468,6 +480,8 @@ model User {
   auditLogs                       AuditLog[]
   favorites                       Favorite[]
   carts                           Cart[]
+  privacyRequests                 PrivacyRequest[]        @relation("PrivacyRequestSubject")
+  privacyRequestsHandled          PrivacyRequest[]        @relation("PrivacyRequestHandler")
 
   @@index([status, deletedAt])
   @@map("users")
@@ -685,6 +699,7 @@ model AuditLog {
   actorUser User? @relation(fields: [actorUserId], references: [id], onDelete: SetNull, onUpdate: Cascade)
 
   @@index([entityType, entityId, occurredAt])
+  @@index([action, occurredAt])
   @@index([actorUserId, occurredAt])
   @@index([requestId])
   @@map("audit_logs")
@@ -1628,6 +1643,7 @@ model Order {
   refunds      Refund[]
 
   @@index([status, createdAt])
+  @@index([status, paidAt])
   @@index([status, reservationExpiresAt])
   @@index([customerUserId, createdAt])
   @@index([customerEmail, createdAt])
@@ -2143,8 +2159,29 @@ model Notification {
   user User @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
 
   @@unique([userId, deduplicationKey])
+  @@index([deduplicationKey])
   @@index([userId, readAt, createdAt])
   @@index([deliveryStatus, scheduledAt])
   @@index([type, createdAt])
   @@map("notifications")
+}
+
+model PrivacyRequest {
+  id          String               @id @default(uuid()) @db.Uuid
+  userId      String               @map("user_id") @db.Uuid
+  type        PrivacyRequestType
+  status      PrivacyRequestStatus @default(OPEN)
+  details     String?              @db.Text
+  resolution  String?              @db.Text
+  handledById String?              @map("handled_by_id") @db.Uuid
+  handledAt   DateTime?            @map("handled_at") @db.Timestamptz(6)
+  createdAt   DateTime             @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt   DateTime             @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  user      User  @relation("PrivacyRequestSubject", fields: [userId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+  handledBy User? @relation("PrivacyRequestHandler", fields: [handledById], references: [id], onDelete: SetNull, onUpdate: Cascade)
+
+  @@index([status, createdAt])
+  @@index([userId, createdAt])
+  @@map("privacy_requests")
 }

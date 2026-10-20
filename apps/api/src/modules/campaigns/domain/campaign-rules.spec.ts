@@ -5,8 +5,7 @@ import {
   canOpen,
   consolidate,
   isEditable,
-  minimumReached,
-  toCsv
+  minimumReached
 } from './campaign-rules';
 
 describe('campaign rules', () => {
@@ -48,6 +47,5 @@ describe('campaign rules', () => {
       ['CAM-G', 1],
       ['CAM-M', 5]
     ]);
-    expect(toCsv(['a', 'b'], [['x;y', 'diz "oi"']])).toBe('a;b\n"x;y";"diz ""oi"""');
   });
 });

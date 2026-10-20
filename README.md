@@ -2,7 +2,7 @@
 
 Aplicação web oficial de gestão do Time Fênix de Vôlei: site institucional, área do atleta e do cliente, loja e painel administrativo esportivo e financeiro.
 
-> **Estado:** desenvolvimento incremental por fases (ver [`docs/16-ROADMAP.md`](./docs/16-ROADMAP.md)). Fases 0 a 5 implementadas e validadas; relatórios em [`docs/19`](./docs/19-RELATORIO-FASE-0.md) a [`docs/24`](./docs/24-RELATORIO-FASE-5.md).
+> **Estado:** desenvolvimento incremental por fases (ver [`docs/16-ROADMAP.md`](./docs/16-ROADMAP.md)). Fases 0 a 8 implementadas e validadas; relatórios em [`docs/19`](./docs/19-RELATORIO-FASE-0.md) a [`docs/27`](./docs/27-RELATORIO-FASE-8.md). Produção com dados reais depende das pendências jurídicas e operacionais listadas em [`docs/27`](./docs/27-RELATORIO-FASE-8.md).
 
 ## O que já funciona
 

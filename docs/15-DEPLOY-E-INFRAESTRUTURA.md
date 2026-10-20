@@ -202,6 +202,59 @@ Antes de produção devem ser aprovados:
 
 Um backup não testado não é considerado estratégia de recuperação.
 
+### 10.1 Runbook de backup e restauração (PostgreSQL + arquivos)
+
+Procedimento validado em 19/10/2026 no ambiente local (Fase 8). Os valores de RPO, RTO, frequência e retenção continuam pendentes (`PEN-044`).
+
+**O que compõe um backup completo**
+
+1. banco PostgreSQL (dump lógico no formato `custom`);
+2. objetos enviados (logos, capas, documentos, comprovantes): diretório `STORAGE_LOCAL_DIR` no adaptador local ou o bucket do provedor escolhido (`PEN-042`), com versionamento;
+3. **a chave `DATA_ENCRYPTION_KEY`**, guardada no cofre de segredos e **nunca junto do dump**: sem ela, documentos, PIX e dados bancários cifrados ficam irrecuperáveis; com ela junto do dump, o vazamento do backup expõe esses dados.
+
+**Gerar o backup (local, Docker Compose)**
+
+```bash
+docker exec fenix-postgres-1 pg_dump -U fenix -d fenix -Fc > backup-AAAAMMDD-HHMM.dump
+```
+
+Em produção, use o backup gerenciado do provedor (PITR quando disponível) e, adicionalmente, um dump lógico periódico cifrado em conta/região separada.
+
+**Restaurar e verificar (sempre primeiro em banco de teste)**
+
+```bash
+docker exec fenix-postgres-1 createdb -U fenix fenix_restore_test
+docker exec -i fenix-postgres-1 pg_restore -U fenix -d fenix_restore_test --no-owner < backup-AAAAMMDD-HHMM.dump
+```
+
+Verificações mínimas antes de promover a restauração:
+
+- `_prisma_migrations`: mesmo número de migrations concluídas da versão implantada;
+- contagem de `users`, `orders`, `financial_transactions`, `audit_logs`, `partner_settlements` igual à origem (ou ao relatório do instante do backup);
+- saldo derivado: `select sum(case when direction='INCOME' then amount else -amount end) from financial_transactions where status='CONFIRMED'` igual ao saldo do painel do Caixa no instante do backup;
+- amostra de arquivos: abrir um comprovante e um logo pelo sistema apontado ao banco restaurado;
+- decifrar um campo cifrado (ex.: abrir a ficha de um parceiro com documento) para confirmar a chave correta.
+
+Para promover: colocar a aplicação em manutenção, restaurar no banco definitivo, rodar `npm run db:migrate` (somente aplica migrations faltantes), subir a API e conferir `/health`, login e um relatório do Caixa. Registrar data, responsável, backup usado e resultado.
+
+**Evidência do teste local (19/10/2026)**
+
+| Verificação | Origem | Restaurado |
+|---|---:|---:|
+| `users` | 366 | 366 |
+| `orders` | 78 | 78 |
+| `financial_transactions` | 198 | 198 |
+| `audit_logs` | 2714 | 2714 |
+| `partner_settlements` | 9 | 9 |
+| saldo derivado (BRL) | 9044,20 | 9044,20 |
+| migrations concluídas | 5 | 5 |
+
+Os dados são fictícios de desenvolvimento e teste. O teste periódico deve ser repetido em homologação com cópia anonimizada, com a frequência que for aprovada em `PEN-044`.
+
+### 10.2 Teste de carga básico
+
+`node scripts/load-test.mjs <baseUrl> <conexões> <segundos>` mede p50/p95/p99, vazão e erros das rotas públicas mais acessadas. O rate limit global (300 req/min por IP) responde 429 de propósito; para medir a aplicação, use uma instância fora de produção com `THROTTLE_DISABLED=true`. Linha de base local (19/10/2026, 20 conexões, 15 s, API compilada e PostgreSQL em Docker): 485 req/s, zero erros, p95 entre 20 ms (`/health`) e 89 ms (`/public/products`). Metas de SLO ainda dependem de `PEN-050`.
+
 ## 11. Monitoramento
 
 Sinais mínimos:
