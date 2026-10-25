@@ -104,6 +104,8 @@ export interface OrderItem {
   variantName: string | null;
   quantity: number;
   unitPrice: MoneyView;
+  /** Parte do desconto do cupom neste item (DT-045). */
+  discountAmount: MoneyView;
   totalAmount: MoneyView;
   campaign: { id: string; name: string; status: string } | null;
   partnerId: string | null;
@@ -119,6 +121,9 @@ export interface Order {
   customerEmail: string | null;
   customerPhone: string | null;
   isGuest: boolean;
+  subtotalAmount: MoneyView;
+  discountAmount: MoneyView;
+  coupon: { code: string; released: boolean } | null;
   totalAmount: MoneyView;
   paidAmount: MoneyView;
   pendingAmount: MoneyView;
@@ -170,4 +175,62 @@ export const PRODUCT_STATUS: Record<ProductStatus, { label: string; badge: strin
   INACTIVE: { label: 'Oculto', badge: 'badge-warning' },
   SOLD_OUT: { label: 'Esgotado', badge: 'badge-danger' },
   ARCHIVED: { label: 'Excluído', badge: '' }
+};
+
+/** Cupons de desconto (DT-045). */
+export type CouponDiscountType = 'PERCENTAGE' | 'FIXED';
+export type CouponScope = 'ALL' | 'PRODUCTS' | 'CATEGORIES';
+export type CouponAudience = 'EVERYONE' | 'LOGGED_IN' | 'ROLES';
+
+export interface Coupon {
+  id: string;
+  code: string;
+  description: string | null;
+  discountType: CouponDiscountType;
+  percentage: string | null;
+  amount: MoneyView | null;
+  scope: CouponScope;
+  audience: CouponAudience;
+  minimumOrderAmount: MoneyView | null;
+  startsAt: string | null;
+  endsAt: string | null;
+  maxRedemptions: number | null;
+  maxPerCustomer: number | null;
+  isActive: boolean;
+  products: { id: string; name: string }[];
+  categories: { id: string; name: string }[];
+  roles: { id: string; code: string; name: string }[];
+  redemptions: number;
+  totalDiscount: MoneyView;
+  createdAt: string;
+}
+
+export interface CouponRedemption {
+  id: string;
+  orderId: string;
+  orderNumber: string;
+  customerName: string;
+  discountAmount: MoneyView;
+  status: 'ACTIVE' | 'RELEASED';
+  createdAt: string;
+}
+
+export interface CouponPreview {
+  code: string;
+  subtotal: MoneyView;
+  discount: MoneyView;
+  total: MoneyView;
+  eligibleSubtotal: MoneyView;
+}
+
+export const COUPON_SCOPE: Record<CouponScope, string> = {
+  ALL: 'Todos os produtos do Fênix',
+  PRODUCTS: 'Produtos escolhidos',
+  CATEGORIES: 'Categorias escolhidas'
+};
+
+export const COUPON_AUDIENCE: Record<CouponAudience, string> = {
+  EVERYONE: 'Qualquer pessoa',
+  LOGGED_IN: 'Quem tem conta',
+  ROLES: 'Públicos escolhidos (ex.: diretoria, atletas)'
 };

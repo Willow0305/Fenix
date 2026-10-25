@@ -454,6 +454,8 @@ model User {
   athlete                         Athlete?
   interestedPerson                InterestedPerson?
   uploadedMedia                   MediaFile[]             @relation("MediaUploader")
+  couponRedemptions               CouponRedemption[]
+  createdCoupons                  Coupon[]
   avatarMediaFile                 MediaFile?              @relation("UserAvatar", fields: [avatarMediaFileId], references: [id], onDelete: SetNull, onUpdate: Cascade)
   updatedTeamSettings             TeamSettings[]          @relation("TeamSettingsUpdater")
   registrationApplications        Registration[]          @relation("RegistrationApplicant")
@@ -573,6 +575,7 @@ model Role {
 
   userRoles       UserRole[]
   rolePermissions RolePermission[]
+  couponRoles     CouponRole[]
 
   @@index([deletedAt, name])
   @@map("roles")
@@ -1433,6 +1436,7 @@ model ProductCategory {
   parent   ProductCategory?  @relation("ProductCategoryTree", fields: [parentId], references: [id], onDelete: Restrict, onUpdate: Cascade)
   children ProductCategory[] @relation("ProductCategoryTree")
   products Product[]
+  coupons  CouponCategory[]
 
   @@index([isActive, deletedAt])
   @@index([parentId])
@@ -1473,6 +1477,7 @@ model Product {
   favorites        Favorite[]
   campaignProducts SalesCampaignProduct[]
   orderItems       OrderItem[]
+  couponProducts   CouponProduct[]
 
   @@index([productCategoryId, status, deletedAt])
   @@index([partnerId, status])
@@ -1678,11 +1683,12 @@ model Order {
   createdAt            DateTime    @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt            DateTime    @updatedAt @map("updated_at") @db.Timestamptz(6)
 
-  customerUser User?       @relation(fields: [customerUserId], references: [id], onDelete: SetNull, onUpdate: Cascade)
-  sourceCart   Cart?
-  items        OrderItem[]
-  payments     Payment[]
-  refunds      Refund[]
+  customerUser     User?             @relation(fields: [customerUserId], references: [id], onDelete: SetNull, onUpdate: Cascade)
+  sourceCart       Cart?
+  items            OrderItem[]
+  payments         Payment[]
+  refunds          Refund[]
+  couponRedemption CouponRedemption?
 
   @@index([status, createdAt])
   @@index([status, paidAt])
@@ -2235,4 +2241,130 @@ model PrivacyRequest {
   @@index([status, createdAt])
   @@index([userId, createdAt])
   @@map("privacy_requests")
+}
+
+// ---------- Cupons de desconto (DT-045) ----------
+
+enum CouponDiscountType {
+  PERCENTAGE
+  FIXED
+}
+
+/// Onde o cupom vale: todos os produtos do Fênix, produtos escolhidos ou categorias escolhidas.
+enum CouponScope {
+  ALL
+  PRODUCTS
+  CATEGORIES
+}
+
+/// Quem pode usar: qualquer pessoa, só quem tem conta ou só quem tem um dos papéis escolhidos.
+enum CouponAudience {
+  EVERYONE
+  LOGGED_IN
+  ROLES
+}
+
+enum CouponRedemptionStatus {
+  ACTIVE
+  RELEASED
+}
+
+model Coupon {
+  id                 String             @id @default(uuid()) @db.Uuid
+  /// Código digitado pelo cliente, gravado em maiúsculas.
+  code               String             @unique @db.VarChar(40)
+  description        String?            @db.VarChar(500)
+  discountType       CouponDiscountType @map("discount_type")
+  /// Percentual de 0,01 a 100 (PERCENTAGE).
+  percentage         Decimal?           @db.Decimal(5, 2)
+  /// Valor fixo (FIXED), limitado ao subtotal elegível.
+  amount             Decimal?           @db.Decimal(19, 4)
+  currency           String             @default("BRL") @db.Char(3)
+  scope              CouponScope        @default(ALL)
+  audience           CouponAudience     @default(EVERYONE)
+  /// Subtotal mínimo do pedido para o cupom valer.
+  minimumOrderAmount Decimal?           @map("minimum_order_amount") @db.Decimal(19, 4)
+  startsAt           DateTime?          @map("starts_at") @db.Timestamptz(6)
+  endsAt             DateTime?          @map("ends_at") @db.Timestamptz(6)
+  maxRedemptions     Int?               @map("max_redemptions")
+  maxPerCustomer     Int?               @map("max_per_customer")
+  isActive           Boolean            @default(true) @map("is_active")
+  createdById        String?            @map("created_by_id") @db.Uuid
+  createdAt          DateTime           @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt          DateTime           @updatedAt @map("updated_at") @db.Timestamptz(6)
+  deletedAt          DateTime?          @map("deleted_at") @db.Timestamptz(6)
+
+  createdBy   User?              @relation(fields: [createdById], references: [id], onDelete: SetNull, onUpdate: Cascade)
+  products    CouponProduct[]
+  categories  CouponCategory[]
+  roles       CouponRole[]
+  redemptions CouponRedemption[]
+
+  @@index([isActive, deletedAt])
+  @@map("coupons")
+}
+
+model CouponProduct {
+  id        String   @id @default(uuid()) @db.Uuid
+  couponId  String   @map("coupon_id") @db.Uuid
+  productId String   @map("product_id") @db.Uuid
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  coupon  Coupon  @relation(fields: [couponId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+
+  @@unique([couponId, productId])
+  @@index([productId])
+  @@map("coupon_products")
+}
+
+model CouponCategory {
+  id                String   @id @default(uuid()) @db.Uuid
+  couponId          String   @map("coupon_id") @db.Uuid
+  productCategoryId String   @map("product_category_id") @db.Uuid
+  createdAt         DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  coupon   Coupon          @relation(fields: [couponId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  category ProductCategory @relation(fields: [productCategoryId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+
+  @@unique([couponId, productCategoryId])
+  @@index([productCategoryId])
+  @@map("coupon_categories")
+}
+
+model CouponRole {
+  id        String   @id @default(uuid()) @db.Uuid
+  couponId  String   @map("coupon_id") @db.Uuid
+  roleId    String   @map("role_id") @db.Uuid
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  coupon Coupon @relation(fields: [couponId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  role   Role   @relation(fields: [roleId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+
+  @@unique([couponId, roleId])
+  @@index([roleId])
+  @@map("coupon_roles")
+}
+
+/// Uso do cupom num pedido. Pedido cancelado, expirado ou estornado libera o uso (RELEASED).
+model CouponRedemption {
+  id             String                 @id @default(uuid()) @db.Uuid
+  couponId       String                 @map("coupon_id") @db.Uuid
+  orderId        String                 @unique @map("order_id") @db.Uuid
+  userId         String?                @map("user_id") @db.Uuid
+  customerEmail  String                 @map("customer_email") @db.VarChar(180)
+  discountAmount Decimal                @map("discount_amount") @db.Decimal(19, 4)
+  currency       String                 @db.Char(3)
+  status         CouponRedemptionStatus @default(ACTIVE)
+  releasedAt     DateTime?              @map("released_at") @db.Timestamptz(6)
+  createdAt      DateTime               @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  coupon Coupon @relation(fields: [couponId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+  order  Order  @relation(fields: [orderId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+  user   User?  @relation(fields: [userId], references: [id], onDelete: SetNull, onUpdate: Cascade)
+
+  @@index([couponId, status])
+  @@index([couponId, userId, status])
+  @@index([couponId, customerEmail, status])
+  @@map("coupon_redemptions")
 }

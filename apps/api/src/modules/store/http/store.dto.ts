@@ -1,6 +1,9 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import {
   CommissionType,
+  CouponAudience,
+  CouponDiscountType,
+  CouponScope,
   Gender,
   OrderStatus,
   ProductFulfillmentType,
@@ -8,6 +11,8 @@ import {
 } from '@prisma/client';
 import { Transform } from 'class-transformer';
 import {
+  ArrayMaxSize,
+  IsArray,
   IsBoolean,
   IsEmail,
   IsEnum,
@@ -213,6 +218,11 @@ export class CheckoutDto {
   @IsMobilePhoneBr()
   customerPhone?: string;
   @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(2000) notes?: string;
+  @ApiPropertyOptional({ description: 'Cupom de desconto (DT-045).' })
+  @IsOptional()
+  @IsString()
+  @MaxLength(40)
+  couponCode?: string;
   @ApiProperty({ description: 'Aceite das regras da loja e da política de privacidade.' })
   @IsBoolean()
   @IsIn([true], { message: 'É necessário aceitar as regras da loja.' })
@@ -267,4 +277,57 @@ export class OrderStatusDto {
 
 export class AccountBodyDto {
   @ApiProperty() @IsUUID() accountId!: string;
+}
+
+const PERCENT_2 = /^(100(\.0{1,2})?|\d{1,2}(\.\d{1,2})?)$/;
+
+/** Cupom de desconto (DT-045). Valores em texto com ponto: "10" ou "15.50". */
+export class CouponDto {
+  @ApiProperty({ example: 'FENIX10' }) @IsString() @MinLength(3) @MaxLength(40) code!: string;
+  @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(500) description?: string;
+  @ApiProperty({ enum: CouponDiscountType })
+  @IsEnum(CouponDiscountType)
+  discountType!: CouponDiscountType;
+  @ApiPropertyOptional({ example: '10' })
+  @IsOptional()
+  @Matches(PERCENT_2, { message: 'Percentual inválido: de 0,01 a 100, até 2 casas.' })
+  percentage?: string;
+  @ApiPropertyOptional({ example: '20.00' })
+  @IsOptional()
+  @Matches(AMOUNT, AMOUNT_MSG)
+  amount?: string;
+  @ApiProperty({ enum: CouponScope }) @IsEnum(CouponScope) scope!: CouponScope;
+  @ApiProperty({ enum: CouponAudience }) @IsEnum(CouponAudience) audience!: CouponAudience;
+  @ApiPropertyOptional() @IsOptional() @Matches(AMOUNT, AMOUNT_MSG) minimumOrderAmount?: string;
+  @ApiPropertyOptional() @IsOptional() @IsISO8601() startsAt?: string;
+  @ApiPropertyOptional() @IsOptional() @IsISO8601() endsAt?: string;
+  @ApiPropertyOptional() @IsOptional() @IsInt() @Min(1) @Max(100000) maxRedemptions?: number;
+  @ApiPropertyOptional() @IsOptional() @IsInt() @Min(1) @Max(1000) maxPerCustomer?: number;
+  @ApiPropertyOptional() @IsOptional() @IsBoolean() isActive?: boolean;
+  @ApiPropertyOptional({ type: [String] })
+  @IsOptional()
+  @IsArray()
+  @ArrayMaxSize(200)
+  @IsUUID('all', { each: true })
+  productIds?: string[];
+  @ApiPropertyOptional({ type: [String] })
+  @IsOptional()
+  @IsArray()
+  @ArrayMaxSize(100)
+  @IsUUID('all', { each: true })
+  categoryIds?: string[];
+  @ApiPropertyOptional({ type: [String] })
+  @IsOptional()
+  @IsArray()
+  @ArrayMaxSize(50)
+  @IsUUID('all', { each: true })
+  roleIds?: string[];
+}
+
+export class CouponActiveDto {
+  @ApiProperty() @IsBoolean() isActive!: boolean;
+}
+
+export class CouponPreviewDto {
+  @ApiProperty() @IsString() @MinLength(1) @MaxLength(40) code!: string;
 }

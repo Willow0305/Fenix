@@ -867,3 +867,23 @@ A logo oficial e as configurações do time "sumiam". A auditoria mostrou a caus
 
 - a política está em `docs/13-SEGURANCA-E-LGPD.md` (foto de perfil e elenco público);
 - 4 testes unitários do nome de exibição e um teste de integração do fluxo completo: foto privada fechada para anônimo, perfil público, menor sem e com autorização, nome abreviado e volta para privado.
+
+## DT-045 — Cupons de desconto
+
+- **Estado:** Aceita
+- **Data:** 2026-10-25
+- **Aprovador:** responsável do projeto ("cupons para determinado produto, categoria, para a diretoria, para atletas", 2026-10-25); produto de parceiro fica de fora até decisão (`PEN-063`)
+
+### Decisão
+
+- **modelo:** `coupons` (código único em maiúsculas, tipo percentual ou fixo, alvo, público, validade, pedido mínimo, limites) e tabelas de alvo com UUID próprio: `coupon_products`, `coupon_categories`, `coupon_roles`. O uso fica em `coupon_redemptions`, um por pedido, com o valor do desconto congelado. Restrições `CHECK` no banco garantem valor coerente com o tipo, limites positivos e período válido;
+- **regras puras:** `evaluateCoupon` (`store/domain/coupon-rules.ts`): um cupom por pedido, sobre o preço atual do item (já com promoção), nunca em produto de parceiro; percentual sobre o subtotal elegível, valor fixo limitado a ele; pedido mínimo sobre o subtotal do pedido. Público por papel aceita qualquer papel, inclusive personalizados. O desconto é repartido entre os itens elegíveis em centavos, sem sobra (`allocateDiscount`);
+- **fechamento do pedido:** dentro da transação do checkout, a linha do cupom é travada (`SELECT … FOR UPDATE`) e tudo é conferido de novo, para os limites valerem com pedidos simultâneos. O pedido grava subtotal, desconto e total; cada item, sua parte do desconto. O Caixa recebe o valor efetivamente pago;
+- **liberação:** cancelar, expirar ou estornar o pedido marca o uso como `RELEASED`, que deixa de contar nos limites;
+- **prévia:** `POST /cart/coupon` calcula sem reservar, com limite de 15 tentativas por minuto contra adivinhação de códigos. Mensagens dizem o motivo da recusa (expirado, esgotado, público, mínimo, sem item elegível);
+- **painel:** `/admin/cupons` com a permissão nova `coupons.manage` (administração e diretoria a recebem automaticamente). Cupom usado não é excluído, só inativado (`softDeleteIfUnused`).
+
+### Consequências
+
+- desconto aparece no resumo do pedido para cliente e diretoria; o lançamento no Caixa continua pelo total pago (receita líquida);
+- 15 testes unitários das regras e um teste de integração do fluxo real (público, prévia, desconto por produto, limite por pessoa, liberação ao cancelar, inativação e permissão).

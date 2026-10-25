@@ -98,6 +98,12 @@ export const ADMIN_NAV: readonly AdminGroup[] = [
         icon: 'box-seam',
         label: 'Remessas',
         permission: 'campaigns.manage'
+      },
+      {
+        href: '/admin/cupons',
+        icon: 'ticket-perforated',
+        label: 'Cupons',
+        permission: 'coupons.manage'
       }
     ]
   },

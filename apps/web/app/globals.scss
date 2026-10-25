@@ -1088,3 +1088,22 @@ dialog {
 .team-card-description {
   color: var(--color-text-subtle);
 }
+
+.cart-totals {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 0.35rem 1.5rem;
+  justify-self: end;
+  width: min(100%, 22rem);
+  margin-left: auto;
+  font-size: 1.05rem;
+  font-variant-numeric: tabular-nums;
+
+  > :nth-child(even) {
+    text-align: right;
+  }
+
+  > strong {
+    font-size: 1.3rem;
+  }
+}

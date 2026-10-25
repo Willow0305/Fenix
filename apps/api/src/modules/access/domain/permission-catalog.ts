@@ -49,6 +49,7 @@ export const PERMISSIONS = {
   ordersRead: 'orders.read',
   ordersStatusChange: 'orders.status.change',
   campaignsManage: 'campaigns.manage',
+  couponsManage: 'coupons.manage',
 
   partnersManage: 'partners.manage',
   partnerDocumentsRead: 'partner.documents.read',
@@ -118,6 +119,7 @@ export const PERMISSION_LABELS: Record<PermissionCode, string> = {
   'orders.read': 'Consultar pedidos',
   'orders.status.change': 'Alterar status de pedidos',
   'campaigns.manage': 'Gerenciar remessas/campanhas',
+  'coupons.manage': 'Gerenciar cupons de desconto',
   'partners.manage': 'Gerenciar parceiros',
   'partner.documents.read': 'Ler documentos de parceiros',
   'services.manage': 'Gerenciar profissionais e serviços',

@@ -6,6 +6,16 @@ O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) e o 
 
 ## [Não publicado]
 
+### Cupons de desconto (2026-10-25)
+
+#### Adicionado
+
+- cupons por percentual ou valor fixo, para toda a loja, produtos escolhidos ou categorias escolhidas, e para qualquer pessoa, só quem tem conta ou públicos escolhidos (ex.: diretoria, atletas) (DT-045);
+- validade, pedido mínimo, limite total de usos e limite por pessoa; cancelamento, expiração ou estorno do pedido libera o uso;
+- campo de cupom no carrinho, com prévia do desconto que se refaz ao mudar quantidades; subtotal, desconto e total no pedido;
+- tela Cupons no painel (permissão `coupons.manage`), com edição, inativação, exclusão de cupom nunca usado e lista dos pedidos que usaram cada cupom;
+- migração `20261025230727_cupons_desconto`, com restrições no banco para valor, percentual, limites e datas.
+
 ### Foto de perfil e elenco público (2026-10-25)
 
 #### Adicionado

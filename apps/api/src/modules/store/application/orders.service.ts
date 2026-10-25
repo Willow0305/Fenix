@@ -36,6 +36,7 @@ import {
   RESERVATION_HOURS_DEFAULT
 } from '../domain/store-rules';
 import { cartItemPrice, cartItemSellable, type CartOwner, CartService } from './cart.service';
+import { type AppliedCoupon, CouponsService } from './coupons.service';
 import { InventoryService } from './inventory.service';
 
 export interface OrderItemView {
@@ -46,6 +47,8 @@ export interface OrderItemView {
   readonly variantName: string | null;
   readonly quantity: number;
   readonly unitPrice: MoneyView;
+  /** Parte do desconto do cupom neste item (DT-045). */
+  readonly discountAmount: MoneyView;
   readonly totalAmount: MoneyView;
   readonly campaign: { id: string; name: string; status: string } | null;
   readonly partnerId: string | null;
@@ -61,6 +64,10 @@ export interface OrderView {
   readonly customerEmail: string | null;
   readonly customerPhone: string | null;
   readonly isGuest: boolean;
+  readonly subtotalAmount: MoneyView;
+  readonly discountAmount: MoneyView;
+  /** Cupom usado; `released` quando o pedido foi cancelado e o uso, liberado. */
+  readonly coupon: { code: string; released: boolean } | null;
   readonly totalAmount: MoneyView;
   readonly paidAmount: MoneyView;
   readonly pendingAmount: MoneyView;
@@ -83,6 +90,7 @@ export interface CheckoutInput {
   readonly customerEmail?: string;
   readonly customerPhone?: string;
   readonly notes?: string;
+  readonly couponCode?: string;
 }
 
 export interface OrderFilters extends PageQueryDto {
@@ -101,7 +109,8 @@ const ORDER_INCLUDE = {
       }
     }
   },
-  payments: { select: { id: true, status: true, amount: true } }
+  payments: { select: { id: true, status: true, amount: true } },
+  couponRedemption: { select: { status: true, coupon: { select: { code: true } } } }
 } satisfies Prisma.OrderInclude;
 
 type OrderRow = Prisma.OrderGetPayload<{ include: typeof ORDER_INCLUDE }>;
@@ -124,7 +133,8 @@ export class OrdersService implements OnModuleInit, OnModuleDestroy {
     private readonly media: MediaService,
     private readonly mail: MailSender,
     private readonly config: AppConfig,
-    private readonly settings: SettingsService
+    private readonly settings: SettingsService,
+    private readonly coupons: CouponsService
   ) {}
 
   onModuleInit(): void {
@@ -166,6 +176,14 @@ export class OrdersService implements OnModuleInit, OnModuleDestroy {
       customerEmail: row.customerEmail,
       customerPhone: row.customerPhone,
       isGuest: row.customerUserId === null,
+      subtotalAmount: moneyView(row.subtotalAmount, row.currency),
+      discountAmount: moneyView(row.discountAmount, row.currency),
+      coupon: row.couponRedemption
+        ? {
+            code: row.couponRedemption.coupon.code,
+            released: row.couponRedemption.status === 'RELEASED'
+          }
+        : null,
       totalAmount: moneyView(row.totalAmount, row.currency),
       paidAmount: moneyView(confirmed, row.currency),
       pendingAmount: moneyView(pending, row.currency),
@@ -178,6 +196,7 @@ export class OrdersService implements OnModuleInit, OnModuleDestroy {
         variantName: item.productVariant.name,
         quantity: item.quantity,
         unitPrice: moneyView(item.unitPrice, item.currency),
+        discountAmount: moneyView(item.discountAmount, item.currency),
         totalAmount: moneyView(item.totalAmount, item.currency),
         campaign: item.salesCampaignProduct?.salesCampaign ?? null,
         partnerId: item.partnerId,
@@ -388,7 +407,24 @@ export class OrdersService implements OnModuleInit, OnModuleDestroy {
         lines.push({ item, unitPrice, total: lineTotal({ unitPrice, quantity: item.quantity }) });
       }
 
-      const total = sum(lines.map((line) => line.total));
+      const subtotal = sum(lines.map((line) => line.total));
+      // Cupom (DT-045): conferido de novo aqui, com a linha do cupom travada.
+      const coupon: AppliedCoupon | null = input.couponCode?.trim()
+        ? await this.coupons.applyInTx(
+            tx,
+            input.couponCode,
+            principal,
+            customerEmail,
+            lines.map((line) => ({
+              productId: line.item.productVariant.product.id,
+              categoryId: line.item.productVariant.product.productCategoryId,
+              partnerId: line.item.productVariant.product.partnerId,
+              total: line.total
+            }))
+          )
+        : null;
+      const discount = coupon?.discount ?? ZERO;
+      const total = subtotal.minus(discount);
       let orderNumber = generateOrderNumber(now);
 
       while (await tx.order.findUnique({ where: { orderNumber }, select: { id: true } })) {
@@ -402,7 +438,8 @@ export class OrdersService implements OnModuleInit, OnModuleDestroy {
           customerName,
           customerEmail,
           customerPhone,
-          subtotalAmount: total,
+          subtotalAmount: subtotal,
+          discountAmount: discount,
           totalAmount: total,
           currency: 'BRL',
           status: total.greaterThan(0) ? 'AWAITING_PAYMENT' : 'PAID',
@@ -412,8 +449,9 @@ export class OrdersService implements OnModuleInit, OnModuleDestroy {
         }
       });
 
-      for (const line of lines) {
+      for (const [index, line] of lines.entries()) {
         const product = line.item.productVariant.product;
+        const lineDiscount = coupon?.perLine[index] ?? ZERO;
         // RN-PAR-002: congela a regra de comissão vigente no item (PEN-035, DT-033).
         const commission = product.partner
           ? (() => {
@@ -444,7 +482,8 @@ export class OrdersService implements OnModuleInit, OnModuleDestroy {
             },
             quantity: line.item.quantity,
             unitPrice: line.unitPrice,
-            totalAmount: line.total,
+            discountAmount: lineDiscount,
+            totalAmount: line.total.minus(lineDiscount),
             currency: 'BRL',
             ...commission
           }
@@ -462,6 +501,16 @@ export class OrdersService implements OnModuleInit, OnModuleDestroy {
         }
       }
 
+      if (coupon) {
+        await this.coupons.redeemInTx(
+          tx,
+          coupon,
+          order.id,
+          principal?.userId ?? null,
+          customerEmail
+        );
+      }
+
       await tx.cart.update({
         where: { id: cart.id },
         data: { status: 'CONVERTED', convertedOrderId: order.id }
@@ -472,7 +521,14 @@ export class OrdersService implements OnModuleInit, OnModuleDestroy {
           action: 'order.created',
           entityType: 'Order',
           entityId: order.id,
-          after: { orderNumber, total: total.toFixed(2), items: lines.length },
+          after: {
+            orderNumber,
+            subtotal: subtotal.toFixed(2),
+            discount: discount.toFixed(2),
+            coupon: coupon?.code ?? null,
+            total: total.toFixed(2),
+            items: lines.length
+          },
           meta
         },
         tx
@@ -964,6 +1020,9 @@ export class OrdersService implements OnModuleInit, OnModuleDestroy {
         `O pedido ${row.orderNumber} está em um repasse a parceiro em andamento. Cancele o repasse antes de estornar.`
       );
     }
+
+    // Pedido cancelado, expirado ou estornado não conta como uso do cupom (DT-045).
+    await this.coupons.releaseInTx(tx, row.id);
 
     for (const item of row.items) {
       const reserved = await tx.inventoryMovement.aggregate({

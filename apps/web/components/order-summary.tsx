@@ -54,6 +54,22 @@ export function OrderSummary({ order }: { readonly order: Order }) {
             ))}
           </tbody>
           <tfoot>
+            {order.discountAmount.amount !== '0.00' ? (
+              <>
+                <tr>
+                  <th scope="row" colSpan={3} className="num">
+                    Subtotal
+                  </th>
+                  <td className="num">{formatMoney(order.subtotalAmount.amount)}</td>
+                </tr>
+                <tr>
+                  <th scope="row" colSpan={3} className="num">
+                    Desconto{order.coupon ? ` (cupom ${order.coupon.code})` : ''}
+                  </th>
+                  <td className="num">−{formatMoney(order.discountAmount.amount)}</td>
+                </tr>
+              </>
+            ) : null}
             <tr>
               <th scope="row" colSpan={3} className="num">
                 Total

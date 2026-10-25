@@ -55,9 +55,19 @@ import {
   type MovementView,
   type StockLevel
 } from '../application/inventory.service';
+import {
+  type CouponInput,
+  type CouponPreview,
+  type CouponRedemptionView,
+  CouponsService,
+  type CouponView
+} from '../application/coupons.service';
 import { OrdersService, type OrderView } from '../application/orders.service';
 import {
   AccountBodyDto,
+  CouponActiveDto,
+  CouponDto,
+  CouponPreviewDto,
   AdminProductQueryDto,
   CartItemDto,
   CheckoutDto,
@@ -137,7 +147,8 @@ export class StorefrontController {
     private readonly carts: CartService,
     private readonly orders: OrdersService,
     private readonly favorites: FavoritesService,
-    private readonly config: AppConfig
+    private readonly config: AppConfig,
+    private readonly coupons: CouponsService
   ) {}
 
   private cookieOptions(): CookieOptions {
@@ -215,6 +226,19 @@ export class StorefrontController {
     }
 
     return result.view;
+  }
+
+  /** Prévia do cupom no carrinho; o limite barra tentativa de adivinhar códigos. */
+  @Post('cart/coupon')
+  @Public()
+  @HttpCode(200)
+  @Throttle({ default: { limit: 15, ttl: 60_000 } })
+  couponPreview(
+    @Req() req: ContextRequest,
+    @OptionalPrincipal() principal: Principal | undefined,
+    @Body() body: CouponPreviewDto
+  ): Promise<CouponPreview> {
+    return this.coupons.preview(this.owner(req, principal), body.code);
   }
 
   @Post('orders/checkout')
@@ -337,8 +361,96 @@ export class StoreAdminController {
   constructor(
     private readonly catalog: CatalogService,
     private readonly inventory: InventoryService,
-    private readonly orders: OrdersService
+    private readonly orders: OrdersService,
+    private readonly coupons: CouponsService
   ) {}
+
+  private couponInput(body: CouponDto): CouponInput {
+    return {
+      code: body.code,
+      description: body.description ?? null,
+      discountType: body.discountType,
+      percentage: body.percentage ? money(body.percentage) : null,
+      amount: body.amount ? parseMoney(body.amount) : null,
+      scope: body.scope,
+      audience: body.audience,
+      minimumOrderAmount: body.minimumOrderAmount
+        ? parseMoney(body.minimumOrderAmount, 'minimumOrderAmount', { allowZero: true })
+        : null,
+      startsAt: body.startsAt ?? null,
+      endsAt: body.endsAt ?? null,
+      maxRedemptions: body.maxRedemptions ?? null,
+      maxPerCustomer: body.maxPerCustomer ?? null,
+      isActive: body.isActive ?? true,
+      productIds: body.productIds ?? [],
+      categoryIds: body.categoryIds ?? [],
+      roleIds: body.roleIds ?? []
+    };
+  }
+
+  // ---------- Cupons (DT-045) ----------
+
+  @Get('coupons')
+  @RequirePermissions(PERMISSIONS.couponsManage)
+  couponList(): Promise<CouponView[]> {
+    return this.coupons.list();
+  }
+
+  @Get('coupons/:id')
+  @RequirePermissions(PERMISSIONS.couponsManage)
+  coupon(@Param('id', new ParseUUIDPipe()) id: string): Promise<CouponView> {
+    return this.coupons.get(id);
+  }
+
+  @Get('coupons/:id/redemptions')
+  @RequirePermissions(PERMISSIONS.couponsManage)
+  couponRedemptions(@Param('id', new ParseUUIDPipe()) id: string): Promise<CouponRedemptionView[]> {
+    return this.coupons.redemptions(id);
+  }
+
+  @Post('coupons')
+  @RequirePermissions(PERMISSIONS.couponsManage)
+  createCoupon(
+    @CurrentPrincipal() actor: Principal,
+    @Body() body: CouponDto,
+    @ReqMeta() meta: RequestMeta
+  ): Promise<CouponView> {
+    return this.coupons.create(actor, this.couponInput(body), meta);
+  }
+
+  @Put('coupons/:id')
+  @RequirePermissions(PERMISSIONS.couponsManage)
+  updateCoupon(
+    @CurrentPrincipal() actor: Principal,
+    @Param('id', new ParseUUIDPipe()) id: string,
+    @Body() body: CouponDto,
+    @ReqMeta() meta: RequestMeta
+  ): Promise<CouponView> {
+    return this.coupons.update(actor, id, this.couponInput(body), meta);
+  }
+
+  @Put('coupons/:id/active')
+  @RequirePermissions(PERMISSIONS.couponsManage)
+  couponActive(
+    @CurrentPrincipal() actor: Principal,
+    @Param('id', new ParseUUIDPipe()) id: string,
+    @Body() body: CouponActiveDto,
+    @ReqMeta() meta: RequestMeta
+  ): Promise<CouponView> {
+    return this.coupons.setActive(actor, id, body.isActive, meta);
+  }
+
+  @Delete('coupons/:id')
+  @HttpCode(204)
+  @RequirePermissions(PERMISSIONS.couponsManage)
+  async deleteCoupon(
+    @CurrentPrincipal() actor: Principal,
+    @Param('id', new ParseUUIDPipe()) id: string,
+    @Body() body: DeleteReasonDto,
+    @ReqMeta() meta: RequestMeta
+  ): Promise<void> {
+    await this.coupons.delete(actor, id, body.reason, meta);
+  }
 
   @Get('categories')
   @RequirePermissions(PERMISSIONS.productsManage)

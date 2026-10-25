@@ -20,7 +20,8 @@ import { api, errorMessage } from '../../../../lib/api-client';
 import { useAuth } from '../../../../lib/auth-context';
 import { useCart } from '../../../../lib/cart-context';
 import { formatMoney, formatPhoneDisplay } from '../../../../lib/format';
-import type { Order } from '../../../../lib/store-types';
+import type { CouponPreview, Order } from '../../../../lib/store-types';
+import { CouponBox } from '../../../../components/coupon-box';
 
 export default function CartPage() {
   const { status, profile } = useAuth();
@@ -33,6 +34,7 @@ export default function CartPage() {
     notes: ''
   });
   const [accept, setAccept] = useState(false);
+  const [coupon, setCoupon] = useState<CouponPreview | null>(null);
   const [result, setResult] = useState<{ order: Order; guestAccessCode: string | null } | null>(
     null
   );
@@ -48,7 +50,8 @@ export default function CartPage() {
             ? {}
             : { customerName: form.customerName, customerEmail: form.customerEmail }),
           ...(form.customerPhone ? { customerPhone: form.customerPhone } : {}),
-          ...(form.notes ? { notes: form.notes } : {})
+          ...(form.notes ? { notes: form.notes } : {}),
+          ...(coupon ? { couponCode: coupon.code } : {})
         }
       }
     );
@@ -182,9 +185,19 @@ export default function CartPage() {
               </tbody>
             </table>
           </div>
-          <p style={{ textAlign: 'right', fontSize: '1.3rem' }}>
-            Total: <strong>{formatMoney(cart.total.amount)}</strong>
-          </p>
+          <CouponBox cartTotal={cart.total.amount} applied={coupon} onChange={setCoupon} />
+          <div className="cart-totals">
+            {coupon ? (
+              <>
+                <span>Subtotal</span>
+                <span>{formatMoney(coupon.subtotal.amount)}</span>
+                <span>Desconto ({coupon.code})</span>
+                <span>−{formatMoney(coupon.discount.amount)}</span>
+              </>
+            ) : null}
+            <strong>Total</strong>
+            <strong>{formatMoney((coupon?.total ?? cart.total).amount)}</strong>
+          </div>
 
           <form className="form card" onSubmit={(event) => void checkout.submit(event)}>
             <h2>Finalizar pedido</h2>
@@ -259,7 +272,7 @@ export default function CartPage() {
               >
                 {checkout.pending
                   ? 'Enviando…'
-                  : `Confirmar pedido · ${formatMoney(cart.total.amount)}`}
+                  : `Confirmar pedido · ${formatMoney((coupon?.total ?? cart.total).amount)}`}
               </button>
             </div>
           </form>

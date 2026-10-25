@@ -478,6 +478,15 @@ Prioridades:
 - **Impacto:** modelo do atleta (foto, consentimento e auditoria), Área do atleta, ficha no painel, página pública do time, `docs/13-SEGURANCA-E-LGPD.md`.
 - **Situação:** resolvida em 2026-10-25 (`DT-044`). Ver seção 12.
 
+### PEN-063 — Cupom em produto de parceiro
+
+- **Prioridade:** P3
+- **Bloqueia:** nada (o cupom funciona nos produtos do Fênix)
+- **Questão:** desconto em produto de parceiro muda a base da comissão e do repasse. Não está definido quem paga o desconto: o time, o parceiro ou os dois.
+- **Decisão provisória:** o cupom não se aplica a produto de parceiro (`DT-045`); o carrinho mostra isso e o painel avisa na escolha de produtos.
+- **Recomendação:** manter assim até haver acordo comercial. Se o time quiser oferecer desconto em produto de parceiro, registrar no contrato quem absorve o desconto e calcular o repasse sobre o valor cheio (time paga) ou sobre o valor com desconto (parceiro divide).
+- **Impacto:** regras de cupom, cálculo de comissão (`splitCommission`) e repasses.
+
 ## 11. Critério de resolução
 
 Ao resolver uma pendência:

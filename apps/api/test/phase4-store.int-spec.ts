@@ -109,6 +109,122 @@ describe('Fase 4 — loja, estoque, carrinho e pedidos', () => {
     acceptTerms: true
   };
 
+  it('cupom por produto e público: prévia, uso, limite e liberação ao cancelar (DT-045)', async () => {
+    const camisa = await product({ price: '100.00', stock: 5 });
+    const bone = await product({ price: '50.00', stock: 5 });
+    const athleteRole = await ctx.prisma.role.findUniqueOrThrow({ where: { code: 'athlete' } });
+    const code = `ATLETA${randomUUID().slice(0, 4).toUpperCase()}`;
+    const coupon = await ctx
+      .http()
+      .post('/api/v1/store/coupons')
+      .set(auth(board.token))
+      .send({
+        code: code.toLowerCase(),
+        discountType: 'PERCENTAGE',
+        percentage: '20',
+        scope: 'PRODUCTS',
+        productIds: [camisa.id],
+        audience: 'ROLES',
+        roleIds: [athleteRole.id],
+        maxPerCustomer: 1
+      })
+      .expect(201);
+
+    expect(coupon.body.code).toBe(code);
+
+    const fill = async (token?: string) => {
+      for (const variantId of [camisa.variantId, bone.variantId]) {
+        const req = ctx.http().put('/api/v1/cart/items');
+
+        await (token ? req.set(auth(token)) : req).send({ variantId, quantity: 1 }).expect(200);
+      }
+    };
+    const preview = (token: string | null, agent = ctx.http()) => {
+      const req = agent.post('/api/v1/cart/coupon');
+
+      return (token ? req.set(auth(token)) : req).send({ code });
+    };
+
+    // Visitante precisa entrar; conta comum não é do público do cupom.
+    const visitor = guest();
+
+    await visitor
+      .put('/api/v1/cart/items')
+      .send({ variantId: bone.variantId, quantity: 1 })
+      .expect(200);
+    expect((await preview(null, visitor).expect(422)).body.errors[0].code).toBe('LOGIN_REQUIRED');
+
+    const common = await tokenFor(ctx, ['user']);
+
+    await fill(common.token);
+    expect((await preview(common.token).expect(422)).body.errors[0].code).toBe('AUDIENCE');
+
+    // Atleta: 20% só na camisa.
+    const athlete = await tokenFor(ctx, ['user', 'athlete']);
+
+    await fill(athlete.token);
+
+    const shown = await preview(athlete.token).expect(200);
+
+    expect(shown.body).toEqual(
+      expect.objectContaining({
+        discount: expect.objectContaining({ amount: '20.00' }),
+        total: expect.objectContaining({ amount: '130.00' })
+      })
+    );
+
+    const checkout = (couponCode: string) =>
+      ctx
+        .http()
+        .post('/api/v1/orders/checkout')
+        .set(auth(athlete.token))
+        .send({ acceptTerms: true, customerPhone: '68 98888-3333', couponCode });
+    const first = await checkout(code.toLowerCase()).expect(201);
+    const order = first.body.order;
+
+    expect(order.subtotalAmount.amount).toBe('150.00');
+    expect(order.discountAmount.amount).toBe('20.00');
+    expect(order.totalAmount.amount).toBe('130.00');
+    expect(order.coupon).toEqual({ code, released: false });
+    expect(
+      order.items.find((i: { productId: string }) => i.productId === camisa.id).discountAmount
+        .amount
+    ).toBe('20.00');
+
+    // Limite de 1 uso por pessoa.
+    await fill(athlete.token);
+    expect((await checkout(code).expect(422)).body.errors[0].code).toBe('CUSTOMER_LIMIT');
+
+    // Pedido cancelado libera o uso.
+    await ctx
+      .http()
+      .put(`/api/v1/store/orders/${order.id}/status`)
+      .set(auth(board.token))
+      .send({ status: 'CANCELLED', reason: 'Teste de cupom' })
+      .expect(200);
+    await preview(athlete.token).expect(200);
+
+    // Cupom com histórico não é excluído: só inativado.
+    await ctx
+      .http()
+      .delete(`/api/v1/store/coupons/${coupon.body.id}`)
+      .set(auth(board.token))
+      .send({ reason: 'Teste' })
+      .expect(409);
+    await ctx
+      .http()
+      .put(`/api/v1/store/coupons/${coupon.body.id}/active`)
+      .set(auth(board.token))
+      .send({ isActive: false })
+      .expect(200);
+    expect((await preview(athlete.token).expect(422)).body.errors[0].code).toBe('INACTIVE');
+
+    const list = await ctx.http().get('/api/v1/store/coupons').set(auth(board.token)).expect(200);
+
+    expect(list.body.find((c: { id: string }) => c.id === coupon.body.id).redemptions).toBe(0);
+    await ctx.http().get('/api/v1/store/coupons').set(auth(common.token)).expect(403);
+  });
+
   it('shows only active products publicly and hides cost', async () => {
     const draft = await ctx
       .http()

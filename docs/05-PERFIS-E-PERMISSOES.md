@@ -87,7 +87,7 @@ Os códigos são uma proposta técnica provisória; nomes definitivos devem coin
 | Mensalidades | `fees.read`, `fees.generate`, `payments.record`, `payments.confirm`, `payments.correct` |
 | Caixa | `finance.read`, `transactions.create`, `transactions.confirm`, `transactions.cancel`, `refunds.create`, `cash.reconcile`, `cash.close`, `cash.reopen` |
 | Arquivos | `files.upload`, `files.read.restricted`, `files.delete.logical` |
-| Loja | `products.manage`, `inventory.adjust`, `orders.read`, `orders.status.change`, `campaigns.manage` |
+| Loja | `products.manage`, `inventory.adjust`, `orders.read`, `orders.status.change`, `campaigns.manage`, `coupons.manage` (DT-045) |
 | Parceiros | `partners.manage`, `partner.documents.read`, `services.manage`, `appointments.manage`, `settlements.manage` |
 | Comunicação | `forum.publish`, `forum.moderate`, `forum.members.access` (área de membros do fórum; papel atleta e diretoria), `news.manage`, `events.manage`, `notifications.send` |
 | Configuração | `settings.public.manage`, `settings.financial.manage`, `logos.manage` |
