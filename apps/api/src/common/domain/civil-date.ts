@@ -68,3 +68,12 @@ export function daysInMonth(civil: string): number {
 
   return new Date(Date.UTC(y, m, 0)).getUTCDate();
 }
+
+/** Soma (ou subtrai) dias de uma data civil, sem depender de fuso. */
+export function addDays(civil: string, days: number): string {
+  const date = civilToDate(civil);
+
+  date.setUTCDate(date.getUTCDate() + days);
+
+  return dateToCivil(date);
+}

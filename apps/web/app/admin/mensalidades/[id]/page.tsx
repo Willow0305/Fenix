@@ -55,6 +55,8 @@ export default function FeeDetailPage() {
   const [adjusting, setAdjusting] = useState(false);
   const [discount, setDiscount] = useState('');
   const [cancelling, setCancelling] = useState(false);
+  const [movingDue, setMovingDue] = useState(false);
+  const [newDue, setNewDue] = useState('');
 
   const record = useSubmit(async () => {
     const confirm = form.confirmNow && can('payments.confirm');
@@ -269,6 +271,18 @@ export default function FeeDetailPage() {
           >
             <Icon name="percent" /> Aplicar desconto / isenção
           </button>
+          {open ? (
+            <button
+              type="button"
+              className="btn btn-secondary"
+              onClick={() => {
+                setNewDue(f.dueDate);
+                setMovingDue(true);
+              }}
+            >
+              <Icon name="calendar-date" /> Alterar vencimento
+            </button>
+          ) : null}
           <button type="button" className="btn btn-secondary" onClick={() => setCancelling(true)}>
             <Icon name="x-circle" /> Cancelar mensalidade
           </button>
@@ -340,6 +354,31 @@ export default function FeeDetailPage() {
           inputMode="decimal"
           value={discount}
           onChange={(e) => setDiscount(e.target.value)}
+        />
+      </ConfirmDialog>
+      <ConfirmDialog
+        open={movingDue}
+        title="Alterar vencimento"
+        description={`Vencimento atual: ${formatDate(f.dueDate)}. O atraso passa a contar a partir da nova data.`}
+        confirmLabel="Alterar"
+        requireReason
+        onClose={() => setMovingDue(false)}
+        onConfirm={async (reason) => {
+          fee.setData(
+            await api<FeeDetail>(`/monthly-fees/${id}/due-date`, {
+              method: 'PUT',
+              body: { dueDate: newDue, reason }
+            })
+          );
+          setNotice('Vencimento alterado.');
+        }}
+      >
+        <TextField
+          label="Novo vencimento"
+          type="date"
+          required
+          value={newDue}
+          onChange={(e) => setNewDue(e.target.value)}
         />
       </ConfirmDialog>
       <ConfirmDialog

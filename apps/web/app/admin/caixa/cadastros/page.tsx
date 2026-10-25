@@ -24,6 +24,7 @@ import {
 import { todayCivil } from '../../../../lib/format';
 import { normalizeAmount, useIdempotencyKey } from '../../../../lib/idempotency';
 import { useResource } from '../../../../lib/use-resource';
+import { CategoryManager } from '../../../../components/category-manager';
 
 const NATURE: Record<string, string> = {
   INCOME: 'Receita',
@@ -142,37 +143,17 @@ export default function FinanceSetupPage() {
 
       <section className="card stack" aria-labelledby="categorias">
         <h2 id="categorias">Categorias</h2>
-        <div className="table-wrap">
-          <table className="table">
-            <tbody>
-              {(categories.data ?? []).map((c) => (
-                <tr key={c.id}>
-                  <td>
-                    {c.name} {c.isSystem ? <span className="badge">sistema</span> : null}{' '}
-                    {c.isActive ? null : <span className="badge">inativa</span>}
-                  </td>
-                  <td>{NATURE[c.nature]}</td>
-                  <td>
-                    {manage && !c.isSystem ? (
-                      <button
-                        type="button"
-                        className="btn btn-link"
-                        onClick={() =>
-                          void api(`/finance/categories/${c.id}`, {
-                            method: 'PATCH',
-                            body: { isActive: !c.isActive }
-                          }).then(categories.reload)
-                        }
-                      >
-                        {c.isActive ? 'Inativar' : 'Reativar'}
-                      </button>
-                    ) : null}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+        <CategoryManager
+          items={(categories.data ?? []).map((c) => ({
+            ...c,
+            detail: NATURE[c.nature],
+            locked: c.isSystem
+          }))}
+          endpoint="/finance/categories"
+          manage={manage}
+          withDescription={false}
+          onChanged={categories.reload}
+        />
         {manage ? (
           <form className="row" onSubmit={(event) => void createCategory.submit(event)}>
             <TextField
@@ -201,16 +182,15 @@ export default function FinanceSetupPage() {
 
       <section className="card stack" aria-labelledby="centros">
         <h2 id="centros">Centros de custo</h2>
-        {(centers.data ?? []).length === 0 ? (
-          <p className="muted">Nenhum centro de custo (opcional).</p>
-        ) : null}
-        <ul>
-          {(centers.data ?? []).map((c) => (
-            <li key={c.id}>
-              {c.name} {c.isActive ? null : <span className="badge">inativo</span>}
-            </li>
-          ))}
-        </ul>
+        <CategoryManager
+          items={centers.data ?? []}
+          endpoint="/finance/cost-centers"
+          manage={manage}
+          withDescription={false}
+          noun="centro de custo"
+          emptyText="Nenhum centro de custo (opcional)."
+          onChanged={centers.reload}
+        />
         {manage ? (
           <form className="row" onSubmit={(event) => void createCenter.submit(event)}>
             <TextField

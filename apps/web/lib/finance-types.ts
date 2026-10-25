@@ -48,6 +48,22 @@ export interface AthletePlan {
   status: string;
 }
 
+/** Atleta no plano (tela do plano, docs/29 COR-021). */
+export interface PlanMember {
+  id: string;
+  athlete: { id: string; fullName: string; status: string };
+  startsOn: string;
+  endsOn: string | null;
+  amountOverride: MoneyView | null;
+  effectiveAmount: MoneyView;
+  status: string;
+}
+
+export interface BulkAssignResult {
+  assigned: number;
+  skipped: { athleteId: string; fullName: string; reason: string }[];
+}
+
 export interface Payment {
   id: string;
   amount: MoneyView;

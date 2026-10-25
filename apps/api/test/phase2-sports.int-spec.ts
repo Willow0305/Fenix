@@ -103,6 +103,42 @@ describe('Fase 2 — atletas, equipes, interessados e seletivas', () => {
       .expect(200);
   });
 
+  it('exclui categoria sem uso e recusa a que tem equipe (COR-022)', async () => {
+    const create = async () =>
+      (
+        await ctx
+          .http()
+          .post('/api/v1/sport-categories')
+          .set(auth(board.token))
+          .send({ name: `Sub ${Date.now()}` })
+          .expect(201)
+      ).body.id as string;
+    const used = await create();
+    const unused = await create();
+
+    await ctx
+      .http()
+      .post('/api/v1/teams')
+      .set(auth(board.token))
+      .send({ name: `Equipe ${Date.now()}`, type: 'MIXED', categoryId: used })
+      .expect(201);
+
+    const refused = await ctx
+      .http()
+      .delete(`/api/v1/sport-categories/${used}`)
+      .set(auth(board.token))
+      .send({ reason: 'Teste' })
+      .expect(409);
+
+    expect(refused.body.detail).toMatch(/1 equipe/);
+    await ctx
+      .http()
+      .delete(`/api/v1/sport-categories/${unused}`)
+      .set(auth(board.token))
+      .send({ reason: 'Teste' })
+      .expect(204);
+  });
+
   describe('atletas', () => {
     it('aceita só CPF válido e telefone com DDD, gravando apenas dígitos (DT-040)', async () => {
       const send = (body: Record<string, unknown>) =>

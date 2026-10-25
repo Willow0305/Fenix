@@ -16,7 +16,7 @@ import {
   TextField,
   useSubmit
 } from '../../../components/ui';
-import { api, errorMessage } from '../../../lib/api-client';
+import { api } from '../../../lib/api-client';
 import type { Page } from '../../../lib/api-types';
 import {
   NEWS_STATUS,
@@ -26,6 +26,7 @@ import {
 } from '../../../lib/content-types';
 import { formatDateTime } from '../../../lib/format';
 import { useResource } from '../../../lib/use-resource';
+import { CategoryManager } from '../../../components/category-manager';
 
 function CategoriesPanel({
   categories,
@@ -40,37 +41,11 @@ function CategoriesPanel({
     setName('');
     await reload();
   });
-  const [toggleError, setToggleError] = useState<string | null>(null);
-
-  async function toggle(category: NewsCategory) {
-    setToggleError(null);
-
-    try {
-      await api(`/news-categories/${category.id}`, {
-        method: 'PATCH',
-        body: { isActive: !category.isActive }
-      });
-      await reload();
-    } catch (caught) {
-      setToggleError(errorMessage(caught));
-    }
-  }
 
   return (
     <details className="card">
       <summary>Categorias de notícias ({categories.length})</summary>
-      {toggleError ? <Alert kind="error">{toggleError}</Alert> : null}
-      <ul>
-        {categories.map((category) => (
-          <li key={category.id} className="row">
-            {category.name}
-            {category.isActive ? null : <span className="badge">inativa</span>}
-            <button type="button" className="btn btn-link" onClick={() => void toggle(category)}>
-              {category.isActive ? 'Desativar' : 'Ativar'}
-            </button>
-          </li>
-        ))}
-      </ul>
+      <CategoryManager items={categories} endpoint="/news-categories" manage onChanged={reload} />
       <form className="row" onSubmit={(event) => void create.submit(event)}>
         <TextField
           label="Nova categoria"

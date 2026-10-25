@@ -19,6 +19,7 @@ import { api } from '../../../lib/api-client';
 import { useAuth } from '../../../lib/auth-context';
 import { type Category, TEAM_TYPE, type Team, type TeamType } from '../../../lib/sports-types';
 import { useResource } from '../../../lib/use-resource';
+import { CategoryManager } from '../../../components/category-manager';
 
 interface TeamFormState {
   name: string;
@@ -265,30 +266,18 @@ export default function TeamsAdminPage() {
           A faixa etária é informativa: ao vincular um atleta fora dela, o painel avisa, mas não
           impede.
         </p>
-        {categories.data && categories.data.length > 0 ? (
-          <ul>
-            {categories.data.map((c) => (
-              <li key={c.id}>
-                <strong>{c.name}</strong>
-                {c.minimumAge !== null || c.maximumAge !== null
-                  ? ` (${c.minimumAge ?? '…'}–${c.maximumAge ?? '…'} anos)`
-                  : ''}{' '}
-                {c.isActive ? null : <span className="badge">Inativa</span>}{' '}
-                {manage ? (
-                  <button
-                    type="button"
-                    className="btn btn-link"
-                    onClick={() => setTogglingCategory(c)}
-                  >
-                    {c.isActive ? 'Inativar' : 'Reativar'}
-                  </button>
-                ) : null}
-              </li>
-            ))}
-          </ul>
-        ) : (
-          <p className="muted">Nenhuma categoria cadastrada.</p>
-        )}
+        <CategoryManager
+          items={(categories.data ?? []).map((c) => ({
+            ...c,
+            detail:
+              c.minimumAge !== null || c.maximumAge !== null
+                ? `${c.minimumAge ?? '…'}–${c.maximumAge ?? '…'} anos`
+                : undefined
+          }))}
+          endpoint="/sport-categories"
+          manage={manage}
+          onChanged={categories.reload}
+        />
         {manage ? (
           <form className="form" onSubmit={(event) => void createCategory.submit(event)}>
             <h3>Nova categoria</h3>

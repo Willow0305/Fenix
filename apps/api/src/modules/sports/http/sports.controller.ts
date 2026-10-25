@@ -1,7 +1,9 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
+  HttpCode,
   NotFoundException,
   Param,
   ParseUUIDPipe,
@@ -63,6 +65,7 @@ import {
   UpdateTeamDto,
   UpdateTryoutDto
 } from './sports.dto';
+import { DeleteReasonDto } from '../../../common/http/delete-reason.dto';
 
 function toApplicant(dto: ApplicantDto): ApplicantInput {
   const rest: Partial<ApplicantDto> = { ...dto };
@@ -167,6 +170,18 @@ export class TeamsController {
     @ReqMeta() meta: RequestMeta
   ): Promise<CategoryView> {
     return this.teams.updateCategory(actor, id, defined(body), meta);
+  }
+
+  @Delete('sport-categories/:id')
+  @HttpCode(204)
+  @RequirePermissions(PERMISSIONS.teamsManage)
+  async deleteCategory(
+    @CurrentPrincipal() actor: Principal,
+    @Param('id', new ParseUUIDPipe()) id: string,
+    @Body() body: DeleteReasonDto,
+    @ReqMeta() meta: RequestMeta
+  ): Promise<void> {
+    await this.teams.deleteCategory(actor, id, body.reason, meta);
   }
 
   @Get('teams')

@@ -21,6 +21,7 @@ import {
   publicationState,
   sanitizeText
 } from '../domain/content-rules';
+import { softDeleteIfUnused } from '../../../common/domain/safe-delete';
 
 export interface NewsCategoryView {
   readonly id: string;
@@ -549,5 +550,35 @@ export class NewsService {
     }
 
     return this.detail(row, false);
+  }
+
+  /** Exclusão lógica só sem uso (docs/29 COR-022); em uso, a resposta sugere inativar. */
+  async deleteCategory(
+    actor: Principal,
+    id: string,
+    reason: string,
+    meta: RequestMeta
+  ): Promise<void> {
+    await softDeleteIfUnused({
+      prisma: this.prisma,
+      audit: this.audit,
+      actor,
+      meta,
+      reason,
+      entityId: id,
+      entityType: 'NewsCategory',
+      action: 'news.category.deleted',
+      noun: 'a categoria',
+      load: (tx) =>
+        tx.newsCategory.findFirst({ where: { id, deletedAt: null }, select: { name: true } }),
+      usage: async (tx) => [
+        {
+          count: await tx.news.count({ where: { categoryId: id, deletedAt: null } }),
+          label: 'notícia(s)'
+        }
+      ],
+      remove: (tx) =>
+        tx.newsCategory.update({ where: { id }, data: { deletedAt: new Date(), isActive: false } })
+    });
   }
 }

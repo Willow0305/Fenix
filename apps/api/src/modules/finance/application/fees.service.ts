@@ -3,6 +3,7 @@ import type { MonthlyFeePlanStatus, MonthlyFeeStatus, Prisma } from '@prisma/cli
 
 import { AuditService } from '../../../common/audit/audit.service';
 import {
+  addDays,
   civilToDate,
   dateToCivil,
   daysInMonth,
@@ -62,6 +63,25 @@ export interface AthletePlanView {
   readonly effectiveAmount: MoneyView;
   readonly status: string;
 }
+
+/** Atleta no plano (tela do plano, docs/29 COR-021). */
+export interface PlanMemberView {
+  readonly id: string;
+  readonly athlete: { id: string; fullName: string; status: string };
+  readonly startsOn: string;
+  readonly endsOn: string | null;
+  readonly amountOverride: MoneyView | null;
+  readonly effectiveAmount: MoneyView;
+  readonly status: string;
+}
+
+export interface BulkAssignResult {
+  readonly assigned: number;
+  /** Atletas que já tinham este plano ou outro (sem `replaceCurrent`). */
+  readonly skipped: { athleteId: string; fullName: string; reason: string }[];
+}
+
+type PlanRow = NonNullable<Awaited<ReturnType<PrismaTx['monthlyFeePlan']['findFirst']>>>;
 
 export interface FeeView {
   readonly id: string;
@@ -250,7 +270,103 @@ export class FeesService {
     }));
   }
 
-  /** Bolsa/desconto individual é registrado como valor próprio no vínculo (auditado). */
+  /**
+   * Núcleo da atribuição, dentro de uma transação. Com `replaceCurrent`, o plano vigente
+   * de outro tipo termina na véspera do novo início (troca de plano sem buraco nem
+   * sobreposição). Bolsa/desconto individual fica como valor próprio no vínculo (auditado).
+   */
+  private async assignInTx(
+    tx: PrismaTx,
+    actor: Principal,
+    athleteId: string,
+    plan: PlanRow,
+    input: { startsOn: string; amountOverride?: Money; reason?: string; replaceCurrent?: boolean },
+    meta: RequestMeta
+  ): Promise<'assigned' | 'same-plan' | 'other-plan'> {
+    const active = await tx.athleteMonthlyFeePlan.findFirst({
+      where: { athleteId, status: 'ACTIVE', endsOn: null },
+      include: { monthlyFeePlan: { select: { name: true } } }
+    });
+
+    if (active && active.monthlyFeePlanId === plan.id) {
+      return 'same-plan';
+    }
+
+    if (active && !input.replaceCurrent) {
+      return 'other-plan';
+    }
+
+    if (active) {
+      const endsOn = addDays(input.startsOn, -1);
+
+      if (endsOn < dateToCivil(active.startsOn)) {
+        throw AppError.validation(
+          'INVALID_START_DATE',
+          'A troca precisa começar depois do início do plano atual do atleta.'
+        );
+      }
+
+      await tx.athleteMonthlyFeePlan.update({
+        where: { id: active.id },
+        data: { endsOn: civilToDate(endsOn), status: 'ENDED' }
+      });
+      await this.audit.record(
+        {
+          actorUserId: actor.userId,
+          action: 'athlete_plan.ended',
+          entityType: 'Athlete',
+          entityId: athleteId,
+          reason: input.reason ?? `Troca para o plano ${plan.name}`,
+          after: { athletePlanId: active.id, endsOn, replacedBy: plan.name },
+          meta
+        },
+        tx
+      );
+    }
+
+    const created = await tx.athleteMonthlyFeePlan.create({
+      data: {
+        athleteId,
+        monthlyFeePlanId: plan.id,
+        startsOn: civilToDate(input.startsOn),
+        amountOverride: input.amountOverride ?? null,
+        currency: input.amountOverride ? DEFAULT_CURRENCY : null
+      }
+    });
+
+    await this.audit.record(
+      {
+        actorUserId: actor.userId,
+        action: 'athlete_plan.assigned',
+        entityType: 'Athlete',
+        entityId: athleteId,
+        reason: input.reason ?? null,
+        after: {
+          athletePlanId: created.id,
+          plan: plan.name,
+          startsOn: input.startsOn,
+          amountOverride: input.amountOverride?.toFixed(2) ?? null
+        },
+        meta
+      },
+      tx
+    );
+
+    return 'assigned';
+  }
+
+  private async activePlanOrFail(tx: PrismaTx, planId: string): Promise<PlanRow> {
+    const plan = await tx.monthlyFeePlan.findFirst({
+      where: { id: planId, deletedAt: null, status: 'ACTIVE' }
+    });
+
+    if (plan === null) {
+      throw AppError.validation('INVALID_PLAN', 'Plano inexistente ou inativo.');
+    }
+
+    return plan;
+  }
+
   async assignPlan(
     actor: Principal,
     athleteId: string,
@@ -262,59 +378,143 @@ export class FeesService {
         where: { id: athleteId, deletedAt: null },
         select: { id: true }
       });
-      const plan = await tx.monthlyFeePlan.findFirst({
-        where: { id: input.planId, deletedAt: null, status: 'ACTIVE' }
-      });
 
       if (athlete === null) {
         throw AppError.notFound('Atleta não encontrado.');
       }
 
-      if (plan === null) {
-        throw AppError.validation('INVALID_PLAN', 'Plano inexistente ou inativo.');
-      }
+      const plan = await this.activePlanOrFail(tx, input.planId);
+      const result = await this.assignInTx(tx, actor, athleteId, plan, input, meta);
 
-      const active = await tx.athleteMonthlyFeePlan.findFirst({
-        where: { athleteId, status: 'ACTIVE', endsOn: null }
-      });
-
-      if (active) {
+      if (result !== 'assigned') {
         throw AppError.conflict(
           'PLAN_ACTIVE',
           'O atleta já possui plano vigente. Encerre-o antes de atribuir outro.'
         );
       }
+    });
 
-      const created = await tx.athleteMonthlyFeePlan.create({
-        data: {
-          athleteId,
-          monthlyFeePlanId: plan.id,
-          startsOn: civilToDate(input.startsOn),
-          amountOverride: input.amountOverride ?? null,
-          currency: input.amountOverride ? DEFAULT_CURRENCY : null
-        }
+    return this.athletePlans(athleteId);
+  }
+
+  /** Atletas do plano: vigentes primeiro, depois o histórico (COR-021). */
+  async planMembers(planId: string): Promise<PlanMemberView[]> {
+    const plan = await this.prisma.monthlyFeePlan.findFirst({
+      where: { id: planId, deletedAt: null },
+      select: { id: true }
+    });
+
+    if (plan === null) {
+      throw AppError.notFound('Plano não encontrado.');
+    }
+
+    const rows = await this.prisma.athleteMonthlyFeePlan.findMany({
+      where: { monthlyFeePlanId: planId, athlete: { deletedAt: null } },
+      orderBy: [{ endsOn: { sort: 'desc', nulls: 'first' } }, { startsOn: 'desc' }],
+      include: {
+        monthlyFeePlan: { select: { amount: true, currency: true } },
+        athlete: { select: { id: true, fullName: true, status: true } }
+      },
+      take: 500
+    });
+
+    return rows.map((row) => ({
+      id: row.id,
+      athlete: row.athlete,
+      startsOn: dateToCivil(row.startsOn),
+      endsOn: optionalCivil(row.endsOn),
+      amountOverride: row.amountOverride ? moneyView(row.amountOverride) : null,
+      effectiveAmount: moneyView(
+        row.amountOverride ?? row.monthlyFeePlan.amount,
+        row.monthlyFeePlan.currency
+      ),
+      status: row.status
+    }));
+  }
+
+  /** Coloca vários atletas no plano de uma vez; cada um vira uma atribuição auditada. */
+  async assignMany(
+    actor: Principal,
+    planId: string,
+    input: {
+      athleteIds: string[];
+      startsOn: string;
+      amountOverride?: Money;
+      reason?: string;
+      replaceCurrent?: boolean;
+    },
+    meta: RequestMeta
+  ): Promise<BulkAssignResult> {
+    return this.prisma.$transaction(async (tx) => {
+      const plan = await this.activePlanOrFail(tx, planId);
+      const athletes = await tx.athlete.findMany({
+        where: { id: { in: [...new Set(input.athleteIds)] }, deletedAt: null },
+        select: { id: true, fullName: true }
       });
+      const skipped: BulkAssignResult['skipped'] = [];
+      let assigned = 0;
 
+      if (athletes.length === 0) {
+        throw AppError.validation('NO_ATHLETES', 'Selecione ao menos um atleta.');
+      }
+
+      for (const athlete of athletes) {
+        const result = await this.assignInTx(tx, actor, athlete.id, plan, input, meta);
+
+        if (result === 'assigned') {
+          assigned += 1;
+        } else {
+          skipped.push({
+            athleteId: athlete.id,
+            fullName: athlete.fullName,
+            reason: result === 'same-plan' ? 'Já está neste plano.' : 'Já tem outro plano vigente.'
+          });
+        }
+      }
+
+      return { assigned, skipped };
+    });
+  }
+
+  /**
+   * Exclusão lógica do plano (fica no histórico das cobranças já geradas). Só sem atletas
+   * vigentes: com atletas, encerre os vínculos ou inative o plano.
+   */
+  async deletePlan(actor: Principal, id: string, reason: string, meta: RequestMeta): Promise<void> {
+    const plan = await this.prisma.monthlyFeePlan.findFirst({
+      where: { id, deletedAt: null },
+      include: { _count: { select: { athletePlans: { where: { status: 'ACTIVE' } } } } }
+    });
+
+    if (plan === null) {
+      throw AppError.notFound('Plano não encontrado.');
+    }
+
+    if (plan._count.athletePlans > 0) {
+      throw AppError.conflict(
+        'PLAN_IN_USE',
+        `O plano tem ${plan._count.athletePlans} atleta(s) vigente(s). Encerre os vínculos ou inative o plano.`
+      );
+    }
+
+    await this.prisma.$transaction(async (tx) => {
+      await tx.monthlyFeePlan.update({
+        where: { id },
+        data: { deletedAt: new Date(), status: 'INACTIVE' }
+      });
       await this.audit.record(
         {
           actorUserId: actor.userId,
-          action: 'athlete_plan.assigned',
-          entityType: 'Athlete',
-          entityId: athleteId,
-          reason: input.reason ?? null,
-          after: {
-            athletePlanId: created.id,
-            plan: plan.name,
-            startsOn: input.startsOn,
-            amountOverride: input.amountOverride?.toFixed(2) ?? null
-          },
+          action: 'fee_plan.deleted',
+          entityType: 'MonthlyFeePlan',
+          entityId: id,
+          reason,
+          before: { name: plan.name, status: plan.status },
           meta
         },
         tx
       );
     });
-
-    return this.athletePlans(athleteId);
   }
 
   async endPlan(
@@ -819,6 +1019,44 @@ export class FeesService {
             additional: additional.toFixed(2),
             total: total.toFixed(2)
           },
+          meta
+        },
+        tx
+      );
+    });
+
+    return this.get(feeId);
+  }
+
+  /** Muda o vencimento de uma cobrança em aberto (COR-021); o atraso é recalculado na leitura. */
+  async changeDueDate(
+    actor: Principal,
+    feeId: string,
+    dueDate: string,
+    reason: string,
+    meta: RequestMeta
+  ): Promise<FeeDetail> {
+    await this.prisma.$transaction(async (tx) => {
+      await lockRow(tx, 'monthlyFee', feeId);
+      const row = await this.loadRow(tx, feeId);
+
+      if (row.status === 'CANCELLED' || row.status === 'PAID') {
+        throw AppError.conflict(
+          'FEE_CLOSED',
+          'Só é possível alterar o vencimento de mensalidade em aberto.'
+        );
+      }
+
+      await tx.monthlyFee.update({ where: { id: feeId }, data: { dueDate: civilToDate(dueDate) } });
+      await this.audit.record(
+        {
+          actorUserId: actor.userId,
+          action: 'fee.due_date.changed',
+          entityType: 'MonthlyFee',
+          entityId: feeId,
+          reason,
+          before: { dueDate: dateToCivil(row.dueDate) },
+          after: { dueDate },
           meta
         },
         tx

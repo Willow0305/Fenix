@@ -28,6 +28,7 @@ import {
   type StoreCategory
 } from '../../../lib/store-types';
 import { useResource } from '../../../lib/use-resource';
+import { CategoryManager } from '../../../components/category-manager';
 
 export default function ProductsAdminPage() {
   const router = useRouter();
@@ -140,6 +141,15 @@ export default function ProductsAdminPage() {
           </form>
         </section>
       ) : null}
+      <details className="card">
+        <summary>Categorias da loja ({categories.data?.length ?? 0})</summary>
+        <CategoryManager
+          items={categories.data ?? []}
+          endpoint="/store/categories"
+          manage
+          onChanged={categories.reload}
+        />
+      </details>
       <form
         className="row"
         role="search"

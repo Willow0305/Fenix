@@ -101,6 +101,94 @@ describe('Fase 3 — mensalidades e Caixa Fênix', () => {
   }
 
   describe('mensalidades', () => {
+    it('gerencia atletas pelo plano: em massa, troca, exclusão e vencimento (COR-021)', async () => {
+      const { feeId, athleteId } = await feeFor('90.00');
+      const other = await ctx.prisma.athlete.create({
+        data: { fullName: `Atleta Lote ${randomUUID().slice(0, 6)}`, status: 'ACTIVE' }
+      });
+      const plan = await ctx
+        .http()
+        .post('/api/v1/fee-plans')
+        .set(auth(board.token))
+        .send({ name: `Sub-17 ${randomUUID().slice(0, 4)}`, amount: '60.00', dueDay: 5 })
+        .expect(201);
+      const add = (body: Record<string, unknown>) =>
+        ctx
+          .http()
+          .post(`/api/v1/fee-plans/${plan.body.id}/athletes`)
+          .set(auth(board.token))
+          .send({ athleteIds: [athleteId, other.id], startsOn: '2024-01-01', ...body })
+          .expect(200);
+
+      // Sem troca: quem já tem plano fica de fora e é informado.
+      const first = await add({});
+
+      expect(first.body.assigned).toBe(1);
+      expect(first.body.skipped).toEqual([
+        expect.objectContaining({ athleteId, reason: 'Já tem outro plano vigente.' })
+      ]);
+
+      // Com troca: o plano antigo termina na véspera do novo.
+      const second = await add({ replaceCurrent: true });
+
+      expect(second.body.assigned).toBe(1);
+
+      const ended = await ctx.prisma.athleteMonthlyFeePlan.findFirstOrThrow({
+        where: { athleteId, status: 'ENDED' }
+      });
+
+      expect(ended.endsOn?.toISOString().slice(0, 10)).toBe('2023-12-31');
+
+      const members = await ctx
+        .http()
+        .get(`/api/v1/fee-plans/${plan.body.id}/athletes`)
+        .set(auth(board.token))
+        .expect(200);
+
+      expect(members.body.map((m: { athlete: { id: string } }) => m.athlete.id).sort()).toEqual(
+        [athleteId, other.id].sort()
+      );
+
+      await ctx
+        .http()
+        .delete(`/api/v1/fee-plans/${plan.body.id}`)
+        .set(auth(board.token))
+        .send({ reason: 'Teste' })
+        .expect(409);
+
+      // Vencimento de uma cobrança em aberto.
+      const moved = await ctx
+        .http()
+        .put(`/api/v1/monthly-fees/${feeId}/due-date`)
+        .set(auth(board.token))
+        .send({ dueDate: '2031-02-20', reason: 'Combinado com a família' })
+        .expect(200);
+
+      expect(moved.body.dueDate).toBe('2031-02-20');
+
+      // Plano sem atletas vigentes pode ser excluído (fica no histórico).
+      const empty = await ctx
+        .http()
+        .post('/api/v1/fee-plans')
+        .set(auth(board.token))
+        .send({ name: `Vazio ${randomUUID().slice(0, 4)}`, amount: '10.00', dueDay: 1 })
+        .expect(201);
+
+      await ctx
+        .http()
+        .delete(`/api/v1/fee-plans/${empty.body.id}`)
+        .set(auth(board.token))
+        .send({ reason: 'Criado por engano' })
+        .expect(204);
+      expect(
+        (
+          (await ctx.http().get('/api/v1/fee-plans').set(auth(board.token))).body as {
+            id: string;
+          }[]
+        ).map((p) => p.id)
+      ).not.toContain(empty.body.id);
+    });
+
     it('ao inativar, aplica só os efeitos escolhidos e preserva dívida passada (COR-018)', async () => {
       const { feeId, athleteId } = await feeFor('70.00');
       const future = await ctx.prisma.monthlyFee.findUniqueOrThrow({ where: { id: feeId } });

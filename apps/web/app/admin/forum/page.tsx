@@ -28,6 +28,8 @@ import {
 } from '../../../lib/content-types';
 import { formatDateTime } from '../../../lib/format';
 import { useResource } from '../../../lib/use-resource';
+import { CategoryManager } from '../../../components/category-manager';
+import { Icon } from '../../../components/icon';
 
 const ACTION_LABEL: Record<string, string> = {
   HIDE: 'Ocultou',
@@ -67,34 +69,35 @@ function Categories() {
     <section className="card stack" aria-labelledby="categorias">
       <h2 id="categorias">Categorias</h2>
       {error ? <Alert kind="error">{error}</Alert> : null}
-      {categories.data?.map((category) => (
-        <div key={category.id} className="row">
-          <Link href={`/forum/${category.slug}`}>{category.name}</Link>
-          <span className="muted">{category.topicCount} tópico(s)</span>
-          {category.isActive ? null : <span className="badge">inativa</span>}
-          <span className="spacer" />
-          <label className="field">
-            <span className="visually-hidden">Visibilidade de {category.name}</span>
-            <select
-              value={category.visibility}
-              onChange={(e) => void update(category.id, { visibility: e.target.value })}
-            >
-              {Object.entries(FORUM_VISIBILITY).map(([value, label]) => (
-                <option key={value} value={value}>
-                  {label}
-                </option>
-              ))}
-            </select>
-          </label>
-          <button
-            type="button"
-            className="btn btn-link"
-            onClick={() => void update(category.id, { isActive: !category.isActive })}
-          >
-            {category.isActive ? 'Desativar' : 'Ativar'}
-          </button>
-        </div>
-      ))}
+      <CategoryManager
+        items={(categories.data ?? []).map((category) => ({
+          ...category,
+          detail: `${category.topicCount} tópico(s)`
+        }))}
+        endpoint="/forum/admin/categories"
+        manage
+        onChanged={categories.reload}
+        rowExtra={(category) => (
+          <>
+            <Link href={`/forum/${category.slug}`}>
+              <Icon name="box-arrow-up-right" /> Ver
+            </Link>
+            <label className="field">
+              <span className="visually-hidden">Visibilidade de {category.name}</span>
+              <select
+                value={category.visibility}
+                onChange={(e) => void update(category.id, { visibility: e.target.value })}
+              >
+                {Object.entries(FORUM_VISIBILITY).map(([value, label]) => (
+                  <option key={value} value={value}>
+                    {label}
+                  </option>
+                ))}
+              </select>
+            </label>
+          </>
+        )}
+      />
       <form className="form" onSubmit={(event) => void create.submit(event)}>
         <ErrorSummary error={create.error} />
         <div className="form-grid">

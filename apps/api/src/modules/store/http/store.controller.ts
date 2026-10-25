@@ -79,6 +79,7 @@ import {
   UpdateVariantDto,
   VariantDto
 } from './store.dto';
+import { DeleteReasonDto } from '../../../common/http/delete-reason.dto';
 
 export const CART_COOKIE = 'fenix_cart';
 const IDEMPOTENCY_HEADER = { name: 'Idempotency-Key', required: true };
@@ -364,6 +365,18 @@ export class StoreAdminController {
     @ReqMeta() meta: RequestMeta
   ): Promise<ProductCategoryView> {
     return this.catalog.updateCategory(actor, id, defined(body), meta);
+  }
+
+  @Delete('categories/:id')
+  @HttpCode(204)
+  @RequirePermissions(PERMISSIONS.productsManage)
+  async deleteCategory(
+    @CurrentPrincipal() actor: Principal,
+    @Param('id', new ParseUUIDPipe()) id: string,
+    @Body() body: DeleteReasonDto,
+    @ReqMeta() meta: RequestMeta
+  ): Promise<void> {
+    await this.catalog.deleteCategory(actor, id, body.reason, meta);
   }
 
   @Get('products')

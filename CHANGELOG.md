@@ -6,6 +6,15 @@ O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) e o 
 
 ## [Não publicado]
 
+### Planos de mensalidade e categorias (2026-10-25)
+
+#### Adicionado
+
+- tela de cada plano com quem paga e quem já saiu; adicionar vários atletas de uma vez (com data de início, valor individual e troca de plano) e tirar do plano (COR-021);
+- edição completa do plano (nome, valor, dia de vencimento, descrição) e exclusão de plano sem atletas vigentes;
+- alteração do vencimento de uma mensalidade em aberto, com motivo;
+- edição e exclusão de categorias esportivas, da loja, de notícias, do fórum, financeiras e de centros de custo; a exclusão só vale sem uso e explica onde a categoria é usada (COR-022).
+
 ### Painel administrativo (2026-10-25)
 
 #### Alterado

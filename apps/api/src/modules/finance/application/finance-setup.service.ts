@@ -18,6 +18,7 @@ import {
   DEFAULT_PAYMENT_METHODS,
   SYSTEM_CATEGORY_CODES
 } from '../domain/finance-catalog';
+import { softDeleteIfUnused } from '../../../common/domain/safe-delete';
 
 export interface AccountView {
   readonly id: string;
@@ -382,5 +383,97 @@ export class FinanceSetupService {
     });
 
     return { id: row.id, code: row.code, name: row.name, type: row.type, isActive: row.isActive };
+  }
+
+  /** Exclusão lógica só sem uso (docs/29 COR-022); em uso, a resposta sugere inativar. */
+  async deleteCategory(
+    actor: Principal,
+    id: string,
+    reason: string,
+    meta: RequestMeta
+  ): Promise<void> {
+    await softDeleteIfUnused({
+      prisma: this.prisma,
+      audit: this.audit,
+      actor,
+      meta,
+      reason,
+      entityId: id,
+      entityType: 'FinancialCategory',
+      action: 'finance.category.deleted',
+      noun: 'a categoria',
+      load: (tx) =>
+        tx.financialCategory.findFirst({ where: { id, deletedAt: null }, select: { name: true } }),
+      usage: async (tx) => [
+        {
+          count: SYSTEM_CATEGORY_CODES.has(
+            (
+              await tx.financialCategory.findUniqueOrThrow({
+                where: { id },
+                select: { code: true }
+              })
+            ).code
+          )
+            ? 1
+            : 0,
+          label: 'lançamentos automáticos do sistema'
+        },
+        {
+          count: await tx.financialTransaction.count({ where: { categoryId: id } }),
+          label: 'lançamento(s)'
+        },
+        {
+          count: await tx.financialObligation.count({ where: { categoryId: id } }),
+          label: 'conta(s) a pagar/receber'
+        },
+        {
+          count: await tx.financialCategory.count({ where: { parentId: id, deletedAt: null } }),
+          label: 'subcategoria(s)'
+        }
+      ],
+      remove: (tx) =>
+        tx.financialCategory.update({
+          where: { id },
+          data: { deletedAt: new Date(), isActive: false }
+        })
+    });
+  }
+
+  /** Exclusão lógica só sem uso (docs/29 COR-022); em uso, a resposta sugere inativar. */
+  async deleteCostCenter(
+    actor: Principal,
+    id: string,
+    reason: string,
+    meta: RequestMeta
+  ): Promise<void> {
+    await softDeleteIfUnused({
+      prisma: this.prisma,
+      audit: this.audit,
+      actor,
+      meta,
+      reason,
+      entityId: id,
+      entityType: 'CostCenter',
+      action: 'finance.cost_center.deleted',
+      noun: 'o centro de custo',
+      load: (tx) =>
+        tx.costCenter.findFirst({ where: { id, deletedAt: null }, select: { name: true } }),
+      usage: async (tx) => [
+        {
+          count: await tx.financialTransaction.count({ where: { costCenterId: id } }),
+          label: 'lançamento(s)'
+        },
+        {
+          count: await tx.financialObligation.count({ where: { costCenterId: id } }),
+          label: 'conta(s) a pagar/receber'
+        },
+        {
+          count: await tx.costCenter.count({ where: { parentId: id, deletedAt: null } }),
+          label: 'centro(s) de custo filho(s)'
+        }
+      ],
+      remove: (tx) =>
+        tx.costCenter.update({ where: { id }, data: { deletedAt: new Date(), isActive: false } })
+    });
   }
 }

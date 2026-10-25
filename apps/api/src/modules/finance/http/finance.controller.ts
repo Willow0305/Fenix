@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
   HttpCode,
   Param,
@@ -41,7 +42,9 @@ import {
   FeesService,
   type FeeView,
   type PlanView,
-  type AthletePlanView
+  type AthletePlanView,
+  type BulkAssignResult,
+  type PlanMemberView
 } from '../application/fees.service';
 import { FinanceReportsService, type FinanceSummary } from '../application/finance-reports.service';
 import {
@@ -57,9 +60,11 @@ import {
   AccountDto,
   ActiveDto,
   AdjustFeeDto,
+  AssignManyDto,
   AssignPlanDto,
   CategoryDto,
   ClosingDto,
+  DueDateDto,
   ClosingListDto,
   ClosingPreviewDto,
   ConfirmPaymentDto,
@@ -84,6 +89,7 @@ import {
   UpdateAccountDto,
   UpdatePlanDto
 } from './finance.dto';
+import { DeleteReasonDto } from '../../../common/http/delete-reason.dto';
 
 export function sendFile(
   res: Response,
@@ -189,6 +195,18 @@ export class FinanceController {
     return this.setup.updateCategory(actor, id, defined(body), meta);
   }
 
+  @Delete('categories/:id')
+  @HttpCode(204)
+  @RequirePermissions(PERMISSIONS.financeSetup)
+  async deleteCategory(
+    @CurrentPrincipal() actor: Principal,
+    @Param('id', new ParseUUIDPipe()) id: string,
+    @Body() body: DeleteReasonDto,
+    @ReqMeta() meta: RequestMeta
+  ): Promise<void> {
+    await this.setup.deleteCategory(actor, id, body.reason, meta);
+  }
+
   @Get('cost-centers')
   @RequirePermissions(PERMISSIONS.financeRead)
   costCenters(): Promise<CostCenterView[]> {
@@ -214,6 +232,18 @@ export class FinanceController {
     @ReqMeta() meta: RequestMeta
   ): Promise<CostCenterView> {
     return this.setup.updateCostCenter(actor, id, defined(body), meta);
+  }
+
+  @Delete('cost-centers/:id')
+  @HttpCode(204)
+  @RequirePermissions(PERMISSIONS.financeSetup)
+  async deleteCostCenter(
+    @CurrentPrincipal() actor: Principal,
+    @Param('id', new ParseUUIDPipe()) id: string,
+    @Body() body: DeleteReasonDto,
+    @ReqMeta() meta: RequestMeta
+  ): Promise<void> {
+    await this.setup.deleteCostCenter(actor, id, body.reason, meta);
   }
 
   @Get('payment-methods')
@@ -501,6 +531,48 @@ export class FeesController {
     );
   }
 
+  @Delete('fee-plans/:id')
+  @HttpCode(204)
+  @RequirePermissions(PERMISSIONS.feesManagePlans)
+  async deletePlan(
+    @CurrentPrincipal() actor: Principal,
+    @Param('id', new ParseUUIDPipe()) id: string,
+    @Body() body: ReasonBodyDto,
+    @ReqMeta() meta: RequestMeta
+  ): Promise<void> {
+    await this.fees.deletePlan(actor, id, body.reason, meta);
+  }
+
+  @Get('fee-plans/:id/athletes')
+  @RequirePermissions(PERMISSIONS.feesRead)
+  planMembers(@Param('id', new ParseUUIDPipe()) id: string): Promise<PlanMemberView[]> {
+    return this.fees.planMembers(id);
+  }
+
+  @Post('fee-plans/:id/athletes')
+  @HttpCode(200)
+  @RequirePermissions(PERMISSIONS.feesManagePlans)
+  assignMany(
+    @CurrentPrincipal() actor: Principal,
+    @Param('id', new ParseUUIDPipe()) id: string,
+    @Body() body: AssignManyDto,
+    @ReqMeta() meta: RequestMeta
+  ): Promise<BulkAssignResult> {
+    const { amountOverride, ...rest } = body;
+
+    return this.fees.assignMany(
+      actor,
+      id,
+      {
+        ...defined(rest),
+        ...(amountOverride === undefined
+          ? {}
+          : { amountOverride: parseMoney(amountOverride, 'amountOverride', { allowZero: true }) })
+      },
+      meta
+    );
+  }
+
   @Get('athletes/:id/fee-plans')
   @RequirePermissions(PERMISSIONS.feesRead)
   athletePlans(@Param('id', new ParseUUIDPipe()) id: string): Promise<AthletePlanView[]> {
@@ -644,6 +716,17 @@ export class FeesController {
       },
       meta
     );
+  }
+
+  @Put('monthly-fees/:id/due-date')
+  @RequirePermissions(PERMISSIONS.feesAdjust)
+  dueDate(
+    @CurrentPrincipal() actor: Principal,
+    @Param('id', new ParseUUIDPipe()) id: string,
+    @Body() body: DueDateDto,
+    @ReqMeta() meta: RequestMeta
+  ): Promise<FeeDetail> {
+    return this.fees.changeDueDate(actor, id, body.dueDate, body.reason, meta);
   }
 
   @Post('monthly-fees/:id/cancel')

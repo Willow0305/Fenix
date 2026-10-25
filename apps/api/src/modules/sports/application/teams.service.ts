@@ -6,6 +6,7 @@ import { AppError } from '../../../common/errors/app-error';
 import type { Principal, RequestMeta } from '../../../common/http/request-context';
 import { PrismaService } from '../../../common/prisma/prisma.service';
 import { slugify } from '../domain/sports-rules';
+import { softDeleteIfUnused } from '../../../common/domain/safe-delete';
 
 export interface CategoryView {
   readonly id: string;
@@ -291,5 +292,35 @@ export class TeamsService {
     return (await this.teams({ includeInactive: true, withCounts: true })).find(
       (t) => t.id === id
     ) as TeamView;
+  }
+
+  /** Exclusão lógica só sem uso (docs/29 COR-022); em uso, a resposta sugere inativar. */
+  async deleteCategory(
+    actor: Principal,
+    id: string,
+    reason: string,
+    meta: RequestMeta
+  ): Promise<void> {
+    await softDeleteIfUnused({
+      prisma: this.prisma,
+      audit: this.audit,
+      actor,
+      meta,
+      reason,
+      entityId: id,
+      entityType: 'Category',
+      action: 'category.deleted',
+      noun: 'a categoria',
+      load: (tx) =>
+        tx.category.findFirst({ where: { id, deletedAt: null }, select: { name: true } }),
+      usage: async (tx) => [
+        {
+          count: await tx.team.count({ where: { categoryId: id, deletedAt: null } }),
+          label: 'equipe(s)'
+        }
+      ],
+      remove: (tx) =>
+        tx.category.update({ where: { id }, data: { deletedAt: new Date(), isActive: false } })
+    });
   }
 }

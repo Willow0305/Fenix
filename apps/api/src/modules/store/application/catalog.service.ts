@@ -34,6 +34,7 @@ import {
 import { slugify } from '../../sports/domain/sports-rules';
 import { effectiveUnitPrice, isPurchasable, listPrice, requiresStock } from '../domain/store-rules';
 import { InventoryService, type StockLevel } from './inventory.service';
+import { softDeleteIfUnused } from '../../../common/domain/safe-delete';
 
 export interface ProductCategoryView {
   readonly id: string;
@@ -944,5 +945,42 @@ export class CatalogService {
     });
 
     return this.adminDetail(productId);
+  }
+
+  /** Exclusão lógica só sem uso (docs/29 COR-022); em uso, a resposta sugere inativar. */
+  async deleteCategory(
+    actor: Principal,
+    id: string,
+    reason: string,
+    meta: RequestMeta
+  ): Promise<void> {
+    await softDeleteIfUnused({
+      prisma: this.prisma,
+      audit: this.audit,
+      actor,
+      meta,
+      reason,
+      entityId: id,
+      entityType: 'ProductCategory',
+      action: 'store.category.deleted',
+      noun: 'a categoria',
+      load: (tx) =>
+        tx.productCategory.findFirst({ where: { id, deletedAt: null }, select: { name: true } }),
+      usage: async (tx) => [
+        {
+          count: await tx.product.count({ where: { productCategoryId: id, deletedAt: null } }),
+          label: 'produto(s)'
+        },
+        {
+          count: await tx.productCategory.count({ where: { parentId: id, deletedAt: null } }),
+          label: 'subcategoria(s)'
+        }
+      ],
+      remove: (tx) =>
+        tx.productCategory.update({
+          where: { id },
+          data: { deletedAt: new Date(), isActive: false }
+        })
+    });
   }
 }

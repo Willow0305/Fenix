@@ -265,6 +265,8 @@ Antes de mudar uma correção para "Concluída", conferir:
 | COR-018 | Painel · Detalhe do atleta | Inativar/suspender não trata mensalidades nem vínculos | Regra de negócio | P1 | Concluída (`e49c2f5`) |
 | COR-019 | Painel · Equipes | Faixa etária da categoria não é conferida | Regra de negócio | P3 | Concluída (`e49c2f5`) |
 | COR-020 | Painel · Interessados | Sem busca por nome | Melhoria de usabilidade | P3 | Concluída (`e49c2f5`) |
+| COR-021 | Painel · Planos e Mensalidades | Sem como ver e gerenciar quem paga cada plano nem alterar vencimento | Melhoria de usabilidade | P1 | Concluída |
+| COR-022 | Painel · Categorias (todas) | Categorias não podem ser editadas nem excluídas | Melhoria de usabilidade | P2 | Concluída |
 
 ## 6. Registro detalhado
 
@@ -462,6 +464,21 @@ Antes de mudar uma correção para "Concluída", conferir:
 - **Diagnóstico:** só existe filtro de status (`apps/web/app/admin/interessados/page.tsx:46-62`).
 - **Correção proposta:** busca por nome, e-mail ou telefone e padrão 3.8.
 - **Critério de aceite:** é possível achar um interessado pelo nome.
+
+### COR-021 — Planos: quem paga, edição e vencimento
+
+- **Tela:** painel · `/admin/planos`, `/admin/planos/[id]`, detalhe da mensalidade, ficha do atleta
+- **Relatado:** "não consigo editar a mensalidade de fato, colocar para que determinados usuários pertençam e sejam cobrados corretamente"
+- **Tipo / prioridade:** Melhoria de usabilidade · P1
+- **Diagnóstico:** a tela de planos só alterava o valor e inativava (a API já aceitava nome, vencimento e descrição); atribuir plano só era possível atleta por atleta, na ficha; não havia lista de quem está em cada plano nem forma de mudar o vencimento de uma cobrança.
+- **Correção feita:** tela por plano com quem paga e quem já saiu; adicionar vários atletas de uma vez (início, valor individual, troca de plano); tirar do plano; editar e excluir plano sem atletas vigentes; alterar vencimento da cobrança em aberto (`DT-043`).
+
+### COR-022 — Categorias sem edição nem exclusão
+
+- **Tela:** painel · Equipes, Produtos, Notícias, Fórum, Contas e categorias
+- **Tipo / prioridade:** Melhoria de usabilidade · P2
+- **Diagnóstico:** as telas só permitiam criar e inativar; não havia exclusão na API.
+- **Correção feita:** componente `CategoryManager` com editar, ativar/inativar e excluir; exclusão lógica só sem uso, com a resposta explicando onde a categoria é usada (`DT-043`).
 
 ## 7. Ordem recomendada de execução
 

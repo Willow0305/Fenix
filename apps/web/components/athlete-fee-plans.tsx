@@ -47,8 +47,11 @@ export function AthleteFeePlans({ athleteId }: { readonly athleteId: string }) {
       {current ? (
         <div className="row">
           <span>
-            Plano <strong>{current.plan.name}</strong> desde {formatDate(current.startsOn)} ·{' '}
-            {formatMoney(current.effectiveAmount.amount)}
+            Plano{' '}
+            <Link href={`/admin/planos/${current.plan.id}`}>
+              <strong>{current.plan.name}</strong>
+            </Link>{' '}
+            desde {formatDate(current.startsOn)} · {formatMoney(current.effectiveAmount.amount)}
             {current.amountOverride ? ' (valor individual)' : ''}
           </span>
           {can('fees.plans.manage') ? (

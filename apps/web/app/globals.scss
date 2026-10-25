@@ -956,3 +956,42 @@ dialog {
     }
   }
 }
+
+// Lista de seleção com caixas (ex.: atletas para um plano).
+.pick-list {
+  display: grid;
+  gap: 0.35rem;
+  max-height: 22rem;
+  overflow-y: auto;
+  margin: 0;
+  padding: 0.5rem;
+  list-style: none;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+
+  li {
+    padding: 0.35rem 0.25rem;
+    border-bottom: 1px solid var(--color-border);
+  }
+
+  li:last-child {
+    border-bottom: 0;
+  }
+}
+
+.category-list {
+  display: grid;
+  gap: 0;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+
+  > li {
+    padding: 0.65rem 0;
+    border-bottom: 1px solid var(--color-border);
+  }
+
+  > li:last-child {
+    border-bottom: 0;
+  }
+}

@@ -12,6 +12,9 @@ import {
 } from '@prisma/client';
 import { Transform } from 'class-transformer';
 import {
+  ArrayMaxSize,
+  ArrayMinSize,
+  IsArray,
   IsBoolean,
   IsEnum,
   IsInt,
@@ -231,6 +234,30 @@ export class AssignPlanDto {
   @Matches(/^\d{1,13}(\.\d{1,2})?$/, AMOUNT_MSG)
   amountOverride?: string;
   @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(1000) reason?: string;
+}
+
+/** Vários atletas no plano de uma vez (docs/29 COR-021). */
+export class AssignManyDto {
+  @ApiProperty({ type: [String] })
+  @IsArray()
+  @ArrayMinSize(1)
+  @ArrayMaxSize(100)
+  @IsUUID('all', { each: true })
+  athleteIds!: string[];
+  @ApiProperty() @Matches(DATE, DATE_MSG) startsOn!: string;
+  @ApiPropertyOptional({ description: 'Valor individual igual para todos os selecionados.' })
+  @IsOptional()
+  @Matches(/^\d{1,13}(\.\d{1,2})?$/, AMOUNT_MSG)
+  amountOverride?: string;
+  @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(1000) reason?: string;
+  @ApiPropertyOptional({ description: 'Troca o plano vigente de quem já tem outro.' })
+  @IsOptional()
+  @IsBoolean()
+  replaceCurrent?: boolean;
+}
+
+export class DueDateDto extends ReasonBodyDto {
+  @ApiProperty() @Matches(DATE, DATE_MSG) dueDate!: string;
 }
 
 export class EndPlanDto extends ReasonBodyDto {

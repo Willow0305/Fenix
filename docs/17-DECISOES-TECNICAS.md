@@ -831,3 +831,21 @@ A logo oficial e as configurações do time "sumiam". A auditoria mostrou a caus
 
 - nenhuma mensalidade com pagamento, nem de mês passado, é cancelada por mudança de status;
 - teste de integração cobre o impacto, a recusa de encerrar vínculos na suspensão e os três efeitos.
+
+## DT-043 — Gestão de planos de mensalidade e exclusão segura de cadastros
+
+- **Estado:** Aceita
+- **Data:** 2026-10-25
+- **Aprovador:** responsável do projeto ("preciso controlar as mensalidades melhor: quem paga qual mensalidade, editar, data de cobrança, adicionar ou remover atletas; categorias devem ser editadas e apagadas", 2026-10-25)
+
+### Decisão
+
+- **plano no centro:** cada plano tem tela própria (`/admin/planos/[id]`) com quem paga, quem já saiu e as ações. `GET /fee-plans/:id/athletes` lista os vínculos; `POST /fee-plans/:id/athletes` coloca até 100 atletas de uma vez, com início, valor individual e motivo opcionais. Sem `replaceCurrent`, quem já tem outro plano é informado e fica de fora; com ele, o plano anterior termina na véspera do novo início, sem buraco nem sobreposição. A ficha do atleta continua com a atribuição individual, que usa o mesmo núcleo (`assignInTx`);
+- **edição:** nome, valor, dia de vencimento e descrição do plano valem para as próximas cobranças; as já geradas não mudam (RN-MEN). O vencimento de uma cobrança em aberto muda por `PUT /monthly-fees/:id/due-date`, com motivo e auditoria (`fee.due_date.changed`);
+- **exclusão de plano:** `DELETE /fee-plans/:id` faz exclusão lógica e só é aceita sem atletas vigentes; as cobranças antigas continuam ligadas ao plano;
+- **exclusão de cadastros auxiliares:** `softDeleteIfUnused` (`common/domain/safe-delete.ts`) é a regra única para excluir categoria esportiva, da loja, de notícias, do fórum, categoria financeira e centro de custo: exclusão lógica com motivo e auditoria, recusada com `409 IN_USE` quando há uso (equipes, produtos, notícias, tópicos, lançamentos, contas a pagar e receber, subcategorias). Categorias financeiras do sistema nunca são excluídas. Na interface, `CategoryManager` concentra editar, ativar/inativar e excluir nos cinco tipos.
+
+### Consequências
+
+- nenhum registro financeiro é apagado; cobrança gerada só muda por ajuste, vencimento ou cancelamento auditados;
+- testes de integração cobrem atribuição em massa, troca, listagem, recusa de exclusão em uso, exclusão sem uso e mudança de vencimento, além da exclusão de categoria esportiva.

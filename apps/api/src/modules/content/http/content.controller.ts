@@ -80,6 +80,7 @@ import {
   UpdateNewsCategoryDto,
   UpdateNewsDto
 } from './content.dto';
+import { DeleteReasonDto } from '../../../common/http/delete-reason.dto';
 
 const IDEMPOTENCY_HEADER = { name: 'Idempotency-Key', required: true };
 
@@ -143,6 +144,18 @@ export class ContentController {
     @ReqMeta() meta: RequestMeta
   ): Promise<NewsCategoryView> {
     return this.news.updateCategory(actor, id, defined(body), meta);
+  }
+
+  @Delete('news-categories/:id')
+  @HttpCode(204)
+  @RequirePermissions(PERMISSIONS.newsManage)
+  async deleteNewsCategory(
+    @CurrentPrincipal() actor: Principal,
+    @Param('id', new ParseUUIDPipe()) id: string,
+    @Body() body: DeleteReasonDto,
+    @ReqMeta() meta: RequestMeta
+  ): Promise<void> {
+    await this.news.deleteCategory(actor, id, body.reason, meta);
   }
 
   @Get('news')
@@ -463,6 +476,18 @@ export class ContentController {
     @ReqMeta() meta: RequestMeta
   ): Promise<void> {
     await this.forum.updateCategory(actor, id, defined(body), meta);
+  }
+
+  @Delete('forum/admin/categories/:id')
+  @HttpCode(204)
+  @RequirePermissions(PERMISSIONS.forumModerate)
+  async deleteForumCategory(
+    @CurrentPrincipal() actor: Principal,
+    @Param('id', new ParseUUIDPipe()) id: string,
+    @Body() body: DeleteReasonDto,
+    @ReqMeta() meta: RequestMeta
+  ): Promise<void> {
+    await this.forum.deleteCategory(actor, id, body.reason, meta);
   }
 
   @Post('forum/topics/:id/moderation')

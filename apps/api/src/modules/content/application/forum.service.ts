@@ -30,6 +30,7 @@ import {
   TOPIC_RATE,
   visibleTopicStatuses
 } from '../domain/content-rules';
+import { softDeleteIfUnused } from '../../../common/domain/safe-delete';
 
 export interface ForumCategoryView {
   readonly id: string;
@@ -1125,5 +1126,35 @@ export class ForumService {
       page,
       pageSize
     );
+  }
+
+  /** Exclusão lógica só sem uso (docs/29 COR-022); em uso, a resposta sugere inativar. */
+  async deleteCategory(
+    actor: Principal,
+    id: string,
+    reason: string,
+    meta: RequestMeta
+  ): Promise<void> {
+    await softDeleteIfUnused({
+      prisma: this.prisma,
+      audit: this.audit,
+      actor,
+      meta,
+      reason,
+      entityId: id,
+      entityType: 'ForumCategory',
+      action: 'forum.category.deleted',
+      noun: 'a categoria',
+      load: (tx) =>
+        tx.forumCategory.findFirst({ where: { id, deletedAt: null }, select: { name: true } }),
+      usage: async (tx) => [
+        {
+          count: await tx.forumTopic.count({ where: { categoryId: id, deletedAt: null } }),
+          label: 'tópico(s)'
+        }
+      ],
+      remove: (tx) =>
+        tx.forumCategory.update({ where: { id }, data: { deletedAt: new Date(), isActive: false } })
+    });
   }
 }
