@@ -252,6 +252,14 @@ Antes de liberar qualquer jornada acessível a menores, é obrigatório:
 
 Dados de saúde/prontuário continuam fora do escopo, mesmo com responsável.
 
+### Foto de perfil e elenco público (DT-044)
+
+- todo usuário cadastrado pode enviar foto de perfil; ela é **privada por padrão** (arquivo `INTERNAL`): abre só para a própria pessoa e para quem tem `files.read.restricted` (administração e diretoria);
+- a própria pessoa decide o **perfil público**; só então a foto vira `PUBLIC` e, se for atleta ativo com vínculo aberto em equipe ativa, aparece no elenco do site. A diretoria não pode tornar público o perfil de ninguém;
+- **menor de 18 anos ou sem data de nascimento:** além da escolha da pessoa, exige a autorização do responsável registrada pela diretoria (LGPD art. 14), com motivo e auditoria; a diretoria guarda o documento da autorização fora do sistema;
+- no site aparecem só nome de exibição (apelido; ou nome e último sobrenome; para menor, sobrenome só com a inicial), posição e foto. Nunca idade, data de nascimento, contato ou documento;
+- voltar a privado, remover a foto ou retirar a autorização tira a pessoa do elenco no próximo carregamento do site e fecha a foto. A foto trocada ou removida recebe exclusão lógica; a remoção física do arquivo segue a política de retenção (`PEN-011`).
+
 ## Terceiros e operadores
 
 - inventariar hospedagem, banco, objeto, e-mail, observabilidade e futuros gateways;

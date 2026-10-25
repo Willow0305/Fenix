@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 
+import { ProfilePhotoSection } from '../../../components/profile-photo-section';
 import {
   Alert,
   ErrorSummary,
@@ -74,6 +75,7 @@ export default function AccountOverviewPage() {
           </button>
         </div>
       </form>
+      <ProfilePhotoSection profile={profile} />
     </>
   );
 }

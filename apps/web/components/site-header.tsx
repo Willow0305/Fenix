@@ -8,6 +8,7 @@ import { useAuth } from '../lib/auth-context';
 import { useCart } from '../lib/cart-context';
 import { BrandLogo } from './brand-logo';
 import styles from './site-header.module.scss';
+import { Avatar } from './avatar';
 import { Icon } from './icon';
 
 export interface NavItem {
@@ -106,7 +107,12 @@ export function SiteHeader({
                   className="btn btn-primary btn-sm"
                   onClick={() => setOpen(false)}
                 >
-                  <Icon name="person-circle" /> {profile.name.split(' ')[0]}
+                  {profile.avatarUrl ? (
+                    <Avatar src={profile.avatarUrl} name={profile.name} size={22} authenticated />
+                  ) : (
+                    <Icon name="person-circle" />
+                  )}{' '}
+                  {profile.name.split(' ')[0]}
                 </Link>
               </>
             ) : status === 'anonymous' ? (

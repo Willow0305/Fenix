@@ -2,6 +2,7 @@ import {
   createTestContext,
   createUser,
   login,
+  PNG_1X1,
   type TestContext,
   randomCpf,
   tokenFor,
@@ -137,6 +138,86 @@ describe('Fase 2 — atletas, equipes, interessados e seletivas', () => {
       .set(auth(board.token))
       .send({ reason: 'Teste' })
       .expect(204);
+  });
+
+  it('elenco público respeita a escolha da pessoa e a autorização para menores (DT-044)', async () => {
+    const teamId = await createTeam(`Elenco ${Date.now()}`);
+    const team = await ctx.prisma.team.findUniqueOrThrow({ where: { id: teamId } });
+    const person = async (fullName: string, birthDate: string) => {
+      const account = await createUser(ctx.prisma, ['user']);
+      const token = await login(ctx, account.email);
+      const athlete = await ctx.prisma.athlete.create({
+        data: { fullName, birthDate: new Date(birthDate), status: 'ACTIVE', userId: account.id }
+      });
+
+      await ctx.prisma.teamAthlete.create({
+        data: {
+          athleteId: athlete.id,
+          teamId,
+          startsOn: new Date('2024-01-01'),
+          position: 'Líbero'
+        }
+      });
+
+      return { token, athleteId: athlete.id };
+    };
+    const roster = async () =>
+      (
+        (await ctx.http().get('/api/v1/public/teams-roster').expect(200)).body as {
+          teams: { id: string; athletes: { displayName: string; photoUrl: string | null }[] }[];
+        }[]
+      )
+        .flatMap((group) => group.teams)
+        .find((t) => t.id === team.id)?.athletes ?? [];
+    const adult = await person('Ana Paula Lima', '1995-05-05');
+    const minor = await person('Bia Costa Rocha', '2012-02-02');
+
+    // Foto privada: só a própria pessoa abre.
+    const withPhoto = await ctx
+      .http()
+      .put('/api/v1/me/avatar')
+      .set(auth(adult.token))
+      .attach('file', PNG_1X1, 'eu.png')
+      .expect(200);
+    const photo = withPhoto.body.avatarUrl as string;
+
+    await ctx.http().get(photo).expect(404);
+    await ctx.http().get(photo).set(auth(adult.token)).expect(200);
+    expect(await roster()).toEqual([]);
+
+    // Perfil público: aparece no elenco e a foto abre para todos.
+    for (const who of [adult, minor]) {
+      await ctx
+        .http()
+        .put('/api/v1/me/profile-visibility')
+        .set(auth(who.token))
+        .send({ public: true })
+        .expect(200);
+    }
+
+    await ctx.http().get(photo).expect(200);
+    expect(await roster()).toEqual([
+      { displayName: 'Ana Lima', position: 'Líbero', photoUrl: photo }
+    ]);
+
+    // Menor só aparece com a autorização registrada pela diretoria, com nome abreviado.
+    await ctx
+      .http()
+      .put(`/api/v1/athletes/${minor.athleteId}/public-profile-consent`)
+      .set(auth(board.token))
+      .send({ granted: true, reason: 'Autorização assinada pela mãe' })
+      .expect(200);
+    expect((await roster()).map((a) => a.displayName)).toEqual(['Ana Lima', 'Bia R.']);
+
+    // Voltar a privado tira do elenco e fecha a foto.
+    await ctx
+      .http()
+      .put('/api/v1/me/profile-visibility')
+      .set(auth(adult.token))
+      .send({ public: false })
+      .expect(200);
+    await ctx.http().get(photo).expect(404);
+    expect((await roster()).map((a) => a.displayName)).toEqual(['Bia R.']);
   });
 
   describe('atletas', () => {

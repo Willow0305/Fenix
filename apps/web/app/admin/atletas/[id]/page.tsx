@@ -16,6 +16,7 @@ import {
   TextField,
   useSubmit
 } from '../../../../components/ui';
+import { Avatar } from '../../../../components/avatar';
 import { Icon } from '../../../../components/icon';
 import { api } from '../../../../lib/api-client';
 import { ageFrom } from '../../../../lib/age';
@@ -60,6 +61,7 @@ export default function AthleteDetailPage() {
   const [ending, setEnding] = useState<Membership | null>(null);
   const [endsOn, setEndsOn] = useState(todayCivil());
   const [unlinking, setUnlinking] = useState(false);
+  const [consenting, setConsenting] = useState<boolean | null>(null);
   const [linkEmail, setLinkEmail] = useState('');
   const [membership, setMembership] = useState({
     teamId: '',
@@ -168,20 +170,53 @@ export default function AthleteDetailPage() {
       <section className="card stack" aria-labelledby="conta">
         <h2 id="conta">Conta de acesso</h2>
         {a.user ? (
-          <div className="row">
-            <span>
-              Vinculado a <strong>{a.user.name}</strong> ({a.user.email})
-            </span>
-            {can('athletes.update') ? (
-              <button
-                type="button"
-                className="btn btn-secondary btn-sm"
-                onClick={() => setUnlinking(true)}
-              >
-                Desvincular
-              </button>
-            ) : null}
-          </div>
+          <>
+            <div className="row">
+              <Avatar src={a.user.avatarUrl} name={a.user.name} size={56} authenticated />
+              <span style={{ flex: '1 1 14rem' }}>
+                Vinculado a <strong>{a.user.name}</strong> ({a.user.email})
+              </span>
+              {can('athletes.update') ? (
+                <button
+                  type="button"
+                  className="btn btn-secondary btn-sm"
+                  onClick={() => setUnlinking(true)}
+                >
+                  Desvincular
+                </button>
+              ) : null}
+            </div>
+            <div className="stack" style={{ gap: '0.4rem' }}>
+              <span>
+                <Icon name={a.publicProfile.visibleOnSite ? 'eye' : 'eye-slash'} />{' '}
+                {a.publicProfile.visibleOnSite
+                  ? 'Aparece no elenco do site (foto, nome e posição).'
+                  : !a.user.profilePublic
+                    ? 'Perfil privado: não aparece no site. Só a própria pessoa pode torná-lo público.'
+                    : a.publicProfile.needsGuardianConsent && !a.publicProfile.guardianConsentAt
+                      ? 'Escolheu perfil público, mas é menor de 18 (ou sem data de nascimento): falta a autorização do responsável.'
+                      : 'Perfil público; aparece no elenco quando estiver Ativo em uma equipe ativa.'}
+              </span>
+              {a.publicProfile.needsGuardianConsent && can('athletes.update') ? (
+                <div className="row">
+                  <span className="muted">
+                    {a.publicProfile.guardianConsentAt
+                      ? `Responsável autorizou em ${formatDateTime(a.publicProfile.guardianConsentAt)}.`
+                      : 'Sem autorização do responsável registrada.'}
+                  </span>
+                  <button
+                    type="button"
+                    className="btn btn-secondary btn-sm"
+                    onClick={() => setConsenting(!a.publicProfile.guardianConsentAt)}
+                  >
+                    {a.publicProfile.guardianConsentAt
+                      ? 'Retirar autorização'
+                      : 'Registrar autorização do responsável'}
+                  </button>
+                </div>
+              ) : null}
+            </div>
+          </>
         ) : can('athletes.update') ? (
           <form className="row" onSubmit={(event) => void link.submit(event)}>
             <TextField
@@ -441,6 +476,30 @@ export default function AthleteDetailPage() {
           onChange={(e) => setEndsOn(e.target.value)}
         />
       </ConfirmDialog>
+      <ConfirmDialog
+        open={consenting !== null}
+        title={
+          consenting ? 'Registrar autorização do responsável' : 'Retirar autorização do responsável'
+        }
+        description={
+          consenting
+            ? 'Confirme que o responsável legal autorizou mostrar foto, nome abreviado e posição no site (LGPD, art. 14). Guarde o documento da autorização.'
+            : 'O atleta sai do elenco público no próximo carregamento do site.'
+        }
+        confirmLabel={consenting ? 'Registrar' : 'Retirar'}
+        requireReason
+        onClose={() => setConsenting(null)}
+        onConfirm={async (reason) => {
+          athlete.setData(
+            await api<AthleteDetail>(`/athletes/${id}/public-profile-consent`, {
+              method: 'PUT',
+              body: { granted: consenting === true, reason }
+            })
+          );
+          setNotice(consenting ? 'Autorização registrada.' : 'Autorização retirada.');
+          await history.reload();
+        }}
+      />
       <ConfirmDialog
         open={unlinking}
         title="Desvincular conta"

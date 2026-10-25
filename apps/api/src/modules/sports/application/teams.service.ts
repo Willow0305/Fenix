@@ -7,6 +7,9 @@ import type { Principal, RequestMeta } from '../../../common/http/request-contex
 import { PrismaService } from '../../../common/prisma/prisma.service';
 import { slugify } from '../domain/sports-rules';
 import { softDeleteIfUnused } from '../../../common/domain/safe-delete';
+import { ageOn, civilToDate, dateToCivil, todayIn } from '../../../common/domain/civil-date';
+import { ADULT_AGE } from '../domain/sports-rules';
+import { mediaUrl } from '../../media/application/media.service';
 
 export interface CategoryView {
   readonly id: string;
@@ -46,6 +49,55 @@ export interface TeamInput {
 }
 
 /** Equipes (elenco) e categorias (classificação esportiva) — PEN-015, RF-002. */
+export interface RosterAthleteView {
+  readonly displayName: string;
+  readonly position: string | null;
+  /** Só existe se a pessoa escolheu perfil público (arquivo classificado como PUBLIC). */
+  readonly photoUrl: string | null;
+}
+
+export interface RosterCategoryView {
+  readonly category: { id: string; name: string } | null;
+  readonly teams: {
+    id: string;
+    name: string;
+    slug: string;
+    type: TeamType;
+    description: string | null;
+    athletes: RosterAthleteView[];
+  }[];
+}
+
+/** Soma anos a uma data civil (29/02 vira 28/02 em ano não bissexto). */
+function addYears(civil: string, years: number): string {
+  const [y, m, d] = civil.split('-').map(Number) as [number, number, number];
+  const year = y + years;
+  const last = new Date(Date.UTC(year, m, 0)).getUTCDate();
+
+  return `${year}-${String(m).padStart(2, '0')}-${String(Math.min(d, last)).padStart(2, '0')}`;
+}
+
+/** Apelido ou nome e último sobrenome; para menor, sobrenome só com a inicial. */
+export function publicDisplayName(
+  fullName: string,
+  preferredName: string | null,
+  adult: boolean
+): string {
+  if (preferredName?.trim()) {
+    return preferredName.trim();
+  }
+
+  const parts = fullName.trim().split(/\s+/);
+  const first = parts[0] ?? '';
+  const last = parts.length > 1 ? (parts[parts.length - 1] ?? '') : '';
+
+  if (!last) {
+    return first;
+  }
+
+  return adult ? `${first} ${last}` : `${first} ${last.charAt(0)}.`;
+}
+
 @Injectable()
 export class TeamsService {
   constructor(
@@ -151,6 +203,90 @@ export class TeamsService {
     });
 
     return (await this.categories(true)).find((c) => c.id === id) as CategoryView;
+  }
+
+  /**
+   * Elenco público por categoria (PEN-062, DT-044). Só atletas ativos, com vínculo aberto
+   * em equipe ativa, que marcaram perfil público na própria conta; menor de 18 (ou sem
+   * nascimento) só com autorização do responsável. Expõe apenas nome de exibição, posição
+   * e foto pública: nunca idade, contato ou documento.
+   */
+  async publicRoster(type?: TeamType): Promise<RosterCategoryView[]> {
+    const today = todayIn();
+    const adultBirth = civilToDate(addYears(today, -ADULT_AGE));
+    const teams = await this.prisma.team.findMany({
+      where: { deletedAt: null, isActive: true, ...(type ? { type } : {}) },
+      orderBy: { name: 'asc' },
+      include: {
+        category: { select: { id: true, name: true, minimumAge: true } },
+        memberships: {
+          where: {
+            status: 'ACTIVE',
+            endsOn: null,
+            athlete: {
+              deletedAt: null,
+              status: 'ACTIVE',
+              user: { profilePublic: true, status: 'ACTIVE', deletedAt: null },
+              OR: [{ birthDate: { lte: adultBirth } }, { publicProfileConsentAt: { not: null } }]
+            }
+          },
+          include: {
+            athlete: {
+              select: {
+                fullName: true,
+                preferredName: true,
+                birthDate: true,
+                position: true,
+                user: { select: { avatarMediaFileId: true } }
+              }
+            }
+          }
+        }
+      }
+    });
+    const groups = new Map<string, RosterCategoryView>();
+
+    for (const team of teams) {
+      const key = team.category?.id ?? 'sem-categoria';
+      const group = groups.get(key) ?? {
+        category: team.category ? { id: team.category.id, name: team.category.name } : null,
+        teams: []
+      };
+
+      group.teams.push({
+        id: team.id,
+        name: team.name,
+        slug: team.slug,
+        type: team.type,
+        description: team.description,
+        athletes: team.memberships
+          .map((membership) => {
+            const athlete = membership.athlete;
+            const adult =
+              athlete.birthDate !== null &&
+              ageOn(dateToCivil(athlete.birthDate), today) >= ADULT_AGE;
+
+            return {
+              displayName: publicDisplayName(athlete.fullName, athlete.preferredName, adult),
+              position: membership.position ?? athlete.position,
+              photoUrl: athlete.user?.avatarMediaFileId
+                ? mediaUrl(athlete.user.avatarMediaFileId)
+                : null
+            };
+          })
+          .sort((a, b) => a.displayName.localeCompare(b.displayName, 'pt-BR'))
+      });
+      groups.set(key, group);
+    }
+
+    // Categorias em ordem de nome; equipes sem categoria por último.
+    return [...groups.values()].sort((a, b) =>
+      a.category === null
+        ? 1
+        : b.category === null
+          ? -1
+          : a.category.name.localeCompare(b.category.name, 'pt-BR')
+    );
   }
 
   async teams(options: { includeInactive: boolean; withCounts: boolean }): Promise<TeamView[]> {

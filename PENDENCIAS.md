@@ -476,6 +476,7 @@ Prioridades:
 - **Questão:** o atleta poderá enviar foto de perfil e escolher se ela é pública. No site, a página do time mostraria as categorias e, em cada uma, os atletas com foto, nome e posição. Há atletas menores de idade: pela LGPD (art. 14), publicar a imagem de criança ou adolescente exige consentimento específico de um dos pais ou responsável. Falta decidir quem consente e quais dados aparecem.
 - **Recomendação:** foto privada por padrão. Adulto escolhe publicar na Área do atleta. Para menor de 18, a publicação só vale com a ciência do responsável registrada pela diretoria (mesmo modelo de `guardianAcknowledged`), e o atleta ou o responsável pode retirar a qualquer momento. No site, mostrar só apelido ou primeiro nome e sobrenome abreviado, foto e posição; nunca idade, data de nascimento ou contato. Foto em `MediaFile` público otimizada (`DT-039`), com remoção ao retirar o consentimento.
 - **Impacto:** modelo do atleta (foto, consentimento e auditoria), Área do atleta, ficha no painel, página pública do time, `docs/13-SEGURANCA-E-LGPD.md`.
+- **Situação:** resolvida em 2026-10-25 (`DT-044`). Ver seção 12.
 
 ## 11. Critério de resolução
 
@@ -534,3 +535,4 @@ As entradas acima permanecem como histórico da questão original. As decisões 
 | PEN-058 | Aprovado em 2026-10-25 pelo pedido do responsável: capa de evento, capa de parceiro e logo do parceiro nos produtos, no mesmo fluxo de imagem pública otimizada. | Responsável do projeto | `DT-041` |
 | PEN-060 | Decidido em 2026-10-25 com a recomendação: ao inativar ou suspender, o diálogo mostra as pendências e oferece cancelar mensalidades do mês atual em diante sem pagamento, encerrar o plano e (só ao inativar) os vínculos, com o mesmo motivo e auditoria. Dívida de meses passados e mensalidade com pagamento nunca são canceladas. | Responsável do projeto | `DT-042` |
 | PEN-061 | Decidido em 2026-10-25 com a recomendação: faixa etária da categoria gera aviso com confirmação, sem bloqueio. | Responsável do projeto | `DT-042` |
+| PEN-062 | Decidido em 2026-10-25: foto de perfil para todos os usuários cadastrados (pedido do responsável), privada por padrão; perfil público por escolha da própria pessoa; menor de 18 ou sem nascimento só com autorização do responsável registrada pela diretoria (recomendação, LGPD art. 14). | Responsável do projeto | `DT-044` |

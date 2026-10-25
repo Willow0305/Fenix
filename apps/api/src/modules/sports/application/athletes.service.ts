@@ -7,6 +7,7 @@ import { AppConfig } from '../../../common/config/app-config';
 import { decryptField, encryptField } from '../../../common/crypto/data-cipher';
 import { sha256Hex } from '../../../common/crypto/tokens';
 import {
+  ageOn,
   civilToDate,
   dateToCivil,
   monthStart,
@@ -22,6 +23,7 @@ import { SYSTEM_ROLES } from '../../access/domain/permission-catalog';
 import { normalizeEmail } from '../../auth/domain/auth-rules';
 import { NotificationsService } from '../../notifications/application/notifications.service';
 import {
+  ADULT_AGE,
   ATHLETE_STATUS_LABELS,
   ATHLETE_TRANSITIONS,
   normalizeDocument,
@@ -29,6 +31,7 @@ import {
   periodsOverlap,
   validateGuardian
 } from '../domain/sports-rules';
+import { mediaUrl } from '../../media/application/media.service';
 
 export interface AthleteInput {
   readonly fullName: string;
@@ -100,7 +103,19 @@ export interface AthleteDetail extends AthleteSummary {
   readonly guardianPhone: string | null;
   readonly guardianAcknowledgedAt: string | null;
   readonly notes: string | null;
-  readonly user: { id: string; name: string; email: string } | null;
+  readonly user: {
+    id: string;
+    name: string;
+    email: string;
+    avatarUrl: string | null;
+    profilePublic: boolean;
+  } | null;
+  /** Perfil público no site (DT-044): menor ou sem nascimento precisa de autorização. */
+  readonly publicProfile: {
+    readonly needsGuardianConsent: boolean;
+    readonly guardianConsentAt: string | null;
+    readonly visibleOnSite: boolean;
+  };
   readonly memberships: readonly MembershipView[];
   readonly createdAt: string;
   readonly updatedAt: string;
@@ -112,7 +127,9 @@ export interface AthleteFilters extends PageQueryDto {
 }
 
 const DETAIL_INCLUDE = {
-  user: { select: { id: true, name: true, email: true } },
+  user: {
+    select: { id: true, name: true, email: true, avatarMediaFileId: true, profilePublic: true }
+  },
   teamMemberships: {
     orderBy: { startsOn: 'desc' },
     include: { team: { select: { id: true, name: true, type: true } } }
@@ -196,7 +213,16 @@ export class AthletesService {
       guardianPhone: row.guardianPhone,
       guardianAcknowledgedAt: row.guardianAcknowledgedAt?.toISOString() ?? null,
       notes: row.notes,
-      user: row.user,
+      user: row.user
+        ? {
+            id: row.user.id,
+            name: row.user.name,
+            email: row.user.email,
+            avatarUrl: row.user.avatarMediaFileId ? mediaUrl(row.user.avatarMediaFileId) : null,
+            profilePublic: row.user.profilePublic
+          }
+        : null,
+      publicProfile: this.publicProfileView(row),
       memberships: row.teamMemberships.map((membership) => ({
         id: membership.id,
         team: membership.team,
@@ -212,6 +238,66 @@ export class AthletesService {
 
   private today(): string {
     return todayIn();
+  }
+
+  /** Menor de 18 ou sem data de nascimento: perfil público só com autorização (LGPD art. 14). */
+  private publicProfileView(row: {
+    birthDate: Date | null;
+    status: AthleteStatus;
+    publicProfileConsentAt: Date | null;
+    user: { profilePublic: boolean } | null;
+  }): AthleteDetail['publicProfile'] {
+    const needsGuardianConsent =
+      row.birthDate === null || ageOn(dateToCivil(row.birthDate), this.today()) < ADULT_AGE;
+    const consented = !needsGuardianConsent || row.publicProfileConsentAt !== null;
+
+    return {
+      needsGuardianConsent,
+      guardianConsentAt: row.publicProfileConsentAt?.toISOString() ?? null,
+      visibleOnSite: row.status === 'ACTIVE' && row.user?.profilePublic === true && consented
+    };
+  }
+
+  /** Diretoria registra (ou retira) a autorização do responsável para o perfil público. */
+  async setPublicProfileConsent(
+    actor: Principal,
+    id: string,
+    granted: boolean,
+    reason: string,
+    meta: RequestMeta
+  ): Promise<AthleteDetail> {
+    await this.prisma.$transaction(async (tx) => {
+      const current = await tx.athlete.findFirst({
+        where: { id, deletedAt: null },
+        select: { publicProfileConsentAt: true }
+      });
+
+      if (current === null) {
+        throw AppError.notFound('Atleta não encontrado.');
+      }
+
+      await tx.athlete.update({
+        where: { id },
+        data: { publicProfileConsentAt: granted ? new Date() : null }
+      });
+      await this.audit.record(
+        {
+          actorUserId: actor.userId,
+          action: granted
+            ? 'athlete.public_profile_consent.granted'
+            : 'athlete.public_profile_consent.revoked',
+          entityType: 'Athlete',
+          entityId: id,
+          reason,
+          before: { consented: current.publicProfileConsentAt !== null },
+          after: { consented: granted },
+          meta
+        },
+        tx
+      );
+    });
+
+    return this.get(id);
   }
 
   async list(filters: AthleteFilters): Promise<Page<AthleteSummary>> {

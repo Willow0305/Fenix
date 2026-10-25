@@ -7,9 +7,13 @@ import {
   Param,
   ParseUUIDPipe,
   Patch,
-  Post
+  Post,
+  Put,
+  UploadedFile,
+  UseInterceptors
 } from '@nestjs/common';
-import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { ApiBearerAuth, ApiConsumes, ApiTags } from '@nestjs/swagger';
 import { Throttle } from '@nestjs/throttler';
 
 import {
@@ -18,6 +22,8 @@ import {
   ReqMeta,
   type RequestMeta
 } from '../../../common/http/request-context';
+import type { IncomingFile } from '../../media/application/media.service';
+import { UPLOAD_LIMITS } from '../../settings/http/settings.controller';
 import { AccountService, type ProfileView, type SessionView } from '../application/account.service';
 import { AuthService } from '../application/auth.service';
 import { MfaService, type MfaSetupView, type MfaStatusView } from '../application/mfa.service';
@@ -26,6 +32,7 @@ import {
   MfaCodeDto,
   MfaPasswordCodeDto,
   MfaPasswordDto,
+  ProfileVisibilityDto,
   UpdateProfileDto
 } from './auth.dto';
 
@@ -60,6 +67,34 @@ export class MeController {
       },
       meta
     );
+  }
+
+  @Put('avatar')
+  @ApiConsumes('multipart/form-data')
+  @UseInterceptors(FileInterceptor('file', UPLOAD_LIMITS))
+  avatar(
+    @CurrentPrincipal() principal: Principal,
+    @UploadedFile() file: IncomingFile | undefined,
+    @ReqMeta() meta: RequestMeta
+  ): Promise<ProfileView> {
+    return this.account.setAvatar(principal, file, meta);
+  }
+
+  @Delete('avatar')
+  removeAvatar(
+    @CurrentPrincipal() principal: Principal,
+    @ReqMeta() meta: RequestMeta
+  ): Promise<ProfileView> {
+    return this.account.removeAvatar(principal, meta);
+  }
+
+  @Put('profile-visibility')
+  profileVisibility(
+    @CurrentPrincipal() principal: Principal,
+    @Body() body: ProfileVisibilityDto,
+    @ReqMeta() meta: RequestMeta
+  ): Promise<ProfileView> {
+    return this.account.setProfileVisibility(principal, body.public, meta);
   }
 
   @Post('password')

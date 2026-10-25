@@ -153,3 +153,8 @@ export class MfaPasswordCodeDto {
   @MaxLength(20)
   code!: string;
 }
+
+/** Perfil público: aparecer no elenco do site com foto, nome e posição (DT-044). */
+export class ProfileVisibilityDto {
+  @ApiProperty() @IsBoolean() public!: boolean;
+}

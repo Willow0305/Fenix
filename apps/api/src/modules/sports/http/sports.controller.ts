@@ -40,7 +40,12 @@ import {
   type TryoutRegistrationView,
   type TryoutView
 } from '../application/recruitment.service';
-import { type CategoryView, TeamsService, type TeamView } from '../application/teams.service';
+import {
+  type CategoryView,
+  type RosterCategoryView,
+  TeamsService,
+  type TeamView
+} from '../application/teams.service';
 import {
   ApplicantDto,
   AthleteDto,
@@ -53,9 +58,11 @@ import {
   InterestedStatusDto,
   LinkUserDto,
   MembershipDto,
+  PublicProfileConsentDto,
   RegistrationQueryDto,
   RegistrationReviewDto,
   RequiredReasonDto,
+  RosterQueryDto,
   TeamDto,
   TeamQueryDto,
   TryoutDto,
@@ -89,6 +96,11 @@ export class PublicSportsController {
   @Get('teams')
   teamsList(): Promise<TeamView[]> {
     return this.teams.teams({ includeInactive: false, withCounts: false });
+  }
+
+  @Get('teams-roster')
+  roster(@Query() query: RosterQueryDto): Promise<RosterCategoryView[]> {
+    return this.teams.publicRoster(query.type);
   }
 
   @Get('teams/:slug')
@@ -268,6 +280,17 @@ export class AthletesController {
     const { status, reason, ...effects } = body;
 
     return this.athletes.changeStatus(actor, id, status, reason, meta, effects);
+  }
+
+  @Put(':id/public-profile-consent')
+  @RequirePermissions(PERMISSIONS.athletesUpdate)
+  publicProfileConsent(
+    @CurrentPrincipal() actor: Principal,
+    @Param('id', new ParseUUIDPipe()) id: string,
+    @Body() body: PublicProfileConsentDto,
+    @ReqMeta() meta: RequestMeta
+  ): Promise<AthleteDetail> {
+    return this.athletes.setPublicProfileConsent(actor, id, body.granted, body.reason, meta);
   }
 
   @Put(':id/user')

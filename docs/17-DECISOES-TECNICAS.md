@@ -849,3 +849,21 @@ A logo oficial e as configurações do time "sumiam". A auditoria mostrou a caus
 
 - nenhum registro financeiro é apagado; cobrança gerada só muda por ajuste, vencimento ou cancelamento auditados;
 - testes de integração cobrem atribuição em massa, troca, listagem, recusa de exclusão em uso, exclusão sem uso e mudança de vencimento, além da exclusão de categoria esportiva.
+
+## DT-044 — Foto de perfil e elenco público por categoria
+
+- **Estado:** Aceita
+- **Data:** 2026-10-25
+- **Aprovador:** responsável do projeto (foto de perfil pública ou privada, aberta a todos os usuários cadastrados, e elenco do time por categoria, 2026-10-25); regra para menores pela recomendação de `PEN-062`
+
+### Decisão
+
+- **dados:** `users.avatar_media_file_id` (FK `media_files`, `SET NULL`, indexada), `users.profile_public` (padrão `false`) e `athletes.public_profile_consent_at`. As relações `User`↔`MediaFile` passam a ter nome (`MediaUploader`, `UserAvatar`), sem mudança no banco;
+- **foto:** `PUT /me/avatar` e `DELETE /me/avatar`, imagem otimizada para até 800 px em WebP (DT-039). A classificação do arquivo acompanha a escolha da pessoa: `INTERNAL` enquanto privada e `PUBLIC` com perfil público (`PUT /me/profile-visibility`). Foto trocada ou removida recebe exclusão lógica e deixa de abrir;
+- **elenco:** `GET /public/teams-roster?type=` agrupa equipes ativas por categoria, com atletas ativos, de vínculo aberto, conta ativa e perfil público. Menor de 18 ou sem nascimento só entra com `public_profile_consent_at`, registrado pela diretoria em `PUT /athletes/:id/public-profile-consent` (motivo obrigatório, auditado). A resposta expõe só nome de exibição (`publicDisplayName`), posição do vínculo (ou do cadastro) e foto;
+- **interface:** `Avatar` carrega foto privada pelo cliente com login (como os comprovantes); no site público, a foto já é pública e carrega direto.
+
+### Consequências
+
+- a política está em `docs/13-SEGURANCA-E-LGPD.md` (foto de perfil e elenco público);
+- 4 testes unitários do nome de exibição e um teste de integração do fluxo completo: foto privada fechada para anônimo, perfil público, menor sem e com autorização, nome abreviado e volta para privado.

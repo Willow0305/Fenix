@@ -437,6 +437,10 @@ model User {
   mfaEnabledAt              DateTime?  @map("mfa_enabled_at") @db.Timestamptz(6)
   /// Último passo TOTP aceito; impede reutilizar o mesmo código.
   mfaLastUsedStep           Int?       @map("mfa_last_used_step")
+  /// Foto de perfil (PEN-062, DT-044). Privada até a pessoa marcar `profilePublic`.
+  avatarMediaFileId         String?    @map("avatar_media_file_id") @db.Uuid
+  /// Escolha da própria pessoa de aparecer no elenco público do site com foto, nome e posição.
+  profilePublic             Boolean    @default(false) @map("profile_public")
   createdAt                 DateTime   @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt                 DateTime   @updatedAt @map("updated_at") @db.Timestamptz(6)
   deletedAt                 DateTime?  @map("deleted_at") @db.Timestamptz(6)
@@ -449,7 +453,8 @@ model User {
   grantedRolePermissions          RolePermission[]        @relation("RolePermissionGrantor")
   athlete                         Athlete?
   interestedPerson                InterestedPerson?
-  uploadedMedia                   MediaFile[]
+  uploadedMedia                   MediaFile[]             @relation("MediaUploader")
+  avatarMediaFile                 MediaFile?              @relation("UserAvatar", fields: [avatarMediaFileId], references: [id], onDelete: SetNull, onUpdate: Cascade)
   updatedTeamSettings             TeamSettings[]          @relation("TeamSettingsUpdater")
   registrationApplications        Registration[]          @relation("RegistrationApplicant")
   registrationsReviewed           Registration[]          @relation("RegistrationReviewer")
@@ -493,6 +498,7 @@ model User {
   privacyRequestsHandled          PrivacyRequest[]        @relation("PrivacyRequestHandler")
 
   @@index([status, deletedAt])
+  @@index([avatarMediaFileId])
   @@map("users")
 }
 
@@ -696,7 +702,8 @@ model MediaFile {
   updatedAt       DateTime           @updatedAt @map("updated_at") @db.Timestamptz(6)
   deletedAt       DateTime?          @map("deleted_at") @db.Timestamptz(6)
 
-  uploadedBy           User?                            @relation(fields: [uploadedById], references: [id], onDelete: SetNull, onUpdate: Cascade)
+  uploadedBy           User?                            @relation("MediaUploader", fields: [uploadedById], references: [id], onDelete: SetNull, onUpdate: Cascade)
+  userAvatars          User[]                           @relation("UserAvatar")
   teamBrandAssets      TeamBrandAsset[]
   athleteDocuments     AthleteDocument[]
   financialAttachments FinancialTransactionAttachment[]
@@ -755,6 +762,8 @@ model Athlete {
   guardianName            String?       @map("guardian_name") @db.VarChar(160)
   guardianPhone           String?       @map("guardian_phone") @db.VarChar(30)
   guardianAcknowledgedAt  DateTime?     @map("guardian_acknowledged_at") @db.Timestamptz(6)
+  /// Autorização do responsável, registrada pela diretoria, para menor aparecer no elenco público (LGPD art. 14, DT-044).
+  publicProfileConsentAt  DateTime?     @map("public_profile_consent_at") @db.Timestamptz(6)
   status                  AthleteStatus @default(PENDING)
   notes                   String?       @db.Text
   createdAt               DateTime      @default(now()) @map("created_at") @db.Timestamptz(6)

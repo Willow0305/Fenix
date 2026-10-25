@@ -28,6 +28,14 @@ export interface Profile {
   readonly roles: string[];
   readonly permissions: string[];
   readonly athleteId: string | null;
+  /** Foto de perfil; enquanto privada, só abre com login (DT-044). */
+  readonly avatarUrl: string | null;
+  readonly profilePublic: boolean;
+  readonly publicProfile: {
+    readonly isAthlete: boolean;
+    readonly needsGuardianConsent: boolean;
+    readonly visibleOnSite: boolean;
+  };
   readonly createdAt: string;
   /** Segunda etapa: obrigatória para quem acessa o painel (DT-037). */
   readonly mfa: {

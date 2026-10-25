@@ -67,7 +67,18 @@ export interface AthleteDetail extends AthleteSummary {
   guardianPhone: string | null;
   guardianAcknowledgedAt: string | null;
   notes: string | null;
-  user: { id: string; name: string; email: string } | null;
+  user: {
+    id: string;
+    name: string;
+    email: string;
+    avatarUrl: string | null;
+    profilePublic: boolean;
+  } | null;
+  publicProfile: {
+    needsGuardianConsent: boolean;
+    guardianConsentAt: string | null;
+    visibleOnSite: boolean;
+  };
   memberships: Membership[];
   createdAt: string;
   updatedAt: string;
@@ -234,3 +245,16 @@ export const POSITIONS = [
   'Líbero',
   'Ainda não sei'
 ];
+
+/** Elenco público por categoria (DT-044). */
+export interface RosterCategory {
+  category: { id: string; name: string } | null;
+  teams: {
+    id: string;
+    name: string;
+    slug: string;
+    type: TeamType;
+    description: string | null;
+    athletes: { displayName: string; position: string | null; photoUrl: string | null }[];
+  }[];
+}

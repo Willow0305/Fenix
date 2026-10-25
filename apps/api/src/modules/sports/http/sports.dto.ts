@@ -271,3 +271,12 @@ export class TeamQueryDto {
   @IsBoolean()
   includeInactive?: boolean;
 }
+
+export class RosterQueryDto {
+  @ApiPropertyOptional({ enum: TeamType }) @IsOptional() @IsEnum(TeamType) type?: TeamType;
+}
+
+/** Autorização do responsável para menor aparecer no elenco público (DT-044). */
+export class PublicProfileConsentDto extends RequiredReasonDto {
+  @ApiProperty() @IsBoolean() granted!: boolean;
+}
