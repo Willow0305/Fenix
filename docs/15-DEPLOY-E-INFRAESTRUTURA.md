@@ -219,7 +219,7 @@ Procedimento validado em 19/10/2026 no ambiente local (Fase 8). **Metas aprovada
 npm run backup
 ```
 
-O comando (DT-038) grava em `BACKUP_DIR`, fora da pasta do projeto, a pasta `fenix-AAAAMMDD-HHMMSS` com `database.dump` (conferido por `pg_restore --list`), `storage/` (cópia de `STORAGE_LOCAL_DIR`) e `manifest.json` (SHA-256 e contagens), e mantém as `BACKUP_KEEP` cópias mais recentes (padrão 30). Para cumprir a meta diária, agende-o no Agendador de Tarefas do Windows:
+O comando (DT-038) grava em `BACKUP_DIR`, fora da pasta do projeto, a pasta `fenix-AAAAMMDD-HHMMSS` com `database.dump` (lido por inteiro pelo `pg_restore`), `storage/` (cópia de `STORAGE_LOCAL_DIR`) e `manifest.json` (SHA-256 e contagens), e mantém as `BACKUP_KEEP` cópias mais recentes (padrão 30). Para cumprir a meta diária, agende-o no Agendador de Tarefas do Windows:
 
 ```powershell
 schtasks /Create /TN "Fenix Volei - backup diario" /SC DAILY /ST 02:00 /TR "cmd /c cd /d C:\Users\William\Desktop\Fenix && npm run backup >> C:\Users\William\FenixVolei-dados\backups\backup.log 2>&1"

@@ -3,7 +3,7 @@
  * Backup completo do ambiente local (docs/15 §10.1, PEN-044, DT-038): banco PostgreSQL e
  * arquivos enviados. Cada execução cria uma pasta datada em BACKUP_DIR com:
  *
- * - `database.dump`: pg_dump em formato custom, conferido com `pg_restore --list`;
+ * - `database.dump`: pg_dump em formato custom, lido por inteiro pelo `pg_restore`;
  * - `storage/`: cópia de STORAGE_LOCAL_DIR;
  * - `manifest.json`: instante, tamanhos, SHA-256 do dump e quantidade de arquivos.
  *
@@ -75,23 +75,23 @@ function dumpDatabase(target) {
   });
 }
 
-/** Confere se o dump é legível pelo pg_restore, sem restaurar nada. */
+/**
+ * Confere o dump inteiro: o pg_restore lê todo o arquivo e gera o SQL em /dev/null dentro
+ * do contêiner, sem restaurar nada. Um dump truncado ou corrompido falha aqui.
+ */
 function verifyDump(target) {
-  return new Promise((done, fail) => {
-    const child = spawn('docker', ['exec', '-i', container, 'pg_restore', '--list'], {
-      stdio: ['pipe', 'ignore', 'inherit']
-    });
+  const inside = `/tmp/fenix-backup-check-${process.pid}.dump`;
 
-    createReadStream(target).pipe(child.stdin);
-    child.on('error', fail);
-    child.on('close', (code) => {
-      if (code === 0) {
-        done();
-      } else {
-        fail(new Error('O dump gerado não passou na verificação do pg_restore.'));
-      }
+  try {
+    execFileSync('docker', ['cp', target, `${container}:${inside}`], { stdio: 'ignore' });
+    execFileSync('docker', ['exec', container, 'pg_restore', '-f', '/dev/null', inside], {
+      stdio: ['ignore', 'ignore', 'pipe']
     });
-  });
+  } catch {
+    throw new Error('O dump gerado não passou na verificação do pg_restore.');
+  } finally {
+    execFileSync('docker', ['exec', container, 'rm', '-f', inside], { stdio: 'ignore' });
+  }
 }
 
 function sha256(file) {
@@ -139,7 +139,7 @@ async function main() {
 
   try {
     await dumpDatabase(dumpFile);
-    await verifyDump(dumpFile);
+    verifyDump(dumpFile);
     await cp(storageDir, join(target, 'storage'), { recursive: true, errorOnExist: false });
 
     const manifest = {

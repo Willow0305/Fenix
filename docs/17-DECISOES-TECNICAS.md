@@ -750,7 +750,7 @@ A logo oficial e as configurações do time "sumiam". A auditoria mostrou a caus
 - **dados de demonstração:** `db:demo` só preenche campos vazios das configurações e não grava mais contatos fictícios;
 - **limpeza:** `npm run db:clean-test-data` (simula; `-- --apply` grava) identifica pela auditoria o que contas `@exemplo.test` criaram e aplica exclusão lógica só em cadastros não financeiros. Também devolve logos trocadas por teste à última enviada por pessoa real e limpa contato/PIX gravados por teste. Cada ação gera `maintenance.test_data.*` na auditoria;
 - **arquivos:** `STORAGE_LOCAL_DIR` deve apontar para fora da pasta do projeto (no ambiente local, `C:/Users/William/FenixVolei-dados/storage`). Em produção, caminho absoluto obrigatório, montado como volume persistente. A API confere na inicialização se a pasta aceita leitura e escrita. A gravação usa arquivo temporário + renomeação, e arquivo ausente responde `404` em vez de erro interno;
-- **backup:** `npm run backup` gera em `BACKUP_DIR` (absoluto, fora do projeto) uma pasta datada com o dump do banco (verificado por `pg_restore --list`), a cópia dos arquivos e um `manifest.json` com SHA-256. Mantém as `BACKUP_KEEP` cópias mais recentes (padrão 30, conforme `PEN-044`). A `DATA_ENCRYPTION_KEY` nunca é copiada.
+- **backup:** `npm run backup` gera em `BACKUP_DIR` (absoluto, fora do projeto) uma pasta datada com o dump do banco (lido por inteiro pelo `pg_restore`), a cópia dos arquivos e um `manifest.json` com SHA-256. Mantém as `BACKUP_KEEP` cópias mais recentes (padrão 30, conforme `PEN-044`). A `DATA_ENCRYPTION_KEY` nunca é copiada.
 
 ### Consequências
 
