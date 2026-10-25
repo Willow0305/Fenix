@@ -27,7 +27,9 @@ async function bootstrap(): Promise<void> {
   configureApplication(app);
   app.enableShutdownHooks();
 
-  await app.listen(resolveApiPort(process.env['API_PORT']), '0.0.0.0');
+  // Somente loopback por padrão: o navegador chega à API pelo proxy do Next.js. Em
+  // contêineres, defina API_HOST=0.0.0.0 explicitamente.
+  await app.listen(resolveApiPort(process.env['API_PORT']), process.env['API_HOST'] ?? '127.0.0.1');
 }
 
 bootstrap().catch(() => {

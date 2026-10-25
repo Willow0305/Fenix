@@ -9,7 +9,7 @@ Este documento define controles mínimos e decisões bloqueadoras. Ele não cert
 | Controle | Implementação |
 |---|---|
 | Senhas | scrypt (N=2^15, r=8, p=1) com sal por usuário, formato versionado e comparação em tempo constante; política mínima de 10 caracteres com letras e números, sem nome/e-mail |
-| Sessão | access token HS256 de 15 min em memória; refresh opaco de 30 dias em cookie `HttpOnly`/`SameSite=Strict` restrito a `/api/v1/auth`, armazenado como SHA-256; rotação a cada uso e revogação total ao detectar reuso |
+| Sessão | access token HS256 de 15 min em memória; refresh opaco em cookie `HttpOnly`/`SameSite=Strict` restrito a `/api/v1/auth`, armazenado como SHA-256; rotação a cada uso e revogação total ao detectar reuso; expiração por inatividade (30 min privilegiado, 7 dias comum) e duração máxima desde o login (12 h privilegiado, 30 dias comum), sem prorrogação por renovação automática (`DT-036`) |
 | Revogação | logout, troca e redefinição de senha, bloqueio de conta e ação administrativa invalidam sessões imediatamente; permissões são recarregadas a cada requisição |
 | Recuperação de senha | token de uso único com 1 h de validade; resposta idêntica exista ou não a conta |
 | Autorização | guard global que nega por padrão; permissões granulares por rota; recursos próprios verificados por titularidade; acesso negado é auditado |
@@ -79,6 +79,7 @@ Itens ainda exigidos antes de produção: MFA administrativo, provedores reais d
 - resposta da recuperação não confirma se o e-mail está cadastrado;
 - refresh token deve ser rotacionável, revogável e protegido contra reutilização;
 - logout e troca de senha revogam sessões conforme política aprovada;
+- sessões expiram por inatividade e por duração máxima conforme o perfil, verificadas no servidor a cada requisição (`DT-036`);
 - cookies de sessão, quando usados, devem ser `HttpOnly`, `Secure` em produção e `SameSite` adequado; proteção CSRF é definida conforme arquitetura;
 - não guardar token sensível em `localStorage` por conveniência sem decisão/ameaça documentada;
 - aplicar limitação e alerta a tentativas de login/recuperação;

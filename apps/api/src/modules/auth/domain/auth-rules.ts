@@ -67,8 +67,70 @@ export const REVOCATION = {
   reuseDetected: 'REUSE_DETECTED',
   revokedByUser: 'REVOKED_BY_USER',
   revokedByAdmin: 'REVOKED_BY_ADMIN',
-  accountDisabled: 'ACCOUNT_DISABLED'
+  accountDisabled: 'ACCOUNT_DISABLED',
+  idleTimeout: 'IDLE_TIMEOUT',
+  absoluteTimeout: 'ABSOLUTE_TIMEOUT'
 } as const;
+
+/**
+ * Limites de sessão (DT-036). Contas privilegiadas — qualquer permissão além do acesso
+ * à área de membros — expiram por inatividade em 30 min e duram no máximo 12 h desde o
+ * login; contas comuns, 7 dias e 30 dias.
+ */
+export const SESSION_POLICY = {
+  privileged: { idleSeconds: 30 * 60, absoluteSeconds: 12 * 60 * 60 },
+  standard: { idleSeconds: 7 * 24 * 60 * 60, absoluteSeconds: 30 * 24 * 60 * 60 }
+} as const;
+
+/** Intervalo mínimo entre gravações de `lastActivityAt`, para não escrever a cada requisição. */
+export const ACTIVITY_WRITE_INTERVAL_SECONDS = 60;
+
+const NON_PRIVILEGED_PERMISSIONS: ReadonlySet<string> = new Set(['forum.members.access']);
+
+export interface SessionLimits {
+  readonly idleSeconds: number;
+  readonly absoluteSeconds: number;
+}
+
+export function sessionLimitsFor(permissions: Iterable<string>): SessionLimits {
+  for (const permission of permissions) {
+    if (!NON_PRIVILEGED_PERMISSIONS.has(permission)) {
+      return SESSION_POLICY.privileged;
+    }
+  }
+
+  return SESSION_POLICY.standard;
+}
+
+export interface SessionTimeline {
+  readonly authenticatedAt: Date;
+  readonly lastActivityAt: Date;
+}
+
+export type SessionLifetimeState = 'ACTIVE' | 'IDLE_TIMEOUT' | 'ABSOLUTE_TIMEOUT';
+
+/**
+ * Avalia inatividade e duração máxima com os limites das permissões atuais, de modo que
+ * uma promoção a perfil administrativo encurte imediatamente uma sessão já aberta.
+ */
+export function evaluateSessionLifetime(
+  timeline: SessionTimeline,
+  limits: SessionLimits,
+  now: Date
+): SessionLifetimeState {
+  const elapsed = (from: Date): number => (now.getTime() - from.getTime()) / 1000;
+
+  if (elapsed(timeline.authenticatedAt) >= limits.absoluteSeconds) {
+    return 'ABSOLUTE_TIMEOUT';
+  }
+
+  return elapsed(timeline.lastActivityAt) >= limits.idleSeconds ? 'IDLE_TIMEOUT' : 'ACTIVE';
+}
+
+/** Instante em que a sessão termina mesmo com uso contínuo. */
+export function absoluteDeadline(authenticatedAt: Date, limits: SessionLimits): Date {
+  return new Date(authenticatedAt.getTime() + limits.absoluteSeconds * 1000);
+}
 
 /**
  * Classifica uma sessão apresentada no refresh. Um token já rotacionado reapresentado

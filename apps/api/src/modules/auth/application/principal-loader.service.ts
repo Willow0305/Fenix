@@ -4,16 +4,24 @@ import { AppConfig } from '../../../common/config/app-config';
 import { verifyAccessToken } from '../../../common/crypto/jwt';
 import type { Principal } from '../../../common/http/request-context';
 import { PrismaService } from '../../../common/prisma/prisma.service';
+import {
+  ACTIVITY_WRITE_INTERVAL_SECONDS,
+  evaluateSessionLifetime,
+  sessionLimitsFor
+} from '../domain/auth-rules';
+import { SessionLifetimeService } from './session-lifetime.service';
 
 /**
  * Resolve o principal a partir do access token. Sessão revogada/expirada, conta
  * inativa ou excluída invalidam o acesso imediatamente (restrição contextual 7).
+ * Cada requisição autenticada conta como uso real e adia a expiração por inatividade.
  */
 @Injectable()
 export class PrincipalLoader {
   constructor(
     private readonly prisma: PrismaService,
-    private readonly config: AppConfig
+    private readonly config: AppConfig,
+    private readonly lifetime: SessionLifetimeService
   ) {}
 
   async fromAccessToken(token: string, now: Date = new Date()): Promise<Principal | null> {
@@ -29,6 +37,8 @@ export class PrincipalLoader {
         userId: true,
         revokedAt: true,
         expiresAt: true,
+        authenticatedAt: true,
+        lastActivityAt: true,
         user: {
           select: {
             id: true,
@@ -75,6 +85,15 @@ export class PrincipalLoader {
         userRole.role.rolePermissions.map((rolePermission) => rolePermission.permission.code)
       )
     );
+    const lifetime = evaluateSessionLifetime(session, sessionLimitsFor(permissions), now);
+
+    if (lifetime !== 'ACTIVE') {
+      await this.lifetime.expire({ id: claims.sid, userId: session.userId }, lifetime, null);
+
+      return null;
+    }
+
+    await this.lifetime.touch(claims.sid, now, ACTIVITY_WRITE_INTERVAL_SECONDS);
 
     return {
       userId: session.user.id,

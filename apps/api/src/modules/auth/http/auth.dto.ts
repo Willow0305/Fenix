@@ -57,6 +57,15 @@ export class LoginDto {
   password!: string;
 }
 
+export class RefreshDto {
+  @ApiPropertyOptional({
+    description: 'Houve uso real desde a última renovação (adia a expiração por inatividade).'
+  })
+  @IsOptional()
+  @IsBoolean()
+  active?: boolean;
+}
+
 export class ForgotPasswordDto {
   @ApiProperty()
   @IsEmail()

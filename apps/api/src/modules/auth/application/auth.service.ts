@@ -15,18 +15,27 @@ import { MailSender } from '../../../common/mail/mail.service';
 import { PrismaService, type PrismaTx } from '../../../common/prisma/prisma.service';
 import { SYSTEM_ROLES } from '../../access/domain/permission-catalog';
 import {
+  absoluteDeadline,
   classifyRefreshSession,
+  evaluateSessionLifetime,
   normalizeEmail,
   PASSWORD_RESET_TTL_SECONDS,
   REVOCATION,
   validatePassword
 } from '../domain/auth-rules';
+import { SessionLifetimeService } from './session-lifetime.service';
 
 export interface IssuedSession {
   readonly accessToken: string;
   readonly expiresIn: number;
   readonly refreshToken: string;
   readonly refreshExpiresAt: Date;
+  readonly idleTimeoutSeconds: number;
+}
+
+interface SessionTimes {
+  readonly authenticatedAt: Date;
+  readonly lastActivityAt: Date;
 }
 
 export interface RegisterInput {
@@ -38,13 +47,20 @@ export interface RegisterInput {
 
 const INVALID_CREDENTIALS = 'E-mail ou senha inválidos.';
 
+function freshTimes(): SessionTimes {
+  const now = new Date();
+
+  return { authenticatedAt: now, lastActivityAt: now };
+}
+
 @Injectable()
 export class AuthService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly config: AppConfig,
     private readonly audit: AuditService,
-    private readonly mail: MailSender
+    private readonly mail: MailSender,
+    private readonly lifetime: SessionLifetimeService
   ) {}
 
   private assertPassword(password: string, context: { email?: string; name?: string }): void {
@@ -59,17 +75,21 @@ export class AuthService {
     tx: PrismaTx,
     userId: string,
     meta: RequestMeta,
-    rotatedFromSessionId: string | null
+    rotatedFromSessionId: string | null,
+    times: SessionTimes
   ): Promise<IssuedSession> {
-    const { accessTokenSecret, accessTokenTtlSeconds, refreshTokenTtlSeconds } = this.config.values;
+    const { accessTokenSecret, accessTokenTtlSeconds } = this.config.values;
+    const limits = await this.lifetime.limitsForUser(userId, new Date(), tx);
     const refreshToken = generateOpaqueToken();
-    const refreshExpiresAt = new Date(Date.now() + refreshTokenTtlSeconds * 1000);
+    const refreshExpiresAt = absoluteDeadline(times.authenticatedAt, limits);
     const session = await tx.userSession.create({
       data: {
         userId,
         refreshTokenHash: sha256Hex(refreshToken),
         rotatedFromSessionId,
         expiresAt: refreshExpiresAt,
+        authenticatedAt: times.authenticatedAt,
+        lastActivityAt: times.lastActivityAt,
         userAgentHash: meta.userAgent ? sha256Hex(meta.userAgent) : null,
         ipAddressHash: meta.ipAddressHash
       },
@@ -84,7 +104,8 @@ export class AuthService {
       ),
       expiresIn: accessTokenTtlSeconds,
       refreshToken,
-      refreshExpiresAt
+      refreshExpiresAt,
+      idleTimeoutSeconds: limits.idleSeconds
     };
   }
 
@@ -141,7 +162,7 @@ export class AuthService {
         tx
       );
 
-      return this.createSession(tx, user.id, meta, null);
+      return this.createSession(tx, user.id, meta, null, freshTimes());
     });
   }
 
@@ -179,12 +200,16 @@ export class AuthService {
         tx
       );
 
-      return this.createSession(tx, user.id, meta, null);
+      return this.createSession(tx, user.id, meta, null, freshTimes());
     });
   }
 
-  /** Rotaciona o refresh token (DT-022). Reuso fora da tolerância revoga todas as sessões. */
-  async refresh(refreshToken: string, meta: RequestMeta): Promise<IssuedSession> {
+  /**
+   * Rotaciona o refresh token (DT-022). Reuso fora da tolerância revoga todas as sessões.
+   * `active` informa uso real desde a última renovação; renovações automáticas não
+   * prolongam a inatividade, e a duração total nunca passa do limite (DT-036).
+   */
+  async refresh(refreshToken: string, meta: RequestMeta, active = false): Promise<IssuedSession> {
     const now = new Date();
     const session = await this.prisma.userSession.findUnique({
       where: { refreshTokenHash: sha256Hex(refreshToken) },
@@ -194,6 +219,8 @@ export class AuthService {
         expiresAt: true,
         revokedAt: true,
         revocationReason: true,
+        authenticatedAt: true,
+        lastActivityAt: true,
         user: { select: { status: true, deletedAt: true } }
       }
     });
@@ -219,6 +246,16 @@ export class AuthService {
       throw AppError.unauthorized('Sessão expirada. Entre novamente.');
     }
 
+    const limits = await this.lifetime.limitsForUser(session.userId, now);
+    const lifetime = evaluateSessionLifetime(session, limits, now);
+
+    if (lifetime !== 'ACTIVE') {
+      await this.lifetime.expire(session, lifetime, meta);
+      throw AppError.unauthorized(
+        'Sessão encerrada por inatividade ou tempo limite. Entre novamente.'
+      );
+    }
+
     return this.prisma.$transaction(async (tx) => {
       const revoked = await tx.userSession.updateMany({
         where: { id: session.id, revokedAt: null },
@@ -229,7 +266,10 @@ export class AuthService {
         throw AppError.unauthorized('Sessão expirada. Entre novamente.');
       }
 
-      return this.createSession(tx, session.userId, meta, session.id);
+      return this.createSession(tx, session.userId, meta, session.id, {
+        authenticatedAt: session.authenticatedAt,
+        lastActivityAt: active ? now : session.lastActivityAt
+      });
     });
   }
 

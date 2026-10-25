@@ -6,6 +6,24 @@ O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) e o 
 
 ## [Não publicado]
 
+### Segurança — sessão e endurecimento (2026-10-25)
+
+#### Alterado
+
+- sessões passam a expirar por inatividade (30 min para perfis administrativos, 7 dias para contas comuns) e por duração máxima desde o login (12 h e 30 dias); a renovação automática do site não conta mais como uso (DT-036);
+- o site descarta a sessão sem interação dentro do limite e leva ao login com aviso;
+- a API escuta somente em `127.0.0.1` por padrão (`API_HOST`).
+
+#### Corrigido
+
+- redirecionamento aberto no parâmetro `next` do login (`/\dominio-externo`);
+- vulnerabilidades de negação de serviço com severidade alta em `multer`, `body-parser` e `zod`, e moderadas em `fast-uri`.
+
+#### Adicionado
+
+- Content-Security-Policy, Cross-Origin-Opener-Policy e HSTS (produção) no site;
+- migração `sessao_inatividade_limite`, 7 testes unitários e 7 de integração de sessão, 8 testes do redirecionamento seguro.
+
 ### Fase 8 — Relatórios, auditoria e otimizações (2026-10-19)
 
 #### Adicionado

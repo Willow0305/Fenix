@@ -17,15 +17,17 @@ export function RequireAuth({
   readonly permissions?: readonly string[];
   readonly children: ReactNode;
 }) {
-  const { status, can } = useAuth();
+  const { status, can, sessionExpired } = useAuth();
   const router = useRouter();
   const pathname = usePathname();
 
   useEffect(() => {
     if (status === 'anonymous') {
-      router.replace(`/entrar?next=${encodeURIComponent(pathname)}`);
+      const reason = sessionExpired ? '&motivo=expirada' : '';
+
+      router.replace(`/entrar?next=${encodeURIComponent(pathname)}${reason}`);
     }
-  }, [status, router, pathname]);
+  }, [status, router, pathname, sessionExpired]);
 
   if (status !== 'authenticated') {
     return <Loading label="Verificando sua sessão…" />;

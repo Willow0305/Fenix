@@ -673,3 +673,38 @@ Fase 3 exige saldo derivado, confirmação idempotente, histórico imutável e b
 
 - migration `fase8_privacidade_indices` (tabela `privacy_requests`, enums e índices);
 - o gerador de CSV das remessas passa a neutralizar fórmulas.
+
+## DT-036 — Expiração de sessão por inatividade e duração máxima; endurecimento de segurança
+
+- **Estado:** Aceita
+- **Data:** 2026-10-25
+- **Aprovador:** responsável do projeto (prazos escolhidos explicitamente em 2026-10-25)
+
+### Contexto
+
+Pela `DT-022`, cada renovação emitia um refresh token com mais 30 dias. Com o site renovando o acesso a cada ~14 minutos, a sessão nunca expirava se usada ao menos uma vez por mês. O responsável abriu o sistema após mais de 5 dias sem uso e entrou direto no painel administrativo. Não havia limite de inatividade nem duração máxima.
+
+### Decisão
+
+- **perfis:** conta *privilegiada* é a que tem qualquer permissão além de `forum.members.access` (administrador, diretoria ou papel customizado com permissão administrativa). As demais são *comuns*. A classificação usa as permissões vigentes em cada verificação, então uma promoção encurta imediatamente uma sessão já aberta;
+- **inatividade:** 30 minutos para conta privilegiada; 7 dias para conta comum;
+- **duração máxima desde o login por senha:** 12 horas para conta privilegiada; 30 dias para conta comum. Não é prorrogada pela rotação;
+- `user_sessions` ganha `authenticated_at`, herdado na rotação, e `last_activity_at`. O `expires_at` passa a ser o prazo absoluto;
+- **uso real:** toda requisição autenticada registra atividade, gravada no máximo uma vez por minuto. A renovação automática **não** conta como uso; o site só envia `active: true` quando houve clique, tecla, toque ou rolagem desde a renovação anterior;
+- a API recusa sessões vencidas tanto na renovação quanto em cada requisição autenticada, revoga com motivo `IDLE_TIMEOUT` ou `ABSOLUTE_TIMEOUT` e registra `auth.session.expired` na auditoria;
+- o site também descarta a sessão da memória ao atingir o limite sem interação, mesmo com a aba aberta ou após o computador hibernar, e leva ao login com aviso. A sessão não é revogada no servidor nesse momento, para não derrubar outra aba ainda em uso;
+- a regra fica em `auth-rules.ts` (domínio); a persistência, em `SessionLifetimeService`.
+
+#### Endurecimento aplicado na mesma revisão
+
+- **CSP e HSTS no site:** política sem nonces, só `'self'` (o site não usa recursos de terceiros), `frame-ancestors 'none'`, `object-src 'none'`, `form-action 'self'`, `Cross-Origin-Opener-Policy: same-origin`; HSTS de 2 anos apenas em produção;
+- **redirecionamento aberto:** o parâmetro `next` do login aceitava `/\dominio-externo`, que o navegador normaliza para `//dominio-externo`. Agora só são aceitos caminhos do próprio site (`lib/safe-redirect.ts`);
+- **API somente em loopback por padrão** (`API_HOST=127.0.0.1`); `0.0.0.0` só por configuração explícita em contêiner;
+- **dependências:** `multer` 2.5.0, `body-parser` 2.4.0 e `zod` 4.6.7 corrigem negação de serviço com severidade alta; `fast-uri` 3.1.9 corrige falhas moderadas. `npm audit` sem vulnerabilidades.
+
+### Consequências
+
+- migração `20261025180000_sessao_inatividade_limite`. Sessões existentes usam o instante de criação como referência e, se já excedem os limites, expiram no próximo uso;
+- `refreshTokenTtlSeconds` sai da configuração: o prazo é regra de domínio;
+- administradores e diretoria precisam entrar novamente ao menos uma vez por dia de trabalho e após 30 minutos parados;
+- 7 testes unitários e 7 de integração cobrem os limites, a não prorrogação pela renovação automática e a herança do instante de login.

@@ -17,7 +17,12 @@ import type { Profile } from './api-types';
 interface TokenResponse {
   readonly accessToken: string;
   readonly expiresIn: number;
+  readonly idleTimeoutSeconds: number;
 }
+
+/** Eventos que contam como uso real da página (DT-036). */
+const ACTIVITY_EVENTS = ['pointerdown', 'keydown', 'wheel', 'touchstart'] as const;
+const IDLE_CHECK_INTERVAL_MS = 30_000;
 
 export interface RegisterInput {
   readonly name: string;
@@ -31,6 +36,8 @@ export interface RegisterInput {
 interface AuthState {
   readonly status: 'loading' | 'authenticated' | 'anonymous';
   readonly profile: Profile | null;
+  /** A sessão terminou por inatividade ou tempo limite, sem logout explícito. */
+  readonly sessionExpired: boolean;
   readonly login: (email: string, password: string) => Promise<void>;
   readonly register: (input: RegisterInput) => Promise<void>;
   readonly logout: () => Promise<void>;
@@ -58,14 +65,33 @@ async function postAuth(path: string, body?: unknown): Promise<TokenResponse> {
 
 /**
  * Mantém o access token somente em memória. A sessão é restaurada pelo cookie
- * HttpOnly de refresh e renovada antes de expirar.
+ * HttpOnly de refresh e renovada antes de expirar. A renovação só informa uso real
+ * quando houve interação; sem interação pelo limite do perfil, a sessão é descartada
+ * localmente e o servidor a recusa pelo mesmo critério (DT-036).
  */
 export function AuthProvider({ children }: { readonly children: ReactNode }) {
   const tokenRef = useRef<string | null>(null);
   const refreshing = useRef<Promise<string | null> | null>(null);
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const lastInteraction = useRef(Date.now());
+  const activeSinceRefresh = useRef(true);
+  const idleLimitSeconds = useRef<number | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
   const [status, setStatus] = useState<AuthState['status']>('loading');
+  const [sessionExpired, setSessionExpired] = useState(false);
+
+  const endSession = useCallback((expired: boolean) => {
+    if (timer.current) {
+      clearTimeout(timer.current);
+      timer.current = null;
+    }
+
+    tokenRef.current = null;
+    idleLimitSeconds.current = null;
+    setProfile(null);
+    setStatus('anonymous');
+    setSessionExpired(expired);
+  }, []);
 
   const schedule = useCallback((expiresIn: number, refreshFn: () => Promise<string | null>) => {
     if (timer.current) {
@@ -88,17 +114,19 @@ export function AuthProvider({ children }: { readonly children: ReactNode }) {
     }
 
     refreshing.current = (async () => {
-      try {
-        const result = await postAuth('refresh');
+      const active = activeSinceRefresh.current;
 
+      try {
+        const result = await postAuth('refresh', { active });
+
+        activeSinceRefresh.current = false;
         tokenRef.current = result.accessToken;
+        idleLimitSeconds.current = result.idleTimeoutSeconds;
         schedule(result.expiresIn, refresh);
 
         return result.accessToken;
       } catch {
-        tokenRef.current = null;
-        setProfile(null);
-        setStatus('anonymous');
+        endSession(tokenRef.current !== null);
 
         return null;
       } finally {
@@ -107,7 +135,46 @@ export function AuthProvider({ children }: { readonly children: ReactNode }) {
     })();
 
     return refreshing.current;
-  }, [schedule]);
+  }, [schedule, endSession]);
+
+  useEffect(() => {
+    const markActive = () => {
+      lastInteraction.current = Date.now();
+      activeSinceRefresh.current = true;
+    };
+    const checkIdle = () => {
+      const limit = idleLimitSeconds.current;
+
+      if (
+        tokenRef.current !== null &&
+        limit !== null &&
+        Date.now() - lastInteraction.current >= limit * 1000
+      ) {
+        endSession(true);
+      }
+    };
+    const onVisible = () => {
+      if (document.visibilityState === 'visible') {
+        checkIdle();
+      }
+    };
+
+    for (const event of ACTIVITY_EVENTS) {
+      window.addEventListener(event, markActive, { passive: true });
+    }
+
+    document.addEventListener('visibilitychange', onVisible);
+    const interval = setInterval(checkIdle, IDLE_CHECK_INTERVAL_MS);
+
+    return () => {
+      for (const event of ACTIVITY_EVENTS) {
+        window.removeEventListener(event, markActive);
+      }
+
+      document.removeEventListener('visibilitychange', onVisible);
+      clearInterval(interval);
+    };
+  }, [endSession]);
 
   useEffect(() => {
     setTokenProvider({ getToken: () => tokenRef.current, refresh });
@@ -134,6 +201,10 @@ export function AuthProvider({ children }: { readonly children: ReactNode }) {
   const startSession = useCallback(
     async (result: TokenResponse) => {
       tokenRef.current = result.accessToken;
+      idleLimitSeconds.current = result.idleTimeoutSeconds;
+      lastInteraction.current = Date.now();
+      activeSinceRefresh.current = false;
+      setSessionExpired(false);
       schedule(result.expiresIn, refresh);
       await loadProfile();
     },
@@ -144,15 +215,14 @@ export function AuthProvider({ children }: { readonly children: ReactNode }) {
     () => ({
       status,
       profile,
+      sessionExpired,
       login: async (email, password) => startSession(await postAuth('login', { email, password })),
       register: async (input) => startSession(await postAuth('register', input)),
       logout: async () => {
         try {
           await fetch('/api/v1/auth/logout', { method: 'POST', credentials: 'same-origin' });
         } finally {
-          tokenRef.current = null;
-          setProfile(null);
-          setStatus('anonymous');
+          endSession(false);
         }
       },
       reloadProfile: loadProfile,
@@ -161,7 +231,7 @@ export function AuthProvider({ children }: { readonly children: ReactNode }) {
         permissions.every((permission) => profile.permissions.includes(permission)),
       hasRole: (role) => profile?.roles.includes(role) ?? false
     }),
-    [status, profile, startSession, loadProfile]
+    [status, profile, sessionExpired, startSession, loadProfile, endSession]
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

@@ -4,12 +4,9 @@ import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Suspense, useState } from 'react';
 
-import { ErrorSummary, TextField, useSubmit } from '../../../components/ui';
+import { Alert, ErrorSummary, TextField, useSubmit } from '../../../components/ui';
 import { useAuth } from '../../../lib/auth-context';
-
-function safeNext(value: string | null): string {
-  return value && value.startsWith('/') && !value.startsWith('//') ? value : '/minha-conta';
-}
+import { safeInternalPath } from '../../../lib/safe-redirect';
 
 function LoginForm() {
   const { login } = useAuth();
@@ -19,11 +16,16 @@ function LoginForm() {
   const [password, setPassword] = useState('');
   const action = useSubmit(async () => {
     await login(email, password);
-    router.push(safeNext(params.get('next')));
+    router.push(safeInternalPath(params.get('next')));
   });
 
   return (
     <form className="form card" onSubmit={(event) => void action.submit(event)} noValidate>
+      {params.get('motivo') === 'expirada' ? (
+        <Alert kind="info">
+          Sua sessão foi encerrada por inatividade ou tempo limite. Entre novamente.
+        </Alert>
+      ) : null}
       <ErrorSummary error={action.error} />
       <TextField
         label="E-mail"

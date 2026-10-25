@@ -1,4 +1,13 @@
-import { classifyRefreshSession, normalizeEmail, REVOCATION, validatePassword } from './auth-rules';
+import {
+  absoluteDeadline,
+  classifyRefreshSession,
+  evaluateSessionLifetime,
+  normalizeEmail,
+  REVOCATION,
+  SESSION_POLICY,
+  sessionLimitsFor,
+  validatePassword
+} from './auth-rules';
 
 describe('auth rules', () => {
   it('normalizes e-mail', () => {
@@ -78,6 +87,65 @@ describe('auth rules', () => {
           now
         )
       ).toBe('REVOKED');
+    });
+  });
+
+  describe('session lifetime (DT-036)', () => {
+    const login = new Date('2026-10-20T06:00:00Z');
+    const minutes = (n: number): Date => new Date(login.getTime() + n * 60_000);
+    const days = (n: number): Date => minutes(n * 24 * 60);
+
+    it('treats accounts without administrative permissions as standard', () => {
+      expect(sessionLimitsFor([])).toBe(SESSION_POLICY.standard);
+      expect(sessionLimitsFor(['forum.members.access'])).toBe(SESSION_POLICY.standard);
+    });
+
+    it('treats any administrative permission as privileged', () => {
+      expect(sessionLimitsFor(['forum.members.access', 'fees.read'])).toBe(
+        SESSION_POLICY.privileged
+      );
+    });
+
+    it('expires a privileged session after 30 minutes without use', () => {
+      const timeline = { authenticatedAt: login, lastActivityAt: login };
+
+      expect(evaluateSessionLifetime(timeline, SESSION_POLICY.privileged, minutes(29))).toBe(
+        'ACTIVE'
+      );
+      expect(evaluateSessionLifetime(timeline, SESSION_POLICY.privileged, minutes(30))).toBe(
+        'IDLE_TIMEOUT'
+      );
+    });
+
+    it('ends a privileged session after 12 hours even with continuous use', () => {
+      const busy = { authenticatedAt: login, lastActivityAt: minutes(12 * 60 - 1) };
+
+      expect(evaluateSessionLifetime(busy, SESSION_POLICY.privileged, minutes(12 * 60))).toBe(
+        'ABSOLUTE_TIMEOUT'
+      );
+    });
+
+    it('keeps a standard session for 7 idle days and 30 days in total', () => {
+      const idle = { authenticatedAt: login, lastActivityAt: login };
+      const busy = { authenticatedAt: login, lastActivityAt: days(29) };
+
+      expect(evaluateSessionLifetime(idle, SESSION_POLICY.standard, days(6))).toBe('ACTIVE');
+      expect(evaluateSessionLifetime(idle, SESSION_POLICY.standard, days(7))).toBe('IDLE_TIMEOUT');
+      expect(evaluateSessionLifetime(busy, SESSION_POLICY.standard, days(30))).toBe(
+        'ABSOLUTE_TIMEOUT'
+      );
+    });
+
+    it('reproduces the reported case: five idle days end an administrative session', () => {
+      const timeline = { authenticatedAt: login, lastActivityAt: minutes(14) };
+
+      expect(evaluateSessionLifetime(timeline, SESSION_POLICY.privileged, days(5))).not.toBe(
+        'ACTIVE'
+      );
+    });
+
+    it('computes the absolute deadline from the password login', () => {
+      expect(absoluteDeadline(login, SESSION_POLICY.privileged)).toEqual(minutes(12 * 60));
     });
   });
 });

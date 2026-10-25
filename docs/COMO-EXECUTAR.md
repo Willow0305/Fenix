@@ -110,6 +110,8 @@ Não use `docker compose down -v`: o `-v` apaga o banco inteiro.
 | `Can't reach database server at 127.0.0.1:5433` | rode `docker compose up -d postgres` |
 | `Port 3000 (ou 3333) is already in use` | feche outra execução do `npm run dev` ou reinicie o terminal |
 | erro de tabela inexistente | rode `npm run db:migrate` |
+| API não sobe, com centenas de erros de TypeScript ou `Cannot convert undefined or null to object` | pare o `npm run dev` e rode `npm run prisma:generate` (cliente do Prisma desatualizado) |
+| "Sua sessão foi encerrada por inatividade" | esperado: o painel encerra a sessão após 30 min sem uso e 12 h após o login (`DT-036`) |
 | login com "Papel padrão ausente" | rode `npm run db:seed` |
 | `npm run check` falha em formatação com CRLF | rode `npm run format` (o `.gitattributes` já força LF em novos checkouts) |
 | site abre mas sem dados | rode `npm run db:demo` ou cadastre pelo painel |

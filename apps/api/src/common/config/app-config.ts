@@ -13,7 +13,6 @@ export interface AppConfigValues {
   readonly webOrigin: string;
   readonly accessTokenSecret: string;
   readonly accessTokenTtlSeconds: number;
-  readonly refreshTokenTtlSeconds: number;
   readonly dataEncryptionKey: Buffer;
   readonly storageDriver: StorageDriver;
   readonly storageLocalDir: string;
@@ -87,7 +86,6 @@ export function loadAppConfig(env: NodeJS.ProcessEnv = process.env): AppConfigVa
     webOrigin: readString(env, 'WEB_ORIGIN', devFallback('http://localhost:3000')),
     accessTokenSecret,
     accessTokenTtlSeconds: 15 * 60,
-    refreshTokenTtlSeconds: 30 * 24 * 60 * 60,
     dataEncryptionKey,
     storageDriver,
     storageLocalDir: readString(env, 'STORAGE_LOCAL_DIR', 'var/storage'),

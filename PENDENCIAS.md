@@ -392,6 +392,27 @@ Prioridades:
 - **Questão:** quando um pedido com item já repassado (repasse pago) é estornado, o valor pago ao parceiro precisa ser recuperado. Hoje isso é feito manualmente por ajuste negativo motivado no próximo repasse.
 - **Recomendação:** listar automaticamente, na criação do repasse, os itens repassados e depois estornados como sugestão de ajuste; combinar com o parceiro prazo e forma de devolução.
 
+### PEN-053 — Proteção de login por conta e enumeração de e-mails
+
+- **Prioridade:** P1
+- **Bloqueia:** produção
+- **Questão:** o limite de tentativas é por IP (10/min). Um ataque distribuído contra uma conta específica não é freado, e o cadastro informa quando o e-mail já existe, o que permite descobrir quem tem conta.
+- **Recomendação:** implementar o MFA já decidido (`PEN-013 (MFA)`), que neutraliza a adivinhação de senha nos perfis privilegiados; adicionar atraso progressivo por conta após falhas seguidas e alerta ao titular. Para o cadastro, avaliar resposta neutra com confirmação por e-mail, que depende do provedor de e-mail (`PEN-042`).
+
+### PEN-054 — Arquivos restritos acessíveis por `files.read.restricted`
+
+- **Prioridade:** P2
+- **Bloqueia:** segregação fina de funções
+- **Questão:** `GET /media/:id` libera qualquer arquivo não público a quem tem `files.read.restricted`, inclusive documentos confidenciais de parceiros, cuja rota dedicada exige `partner.documents.read`. Hoje só administrador e diretoria têm as duas permissões, então não há exposição efetiva.
+- **Recomendação:** exigir a permissão de domínio do arquivo (classificação ou vínculo) também em `/media/:id` antes de distribuir permissões a papéis customizados.
+
+### PEN-055 — Dependências recém-publicadas
+
+- **Prioridade:** P2
+- **Bloqueia:** nada
+- **Questão:** as correções de segurança de `multer` 2.5.0 e `body-parser` 2.4.0 foram publicadas em 2026-10-22, três dias antes da adoção.
+- **Recomendação:** reexecutar `npm audit` e conferir os avisos dos mantenedores antes da homologação; automatizar o `npm audit` no CI.
+
 ## 11. Critério de resolução
 
 Ao resolver uma pendência:
@@ -442,3 +463,4 @@ As entradas acima permanecem como histórico da questão original. As decisões 
 | PEN-044 | Decidido em 2026-10-20: backup diário de madrugada, entre 01h e 03h (fuso do time); perda máxima aceitável de 1 dia de dados (RPO 24 h) e até 1 dia fora do ar (RTO 24 h). Retenção e teste periódico de restauração seguem a recomendação do runbook até a escolha do provedor. | Responsável do projeto | `15-DEPLOY-E-INFRAESTRUTURA.md` §10.1 |
 | PEN-042 | Adiada pelo responsável em 2026-10-20: o sistema é um protótipo funcional em desenvolvimento; provedores serão escolhidos antes da homologação. | Responsável do projeto | — |
 | PEN-043 | Web e API sob a mesma origem pública: o Next.js encaminha `/api/v1` para a API; CORS restrito à lista explícita. | Delegada | `DT-022` |
+| PEN-013 (sessão) | Decidido em 2026-10-25: inatividade de 30 min e duração máxima de 12 h para perfis com permissão administrativa; 7 dias e 30 dias para contas comuns. Substitui o refresh de 30 dias prorrogável. | Responsável do projeto | `DT-036` |

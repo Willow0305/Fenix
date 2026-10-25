@@ -12,7 +12,7 @@ import {
 } from '../../../common/http/request-context';
 import { AuthService, type IssuedSession } from '../application/auth.service';
 import { Public } from './auth.decorators';
-import { ForgotPasswordDto, LoginDto, RegisterDto, ResetPasswordDto } from './auth.dto';
+import { ForgotPasswordDto, LoginDto, RefreshDto, RegisterDto, ResetPasswordDto } from './auth.dto';
 
 export const REFRESH_COOKIE = 'fenix_rt';
 const REFRESH_COOKIE_PATH = '/api/v1/auth';
@@ -22,6 +22,7 @@ export interface AccessTokenResponse {
   readonly accessToken: string;
   readonly tokenType: 'Bearer';
   readonly expiresIn: number;
+  readonly idleTimeoutSeconds: number;
 }
 
 @ApiTags('auth')
@@ -47,7 +48,12 @@ export class AuthController {
     res.cookie(REFRESH_COOKIE, session.refreshToken, this.cookieOptions(session.refreshExpiresAt));
     res.setHeader('Cache-Control', 'no-store');
 
-    return { accessToken: session.accessToken, tokenType: 'Bearer', expiresIn: session.expiresIn };
+    return {
+      accessToken: session.accessToken,
+      tokenType: 'Bearer',
+      expiresIn: session.expiresIn,
+      idleTimeoutSeconds: session.idleTimeoutSeconds
+    };
   }
 
   /** Mitigação de CSRF para rotas baseadas em cookie: rejeita Origin de terceiros. */
@@ -101,6 +107,7 @@ export class AuthController {
   @HttpCode(200)
   @Throttle({ default: { limit: 60, ttl: 60_000 } })
   async refresh(
+    @Body() body: RefreshDto,
     @Req() req: ContextRequest,
     @ReqMeta() meta: RequestMeta,
     @Res({ passthrough: true }) res: Response
@@ -113,7 +120,7 @@ export class AuthController {
     }
 
     try {
-      return this.respond(res, await this.auth.refresh(token, meta));
+      return this.respond(res, await this.auth.refresh(token, meta, body.active === true));
     } catch (error) {
       res.clearCookie(REFRESH_COOKIE, this.cookieOptions());
       throw error;

@@ -216,6 +216,185 @@ describe('Fase 1 — autenticação, permissões e configurações', () => {
       await ctx.http().get('/api/v1/me').set('Authorization', `Bearer ${other}`).expect(401);
       await login(ctx, user.email, 'nova-senha-forte-77');
     });
+
+    describe('inatividade e duração máxima (DT-036)', () => {
+      const ago = (seconds: number): Date => new Date(Date.now() - seconds * 1000);
+
+      async function openSession(roles: string[]) {
+        const user = await createUser(ctx.prisma, roles);
+        const response = await ctx
+          .http()
+          .post('/api/v1/auth/login')
+          .send({ email: user.email, password: PASSWORD })
+          .expect(200);
+
+        return {
+          user,
+          cookie: refreshCookieFrom(response),
+          accessToken: (response.body as { accessToken: string }).accessToken,
+          idleTimeoutSeconds: (response.body as { idleTimeoutSeconds: number }).idleTimeoutSeconds
+        };
+      }
+
+      it('ends an idle administrative session on refresh and audits it', async () => {
+        const { user, cookie, accessToken, idleTimeoutSeconds } = await openSession(['admin']);
+
+        expect(idleTimeoutSeconds).toBe(30 * 60);
+        await ctx.prisma.userSession.updateMany({
+          where: { userId: user.id },
+          data: { lastActivityAt: ago(31 * 60) }
+        });
+        await ctx
+          .http()
+          .post('/api/v1/auth/refresh')
+          .set('Cookie', cookie)
+          .send({ active: true })
+          .expect(401);
+        await ctx
+          .http()
+          .get('/api/v1/me')
+          .set('Authorization', `Bearer ${accessToken}`)
+          .expect(401);
+
+        const session = await ctx.prisma.userSession.findFirstOrThrow({
+          where: { userId: user.id }
+        });
+
+        expect(session.revocationReason).toBe('IDLE_TIMEOUT');
+        expect(
+          await ctx.prisma.auditLog.count({
+            where: { actorUserId: user.id, action: 'auth.session.expired' }
+          })
+        ).toBe(1);
+      });
+
+      it('rejects the access token of an idle session before any refresh', async () => {
+        const { user, accessToken } = await openSession(['board']);
+
+        await ctx.prisma.userSession.updateMany({
+          where: { userId: user.id },
+          data: { lastActivityAt: ago(31 * 60) }
+        });
+        await ctx
+          .http()
+          .get('/api/v1/me')
+          .set('Authorization', `Bearer ${accessToken}`)
+          .expect(401);
+      });
+
+      it('keeps a common user signed in for hours but not past 7 idle days', async () => {
+        const { user, cookie, idleTimeoutSeconds } = await openSession(['user']);
+
+        expect(idleTimeoutSeconds).toBe(7 * 24 * 60 * 60);
+        await ctx.prisma.userSession.updateMany({
+          where: { userId: user.id },
+          data: { lastActivityAt: ago(6 * 60 * 60) }
+        });
+        const renewed = await ctx
+          .http()
+          .post('/api/v1/auth/refresh')
+          .set('Cookie', cookie)
+          .expect(200);
+
+        await ctx.prisma.userSession.updateMany({
+          where: { userId: user.id, revokedAt: null },
+          data: { lastActivityAt: ago(7 * 24 * 60 * 60 + 60) }
+        });
+        await ctx
+          .http()
+          .post('/api/v1/auth/refresh')
+          .set('Cookie', refreshCookieFrom(renewed))
+          .expect(401);
+      });
+
+      it('automatic refreshes do not count as activity; reported activity does', async () => {
+        const { user, cookie } = await openSession(['admin']);
+        const old = ago(10 * 60);
+
+        await ctx.prisma.userSession.updateMany({
+          where: { userId: user.id },
+          data: { lastActivityAt: old }
+        });
+        const passive = await ctx
+          .http()
+          .post('/api/v1/auth/refresh')
+          .set('Cookie', cookie)
+          .expect(200);
+        const afterPassive = await ctx.prisma.userSession.findFirstOrThrow({
+          where: { userId: user.id, revokedAt: null }
+        });
+
+        expect(afterPassive.lastActivityAt.getTime()).toBe(old.getTime());
+
+        await ctx
+          .http()
+          .post('/api/v1/auth/refresh')
+          .set('Cookie', refreshCookieFrom(passive))
+          .send({ active: true })
+          .expect(200);
+        const afterActive = await ctx.prisma.userSession.findFirstOrThrow({
+          where: { userId: user.id, revokedAt: null }
+        });
+
+        expect(afterActive.lastActivityAt.getTime()).toBeGreaterThan(Date.now() - 5_000);
+      });
+
+      it('authenticated requests record activity', async () => {
+        const { user, accessToken } = await openSession(['admin']);
+
+        await ctx.prisma.userSession.updateMany({
+          where: { userId: user.id },
+          data: { lastActivityAt: ago(5 * 60) }
+        });
+        await ctx
+          .http()
+          .get('/api/v1/me')
+          .set('Authorization', `Bearer ${accessToken}`)
+          .expect(200);
+        const session = await ctx.prisma.userSession.findFirstOrThrow({
+          where: { userId: user.id }
+        });
+
+        expect(session.lastActivityAt.getTime()).toBeGreaterThan(Date.now() - 5_000);
+      });
+
+      it('ends an administrative session 12 hours after login despite constant use', async () => {
+        const { user, cookie } = await openSession(['admin']);
+
+        await ctx.prisma.userSession.updateMany({
+          where: { userId: user.id },
+          data: { authenticatedAt: ago(12 * 60 * 60), lastActivityAt: new Date() }
+        });
+        await ctx
+          .http()
+          .post('/api/v1/auth/refresh')
+          .set('Cookie', cookie)
+          .send({ active: true })
+          .expect(401);
+
+        const session = await ctx.prisma.userSession.findFirstOrThrow({
+          where: { userId: user.id }
+        });
+
+        expect(session.revocationReason).toBe('ABSOLUTE_TIMEOUT');
+      });
+
+      it('rotation keeps the original login instant and the absolute deadline', async () => {
+        const { user, cookie } = await openSession(['user']);
+        const first = await ctx.prisma.userSession.findFirstOrThrow({
+          where: { userId: user.id }
+        });
+
+        await ctx.http().post('/api/v1/auth/refresh').set('Cookie', cookie).expect(200);
+        const rotated = await ctx.prisma.userSession.findFirstOrThrow({
+          where: { userId: user.id, revokedAt: null }
+        });
+
+        expect(rotated.id).not.toBe(first.id);
+        expect(rotated.authenticatedAt.getTime()).toBe(first.authenticatedAt.getTime());
+        expect(rotated.expiresAt.getTime()).toBe(first.expiresAt.getTime());
+      });
+    });
   });
 
   describe('recuperação de senha', () => {
