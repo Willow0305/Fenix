@@ -136,7 +136,12 @@ export default function FeesPage() {
         </label>
         <label className="field">
           <span className="label">Atleta</span>
-          <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Nome" />
+          <input
+            maxLength={120}
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="Nome"
+          />
         </label>
         <button type="submit" className="btn btn-secondary">
           Filtrar

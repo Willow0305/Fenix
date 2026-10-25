@@ -34,6 +34,7 @@ export default function GuestOrderPage() {
         <div className="form-grid">
           <TextField
             label="Número do pedido"
+            maxLength={40}
             required
             placeholder="FNX-261018-ABCDEF"
             value={orderNumber}
@@ -41,6 +42,7 @@ export default function GuestOrderPage() {
           />
           <TextField
             label="Código de acesso"
+            maxLength={64}
             required
             autoComplete="off"
             value={code}

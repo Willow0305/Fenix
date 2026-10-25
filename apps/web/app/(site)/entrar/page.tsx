@@ -51,6 +51,7 @@ function LoginForm() {
         <ErrorSummary error={second.error} />
         <TextField
           label="Código"
+          maxLength={20}
           inputMode="numeric"
           autoComplete="one-time-code"
           autoFocus
@@ -88,6 +89,7 @@ function LoginForm() {
       <ErrorSummary error={action.error} />
       <TextField
         label="E-mail"
+        maxLength={180}
         type="email"
         autoComplete="email"
         required

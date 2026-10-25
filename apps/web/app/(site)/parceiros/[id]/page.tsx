@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 
-import { formatMoney } from '../../../../lib/format';
+import { formatMoney, formatPhoneDisplay } from '../../../../lib/format';
 import { PARTNER_TYPE, type PublicPartner } from '../../../../lib/partner-types';
 import { serverGet } from '../../../../lib/server-api';
 
@@ -100,7 +100,11 @@ export default async function PartnerPage({
               <span className="muted">{pro.profession}</span>
               {pro.publicBio ? <p style={{ margin: 0 }}>{pro.publicBio}</p> : null}
               {pro.email || pro.phone ? (
-                <small>{[pro.phone, pro.email].filter(Boolean).join(' · ')}</small>
+                <small>
+                  {[pro.phone ? formatPhoneDisplay(pro.phone) : null, pro.email]
+                    .filter(Boolean)
+                    .join(' · ')}
+                </small>
               ) : null}
             </article>
           ))}

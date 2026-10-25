@@ -11,6 +11,7 @@ import {
   ErrorSummary,
   Loading,
   PageHeader,
+  PhoneField,
   TextArea,
   TextField,
   useSubmit
@@ -18,7 +19,7 @@ import {
 import { api, errorMessage } from '../../../../lib/api-client';
 import { useAuth } from '../../../../lib/auth-context';
 import { useCart } from '../../../../lib/cart-context';
-import { formatMoney } from '../../../../lib/format';
+import { formatMoney, formatPhoneDisplay } from '../../../../lib/format';
 import type { Order } from '../../../../lib/store-types';
 
 export default function CartPage() {
@@ -201,6 +202,7 @@ export default function CartPage() {
                 <div className="form-grid">
                   <TextField
                     label="Nome completo"
+                    maxLength={160}
                     required
                     autoComplete="name"
                     value={form.customerName}
@@ -209,6 +211,7 @@ export default function CartPage() {
                   />
                   <TextField
                     label="E-mail"
+                    maxLength={180}
                     type="email"
                     required
                     autoComplete="email"
@@ -219,18 +222,17 @@ export default function CartPage() {
                 </div>
               </>
             )}
-            <TextField
-              label="Telefone/WhatsApp"
-              type="tel"
+            <PhoneField
+              label="Celular/WhatsApp"
               required={status !== 'authenticated' || !profile?.phone}
-              autoComplete="tel"
               value={form.customerPhone}
-              placeholder={profile?.phone ?? ''}
-              onChange={(e) => setForm({ ...form, customerPhone: e.target.value })}
+              placeholder={profile?.phone ? formatPhoneDisplay(profile.phone) : '(00) 00000-0000'}
+              onValueChange={(value) => setForm({ ...form, customerPhone: value })}
               error={checkout.fieldError('customerPhone')}
             />
             <TextArea
               label="Observações (opcional)"
+              maxLength={2000}
               value={form.notes}
               onChange={(e) => setForm({ ...form, notes: e.target.value })}
             />

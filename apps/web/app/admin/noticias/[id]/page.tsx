@@ -208,12 +208,14 @@ export default function NewsEditPage() {
           <div className="form-grid">
             <TextField
               label="Título"
+              maxLength={180}
               required
               value={form.title}
               onChange={(e) => setForm({ ...form, title: e.target.value })}
             />
             <TextField
               label="Endereço (slug)"
+              maxLength={180}
               required
               value={form.slug}
               disabled={n.publishedAt !== null}
@@ -249,6 +251,7 @@ export default function NewsEditPage() {
           />
           <TextArea
             label="Texto"
+            maxLength={50000}
             required
             rows={12}
             value={form.content}

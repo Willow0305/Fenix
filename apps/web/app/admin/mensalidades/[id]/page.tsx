@@ -190,6 +190,7 @@ export default function FeeDetailPage() {
             <div className="form-grid">
               <TextField
                 label="Valor (R$)"
+                maxLength={16}
                 required
                 inputMode="decimal"
                 placeholder={f.remainingAmount.amount.replace('.', ',')}
@@ -210,6 +211,7 @@ export default function FeeDetailPage() {
               />
               <TextField
                 label="Observação"
+                maxLength={1000}
                 value={form.notes}
                 onChange={(e) => setForm({ ...form, notes: e.target.value })}
               />
@@ -329,6 +331,7 @@ export default function FeeDetailPage() {
       >
         <TextField
           label="Desconto (R$)"
+          maxLength={16}
           inputMode="decimal"
           value={discount}
           onChange={(e) => setDiscount(e.target.value)}

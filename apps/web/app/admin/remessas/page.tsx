@@ -74,6 +74,7 @@ export default function CampaignsPage() {
           <div className="form-grid">
             <TextField
               label="Nome"
+              maxLength={160}
               required
               value={form.name}
               onChange={set('name')}
@@ -110,11 +111,13 @@ export default function CampaignsPage() {
           </div>
           <TextArea
             label="Descrição pública"
+            maxLength={8000}
             value={form.description}
             onChange={set('description')}
           />
           <TextArea
             label="Política se o mínimo não for atingido"
+            maxLength={4000}
             value={form.refundPolicy}
             onChange={set('refundPolicy')}
             hint="Exibida antes da compra (PEN-032). Ex.: valores pagos são devolvidos integralmente por PIX em até 7 dias."

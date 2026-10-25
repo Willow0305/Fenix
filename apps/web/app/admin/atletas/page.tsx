@@ -60,6 +60,7 @@ function AthletesList() {
         <label className="field">
           <span className="label">Buscar</span>
           <input
+            maxLength={120}
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Nome ou e-mail"

@@ -74,6 +74,7 @@ function CategoriesPanel({
       <form className="row" onSubmit={(event) => void create.submit(event)}>
         <TextField
           label="Nova categoria"
+          maxLength={120}
           required
           value={name}
           onChange={(e) => setName(e.target.value)}
@@ -130,6 +131,7 @@ export default function NewsAdminPage() {
           <div className="form-grid">
             <TextField
               label="Título"
+              maxLength={180}
               required
               value={form.title}
               onChange={(e) => setForm({ ...form, title: e.target.value })}
@@ -155,6 +157,7 @@ export default function NewsAdminPage() {
           />
           <TextArea
             label="Texto"
+            maxLength={50000}
             required
             rows={8}
             value={form.content}

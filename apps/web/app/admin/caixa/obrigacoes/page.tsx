@@ -106,6 +106,7 @@ export default function ObligationsPage() {
               onChange={(v) => setForm({ ...form, categoryId: v })}
             />
             <TextField
+              maxLength={180}
               label={form.type === 'PAYABLE' ? 'Fornecedor / favorecido' : 'Pagador'}
               required
               value={form.counterpartyName}
@@ -113,6 +114,7 @@ export default function ObligationsPage() {
             />
             <TextField
               label="Descrição"
+              maxLength={1000}
               required
               value={form.description}
               onChange={(e) => setForm({ ...form, description: e.target.value })}
@@ -133,6 +135,7 @@ export default function ObligationsPage() {
             />
             <TextField
               label="Valor (R$)"
+              maxLength={16}
               required
               inputMode="decimal"
               value={form.amount}

@@ -80,7 +80,13 @@ export function TryoutForm({
     <form className="form" onSubmit={(event) => void action.submit(event)}>
       <ErrorSummary error={action.error} />
       <div className="form-grid">
-        <TextField label="Título" required value={form.title} onChange={set('title')} />
+        <TextField
+          label="Título"
+          maxLength={160}
+          required
+          value={form.title}
+          onChange={set('title')}
+        />
         <SelectField
           label="Equipe"
           value={form.teamId}
@@ -90,7 +96,7 @@ export function TryoutForm({
             ...teams.map((t) => ({ value: t.id, label: t.name }))
           ]}
         />
-        <TextField label="Local" value={form.location} onChange={set('location')} />
+        <TextField label="Local" maxLength={220} value={form.location} onChange={set('location')} />
         <TextField
           label="Data e hora da seletiva"
           type="datetime-local"
@@ -117,7 +123,12 @@ export function TryoutForm({
           onChange={set('maxSlots')}
         />
       </div>
-      <TextArea label="Descrição pública" value={form.description} onChange={set('description')} />
+      <TextArea
+        label="Descrição pública"
+        maxLength={8000}
+        value={form.description}
+        onChange={set('description')}
+      />
       <p className="muted">Horários informados no fuso deste computador e armazenados em UTC.</p>
       <div className="form-actions">
         <button type="submit" className="btn btn-primary" disabled={action.pending}>

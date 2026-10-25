@@ -19,7 +19,7 @@ import { api } from '../../../../lib/api-client';
 import { useAuth } from '../../../../lib/auth-context';
 import { openProtectedFile } from '../../../../lib/download';
 import type { Payment } from '../../../../lib/finance-types';
-import { todayCivil } from '../../../../lib/format';
+import { formatPhoneDisplay, todayCivil } from '../../../../lib/format';
 import { useIdempotencyKey } from '../../../../lib/idempotency';
 import {
   ORDER_NEXT,
@@ -75,7 +75,7 @@ export default function OrderAdminPage() {
     <>
       <PageHeader
         title={`Pedido ${o.orderNumber}`}
-        description={`${o.customerName} · ${o.customerEmail ?? ''} · ${o.customerPhone ?? ''}`}
+        description={`${o.customerName} · ${o.customerEmail ?? ''} · ${o.customerPhone ? formatPhoneDisplay(o.customerPhone) : ''}`}
         actions={<Link href="/admin/pedidos">Voltar</Link>}
       />
       {notice ? <Alert kind="success">{notice}</Alert> : null}

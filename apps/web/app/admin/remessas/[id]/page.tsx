@@ -24,7 +24,13 @@ import {
   type CampaignStatus
 } from '../../../../lib/campaign-types';
 import { downloadProtectedFile } from '../../../../lib/download';
-import { formatDate, formatDateTime, formatMoney, todayCivil } from '../../../../lib/format';
+import {
+  formatDate,
+  formatDateTime,
+  formatMoney,
+  formatPhoneDisplay,
+  todayCivil
+} from '../../../../lib/format';
 import { normalizeAmount } from '../../../../lib/idempotency';
 import type { Page } from '../../../../lib/api-types';
 import { ORDER_STATUS, type ProductDetail } from '../../../../lib/store-types';
@@ -181,6 +187,7 @@ export default function CampaignDetailPage() {
             />
             <TextField
               label="Preço na remessa"
+              maxLength={16}
               inputMode="decimal"
               value={link.campaignPrice}
               onChange={(e) => setLink({ ...link, campaignPrice: e.target.value })}
@@ -274,7 +281,7 @@ export default function CampaignDetailPage() {
               {report.data.orders.map((o) => (
                 <li key={o.orderNumber} className="row">
                   <strong>{o.orderNumber}</strong> {o.customerName}{' '}
-                  {o.customerPhone ? `· ${o.customerPhone}` : ''} — {o.items}{' '}
+                  {o.customerPhone ? `· ${formatPhoneDisplay(o.customerPhone)}` : ''} — {o.items}{' '}
                   <span className={`badge ${ORDER_STATUS[o.status].badge}`}>
                     {ORDER_STATUS[o.status].label}
                   </span>
@@ -371,6 +378,7 @@ export default function CampaignDetailPage() {
             />
             <TextArea
               label="Local e horário"
+              maxLength={2000}
               value={step.pickupInstructions}
               onChange={(e) => setStep({ ...step, pickupInstructions: e.target.value })}
             />

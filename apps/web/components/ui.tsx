@@ -16,10 +16,13 @@ import {
   BR_MESSAGES,
   COUNTER_THRESHOLD,
   formatCpf,
+  formatCpfOrCnpj,
   formatPhone,
   isValidCpf,
+  isValidCpfOrCnpj,
   isValidMobilePhone,
-  isValidPhone
+  isValidPhone,
+  onlyDigits
 } from '@fenix/validation';
 
 import { ApiError, errorMessage } from '../lib/api-client';
@@ -146,7 +149,7 @@ export function TextArea({
 type MaskedProps = Common &
   Omit<InputHTMLAttributes<HTMLInputElement>, 'value' | 'onChange'> & {
     readonly value: string;
-    /** Recebe o valor já com máscara; a API aceita com ou sem máscara e grava só dígitos. */
+    /** Recebe só os dígitos (formato gravado pela API); a máscara é só de exibição. */
     readonly onValueChange: (value: string) => void;
   };
 
@@ -177,7 +180,7 @@ function MaskedField({
       error={error ?? localError}
       onChange={(event) => {
         setTouched(false);
-        onValueChange(format(event.target.value));
+        onValueChange(onlyDigits(format(event.target.value)));
       }}
       onBlur={(event) => {
         setTouched(true);
@@ -199,6 +202,22 @@ export function CpfField(props: MaskedProps) {
       format={formatCpf}
       isValid={isValidCpf}
       invalidMessage={BR_MESSAGES.cpf}
+    />
+  );
+}
+
+/** CPF ou CNPJ conforme a quantidade de dígitos (parceiros). */
+export function CpfCnpjField(props: MaskedProps) {
+  return (
+    <MaskedField
+      inputMode="numeric"
+      autoComplete="off"
+      placeholder="00.000.000/0000-00"
+      maxLength={18}
+      {...props}
+      format={formatCpfOrCnpj}
+      isValid={isValidCpfOrCnpj}
+      invalidMessage={BR_MESSAGES.document}
     />
   );
 }

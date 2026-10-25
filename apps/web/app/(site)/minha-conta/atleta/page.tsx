@@ -1,7 +1,7 @@
 'use client';
 
 import { Alert, Loading, PageHeader } from '../../../../components/ui';
-import { formatDate } from '../../../../lib/format';
+import { formatDate, formatPhoneDisplay } from '../../../../lib/format';
 import { ATHLETE_STATUS, type AthleteDetail, GENDER } from '../../../../lib/sports-types';
 import { useResource } from '../../../../lib/use-resource';
 
@@ -24,11 +24,16 @@ export default function MyAthletePage() {
     ['Posição', a.position],
     ['Gênero', a.gender ? GENDER[a.gender] : null],
     ['E-mail', a.email],
-    ['Telefone', a.phone],
+    ['Telefone', a.phone ? formatPhoneDisplay(a.phone) : null],
     ['Documento', a.documentNumberMasked],
     [
       'Contato de emergência',
-      [a.emergencyContactName, a.emergencyContactPhone].filter(Boolean).join(' · ') || null
+      [
+        a.emergencyContactName,
+        a.emergencyContactPhone ? formatPhoneDisplay(a.emergencyContactPhone) : null
+      ]
+        .filter(Boolean)
+        .join(' · ') || null
     ],
     ['Responsável', [a.guardianName, a.guardianPhone].filter(Boolean).join(' · ') || null]
   ];

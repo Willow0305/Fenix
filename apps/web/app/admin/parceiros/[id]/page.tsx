@@ -7,9 +7,11 @@ import { useEffect, useState } from 'react';
 import {
   Alert,
   ConfirmDialog,
+  CpfCnpjField,
   ErrorSummary,
   Loading,
   PageHeader,
+  PhoneField,
   SelectField,
   TextArea,
   TextField,
@@ -128,6 +130,7 @@ function DocumentsPanel({
         <div className="form-grid">
           <TextField
             label="Tipo de documento"
+            maxLength={80}
             required
             value={meta.documentType}
             onChange={(e) => setMeta({ ...meta, documentType: e.target.value })}
@@ -305,12 +308,14 @@ export default function PartnerAdminPage() {
           <div className="form-grid">
             <TextField
               label="Razão social / nome completo"
+              maxLength={180}
               required
               value={form['legalName'] ?? ''}
               onChange={set('legalName')}
             />
             <TextField
               label="Nome de exibição"
+              maxLength={160}
               required
               value={form['displayName'] ?? ''}
               onChange={set('displayName')}
@@ -321,10 +326,10 @@ export default function PartnerAdminPage() {
               onChange={set('type')}
               options={Object.entries(PARTNER_TYPE).map(([value, label]) => ({ value, label }))}
             />
-            <TextField
+            <CpfCnpjField
               label="CNPJ / CPF"
               value={form['documentNumber'] ?? ''}
-              onChange={set('documentNumber')}
+              onValueChange={(value) => set('documentNumber')({ target: { value } })}
               hint={
                 p.documentNumberMasked
                   ? `Atual: ${p.documentNumberMasked}. Preencha só para trocar.`
@@ -333,18 +338,26 @@ export default function PartnerAdminPage() {
             />
             <TextField
               label="Contato"
+              maxLength={160}
               value={form['contactName'] ?? ''}
               onChange={set('contactName')}
             />
             <TextField
               label="E-mail"
+              maxLength={180}
               type="email"
               value={form['email'] ?? ''}
               onChange={set('email')}
             />
-            <TextField label="Telefone" value={form['phone'] ?? ''} onChange={set('phone')} />
+            <PhoneField
+              label="Telefone"
+              allowLandline
+              value={form['phone'] ?? ''}
+              onValueChange={(value) => set('phone')({ target: { value } })}
+            />
             <TextField
               label="Site"
+              maxLength={300}
               type="url"
               value={form['websiteUrl'] ?? ''}
               onChange={set('websiteUrl')}
@@ -353,6 +366,7 @@ export default function PartnerAdminPage() {
           </div>
           <TextArea
             label="Descrição pública"
+            maxLength={4000}
             value={form['description'] ?? ''}
             onChange={set('description')}
           />
@@ -384,6 +398,7 @@ export default function PartnerAdminPage() {
             {form['commissionType'] === 'PERCENTAGE' ? (
               <TextField
                 label="Percentual (%)"
+                maxLength={6}
                 inputMode="decimal"
                 required
                 value={form['commissionPercentage'] ?? ''}
@@ -393,6 +408,7 @@ export default function PartnerAdminPage() {
             {form['commissionType'] === 'FIXED' ? (
               <TextField
                 label="Valor por unidade (R$)"
+                maxLength={16}
                 inputMode="decimal"
                 required
                 value={form['commissionFixedAmount'] ?? ''}
@@ -402,6 +418,7 @@ export default function PartnerAdminPage() {
           </div>
           <TextArea
             label="Observações comerciais (internas)"
+            maxLength={4000}
             value={form['contractNotes'] ?? ''}
             onChange={set('contractNotes')}
           />

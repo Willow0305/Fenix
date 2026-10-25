@@ -2,6 +2,7 @@ import Link from 'next/link';
 
 import type { PublicTeam } from '../lib/api-types';
 import styles from './site-footer.module.scss';
+import { formatPhoneDisplay } from '../lib/format';
 
 export function SiteFooter({ team }: { readonly team: PublicTeam }) {
   const city = [team.address.city, team.address.state].filter(Boolean).join(' — ');
@@ -21,7 +22,7 @@ export function SiteFooter({ team }: { readonly team: PublicTeam }) {
                 <a href={`mailto:${team.email}`}>{team.email}</a>
               </li>
             ) : null}
-            {team.phone ? <li>{team.phone}</li> : null}
+            {team.phone ? <li>{formatPhoneDisplay(team.phone)}</li> : null}
             {city ? <li>{city}</li> : null}
             {team.socialLinks.map((link) => (
               <li key={link.url}>

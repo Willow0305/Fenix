@@ -73,12 +73,14 @@ export default function PartnersAdminPage() {
           <div className="form-grid">
             <TextField
               label="Razão social / nome completo"
+              maxLength={180}
               required
               value={form.legalName}
               onChange={(e) => setForm({ ...form, legalName: e.target.value })}
             />
             <TextField
               label="Nome de exibição"
+              maxLength={160}
               required
               value={form.displayName}
               onChange={(e) => setForm({ ...form, displayName: e.target.value })}
@@ -108,7 +110,12 @@ export default function PartnersAdminPage() {
       >
         <label className="field">
           <span className="label">Buscar</span>
-          <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Nome" />
+          <input
+            maxLength={120}
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="Nome"
+          />
         </label>
         <label className="field">
           <span className="label">Situação</span>

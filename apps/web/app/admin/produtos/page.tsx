@@ -83,6 +83,7 @@ export default function ProductsAdminPage() {
             <div className="form-grid">
               <TextField
                 label="Nome"
+                maxLength={160}
                 required
                 value={form.name}
                 onChange={(e) => setForm({ ...form, name: e.target.value })}
@@ -112,6 +113,7 @@ export default function ProductsAdminPage() {
               />
               <TextField
                 label="Preço (R$)"
+                maxLength={16}
                 required
                 inputMode="decimal"
                 value={form.basePrice}
@@ -127,6 +129,7 @@ export default function ProductsAdminPage() {
           <form className="row" onSubmit={(event) => void createCategory.submit(event)}>
             <TextField
               label="Nova categoria da loja"
+              maxLength={120}
               value={category}
               onChange={(e) => setCategory(e.target.value)}
             />
@@ -149,6 +152,7 @@ export default function ProductsAdminPage() {
         <label className="field">
           <span className="label">Buscar</span>
           <input
+            maxLength={120}
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Nome ou SKU"

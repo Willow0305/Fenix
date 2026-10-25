@@ -113,6 +113,7 @@ export default async function StorePage({
           <input type="hidden" name="categoria" value={params.categoria} />
         ) : null}
         <input
+          maxLength={120}
           name="busca"
           defaultValue={params.busca ?? ''}
           aria-label="Buscar produtos"

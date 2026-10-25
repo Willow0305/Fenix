@@ -131,7 +131,12 @@ export default function AuditPage() {
         <div className="form-grid">
           <label className="field">
             <span className="label">Ação começa com</span>
-            <input value={filters.action} onChange={set('action')} placeholder="ex.: finance." />
+            <input
+              maxLength={140}
+              value={filters.action}
+              onChange={set('action')}
+              placeholder="ex.: finance."
+            />
           </label>
           <label className="field">
             <span className="label">Entidade</span>
@@ -154,15 +159,15 @@ export default function AuditPage() {
           </label>
           <label className="field">
             <span className="label">ID da entidade</span>
-            <input value={filters.entityId} onChange={set('entityId')} />
+            <input maxLength={36} value={filters.entityId} onChange={set('entityId')} />
           </label>
           <label className="field">
             <span className="label">ID de quem agiu</span>
-            <input value={filters.actorUserId} onChange={set('actorUserId')} />
+            <input maxLength={36} value={filters.actorUserId} onChange={set('actorUserId')} />
           </label>
           <label className="field">
             <span className="label">ID da requisição</span>
-            <input value={filters.requestId} onChange={set('requestId')} />
+            <input maxLength={36} value={filters.requestId} onChange={set('requestId')} />
           </label>
         </div>
         <div className="form-actions">

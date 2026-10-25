@@ -129,6 +129,7 @@ export default function TeamsAdminPage() {
             <div className="form-grid">
               <TextField
                 label="Nome"
+                maxLength={120}
                 required
                 value={team.name}
                 onChange={(e) => setTeam({ ...team, name: e.target.value })}
@@ -153,6 +154,7 @@ export default function TeamsAdminPage() {
             </div>
             <TextArea
               label="Descrição pública"
+              maxLength={4000}
               value={team.description}
               onChange={(e) => setTeam({ ...team, description: e.target.value })}
             />
@@ -199,6 +201,7 @@ export default function TeamsAdminPage() {
             <div className="form-grid">
               <TextField
                 label="Nome"
+                maxLength={120}
                 required
                 value={category.name}
                 onChange={(e) => setCategory({ ...category, name: e.target.value })}

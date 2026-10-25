@@ -52,6 +52,7 @@ export interface AthleteDetail extends AthleteSummary {
   phone: string | null;
   gender: Gender | null;
   documentNumberMasked: string | null;
+  documentNeedsReview: boolean;
   emergencyContactName: string | null;
   emergencyContactPhone: string | null;
   guardianName: string | null;

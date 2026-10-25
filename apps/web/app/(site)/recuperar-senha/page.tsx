@@ -25,6 +25,7 @@ export default function ForgotPasswordPage() {
         <ErrorSummary error={action.error} />
         <TextField
           label="E-mail cadastrado"
+          maxLength={180}
           type="email"
           autoComplete="email"
           required

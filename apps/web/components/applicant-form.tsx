@@ -1,11 +1,12 @@
 'use client';
 
+import { FIELD_LIMITS } from '@fenix/validation';
 import Link from 'next/link';
 import { type ReactNode, useState } from 'react';
 
 import { ageFrom } from '../lib/age';
 import { GENDER, POSITIONS } from '../lib/sports-types';
-import { ErrorSummary, SelectField, TextArea, TextField, useSubmit } from './ui';
+import { ErrorSummary, PhoneField, SelectField, TextArea, TextField, useSubmit } from './ui';
 
 export interface ApplicantPayload {
   fullName: string;
@@ -68,6 +69,8 @@ export function ApplicantForm({
   });
   const set = (key: keyof typeof form) => (event: { target: { value: string } }) =>
     setForm((current) => ({ ...current, [key]: event.target.value }));
+  const setValue = (key: keyof typeof form) => (value: string) =>
+    setForm((current) => ({ ...current, [key]: value }));
 
   return (
     <form className="form card" onSubmit={(event) => void action.submit(event)} noValidate>
@@ -78,6 +81,7 @@ export function ApplicantForm({
           label="Nome completo"
           required
           autoComplete="name"
+          maxLength={FIELD_LIMITS.personName}
           value={form.fullName}
           onChange={set('fullName')}
           error={action.fieldError('fullName')}
@@ -95,17 +99,16 @@ export function ApplicantForm({
           type="email"
           required
           autoComplete="email"
+          maxLength={FIELD_LIMITS.email}
           value={form.email}
           onChange={set('email')}
           error={action.fieldError('email')}
         />
-        <TextField
-          label="Telefone/WhatsApp"
-          type="tel"
+        <PhoneField
+          label="Celular/WhatsApp"
           required
-          autoComplete="tel"
           value={form.phone}
-          onChange={set('phone')}
+          onValueChange={setValue('phone')}
           error={action.fieldError('phone')}
         />
         <SelectField
@@ -136,25 +139,25 @@ export function ApplicantForm({
       ) : null}
 
       {isMinor && !isChild ? (
-        <fieldset className="form-grid" style={{ border: 0, padding: 0 }}>
-          <legend className="label" style={{ fontWeight: 600, marginBottom: '0.5rem' }}>
-            Responsável (obrigatório para menores de 18 anos)
-          </legend>
-          <TextField
-            label="Nome do responsável"
-            required
-            value={form.guardianName}
-            onChange={set('guardianName')}
-            error={action.fieldError('guardianName')}
-          />
-          <TextField
-            label="Telefone do responsável"
-            type="tel"
-            required
-            value={form.guardianPhone}
-            onChange={set('guardianPhone')}
-            error={action.fieldError('guardianPhone')}
-          />
+        <fieldset className="form-section card">
+          <legend>Responsável (obrigatório para menores de 18 anos)</legend>
+          <div className="form-grid">
+            <TextField
+              label="Nome do responsável"
+              required
+              maxLength={FIELD_LIMITS.personName}
+              value={form.guardianName}
+              onChange={set('guardianName')}
+              error={action.fieldError('guardianName')}
+            />
+            <PhoneField
+              label="Celular do responsável"
+              required
+              value={form.guardianPhone}
+              onValueChange={setValue('guardianPhone')}
+              error={action.fieldError('guardianPhone')}
+            />
+          </div>
         </fieldset>
       ) : null}
 
@@ -164,7 +167,8 @@ export function ApplicantForm({
         }
         value={form.extra}
         onChange={set('extra')}
-        maxLength={2000}
+        maxLength={FIELD_LIMITS.description}
+        error={action.fieldError(extraField)}
       />
 
       <label className="checkbox">

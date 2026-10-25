@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 
 import { getPublicTeam } from '../../../lib/server-api';
+import { formatPhoneDisplay } from '../../../lib/format';
 
 export const metadata: Metadata = { title: 'Contato' };
 
@@ -26,7 +27,7 @@ export default async function ContactPage() {
           ) : null}
           {team.phone ? (
             <p>
-              <strong>Telefone/WhatsApp:</strong> {team.phone}
+              <strong>Telefone/WhatsApp:</strong> {formatPhoneDisplay(team.phone)}
             </p>
           ) : null}
           {address.length > 0 ? (

@@ -7,6 +7,7 @@ import {
   ErrorSummary,
   Loading,
   PageHeader,
+  PhoneField,
   TextArea,
   TextField,
   useSubmit
@@ -110,7 +111,12 @@ function BrandUpload({
           onChange={(e) => setFile(e.target.files?.[0] ?? null)}
         />
       </div>
-      <TextField label="Texto alternativo" value={alt} onChange={(e) => setAlt(e.target.value)} />
+      <TextField
+        label="Texto alternativo"
+        maxLength={180}
+        value={alt}
+        onChange={(e) => setAlt(e.target.value)}
+      />
       <button type="submit" className="btn btn-secondary btn-sm" disabled={!file || upload.pending}>
         {upload.pending ? 'Enviando…' : 'Enviar'}
       </button>
@@ -189,58 +195,102 @@ export default function SettingsPage() {
           <div className="form-grid">
             <TextField
               label="Nome curto"
+              maxLength={160}
               required
               value={form.teamName}
               onChange={set('teamName')}
             />
             <TextField
               label="Nome oficial"
+              maxLength={200}
               required
               value={form.officialName}
               onChange={set('officialName')}
             />
             <TextField
               label="E-mail público"
+              maxLength={180}
               type="email"
               value={form.email}
               onChange={set('email')}
             />
-            <TextField label="Telefone/WhatsApp" value={form.phone} onChange={set('phone')} />
-            <TextField label="Endereço" value={form.addressLine1} onChange={set('addressLine1')} />
-            <TextField label="Cidade" value={form.addressCity} onChange={set('addressCity')} />
-            <TextField label="UF" value={form.addressState} onChange={set('addressState')} />
+            <PhoneField
+              label="Telefone/WhatsApp"
+              allowLandline
+              value={form.phone}
+              onValueChange={(value) => set('phone')({ target: { value } })}
+            />
+            <TextField
+              label="Endereço"
+              maxLength={200}
+              value={form.addressLine1}
+              onChange={set('addressLine1')}
+            />
+            <TextField
+              label="Cidade"
+              maxLength={120}
+              value={form.addressCity}
+              onChange={set('addressCity')}
+            />
+            <TextField
+              label="UF"
+              maxLength={2}
+              value={form.addressState}
+              onChange={set('addressState')}
+            />
             <TextField
               label="CEP"
+              maxLength={9}
               value={form.addressPostalCode}
               onChange={set('addressPostalCode')}
             />
           </div>
           <TextArea
             label="Descrição curta"
+            maxLength={2000}
             value={form.description}
             onChange={set('description')}
           />
-          <TextArea label="História" value={form.history} onChange={set('history')} />
+          <TextArea
+            label="História"
+            maxLength={20000}
+            value={form.history}
+            onChange={set('history')}
+          />
           <TextArea
             label="Redes sociais"
+            maxLength={2000}
             hint="Uma por linha no formato: Nome | https://endereco"
             value={form.socialLinks}
             onChange={set('socialLinks')}
           />
-          <TextArea label="Termos de uso" value={form.termsOfUse} onChange={set('termsOfUse')} />
+          <TextArea
+            label="Termos de uso"
+            maxLength={50000}
+            value={form.termsOfUse}
+            onChange={set('termsOfUse')}
+          />
           <TextArea
             label="Política de privacidade"
+            maxLength={50000}
             value={form.privacyPolicy}
             onChange={set('privacyPolicy')}
           />
           <TextArea
             label="Regras de mensalidade"
+            maxLength={20000}
             value={form.monthlyFeeRules}
             onChange={set('monthlyFeeRules')}
           />
-          <TextArea label="Regras da loja" value={form.storeRules} onChange={set('storeRules')} />
+          <TextArea
+            label="Regras da loja"
+            maxLength={20000}
+            value={form.storeRules}
+            onChange={set('storeRules')}
+          />
           <TextArea
             label="Instruções de retirada"
+            maxLength={5000}
             value={form.pickupInstructions}
             onChange={set('pickupInstructions')}
           />
@@ -265,9 +315,15 @@ export default function SettingsPage() {
           </p>
           {saveFinancial.message ? <Alert kind="success">{saveFinancial.message}</Alert> : null}
           <ErrorSummary error={saveFinancial.error} />
-          <TextField label="Chave PIX" value={pix} onChange={(e) => setPix(e.target.value)} />
+          <TextField
+            label="Chave PIX"
+            maxLength={140}
+            value={pix}
+            onChange={(e) => setPix(e.target.value)}
+          />
           <TextArea
             label="Dados bancários"
+            maxLength={1000}
             value={banking}
             onChange={(e) => setBanking(e.target.value)}
           />

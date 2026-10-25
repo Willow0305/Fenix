@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 
-import { ErrorSummary, TextField, useSubmit } from '../../../components/ui';
+import { ErrorSummary, PhoneField, TextField, useSubmit } from '../../../components/ui';
 import { useAuth } from '../../../lib/auth-context';
 
 export default function RegisterPage() {
@@ -52,6 +52,7 @@ export default function RegisterPage() {
         <ErrorSummary error={action.error} />
         <TextField
           label="Nome completo"
+          maxLength={160}
           autoComplete="name"
           required
           value={form.name}
@@ -60,6 +61,7 @@ export default function RegisterPage() {
         />
         <TextField
           label="E-mail"
+          maxLength={180}
           type="email"
           autoComplete="email"
           required
@@ -67,12 +69,10 @@ export default function RegisterPage() {
           onChange={set('email')}
           error={action.fieldError('email')}
         />
-        <TextField
-          label="Telefone (opcional)"
-          type="tel"
-          autoComplete="tel"
+        <PhoneField
+          label="Celular (opcional)"
           value={form.phone}
-          onChange={set('phone')}
+          onValueChange={(value) => set('phone')({ target: { value } })}
           error={action.fieldError('phone')}
         />
         <TextField

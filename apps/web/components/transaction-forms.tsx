@@ -79,6 +79,7 @@ export function TransactionForm({ onDone }: { readonly onDone: () => void }) {
         />
         <TextField
           label="Valor (R$)"
+          maxLength={16}
           required
           inputMode="decimal"
           value={form.amount}
@@ -93,6 +94,7 @@ export function TransactionForm({ onDone }: { readonly onDone: () => void }) {
         />
         <TextField
           label="Descrição"
+          maxLength={500}
           required
           value={form.description}
           onChange={(e) => setForm({ ...form, description: e.target.value })}
@@ -115,6 +117,7 @@ export function TransactionForm({ onDone }: { readonly onDone: () => void }) {
         />
         <TextField
           label="Observações"
+          maxLength={2000}
           value={form.notes}
           onChange={(e) => setForm({ ...form, notes: e.target.value })}
         />
@@ -186,6 +189,7 @@ export function TransferForm({ onDone }: { readonly onDone: () => void }) {
         />
         <TextField
           label="Valor (R$)"
+          maxLength={16}
           required
           inputMode="decimal"
           value={form.amount}
@@ -200,6 +204,7 @@ export function TransferForm({ onDone }: { readonly onDone: () => void }) {
         />
         <TextField
           label="Descrição"
+          maxLength={500}
           value={form.description}
           onChange={(e) => setForm({ ...form, description: e.target.value })}
         />

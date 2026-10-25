@@ -10,6 +10,7 @@ import {
   ErrorSummary,
   Loading,
   PageHeader,
+  PhoneField,
   SelectField,
   TextArea,
   TextField,
@@ -81,6 +82,7 @@ function AvailabilityPanel({ professional }: { readonly professional: Profession
           />
           <TextField
             label="Observação interna"
+            maxLength={500}
             value={form.notes}
             onChange={(e) => setForm({ ...form, notes: e.target.value })}
           />
@@ -279,33 +281,38 @@ function ServicesAdmin() {
             <div className="form-grid">
               <TextField
                 label="Nome completo"
+                maxLength={160}
                 required
                 value={pro.fullName}
                 onChange={(e) => setPro({ ...pro, fullName: e.target.value })}
               />
               <TextField
                 label="Profissão"
+                maxLength={120}
                 required
                 value={pro.profession}
                 onChange={(e) => setPro({ ...pro, profession: e.target.value })}
               />
               <TextField
                 label="Registro profissional"
+                maxLength={40}
                 value={pro.licenseNumber}
                 onChange={(e) => setPro({ ...pro, licenseNumber: e.target.value })}
                 hint="Armazenado cifrado."
               />
               <TextField
                 label="E-mail"
+                maxLength={180}
                 type="email"
                 value={pro.email}
                 onChange={(e) => setPro({ ...pro, email: e.target.value })}
                 hint="Recebe aviso de confirmação e cancelamento."
               />
-              <TextField
+              <PhoneField
                 label="Telefone"
+                allowLandline
                 value={pro.phone}
-                onChange={(e) => setPro({ ...pro, phone: e.target.value })}
+                onValueChange={(value) => setPro({ ...pro, phone: value })}
               />
               <SelectField
                 label="Exibir contato no site"
@@ -319,6 +326,7 @@ function ServicesAdmin() {
             </div>
             <TextArea
               label="Apresentação pública"
+              maxLength={2000}
               value={pro.publicBio}
               onChange={(e) => setPro({ ...pro, publicBio: e.target.value })}
             />
@@ -394,6 +402,7 @@ function ServicesAdmin() {
             <div className="form-grid">
               <TextField
                 label="Nome"
+                maxLength={160}
                 required
                 value={svc.name}
                 onChange={(e) => setSvc({ ...svc, name: e.target.value })}
@@ -409,6 +418,7 @@ function ServicesAdmin() {
               />
               <TextField
                 label="Valor (R$)"
+                maxLength={16}
                 inputMode="decimal"
                 value={svc.price}
                 onChange={(e) => setSvc({ ...svc, price: e.target.value })}
@@ -428,6 +438,7 @@ function ServicesAdmin() {
             </div>
             <TextArea
               label="Descrição pública"
+              maxLength={4000}
               value={svc.description}
               onChange={(e) => setSvc({ ...svc, description: e.target.value })}
             />

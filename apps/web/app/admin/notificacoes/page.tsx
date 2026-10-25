@@ -100,6 +100,7 @@ export default function BroadcastPage() {
           />
           <TextField
             label="Link interno (opcional)"
+            maxLength={300}
             value={form.link}
             placeholder="/eventos"
             onChange={(e) => setForm({ ...form, link: e.target.value })}

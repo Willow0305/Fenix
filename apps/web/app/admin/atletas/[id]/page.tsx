@@ -90,6 +90,12 @@ export default function AthleteDetailPage() {
         actions={<Link href="/admin/atletas">Voltar</Link>}
       />
       {notice ? <Alert kind="success">{notice}</Alert> : null}
+      {a.documentNeedsReview ? (
+        <Alert kind="warning">
+          O documento cadastrado não é um CPF válido (cadastro anterior ao padrão). Informe o CPF em
+          Dados cadastrais.
+        </Alert>
+      ) : null}
 
       <section className="card row" aria-label="Status">
         <span>Status:</span>
@@ -150,6 +156,7 @@ export default function AthleteDetailPage() {
           <form className="row" onSubmit={(event) => void link.submit(event)}>
             <TextField
               label="E-mail da conta do atleta"
+              maxLength={180}
               type="email"
               value={linkEmail}
               onChange={(e) => setLinkEmail(e.target.value)}
@@ -233,6 +240,7 @@ export default function AthleteDetailPage() {
               />
               <TextField
                 label="Posição na equipe"
+                maxLength={80}
                 value={membership.position}
                 onChange={(e) => setMembership({ ...membership, position: e.target.value })}
               />

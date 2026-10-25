@@ -6,6 +6,16 @@ O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) e o 
 
 ## [Não publicado]
 
+### Formulários padronizados (2026-10-25)
+
+#### Alterado
+
+- todos os campos de texto do site e do painel (cerca de 150) têm o mesmo limite de caracteres da API; campos a partir de 200 caracteres mostram contador (COR-002);
+- formulário de atleta reorganizado em Identificação, Contato, Responsável, Emergência e Observações, com campo de CPF e celulares com máscara (COR-016);
+- telefones de inscrição, interesse, cadastro, minha conta, carrinho, configurações, parceiros e profissionais usam máscara e validação ao sair do campo; documento de parceiro aceita CPF ou CNPJ com máscara (COR-003, COR-004);
+- telefones exibidos no site e no painel aparecem formatados;
+- a ficha do atleta avisa quando o documento gravado não é um CPF válido.
+
 ### Padronização de CPF, telefone e limites (2026-10-25)
 
 #### Alterado

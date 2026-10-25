@@ -15,7 +15,7 @@ import {
 import { api } from '../../../lib/api-client';
 import type { Page } from '../../../lib/api-types';
 import { useAuth } from '../../../lib/auth-context';
-import { formatDate, formatDateTime } from '../../../lib/format';
+import { formatDate, formatDateTime, formatPhoneDisplay } from '../../../lib/format';
 import {
   type AthleteDetail,
   INTERESTED_NEXT,
@@ -74,12 +74,13 @@ export default function InterestedPage() {
             <small className="muted">{formatDateTime(person.createdAt)}</small>
           </div>
           <span className="muted">
-            Nascimento {formatDate(person.birthDate)} · {person.email} · {person.phone}
+            Nascimento {formatDate(person.birthDate)} · {person.email} ·{' '}
+            {formatPhoneDisplay(person.phone)}
             {person.desiredPosition ? ` · ${person.desiredPosition}` : ''}
           </span>
           {person.guardianName ? (
             <span className="muted">
-              Responsável: {person.guardianName} ({person.guardianPhone})
+              Responsável: {person.guardianName} ({formatPhoneDisplay(person.guardianPhone)})
             </span>
           ) : null}
           {person.notes ? (

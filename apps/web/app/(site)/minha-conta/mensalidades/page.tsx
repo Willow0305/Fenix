@@ -47,6 +47,7 @@ function ProofForm({ fee, onDone }: { readonly fee: Fee; readonly onDone: () => 
       <div className="form-grid">
         <TextField
           label="Valor pago (R$)"
+          maxLength={16}
           inputMode="decimal"
           required
           value={amount}

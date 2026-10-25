@@ -17,7 +17,7 @@ import {
 import { api } from '../../../../lib/api-client';
 import type { Page } from '../../../../lib/api-types';
 import { useAuth } from '../../../../lib/auth-context';
-import { formatDate, formatDateTime } from '../../../../lib/format';
+import { formatDate, formatDateTime, formatPhoneDisplay } from '../../../../lib/format';
 import {
   type AthleteDetail,
   REGISTRATION_NEXT,
@@ -169,12 +169,12 @@ export default function TryoutDetailPage() {
               <small className="muted">{formatDateTime(r.createdAt)}</small>
             </div>
             <span className="muted">
-              {formatDate(r.birthDate)} · {r.email} · {r.phone}
+              {formatDate(r.birthDate)} · {r.email} · {formatPhoneDisplay(r.phone)}
               {r.desiredPosition ? ` · ${r.desiredPosition}` : ''}
             </span>
             {r.guardianName ? (
               <span className="muted">
-                Responsável: {r.guardianName} ({r.guardianPhone})
+                Responsável: {r.guardianName} ({formatPhoneDisplay(r.guardianPhone)})
               </span>
             ) : null}
             {r.experience ? (

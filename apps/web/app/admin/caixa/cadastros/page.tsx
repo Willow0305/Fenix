@@ -115,6 +115,7 @@ export default function FinanceSetupPage() {
           <form className="row" onSubmit={(event) => void createAccount.submit(event)}>
             <TextField
               label="Nova conta"
+              maxLength={120}
               required
               value={account.name}
               onChange={(e) => setAccount({ ...account, name: e.target.value })}
@@ -127,6 +128,7 @@ export default function FinanceSetupPage() {
             />
             <TextField
               label="Banco (opcional)"
+              maxLength={160}
               value={account.institutionName}
               onChange={(e) => setAccount({ ...account, institutionName: e.target.value })}
             />
@@ -175,6 +177,7 @@ export default function FinanceSetupPage() {
           <form className="row" onSubmit={(event) => void createCategory.submit(event)}>
             <TextField
               label="Nova categoria"
+              maxLength={120}
               required
               value={category.name}
               onChange={(e) => setCategory({ ...category, name: e.target.value })}
@@ -212,6 +215,7 @@ export default function FinanceSetupPage() {
           <form className="row" onSubmit={(event) => void createCenter.submit(event)}>
             <TextField
               label="Novo centro de custo"
+              maxLength={120}
               required
               value={center}
               onChange={(e) => setCenter(e.target.value)}
@@ -272,6 +276,7 @@ export default function FinanceSetupPage() {
       >
         <TextField
           label="Valor (R$)"
+          maxLength={16}
           inputMode="decimal"
           value={openingForm.amount}
           onChange={(e) => setOpeningForm({ ...openingForm, amount: e.target.value })}

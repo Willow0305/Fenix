@@ -39,6 +39,7 @@ export default function OrdersAdminPage() {
         <label className="field">
           <span className="label">Buscar</span>
           <input
+            maxLength={120}
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Número, nome ou e-mail"

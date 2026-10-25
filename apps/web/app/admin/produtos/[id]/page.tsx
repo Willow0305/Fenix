@@ -97,6 +97,7 @@ function StockPanel({
           />
           <TextField
             label="Motivo"
+            maxLength={1000}
             required
             value={form.reason}
             onChange={(e) => setForm({ ...form, reason: e.target.value })}
@@ -335,7 +336,13 @@ export default function ProductAdminPage() {
         <h2>Dados do produto</h2>
         <ErrorSummary error={save.error} />
         <div className="form-grid">
-          <TextField label="Nome" required value={form['name'] ?? ''} onChange={set('name')} />
+          <TextField
+            label="Nome"
+            maxLength={160}
+            required
+            value={form['name'] ?? ''}
+            onChange={set('name')}
+          />
           <SelectField
             label="Categoria"
             value={form['categoryId'] ?? ''}
@@ -353,6 +360,7 @@ export default function ProductAdminPage() {
           />
           <TextField
             label="Preço (R$)"
+            maxLength={16}
             required
             inputMode="decimal"
             value={form['basePrice'] ?? ''}
@@ -360,6 +368,7 @@ export default function ProductAdminPage() {
           />
           <TextField
             label="Preço promocional"
+            maxLength={16}
             inputMode="decimal"
             value={form['promotionalPrice'] ?? ''}
             onChange={set('promotionalPrice')}
@@ -367,11 +376,17 @@ export default function ProductAdminPage() {
           />
           <TextField
             label="Custo (interno)"
+            maxLength={16}
             inputMode="decimal"
             value={form['costPrice'] ?? ''}
             onChange={set('costPrice')}
           />
-          <TextField label="Marca" value={form['brand'] ?? ''} onChange={set('brand')} />
+          <TextField
+            label="Marca"
+            maxLength={120}
+            value={form['brand'] ?? ''}
+            onChange={set('brand')}
+          />
           <TextField
             label="Limite por comprador"
             type="number"
@@ -427,6 +442,7 @@ export default function ProductAdminPage() {
             {form['partnerId'] && form['commissionTypeOverride'] === 'PERCENTAGE' ? (
               <TextField
                 label="Percentual (%)"
+                maxLength={6}
                 inputMode="decimal"
                 required
                 value={form['commissionPercentageOverride'] ?? ''}
@@ -436,6 +452,7 @@ export default function ProductAdminPage() {
             {form['partnerId'] && form['commissionTypeOverride'] === 'FIXED' ? (
               <TextField
                 label="Valor por unidade (R$)"
+                maxLength={16}
                 inputMode="decimal"
                 required
                 value={form['commissionFixedOverride'] ?? ''}
@@ -446,11 +463,13 @@ export default function ProductAdminPage() {
         ) : null}
         <TextArea
           label="Descrição"
+          maxLength={8000}
           value={form['description'] ?? ''}
           onChange={set('description')}
         />
         <TextArea
           label="Instruções de retirada"
+          maxLength={2000}
           value={form['pickupInstructions'] ?? ''}
           onChange={set('pickupInstructions')}
         />
@@ -494,6 +513,7 @@ export default function ProductAdminPage() {
         <form className="row" onSubmit={(event) => void addVariant.submit(event)}>
           <TextField
             label="Nova variação"
+            maxLength={140}
             required
             placeholder="Ex.: M, GG Feminina"
             value={variant.name}
@@ -501,22 +521,26 @@ export default function ProductAdminPage() {
           />
           <TextField
             label="Tamanho"
+            maxLength={40}
             value={variant.size}
             onChange={(e) => setVariant({ ...variant, size: e.target.value })}
           />
           <TextField
             label="Cor"
+            maxLength={80}
             value={variant.color}
             onChange={(e) => setVariant({ ...variant, color: e.target.value })}
           />
           <TextField
             label="Preço próprio"
+            maxLength={16}
             inputMode="decimal"
             value={variant.priceOverride}
             onChange={(e) => setVariant({ ...variant, priceOverride: e.target.value })}
           />
           <TextField
             label="SKU (opcional)"
+            maxLength={100}
             value={variant.sku}
             onChange={(e) => setVariant({ ...variant, sku: e.target.value })}
           />
@@ -562,6 +586,7 @@ export default function ProductAdminPage() {
           </div>
           <TextField
             label="Descrição da imagem"
+            maxLength={180}
             value={alt}
             onChange={(e) => setAlt(e.target.value)}
           />

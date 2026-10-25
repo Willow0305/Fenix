@@ -100,12 +100,14 @@ function Categories() {
         <div className="form-grid">
           <TextField
             label="Nova categoria"
+            maxLength={120}
             required
             value={form.name}
             onChange={(e) => setForm({ ...form, name: e.target.value })}
           />
           <TextField
             label="Descrição"
+            maxLength={1000}
             value={form.description}
             onChange={(e) => setForm({ ...form, description: e.target.value })}
           />

@@ -82,6 +82,7 @@ export default function UsersPage() {
       >
         <input
           aria-label="Buscar por nome ou e-mail"
+          maxLength={120}
           placeholder="Buscar por nome ou e-mail"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
@@ -208,12 +209,14 @@ export default function UsersPage() {
           <div className="form-grid">
             <TextField
               label="Nome"
+              maxLength={160}
               required
               value={newUser.name}
               onChange={(e) => setNewUser({ ...newUser, name: e.target.value })}
             />
             <TextField
               label="E-mail"
+              maxLength={180}
               type="email"
               required
               value={newUser.email}

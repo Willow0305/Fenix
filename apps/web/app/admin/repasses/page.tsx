@@ -230,6 +230,7 @@ function SettlementsAdmin() {
             />
             <TextField
               label="Ajuste (R$)"
+              maxLength={17}
               inputMode="decimal"
               value={form.adjustmentAmount}
               onChange={(e) => setForm({ ...form, adjustmentAmount: e.target.value })}
@@ -238,6 +239,7 @@ function SettlementsAdmin() {
             {form.adjustmentAmount ? (
               <TextField
                 label="Motivo do ajuste"
+                maxLength={1000}
                 required
                 value={form.adjustmentReason}
                 onChange={(e) => setForm({ ...form, adjustmentReason: e.target.value })}

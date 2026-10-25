@@ -92,6 +92,7 @@ export function AthleteFeePlans({ athleteId }: { readonly athleteId: string }) {
             />
             <TextField
               label="Valor individual (opcional)"
+              maxLength={16}
               inputMode="decimal"
               value={form.amountOverride}
               onChange={(e) => setForm({ ...form, amountOverride: e.target.value })}
@@ -99,6 +100,7 @@ export function AthleteFeePlans({ athleteId }: { readonly athleteId: string }) {
             />
             <TextField
               label="Motivo do valor individual"
+              maxLength={1000}
               value={form.reason}
               onChange={(e) => setForm({ ...form, reason: e.target.value })}
             />

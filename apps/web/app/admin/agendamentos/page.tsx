@@ -13,7 +13,7 @@ import {
 } from '../../../components/ui';
 import { api } from '../../../lib/api-client';
 import type { Page } from '../../../lib/api-types';
-import { formatDateTime, formatMoney } from '../../../lib/format';
+import { formatDateTime, formatMoney, formatPhoneDisplay } from '../../../lib/format';
 import {
   type Appointment,
   APPOINTMENT_STATUS,
@@ -105,7 +105,12 @@ export default function AppointmentsAdminPage() {
                       {a.requester.name}
                       <br />
                       <small className="muted">
-                        {[a.requester.phone, a.requester.email].filter(Boolean).join(' · ')}
+                        {[
+                          a.requester.phone ? formatPhoneDisplay(a.requester.phone) : null,
+                          a.requester.email
+                        ]
+                          .filter(Boolean)
+                          .join(' · ')}
                       </small>
                       {a.requesterNotes ? (
                         <>

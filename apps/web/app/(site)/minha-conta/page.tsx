@@ -2,7 +2,14 @@
 
 import { useState } from 'react';
 
-import { Alert, ErrorSummary, PageHeader, TextField, useSubmit } from '../../../components/ui';
+import {
+  Alert,
+  ErrorSummary,
+  PageHeader,
+  PhoneField,
+  TextField,
+  useSubmit
+} from '../../../components/ui';
 import { api } from '../../../lib/api-client';
 import type { Profile } from '../../../lib/api-types';
 import { useAuth } from '../../../lib/auth-context';
@@ -46,19 +53,21 @@ export default function AccountOverviewPage() {
         <h2>Meus dados</h2>
         {action.message ? <Alert kind="success">{action.message}</Alert> : null}
         <ErrorSummary error={action.error} />
-        <TextField label="Nome" required value={name} onChange={(e) => setName(e.target.value)} />
+        <TextField
+          label="Nome"
+          maxLength={160}
+          required
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+        />
         <TextField
           label="E-mail"
+          maxLength={180}
           value={profile.email}
           disabled
           hint="Para alterar o e-mail, procure a administração."
         />
-        <TextField
-          label="Telefone"
-          type="tel"
-          value={phone}
-          onChange={(e) => setPhone(e.target.value)}
-        />
+        <PhoneField label="Celular" value={phone} onValueChange={setPhone} />
         <div className="form-actions">
           <button type="submit" className="btn btn-primary" disabled={action.pending}>
             Salvar

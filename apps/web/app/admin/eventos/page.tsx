@@ -184,7 +184,13 @@ function EventForm({
     <form className="form card" onSubmit={(event) => void save.submit(event)}>
       <ErrorSummary error={save.error} />
       <div className="form-grid">
-        <TextField label="Título" required value={form.title} onChange={set('title')} />
+        <TextField
+          label="Título"
+          maxLength={180}
+          required
+          value={form.title}
+          onChange={set('title')}
+        />
         <SelectField
           label="Tipo"
           value={form.type}
@@ -204,8 +210,18 @@ function EventForm({
           value={form.endsAt}
           onChange={set('endsAt')}
         />
-        <TextField label="Local" value={form.locationName} onChange={set('locationName')} />
-        <TextField label="Endereço" value={form.address} onChange={set('address')} />
+        <TextField
+          label="Local"
+          maxLength={180}
+          value={form.locationName}
+          onChange={set('locationName')}
+        />
+        <TextField
+          label="Endereço"
+          maxLength={500}
+          value={form.address}
+          onChange={set('address')}
+        />
         <SelectField
           label="Visibilidade"
           value={form.isPublic ? 'true' : 'false'}
@@ -230,12 +246,14 @@ function EventForm({
           <legend>Partida</legend>
           <TextField
             label="Adversário"
+            maxLength={160}
             required={form.type === 'MATCH'}
             value={form.opponentName}
             onChange={set('opponentName')}
           />
           <TextField
             label="Competição"
+            maxLength={160}
             value={form.competitionName}
             onChange={set('competitionName')}
           />
@@ -275,7 +293,12 @@ function EventForm({
           />
         </fieldset>
       ) : null}
-      <TextArea label="Descrição" value={form.description} onChange={set('description')} />
+      <TextArea
+        label="Descrição"
+        maxLength={8000}
+        value={form.description}
+        onChange={set('description')}
+      />
       <div className="form-actions">
         <button type="submit" className="btn btn-primary" disabled={save.pending}>
           {editingId ? 'Salvar alterações' : 'Criar evento (rascunho)'}

@@ -148,6 +148,7 @@ export default function ClosingsPage() {
                   <div className="form-grid">
                     <TextField
                       label="Saldo contado / extrato (R$)"
+                      maxLength={16}
                       required
                       inputMode="decimal"
                       value={form.countedBalance}
@@ -155,6 +156,7 @@ export default function ClosingsPage() {
                     />
                     <TextField
                       label="Observação"
+                      maxLength={2000}
                       value={form.notes}
                       onChange={(e) => setForm({ ...form, notes: e.target.value })}
                       hint="Explique eventuais diferenças."

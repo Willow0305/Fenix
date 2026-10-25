@@ -96,6 +96,7 @@ export default function PlansPage() {
                       <form className="row" onSubmit={(e) => void update.submit(e)}>
                         <input
                           aria-label="Novo valor"
+                          maxLength={16}
                           value={editAmount}
                           onChange={(e) => setEditAmount(e.target.value)}
                           style={{ width: 110 }}
@@ -155,12 +156,14 @@ export default function PlansPage() {
           <div className="form-grid">
             <TextField
               label="Nome"
+              maxLength={120}
               required
               value={form.name}
               onChange={(e) => setForm({ ...form, name: e.target.value })}
             />
             <TextField
               label="Valor (R$)"
+              maxLength={16}
               required
               inputMode="decimal"
               placeholder="80,00"
@@ -179,6 +182,7 @@ export default function PlansPage() {
             />
             <TextField
               label="Descrição"
+              maxLength={2000}
               value={form.description}
               onChange={(e) => setForm({ ...form, description: e.target.value })}
             />
