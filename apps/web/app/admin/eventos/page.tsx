@@ -28,6 +28,7 @@ import {
 } from '../../../lib/content-types';
 import { formatDateTime } from '../../../lib/format';
 import { useResource } from '../../../lib/use-resource';
+import { teamOptions } from '../../../lib/team-options';
 
 interface Team {
   id: string;
@@ -273,7 +274,7 @@ function EventForm({
             onChange={set('teamId')}
             options={[
               { value: '', label: 'Não informada' },
-              ...(teams.data ?? []).map((t) => ({ value: t.id, label: t.name }))
+              ...teamOptions(teams.data ?? [], 'pick', initial.teamId)
             ]}
           />
           <TextField

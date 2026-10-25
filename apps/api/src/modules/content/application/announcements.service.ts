@@ -11,6 +11,7 @@ import {
   type BroadcastAudience,
   sanitizeText
 } from '../domain/content-rules';
+import { assertActiveTeam } from '../../sports/application/active-team';
 
 export interface BroadcastInput {
   readonly audience: BroadcastAudience;
@@ -70,6 +71,10 @@ export class AnnouncementsService {
 
     if (input.audience === 'TEAM' && !input.teamId) {
       throw AppError.validation('TEAM_REQUIRED', 'Escolha a equipe.');
+    }
+
+    if (input.audience === 'TEAM') {
+      await assertActiveTeam(this.prisma, input.teamId);
     }
 
     const athletes = await this.prisma.athlete.findMany({

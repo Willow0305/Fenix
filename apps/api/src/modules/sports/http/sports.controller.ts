@@ -26,6 +26,7 @@ import { PERMISSIONS } from '../../access/domain/permission-catalog';
 import { Public, RequirePermissions } from '../../auth/http/auth.decorators';
 import {
   type AthleteDetail,
+  type StatusImpact,
   type AthleteInput,
   AthletesService,
   type AthleteSummary
@@ -235,6 +236,12 @@ export class AthletesController {
     return this.athletes.update(actor, id, defined(body), meta);
   }
 
+  @Get(':id/status-impact')
+  @RequirePermissions(PERMISSIONS.athletesStatusChange)
+  statusImpact(@Param('id', new ParseUUIDPipe()) id: string): Promise<StatusImpact> {
+    return this.athletes.statusImpact(id);
+  }
+
   @Put(':id/status')
   @RequirePermissions(PERMISSIONS.athletesStatusChange)
   status(
@@ -243,7 +250,9 @@ export class AthletesController {
     @Body() body: AthleteStatusDto,
     @ReqMeta() meta: RequestMeta
   ): Promise<AthleteDetail> {
-    return this.athletes.changeStatus(actor, id, body.status, body.reason, meta);
+    const { status, reason, ...effects } = body;
+
+    return this.athletes.changeStatus(actor, id, status, reason, meta, effects);
   }
 
   @Put(':id/user')

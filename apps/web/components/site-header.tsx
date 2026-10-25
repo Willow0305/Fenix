@@ -8,6 +8,7 @@ import { useAuth } from '../lib/auth-context';
 import { useCart } from '../lib/cart-context';
 import { BrandLogo } from './brand-logo';
 import styles from './site-header.module.scss';
+import { Icon } from './icon';
 
 export interface NavItem {
   readonly href: string;
@@ -86,7 +87,7 @@ export function SiteHeader({
                 className="btn btn-secondary btn-sm"
                 onClick={() => setOpen(false)}
               >
-                Carrinho ({cart.itemCount})
+                <Icon name="cart3" /> Carrinho ({cart.itemCount})
               </Link>
             ) : null}
             {status === 'authenticated' && profile ? (
@@ -97,7 +98,7 @@ export function SiteHeader({
                     className="btn btn-secondary btn-sm"
                     onClick={() => setOpen(false)}
                   >
-                    Painel
+                    <Icon name="speedometer2" /> Painel
                   </Link>
                 ) : null}
                 <Link
@@ -105,7 +106,7 @@ export function SiteHeader({
                   className="btn btn-primary btn-sm"
                   onClick={() => setOpen(false)}
                 >
-                  {profile.name.split(' ')[0]}
+                  <Icon name="person-circle" /> {profile.name.split(' ')[0]}
                 </Link>
               </>
             ) : status === 'anonymous' ? (
@@ -114,7 +115,7 @@ export function SiteHeader({
                 className="btn btn-primary btn-sm"
                 onClick={() => setOpen(false)}
               >
-                Entrar
+                <Icon name="box-arrow-in-right" /> Entrar
               </Link>
             ) : null}
           </div>

@@ -4,6 +4,7 @@ import { useState } from 'react';
 
 import type { Team, Tryout } from '../lib/sports-types';
 import { ErrorSummary, SelectField, TextArea, TextField, useSubmit } from './ui';
+import { teamOptions } from '../lib/team-options';
 
 /** Converte ISO UTC para valor de `datetime-local` no fuso do navegador e vice-versa. */
 function toLocalInput(iso: string | null | undefined): string {
@@ -93,7 +94,7 @@ export function TryoutForm({
           onChange={set('teamId')}
           options={[
             { value: '', label: 'Geral' },
-            ...teams.map((t) => ({ value: t.id, label: t.name }))
+            ...teamOptions(teams, 'pick', source?.team?.id ?? null)
           ]}
         />
         <TextField label="Local" maxLength={220} value={form.location} onChange={set('location')} />

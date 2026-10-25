@@ -152,6 +152,20 @@ export class AthleteListQueryDto extends PageQueryDto {
 
 export class AthleteStatusDto extends RequiredReasonDto {
   @ApiProperty({ enum: AthleteStatus }) @IsEnum(AthleteStatus) status!: AthleteStatus;
+  @ApiPropertyOptional({
+    description: 'Ao inativar/suspender: cancela mensalidades futuras sem pagamento.'
+  })
+  @IsOptional()
+  @IsBoolean()
+  cancelFutureFees?: boolean;
+  @ApiPropertyOptional({ description: 'Ao inativar/suspender: encerra o plano de mensalidade.' })
+  @IsOptional()
+  @IsBoolean()
+  endPlan?: boolean;
+  @ApiPropertyOptional({ description: 'Ao inativar: encerra os vínculos com equipes.' })
+  @IsOptional()
+  @IsBoolean()
+  endMemberships?: boolean;
 }
 
 export class LinkUserDto {

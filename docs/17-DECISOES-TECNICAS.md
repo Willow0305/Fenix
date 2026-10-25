@@ -814,3 +814,20 @@ A logo oficial e as configurações do time "sumiam". A auditoria mostrou a caus
 
 - migração `20261025210000_capas_evento_parceiro`, gerada por `prisma migrate diff` porque o banco local guarda um registro antigo e já desfeito (`20261025200000_mfa_totp`, `rolled_back`) que impede `migrate dev`; `migrate deploy` não é afetado;
 - testes de integração de capa de evento (inclusive WebP e herança da notícia) e de logo e capa do parceiro; 3 testes unitários do interceptor.
+
+## DT-042 — Equipe ativa, efeitos do status do atleta e faixa etária
+
+- **Estado:** Aceita
+- **Data:** 2026-10-25
+- **Aprovador:** responsável do projeto ("aplique as mudanças", 2026-10-25), com as recomendações de `PEN-060` e `PEN-061`
+
+### Decisão
+
+- **equipe ativa:** `assertActiveTeam` (domínio esportivo) é a regra única para escolher equipe em partida, comunicado por equipe e seletiva; aceita manter a equipe que o registro já usava. O vínculo de atleta continua com a validação própria;
+- **status do atleta:** `GET /athletes/:id/status-impact` informa mensalidades canceláveis (mês atual em diante, `OPEN`/`OVERDUE`, sem nenhum pagamento registrado), as que ficam em aberto, o plano vigente e os vínculos abertos. `PUT /athletes/:id/status` aceita `cancelFutureFees` e `endPlan` (inativar ou suspender) e `endMemberships` (só inativar), aplicados na mesma transação, com o motivo da mudança e auditoria por item (`fee.cancelled`, `fee_plan.assignment.ended`, `athlete.membership.ended`);
+- **faixa etária:** só aviso na tela, com confirmação; a API não bloqueia.
+
+### Consequências
+
+- nenhuma mensalidade com pagamento, nem de mês passado, é cancelada por mudança de status;
+- teste de integração cobre o impacto, a recusa de encerrar vínculos na suspensão e os três efeitos.

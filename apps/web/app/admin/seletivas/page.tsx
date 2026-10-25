@@ -11,12 +11,13 @@ import { useAuth } from '../../../lib/auth-context';
 import { formatDateTime } from '../../../lib/format';
 import { type Team, TRYOUT_STATUS, type Tryout } from '../../../lib/sports-types';
 import { useResource } from '../../../lib/use-resource';
+import { Icon } from '../../../components/icon';
 
 export default function TryoutsAdminPage() {
   const { can } = useAuth();
   const router = useRouter();
   const tryouts = useResource<Tryout[]>('/tryouts');
-  const teams = useResource<Team[]>('/teams', { includeInactive: false });
+  const teams = useResource<Team[]>('/teams');
   const [creating, setCreating] = useState(false);
 
   return (
@@ -31,7 +32,13 @@ export default function TryoutsAdminPage() {
               className="btn btn-primary"
               onClick={() => setCreating((v) => !v)}
             >
-              {creating ? 'Fechar' : 'Nova seletiva'}
+              {creating ? (
+                'Fechar'
+              ) : (
+                <>
+                  <Icon name="plus-lg" /> Nova seletiva
+                </>
+              )}
             </button>
           ) : null
         }

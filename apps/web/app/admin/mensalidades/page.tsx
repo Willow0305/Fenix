@@ -1,15 +1,18 @@
 'use client';
 
 import Link from 'next/link';
-import { useState } from 'react';
+import { Suspense, useEffect, useState } from 'react';
 
+import { Icon } from '../../../components/icon';
 import {
   Alert,
+  ClearFilters,
   Empty,
   ErrorSummary,
   Loading,
   PageHeader,
   Pagination,
+  Skeleton,
   useSubmit
 } from '../../../components/ui';
 import { api } from '../../../lib/api-client';
@@ -19,18 +22,25 @@ import { FEE_STATUS, type Fee, type FeeStatus, type MoneyView } from '../../../l
 import { formatDate, formatMoney, formatMonth, todayCivil } from '../../../lib/format';
 import type { Team } from '../../../lib/sports-types';
 import { useResource } from '../../../lib/use-resource';
+import { useUrlFilters } from '../../../lib/use-url-filters';
+import { teamOptions } from '../../../lib/team-options';
 
 type FeePage = Page<Fee> & { totals?: { amount: MoneyView } };
 
-export default function FeesPage() {
+function FeesList() {
   const { can } = useAuth();
-  const [page, setPage] = useState(1);
-  const [month, setMonth] = useState(todayCivil().slice(0, 7));
-  const [status, setStatus] = useState<FeeStatus | ''>('');
-  const [teamId, setTeamId] = useState('');
-  const [search, setSearch] = useState('');
-  const [term, setTerm] = useState('');
-  const teams = useResource<Team[]>('/teams', { includeInactive: false });
+  const filters = useUrlFilters({
+    mes: todayCivil().slice(0, 7),
+    situacao: '',
+    equipe: '',
+    atleta: ''
+  });
+  const { mes: month, situacao: status, equipe: teamId, atleta: term } = filters.values;
+  const page = filters.page;
+  const [search, setSearch] = useState(term);
+
+  useEffect(() => setSearch(term), [term]);
+  const teams = useResource<Team[]>('/teams');
   const fees = useResource<FeePage>('/monthly-fees', {
     page,
     pageSize: 30,
@@ -49,7 +59,7 @@ export default function FeesPage() {
     generate.setMessage(
       `${result.created} mensalidade(s) gerada(s); ${result.skipped} já existiam.`
     );
-    setMonth(generateMonth);
+    filters.set({ mes: generateMonth });
     await fees.reload();
   });
 
@@ -72,7 +82,7 @@ export default function FeesPage() {
             />
           </label>
           <button type="submit" className="btn btn-primary" disabled={generate.pending}>
-            {generate.pending ? 'Gerando…' : 'Gerar'}
+            <Icon name="lightning-charge" /> {generate.pending ? 'Gerando…' : 'Gerar'}
           </button>
           <span className="muted">Atletas ativos com plano vigente. Repetir não duplica.</span>
           {generate.message ? <Alert kind="success">{generate.message}</Alert> : null}
@@ -81,12 +91,11 @@ export default function FeesPage() {
       ) : null}
 
       <form
-        className="row"
+        className="row filter-bar"
         role="search"
         onSubmit={(event) => {
           event.preventDefault();
-          setPage(1);
-          setTerm(search);
+          filters.set({ atleta: search.trim() });
         }}
       >
         <label className="field">
@@ -94,20 +103,14 @@ export default function FeesPage() {
           <input
             type="month"
             value={month}
-            onChange={(e) => {
-              setPage(1);
-              setMonth(e.target.value);
-            }}
+            onChange={(e) => filters.set({ mes: e.target.value })}
           />
         </label>
         <label className="field">
           <span className="label">Situação</span>
           <select
             value={status}
-            onChange={(e) => {
-              setPage(1);
-              setStatus(e.target.value as FeeStatus | '');
-            }}
+            onChange={(e) => filters.set({ situacao: e.target.value as FeeStatus | '' })}
           >
             <option value="">Todas</option>
             {Object.entries(FEE_STATUS).map(([value, meta]) => (
@@ -119,17 +122,11 @@ export default function FeesPage() {
         </label>
         <label className="field">
           <span className="label">Equipe</span>
-          <select
-            value={teamId}
-            onChange={(e) => {
-              setPage(1);
-              setTeamId(e.target.value);
-            }}
-          >
+          <select value={teamId} onChange={(e) => filters.set({ equipe: e.target.value })}>
             <option value="">Todas</option>
-            {(teams.data ?? []).map((t) => (
-              <option key={t.id} value={t.id}>
-                {t.name}
+            {teamOptions(teams.data ?? [], 'filter').map((option) => (
+              <option key={option.value} value={option.value}>
+                {option.label}
               </option>
             ))}
           </select>
@@ -143,12 +140,15 @@ export default function FeesPage() {
             placeholder="Nome"
           />
         </label>
-        <button type="submit" className="btn btn-secondary">
-          Filtrar
-        </button>
-        <button type="button" className="btn btn-link" onClick={() => setMonth('')}>
-          Todos os meses
-        </button>
+        <div className="form-actions">
+          <button type="submit" className="btn btn-secondary">
+            <Icon name="search" /> Filtrar
+          </button>
+          <button type="button" className="btn btn-link" onClick={() => filters.set({ mes: '' })}>
+            Todos os meses
+          </button>
+          <ClearFilters active={filters.active} onClear={filters.clear} />
+        </div>
       </form>
 
       {fees.error ? <Alert kind="error">{fees.error}</Alert> : null}
@@ -157,7 +157,7 @@ export default function FeesPage() {
       {fees.data && fees.data.data.length > 0 ? (
         <>
           <div className="table-wrap">
-            <table className="table">
+            <table className="table table-stack">
               <thead>
                 <tr>
                   <th scope="col">Atleta</th>
@@ -178,15 +178,21 @@ export default function FeesPage() {
               <tbody>
                 {fees.data.data.map((fee) => (
                   <tr key={fee.id}>
-                    <td>
+                    <td data-label="Atleta">
                       <Link href={`/admin/mensalidades/${fee.id}`}>{fee.athlete.fullName}</Link>
                     </td>
-                    <td>{formatMonth(fee.referenceMonth)}</td>
-                    <td>{formatDate(fee.dueDate)}</td>
-                    <td className="num">{formatMoney(fee.totalAmount.amount)}</td>
-                    <td className="num">{formatMoney(fee.paidAmount.amount)}</td>
-                    <td className="num">{formatMoney(fee.remainingAmount.amount)}</td>
-                    <td>
+                    <td data-label="Mês">{formatMonth(fee.referenceMonth)}</td>
+                    <td data-label="Vencimento">{formatDate(fee.dueDate)}</td>
+                    <td data-label="Total" className="num">
+                      {formatMoney(fee.totalAmount.amount)}
+                    </td>
+                    <td data-label="Pago" className="num">
+                      {formatMoney(fee.paidAmount.amount)}
+                    </td>
+                    <td data-label="Em aberto" className="num">
+                      {formatMoney(fee.remainingAmount.amount)}
+                    </td>
+                    <td data-label="Situação">
                       <span className={`badge ${FEE_STATUS[fee.status].badge}`}>
                         {FEE_STATUS[fee.status].label}
                       </span>
@@ -208,7 +214,15 @@ export default function FeesPage() {
           ) : null}
         </>
       ) : null}
-      {fees.data ? <Pagination {...fees.data.meta} onChange={setPage} /> : null}
+      {fees.data ? <Pagination {...fees.data.meta} onChange={filters.setPage} /> : null}
     </>
+  );
+}
+
+export default function FeesPage() {
+  return (
+    <Suspense fallback={<Skeleton lines={5} />}>
+      <FeesList />
+    </Suspense>
   );
 }

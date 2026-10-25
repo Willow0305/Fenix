@@ -71,6 +71,38 @@ describe('Fase 2 — atletas, equipes, interessados e seletivas', () => {
     };
   }
 
+  it('recusa equipe inativa em seletiva nova, mas mantém a de quem já usava (COR-008)', async () => {
+    const teamId = await createTeam(`Antiga ${Date.now()}`);
+    const tryout = await ctx
+      .http()
+      .post('/api/v1/tryouts')
+      .set(auth(board.token))
+      .send({ title: `Seletiva ${Date.now()}`, teamId })
+      .expect(201);
+
+    await ctx
+      .http()
+      .patch(`/api/v1/teams/${teamId}`)
+      .set(auth(board.token))
+      .send({ isActive: false })
+      .expect(200);
+
+    const refused = await ctx
+      .http()
+      .post('/api/v1/tryouts')
+      .set(auth(board.token))
+      .send({ title: `Seletiva ${Date.now()}`, teamId })
+      .expect(422);
+
+    expect(refused.body.code).toBe('INVALID_TEAM');
+    await ctx
+      .http()
+      .patch(`/api/v1/tryouts/${tryout.body.id}`)
+      .set(auth(board.token))
+      .send({ title: 'Seletiva renomeada', teamId })
+      .expect(200);
+  });
+
   describe('atletas', () => {
     it('aceita só CPF válido e telefone com DDD, gravando apenas dígitos (DT-040)', async () => {
       const send = (body: Record<string, unknown>) =>

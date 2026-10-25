@@ -458,6 +458,7 @@ Prioridades:
 - **Questão:** hoje Inativo e Suspenso só impedem novas mensalidades. As mensalidades em aberto, o plano vigente e os vínculos com equipes continuam como estavam. Não há regra documentada sobre o que deve acontecer.
 - **Recomendação:** não automatizar sem decisão. Mostrar no diálogo de mudança de status o que está pendente e oferecer, como opções marcáveis, cancelar mensalidades futuras sem pagamento, encerrar o plano e encerrar os vínculos, com o mesmo motivo e auditoria. Mensalidades com pagamento nunca são canceladas por essa ação.
 - **Impacto:** domínio esportivo e financeiro, diálogo de status, testes de transição.
+- **Situação:** resolvida em 2026-10-25 com a recomendação (`DT-042`). Ver seção 12.
 
 ### PEN-061 — Faixa etária da categoria
 
@@ -466,6 +467,15 @@ Prioridades:
 - **Questão:** a categoria tem idade mínima e máxima, mas o vínculo do atleta não confere a idade. Não está definido se a faixa é informativa ou obrigatória.
 - **Recomendação:** aviso com confirmação, sem bloqueio, porque atletas podem jogar fora da faixa por decisão técnica.
 - **Impacto:** vínculo de atleta (serviço e tela).
+- **Situação:** resolvida em 2026-10-25 com a recomendação (`DT-042`). Ver seção 12.
+
+### PEN-062 — Foto de perfil do atleta e elenco público por categoria
+
+- **Prioridade:** P2
+- **Bloqueia:** nova funcionalidade pedida pelo responsável em 2026-10-25
+- **Questão:** o atleta poderá enviar foto de perfil e escolher se ela é pública. No site, a página do time mostraria as categorias e, em cada uma, os atletas com foto, nome e posição. Há atletas menores de idade: pela LGPD (art. 14), publicar a imagem de criança ou adolescente exige consentimento específico de um dos pais ou responsável. Falta decidir quem consente e quais dados aparecem.
+- **Recomendação:** foto privada por padrão. Adulto escolhe publicar na Área do atleta. Para menor de 18, a publicação só vale com a ciência do responsável registrada pela diretoria (mesmo modelo de `guardianAcknowledged`), e o atleta ou o responsável pode retirar a qualquer momento. No site, mostrar só apelido ou primeiro nome e sobrenome abreviado, foto e posição; nunca idade, data de nascimento ou contato. Foto em `MediaFile` público otimizada (`DT-039`), com remoção ao retirar o consentimento.
+- **Impacto:** modelo do atleta (foto, consentimento e auditoria), Área do atleta, ficha no painel, página pública do time, `docs/13-SEGURANCA-E-LGPD.md`.
 
 ## 11. Critério de resolução
 
@@ -522,3 +532,5 @@ As entradas acima permanecem como histórico da questão original. As decisões 
 | PEN-056 | Decidido em 2026-10-25: só CPF (`000.000.000-00`) para pessoa física, opcional, com dígitos verificadores; RG recusado. Documentos antigos não são apagados: a ficha mostra "precisa de revisão". | Responsável do projeto | `DT-040` |
 | PEN-057 | Decidido em 2026-10-25 com a recomendação: pessoa física só celular `(00) 00000-0000`; contato de emergência, parceiro, profissional e contato do time aceitam também fixo `(00) 0000-0000`. | Responsável do projeto | `DT-040` |
 | PEN-058 | Aprovado em 2026-10-25 pelo pedido do responsável: capa de evento, capa de parceiro e logo do parceiro nos produtos, no mesmo fluxo de imagem pública otimizada. | Responsável do projeto | `DT-041` |
+| PEN-060 | Decidido em 2026-10-25 com a recomendação: ao inativar ou suspender, o diálogo mostra as pendências e oferece cancelar mensalidades do mês atual em diante sem pagamento, encerrar o plano e (só ao inativar) os vínculos, com o mesmo motivo e auditoria. Dívida de meses passados e mensalidade com pagamento nunca são canceladas. | Responsável do projeto | `DT-042` |
+| PEN-061 | Decidido em 2026-10-25 com a recomendação: faixa etária da categoria gera aviso com confirmação, sem bloqueio. | Responsável do projeto | `DT-042` |

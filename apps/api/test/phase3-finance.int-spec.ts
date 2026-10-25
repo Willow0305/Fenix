@@ -101,6 +101,80 @@ describe('Fase 3 — mensalidades e Caixa Fênix', () => {
   }
 
   describe('mensalidades', () => {
+    it('ao inativar, aplica só os efeitos escolhidos e preserva dívida passada (COR-018)', async () => {
+      const { feeId, athleteId } = await feeFor('70.00');
+      const future = await ctx.prisma.monthlyFee.findUniqueOrThrow({ where: { id: feeId } });
+      const past = await ctx.prisma.monthlyFee.create({
+        data: {
+          athleteId,
+          monthlyFeePlanId: future.monthlyFeePlanId,
+          athleteMonthlyFeePlanId: future.athleteMonthlyFeePlanId,
+          referenceMonth: new Date('2020-03-01'),
+          dueDate: new Date('2020-03-10'),
+          originalAmount: future.originalAmount,
+          totalAmount: future.totalAmount,
+          currency: future.currency
+        }
+      });
+      const team = await ctx.prisma.team.create({
+        data: { name: `Equipe ${randomUUID().slice(0, 6)}`, slug: randomUUID(), type: 'MIXED' }
+      });
+
+      await ctx.prisma.teamAthlete.create({
+        data: { athleteId, teamId: team.id, startsOn: new Date('2020-01-01') }
+      });
+
+      const impact = await ctx
+        .http()
+        .get(`/api/v1/athletes/${athleteId}/status-impact`)
+        .set(auth(board.token))
+        .expect(200);
+
+      expect(impact.body).toEqual({
+        cancellableFees: 1,
+        keptOpenFees: 1,
+        activePlan: expect.objectContaining({ name: expect.any(String) }),
+        openMemberships: [{ team: team.name }]
+      });
+
+      await ctx
+        .http()
+        .put(`/api/v1/athletes/${athleteId}/status`)
+        .set(auth(board.token))
+        .send({ status: 'SUSPENDED', reason: 'Teste', endMemberships: true })
+        .expect(422);
+      await ctx
+        .http()
+        .put(`/api/v1/athletes/${athleteId}/status`)
+        .set(auth(board.token))
+        .send({
+          status: 'INACTIVE',
+          reason: 'Saiu do time',
+          cancelFutureFees: true,
+          endPlan: true,
+          endMemberships: true
+        })
+        .expect(200);
+
+      expect((await ctx.prisma.monthlyFee.findUniqueOrThrow({ where: { id: feeId } })).status).toBe(
+        'CANCELLED'
+      );
+      expect(
+        (await ctx.prisma.monthlyFee.findUniqueOrThrow({ where: { id: past.id } })).status
+      ).toBe('OPEN');
+      expect(
+        await ctx.prisma.athleteMonthlyFeePlan.count({ where: { athleteId, status: 'ACTIVE' } })
+      ).toBe(0);
+      expect(
+        await ctx.prisma.teamAthlete.count({ where: { athleteId, status: 'ACTIVE', endsOn: null } })
+      ).toBe(0);
+      expect(
+        await ctx.prisma.auditLog.count({
+          where: { entityId: feeId, action: 'fee.cancelled', reason: 'Saiu do time' }
+        })
+      ).toBe(1);
+    });
+
     it('generates once per athlete and month, preserving the plan amount or override', async () => {
       const { athleteId, month } = await feeFor('80.00', { override: '50.00' });
       const again = await ctx

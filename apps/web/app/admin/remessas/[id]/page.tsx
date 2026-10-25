@@ -35,6 +35,7 @@ import { normalizeAmount } from '../../../../lib/idempotency';
 import type { Page } from '../../../../lib/api-types';
 import { ORDER_STATUS, type ProductDetail } from '../../../../lib/store-types';
 import { useResource } from '../../../../lib/use-resource';
+import { Icon } from '../../../../components/icon';
 
 const NEEDS_DATE: CampaignStatus[] = ['ORDERED', 'IN_PRODUCTION', 'RECEIVED'];
 
@@ -102,7 +103,11 @@ export default function CampaignDetailPage() {
       <PageHeader
         title={c.name}
         description={`Vendas de ${formatDateTime(c.salesStartAt)} a ${formatDateTime(c.salesEndAt)}`}
-        actions={<Link href="/admin/remessas">Voltar</Link>}
+        actions={
+          <Link href="/admin/remessas">
+            <Icon name="arrow-left" /> Voltar
+          </Link>
+        }
       />
       {notice ? <Alert kind="success">{notice}</Alert> : null}
       {c.cancellationReason ? (

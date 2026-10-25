@@ -1,16 +1,18 @@
 'use client';
 
 import Link from 'next/link';
-import { useState } from 'react';
+import { Suspense, useEffect, useState } from 'react';
 
 import { AthleteForm } from '../../../components/athlete-form';
+import { Icon } from '../../../components/icon';
 import {
   Alert,
+  ClearFilters,
   ConfirmDialog,
   Empty,
-  Loading,
   PageHeader,
-  Pagination
+  Pagination,
+  Skeleton
 } from '../../../components/ui';
 import { api } from '../../../lib/api-client';
 import type { Page } from '../../../lib/api-types';
@@ -24,12 +26,23 @@ import {
   type InterestedStatus
 } from '../../../lib/sports-types';
 import { useResource } from '../../../lib/use-resource';
+import { useUrlFilters } from '../../../lib/use-url-filters';
 
-export default function InterestedPage() {
+const DEFAULTS = { busca: '', status: '' };
+
+function InterestedList() {
   const { can } = useAuth();
-  const [page, setPage] = useState(1);
-  const [status, setStatus] = useState<InterestedStatus | ''>('');
-  const list = useResource<Page<Interested>>('/interested-people', { page, pageSize: 20, status });
+  const filters = useUrlFilters(DEFAULTS);
+  const { busca, status } = filters.values;
+  const [search, setSearch] = useState(busca);
+  const list = useResource<Page<Interested>>('/interested-people', {
+    page: filters.page,
+    pageSize: 20,
+    status,
+    search: busca
+  });
+
+  useEffect(() => setSearch(busca), [busca]);
   const [change, setChange] = useState<{ person: Interested; status: InterestedStatus } | null>(
     null
   );
@@ -43,26 +56,51 @@ export default function InterestedPage() {
         description="Pessoas que deixaram contato pelo site. Envio não cria conta nem atleta."
       />
       {notice ? <Alert kind="success">{notice}</Alert> : null}
-      <label className="field" style={{ maxWidth: 260 }}>
-        <span className="label">Status</span>
-        <select
-          value={status}
-          onChange={(e) => {
-            setPage(1);
-            setStatus(e.target.value as InterestedStatus | '');
-          }}
-        >
-          <option value="">Todos</option>
-          {Object.entries(INTERESTED_STATUS).map(([value, meta]) => (
-            <option key={value} value={value}>
-              {meta.label}
-            </option>
-          ))}
-        </select>
-      </label>
+      <form
+        className="row filter-bar"
+        role="search"
+        onSubmit={(event) => {
+          event.preventDefault();
+          filters.set({ busca: search.trim() });
+        }}
+      >
+        <label className="field">
+          <span className="label">Buscar</span>
+          <input
+            maxLength={120}
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="Nome, e-mail ou telefone"
+          />
+        </label>
+        <label className="field">
+          <span className="label">Status</span>
+          <select
+            value={status}
+            onChange={(e) => filters.set({ status: e.target.value as InterestedStatus | '' })}
+          >
+            <option value="">Todos</option>
+            {Object.entries(INTERESTED_STATUS).map(([value, meta]) => (
+              <option key={value} value={value}>
+                {meta.label}
+              </option>
+            ))}
+          </select>
+        </label>
+        <div className="form-actions">
+          <button type="submit" className="btn btn-secondary">
+            <Icon name="search" /> Buscar
+          </button>
+          <ClearFilters active={filters.active} onClear={filters.clear} />
+        </div>
+      </form>
       {list.error ? <Alert kind="error">{list.error}</Alert> : null}
-      {list.loading && !list.data ? <Loading /> : null}
-      {list.data?.data.length === 0 ? <Empty>Nenhum interessado.</Empty> : null}
+      {list.loading && !list.data ? <Skeleton lines={4} /> : null}
+      {list.data?.data.length === 0 ? (
+        <Empty>
+          {filters.active > 0 ? 'Nenhum interessado para os filtros.' : 'Nenhum interessado ainda.'}
+        </Empty>
+      ) : null}
       {list.data?.data.map((person) => (
         <article key={person.id} className="card stack" style={{ gap: '0.5rem' }}>
           <div className="row">
@@ -107,7 +145,7 @@ export default function InterestedPage() {
                 className="btn btn-primary btn-sm"
                 onClick={() => setConverting(person)}
               >
-                Converter em atleta
+                <Icon name="person-plus" /> Converter em atleta
               </button>
             ) : null}
             {person.convertedAthleteId ? (
@@ -150,7 +188,7 @@ export default function InterestedPage() {
           ) : null}
         </article>
       ))}
-      {list.data ? <Pagination {...list.data.meta} onChange={setPage} /> : null}
+      {list.data ? <Pagination {...list.data.meta} onChange={filters.setPage} /> : null}
       <ConfirmDialog
         open={change !== null}
         title={`Marcar como "${change ? INTERESTED_STATUS[change.status].label : ''}"`}
@@ -165,5 +203,13 @@ export default function InterestedPage() {
         }}
       />
     </>
+  );
+}
+
+export default function InterestedPage() {
+  return (
+    <Suspense fallback={<Skeleton lines={4} />}>
+      <InterestedList />
+    </Suspense>
   );
 }

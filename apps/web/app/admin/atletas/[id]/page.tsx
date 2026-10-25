@@ -16,7 +16,9 @@ import {
   TextField,
   useSubmit
 } from '../../../../components/ui';
+import { Icon } from '../../../../components/icon';
 import { api } from '../../../../lib/api-client';
+import { ageFrom } from '../../../../lib/age';
 import type { AuditLog, Page } from '../../../../lib/api-types';
 import { useAuth } from '../../../../lib/auth-context';
 import { formatDate, formatDateTime, todayCivil } from '../../../../lib/format';
@@ -25,16 +27,20 @@ import {
   ATHLETE_STATUS,
   type AthleteDetail,
   type AthleteStatus,
+  type Category,
   type Membership,
+  type StatusImpact,
   type Team
 } from '../../../../lib/sports-types';
+import { teamOptions } from '../../../../lib/team-options';
 import { useResource } from '../../../../lib/use-resource';
 
 export default function AthleteDetailPage() {
   const { id } = useParams<{ id: string }>();
   const { can } = useAuth();
   const athlete = useResource<AthleteDetail>(`/athletes/${id}`);
-  const teams = useResource<Team[]>('/teams', { includeInactive: false });
+  const teams = useResource<Team[]>('/teams');
+  const categories = useResource<Category[]>('/sport-categories');
   const history = useResource<Page<AuditLog>>(can('audit.read') ? '/audit-logs' : null, {
     entityType: 'Athlete',
     entityId: id,
@@ -42,6 +48,15 @@ export default function AthleteDetailPage() {
   });
   const [notice, setNotice] = useState<string | null>(null);
   const [nextStatus, setNextStatus] = useState<AthleteStatus | null>(null);
+  const leaving = nextStatus === 'INACTIVE' || nextStatus === 'SUSPENDED';
+  const impact = useResource<StatusImpact>(leaving ? `/athletes/${id}/status-impact` : null);
+  const [effects, setEffects] = useState({
+    cancelFutureFees: false,
+    endPlan: false,
+    endMemberships: false
+  });
+  const [feesKey, setFeesKey] = useState(0);
+  const [outOfRangeOk, setOutOfRangeOk] = useState(false);
   const [ending, setEnding] = useState<Membership | null>(null);
   const [endsOn, setEndsOn] = useState(todayCivil());
   const [unlinking, setUnlinking] = useState(false);
@@ -51,6 +66,17 @@ export default function AthleteDetailPage() {
     startsOn: todayCivil(),
     position: ''
   });
+
+  const chosenTeam = teams.data?.find((t) => t.id === membership.teamId);
+  const chosenCategory = categories.data?.find((c) => c.id === chosenTeam?.category?.id);
+  const athleteAge = athlete.data?.birthDate ? ageFrom(athlete.data.birthDate) : null;
+  const ageWarning =
+    chosenCategory &&
+    athleteAge !== null &&
+    ((chosenCategory.minimumAge !== null && athleteAge < chosenCategory.minimumAge) ||
+      (chosenCategory.maximumAge !== null && athleteAge > chosenCategory.maximumAge))
+      ? `Atleta com ${athleteAge} anos, fora da faixa da categoria ${chosenCategory.name} (${chosenCategory.minimumAge ?? '…'}–${chosenCategory.maximumAge ?? '…'} anos).`
+      : null;
 
   const link = useSubmit(async () => {
     athlete.setData(
@@ -87,7 +113,11 @@ export default function AthleteDetailPage() {
       <PageHeader
         title={a.fullName}
         description={`Cadastrado em ${formatDateTime(a.createdAt)} · atualizado em ${formatDateTime(a.updatedAt)}`}
-        actions={<Link href="/admin/atletas">Voltar</Link>}
+        actions={
+          <Link href="/admin/atletas">
+            <Icon name="arrow-left" /> Voltar
+          </Link>
+        }
       />
       {notice ? <Alert kind="success">{notice}</Alert> : null}
       {a.documentNeedsReview ? (
@@ -228,7 +258,7 @@ export default function AthleteDetailPage() {
                 onChange={(e) => setMembership({ ...membership, teamId: e.target.value })}
                 options={[
                   { value: '', label: 'Selecione' },
-                  ...(teams.data ?? []).map((t) => ({ value: t.id, label: t.name }))
+                  ...teamOptions(teams.data ?? [], 'pick')
                 ]}
               />
               <TextField
@@ -245,20 +275,39 @@ export default function AthleteDetailPage() {
                 onChange={(e) => setMembership({ ...membership, position: e.target.value })}
               />
             </div>
+            {ageWarning ? (
+              <div className="alert alert-warning stack" style={{ gap: '0.5rem' }}>
+                <span>
+                  <Icon name="exclamation-triangle" /> {ageWarning}
+                </span>
+                <label className="checkbox">
+                  <input
+                    type="checkbox"
+                    checked={outOfRangeOk}
+                    onChange={(e) => setOutOfRangeOk(e.target.checked)}
+                  />
+                  <span>Vincular mesmo assim</span>
+                </label>
+              </div>
+            ) : null}
             <div className="form-actions">
               <button
                 type="submit"
                 className="btn btn-secondary"
-                disabled={!membership.teamId || addMembership.pending}
+                disabled={
+                  !membership.teamId ||
+                  addMembership.pending ||
+                  (ageWarning !== null && !outOfRangeOk)
+                }
               >
-                Adicionar vínculo
+                <Icon name="people" /> Adicionar vínculo
               </button>
             </div>
           </form>
         ) : null}
       </section>
 
-      {can('fees.read') ? <AthleteFeePlans athleteId={id} /> : null}
+      {can('fees.read') ? <AthleteFeePlans key={feesKey} athleteId={id} /> : null}
 
       {history.data ? (
         <section className="card stack" aria-labelledby="historico">
@@ -279,20 +328,95 @@ export default function AthleteDetailPage() {
       <ConfirmDialog
         open={nextStatus !== null}
         title={`Mudar status para "${nextStatus ? ATHLETE_STATUS[nextStatus].label : ''}"`}
+        description={
+          leaving
+            ? 'Novas mensalidades deixam de ser geradas. Escolha abaixo o que fazer com o que já existe.'
+            : undefined
+        }
         confirmLabel="Confirmar"
         requireReason
-        onClose={() => setNextStatus(null)}
+        onClose={() => {
+          setNextStatus(null);
+          setEffects({ cancelFutureFees: false, endPlan: false, endMemberships: false });
+        }}
         onConfirm={async (reason) => {
           athlete.setData(
             await api<AthleteDetail>(`/athletes/${id}/status`, {
               method: 'PUT',
-              body: { status: nextStatus, reason }
+              body: {
+                status: nextStatus,
+                reason,
+                ...(leaving
+                  ? {
+                      cancelFutureFees: effects.cancelFutureFees,
+                      endPlan: effects.endPlan,
+                      ...(nextStatus === 'INACTIVE'
+                        ? { endMemberships: effects.endMemberships }
+                        : {})
+                    }
+                  : {})
+              }
             })
           );
           setNotice('Status atualizado.');
+          setFeesKey((value) => value + 1);
           await history.reload();
         }}
-      />
+      >
+        {leaving && impact.data ? (
+          <fieldset className="form-section">
+            <legend>Pendências</legend>
+            <label className="checkbox">
+              <input
+                type="checkbox"
+                disabled={impact.data.cancellableFees === 0}
+                checked={effects.cancelFutureFees}
+                onChange={(e) => setEffects({ ...effects, cancelFutureFees: e.target.checked })}
+              />
+              <span>
+                Cancelar {impact.data.cancellableFees} mensalidade(s) deste mês em diante sem
+                pagamento
+              </span>
+            </label>
+            {impact.data.keptOpenFees > 0 ? (
+              <small className="muted">
+                {impact.data.keptOpenFees} mensalidade(s) de meses passados ou com pagamento
+                continuam em aberto.
+              </small>
+            ) : null}
+            <label className="checkbox">
+              <input
+                type="checkbox"
+                disabled={impact.data.activePlan === null}
+                checked={effects.endPlan}
+                onChange={(e) => setEffects({ ...effects, endPlan: e.target.checked })}
+              />
+              <span>
+                {impact.data.activePlan
+                  ? `Encerrar o plano ${impact.data.activePlan.name}`
+                  : 'Sem plano vigente'}
+              </span>
+            </label>
+            {nextStatus === 'INACTIVE' ? (
+              <label className="checkbox">
+                <input
+                  type="checkbox"
+                  disabled={impact.data.openMemberships.length === 0}
+                  checked={effects.endMemberships}
+                  onChange={(e) => setEffects({ ...effects, endMemberships: e.target.checked })}
+                />
+                <span>
+                  {impact.data.openMemberships.length > 0
+                    ? `Encerrar vínculo com ${impact.data.openMemberships.map((m) => m.team).join(', ')}`
+                    : 'Sem vínculo com equipe'}
+                </span>
+              </label>
+            ) : (
+              <small className="muted">Na suspensão o atleta continua nas equipes.</small>
+            )}
+          </fieldset>
+        ) : null}
+      </ConfirmDialog>
       <ConfirmDialog
         open={ending !== null}
         title={`Encerrar vínculo com ${ending?.team.name ?? ''}`}

@@ -936,3 +936,23 @@ dialog {
     border: 1px solid var(--color-border);
   }
 }
+
+// Barra de filtros: campos e ações alinhados embaixo; no celular, uma coluna.
+.filter-bar {
+  align-items: flex-end;
+
+  > .field {
+    flex: 1 1 12rem;
+  }
+
+  > .form-actions {
+    flex: 0 1 auto;
+  }
+
+  @media (max-width: 767px) {
+    > .field,
+    > .form-actions {
+      flex: 1 1 100%;
+    }
+  }
+}

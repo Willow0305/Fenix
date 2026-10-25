@@ -32,6 +32,7 @@ import {
   validateGuardian
 } from '../domain/sports-rules';
 import { type AthleteDetail, type AthleteInput, AthletesService } from './athletes.service';
+import { assertActiveTeam } from './active-team';
 
 export interface ApplicantInput {
   readonly fullName: string;
@@ -242,6 +243,8 @@ export class RecruitmentService {
   ): Promise<Page<InterestedView>> {
     const { skip, take, page, pageSize } = pageArgs(query);
     const search = query.search?.trim();
+    // Telefones são gravados só com dígitos (DT-040): "(68) 9999" também encontra.
+    const digits = search ? search.replace(/\D+/g, '') : '';
     const where: Prisma.InterestedPersonWhereInput = {
       deletedAt: null,
       ...(query.status ? { status: query.status } : {}),
@@ -249,7 +252,8 @@ export class RecruitmentService {
         ? {
             OR: [
               { fullName: { contains: search, mode: 'insensitive' } },
-              { email: { contains: search, mode: 'insensitive' } }
+              { email: { contains: search, mode: 'insensitive' } },
+              ...(digits.length >= 4 ? [{ phone: { contains: digits } }] : [])
             ]
           }
         : {})
@@ -430,6 +434,8 @@ export class RecruitmentService {
       slug = `${base}-${n}`;
     }
 
+    await assertActiveTeam(this.prisma, input.teamId);
+
     const created = await this.prisma.tryout.create({
       data: {
         title: input.title.trim(),
@@ -485,6 +491,7 @@ export class RecruitmentService {
           ? (current.registrationEndsAt?.toISOString() ?? null)
           : input.registrationEndsAt
     });
+    await assertActiveTeam(this.prisma, input.teamId, current.teamId);
     await this.prisma.tryout.update({
       where: { id },
       data: {

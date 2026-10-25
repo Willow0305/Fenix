@@ -32,6 +32,7 @@ import {
 } from '../../../../lib/format';
 import { normalizeAmount, useIdempotencyKey } from '../../../../lib/idempotency';
 import { useResource } from '../../../../lib/use-resource';
+import { Icon } from '../../../../components/icon';
 
 export default function FeeDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -91,7 +92,11 @@ export default function FeeDetailPage() {
       <PageHeader
         title={`${f.athlete.fullName} — ${formatMonth(f.referenceMonth)}`}
         description={`Plano ${f.plan.name} · vencimento ${formatDate(f.dueDate)}`}
-        actions={<Link href="/admin/mensalidades">Voltar</Link>}
+        actions={
+          <Link href="/admin/mensalidades">
+            <Icon name="arrow-left" /> Voltar
+          </Link>
+        }
       />
       {notice ? <Alert kind="success">{notice}</Alert> : null}
       {f.cancellationReason ? (
@@ -157,7 +162,7 @@ export default function FeeDetailPage() {
                   void openProtectedFile(`/payments/${payment.id}/attachments/${attachment.id}`)
                 }
               >
-                Ver comprovante
+                <Icon name="paperclip" /> Ver comprovante
               </button>
             ))}
             <span className="spacer" />
@@ -236,7 +241,7 @@ export default function FeeDetailPage() {
             ) : null}
             <div className="form-actions">
               <button type="submit" className="btn btn-primary" disabled={record.pending}>
-                {record.pending ? 'Registrando…' : 'Registrar pagamento'}
+                <Icon name="cash" /> {record.pending ? 'Registrando…' : 'Registrar pagamento'}
               </button>
               <button
                 type="button"
@@ -262,10 +267,10 @@ export default function FeeDetailPage() {
               setAdjusting(true);
             }}
           >
-            Aplicar desconto / isenção
+            <Icon name="percent" /> Aplicar desconto / isenção
           </button>
           <button type="button" className="btn btn-secondary" onClick={() => setCancelling(true)}>
-            Cancelar mensalidade
+            <Icon name="x-circle" /> Cancelar mensalidade
           </button>
         </section>
       ) : null}

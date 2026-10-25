@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 
 import { getPublicTeam } from '../../../lib/server-api';
 import { formatPhoneDisplay } from '../../../lib/format';
+import { Icon } from '../../../components/icon';
 
 export const metadata: Metadata = { title: 'Contato' };
 
@@ -22,17 +23,20 @@ export default async function ContactPage() {
         <div className="card stack">
           {team.email ? (
             <p>
-              <strong>E-mail:</strong> <a href={`mailto:${team.email}`}>{team.email}</a>
+              <Icon name="envelope" className="icon-lead" /> <strong>E-mail:</strong>{' '}
+              <a href={`mailto:${team.email}`}>{team.email}</a>
             </p>
           ) : null}
           {team.phone ? (
             <p>
-              <strong>Telefone/WhatsApp:</strong> {formatPhoneDisplay(team.phone)}
+              <Icon name="whatsapp" className="icon-lead" /> <strong>Telefone/WhatsApp:</strong>{' '}
+              {formatPhoneDisplay(team.phone)}
             </p>
           ) : null}
           {address.length > 0 ? (
             <p>
-              <strong>Endereço:</strong> {address.join(', ')}
+              <Icon name="geo-alt" className="icon-lead" /> <strong>Endereço:</strong>{' '}
+              {address.join(', ')}
             </p>
           ) : null}
           {team.socialLinks.length > 0 ? (
@@ -40,7 +44,7 @@ export default async function ContactPage() {
               {team.socialLinks.map((link) => (
                 <li key={link.url}>
                   <a href={link.url} target="_blank" rel="noopener noreferrer">
-                    {link.label}
+                    <Icon name="box-arrow-up-right" /> {link.label}
                   </a>
                 </li>
               ))}

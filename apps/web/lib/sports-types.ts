@@ -47,6 +47,14 @@ export interface AthleteSummary {
   hasAccount: boolean;
 }
 
+/** Pendências exibidas antes de inativar ou suspender (docs/29 COR-018). */
+export interface StatusImpact {
+  cancellableFees: number;
+  keptOpenFees: number;
+  activePlan: { name: string } | null;
+  openMemberships: { team: string }[];
+}
+
 export interface AthleteDetail extends AthleteSummary {
   email: string | null;
   phone: string | null;

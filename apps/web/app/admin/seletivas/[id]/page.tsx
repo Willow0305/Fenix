@@ -31,6 +31,7 @@ import {
   type TryoutStatus
 } from '../../../../lib/sports-types';
 import { useResource } from '../../../../lib/use-resource';
+import { Icon } from '../../../../components/icon';
 
 const REASON_REQUIRED: RegistrationStatus[] = ['REJECTED', 'CANCELLED'];
 
@@ -38,7 +39,7 @@ export default function TryoutDetailPage() {
   const { id } = useParams<{ id: string }>();
   const { can } = useAuth();
   const tryout = useResource<Tryout>(`/tryouts/${id}`);
-  const teams = useResource<Team[]>('/teams', { includeInactive: false });
+  const teams = useResource<Team[]>('/teams');
   const [page, setPage] = useState(1);
   const [filter, setFilter] = useState<RegistrationStatus | ''>('');
   const registrations = useResource<Page<TryoutRegistration>>(`/tryouts/${id}/registrations`, {
@@ -75,7 +76,9 @@ export default function TryoutDetailPage() {
                 Ver página pública
               </Link>
             ) : null}
-            <Link href="/admin/seletivas">Voltar</Link>
+            <Link href="/admin/seletivas">
+              <Icon name="arrow-left" /> Voltar
+            </Link>
           </>
         }
       />

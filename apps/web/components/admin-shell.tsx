@@ -7,11 +7,14 @@ import { type ReactNode, useState } from 'react';
 import { useAuth } from '../lib/auth-context';
 import styles from './admin-shell.module.scss';
 import { BrandLogo } from './brand-logo';
+import { Icon } from './icon';
 
 export interface AdminLink {
   readonly href: string;
   readonly label: string;
   readonly permission: string;
+  /** Nome do ícone do Bootstrap Icons (docs/29 §3.11). */
+  readonly icon: string;
 }
 
 export interface AdminGroup {
@@ -23,64 +26,160 @@ export interface AdminGroup {
 export const ADMIN_NAV: readonly AdminGroup[] = [
   {
     label: 'Visão geral',
-    links: [{ href: '/admin', label: 'Painel', permission: 'dashboard.read' }]
+    links: [{ href: '/admin', icon: 'speedometer2', label: 'Painel', permission: 'dashboard.read' }]
   },
   {
     label: 'Pessoas',
     links: [
-      { href: '/admin/atletas', label: 'Atletas', permission: 'athletes.read' },
-      { href: '/admin/interessados', label: 'Interessados', permission: 'registrations.read' },
-      { href: '/admin/seletivas', label: 'Seletivas', permission: 'registrations.read' },
-      { href: '/admin/equipes', label: 'Equipes e categorias', permission: 'athletes.read' }
+      {
+        href: '/admin/atletas',
+        icon: 'person-badge',
+        label: 'Atletas',
+        permission: 'athletes.read'
+      },
+      {
+        href: '/admin/interessados',
+        icon: 'person-raised-hand',
+        label: 'Interessados',
+        permission: 'registrations.read'
+      },
+      {
+        href: '/admin/seletivas',
+        icon: 'clipboard-check',
+        label: 'Seletivas',
+        permission: 'registrations.read'
+      },
+      {
+        href: '/admin/equipes',
+        icon: 'people',
+        label: 'Equipes e categorias',
+        permission: 'athletes.read'
+      }
     ]
   },
   {
     label: 'Financeiro',
     links: [
-      { href: '/admin/mensalidades', label: 'Mensalidades', permission: 'fees.read' },
-      { href: '/admin/planos', label: 'Planos', permission: 'fees.read' },
-      { href: '/admin/caixa', label: 'Caixa Fênix', permission: 'finance.read' },
-      { href: '/admin/caixa/obrigacoes', label: 'Pagar e receber', permission: 'finance.read' },
-      { href: '/admin/caixa/fechamentos', label: 'Fechamentos', permission: 'finance.read' },
-      { href: '/admin/caixa/cadastros', label: 'Contas e categorias', permission: 'finance.read' }
+      {
+        href: '/admin/mensalidades',
+        icon: 'calendar2-check',
+        label: 'Mensalidades',
+        permission: 'fees.read'
+      },
+      { href: '/admin/planos', icon: 'card-list', label: 'Planos', permission: 'fees.read' },
+      { href: '/admin/caixa', icon: 'cash-coin', label: 'Caixa Fênix', permission: 'finance.read' },
+      {
+        href: '/admin/caixa/obrigacoes',
+        icon: 'arrow-left-right',
+        label: 'Pagar e receber',
+        permission: 'finance.read'
+      },
+      {
+        href: '/admin/caixa/fechamentos',
+        icon: 'journal-check',
+        label: 'Fechamentos',
+        permission: 'finance.read'
+      },
+      {
+        href: '/admin/caixa/cadastros',
+        icon: 'bank',
+        label: 'Contas e categorias',
+        permission: 'finance.read'
+      }
     ]
   },
   {
     label: 'Loja',
     links: [
-      { href: '/admin/produtos', label: 'Produtos', permission: 'products.manage' },
-      { href: '/admin/pedidos', label: 'Pedidos', permission: 'orders.read' },
-      { href: '/admin/remessas', label: 'Remessas', permission: 'campaigns.manage' }
+      { href: '/admin/produtos', icon: 'bag', label: 'Produtos', permission: 'products.manage' },
+      { href: '/admin/pedidos', icon: 'receipt', label: 'Pedidos', permission: 'orders.read' },
+      {
+        href: '/admin/remessas',
+        icon: 'box-seam',
+        label: 'Remessas',
+        permission: 'campaigns.manage'
+      }
     ]
   },
   {
     label: 'Parceiros',
     links: [
-      { href: '/admin/parceiros', label: 'Parceiros', permission: 'partners.manage' },
-      { href: '/admin/servicos', label: 'Profissionais e serviços', permission: 'services.manage' },
-      { href: '/admin/agendamentos', label: 'Agendamentos', permission: 'appointments.manage' },
-      { href: '/admin/repasses', label: 'Repasses', permission: 'settlements.manage' }
+      { href: '/admin/parceiros', icon: 'shop', label: 'Parceiros', permission: 'partners.manage' },
+      {
+        href: '/admin/servicos',
+        icon: 'briefcase',
+        label: 'Profissionais e serviços',
+        permission: 'services.manage'
+      },
+      {
+        href: '/admin/agendamentos',
+        icon: 'calendar-event',
+        label: 'Agendamentos',
+        permission: 'appointments.manage'
+      },
+      {
+        href: '/admin/repasses',
+        icon: 'currency-exchange',
+        label: 'Repasses',
+        permission: 'settlements.manage'
+      }
     ]
   },
   {
     label: 'Comunicação',
     links: [
-      { href: '/admin/noticias', label: 'Notícias', permission: 'news.manage' },
-      { href: '/admin/eventos', label: 'Eventos e partidas', permission: 'events.manage' },
-      { href: '/admin/forum', label: 'Fórum e moderação', permission: 'forum.moderate' },
-      { href: '/admin/notificacoes', label: 'Notificações', permission: 'notifications.send' }
+      { href: '/admin/noticias', icon: 'newspaper', label: 'Notícias', permission: 'news.manage' },
+      {
+        href: '/admin/eventos',
+        icon: 'calendar3',
+        label: 'Eventos e partidas',
+        permission: 'events.manage'
+      },
+      {
+        href: '/admin/forum',
+        icon: 'chat-square-text',
+        label: 'Fórum e moderação',
+        permission: 'forum.moderate'
+      },
+      {
+        href: '/admin/notificacoes',
+        icon: 'megaphone',
+        label: 'Notificações',
+        permission: 'notifications.send'
+      }
     ]
   },
   {
     label: 'Governança',
     links: [
-      { href: '/admin/relatorios', label: 'Relatórios', permission: 'reports.read' },
-      { href: '/admin/usuarios', label: 'Usuários', permission: 'users.read' },
-      { href: '/admin/papeis', label: 'Papéis e permissões', permission: 'users.read' },
-      { href: '/admin/configuracoes', label: 'Configurações', permission: 'dashboard.read' },
-      { href: '/admin/auditoria', label: 'Auditoria', permission: 'audit.read' },
+      {
+        href: '/admin/relatorios',
+        icon: 'bar-chart',
+        label: 'Relatórios',
+        permission: 'reports.read'
+      },
+      { href: '/admin/usuarios', icon: 'person-gear', label: 'Usuários', permission: 'users.read' },
+      {
+        href: '/admin/papeis',
+        icon: 'shield-lock',
+        label: 'Papéis e permissões',
+        permission: 'users.read'
+      },
+      {
+        href: '/admin/configuracoes',
+        icon: 'gear',
+        label: 'Configurações',
+        permission: 'dashboard.read'
+      },
+      {
+        href: '/admin/auditoria',
+        icon: 'clock-history',
+        label: 'Auditoria',
+        permission: 'audit.read'
+      },
       {
         href: '/admin/privacidade',
+        icon: 'incognito',
         label: 'Privacidade (LGPD)',
         permission: 'privacy.requests.manage'
       }
@@ -122,7 +221,7 @@ export function AdminShell({ children }: { readonly children: ReactNode }) {
                         aria-current={pathname === link.href ? 'page' : undefined}
                         onClick={() => setOpen(false)}
                       >
-                        {link.label}
+                        <Icon name={link.icon} /> {link.label}
                       </Link>
                     </li>
                   ))}
@@ -140,12 +239,14 @@ export function AdminShell({ children }: { readonly children: ReactNode }) {
             aria-expanded={open}
             onClick={() => setOpen((value) => !value)}
           >
-            Menu
+            <Icon name="list" /> Menu
           </button>
           <span className="spacer" />
-          <Link href="/minha-conta">{profile?.name}</Link>
+          <Link href="/minha-conta">
+            <Icon name="person-circle" /> {profile?.name}
+          </Link>
           <button type="button" className="btn btn-secondary btn-sm" onClick={() => void logout()}>
-            Sair
+            <Icon name="box-arrow-right" /> Sair
           </button>
         </header>
         <main id="conteudo" className={styles.content}>

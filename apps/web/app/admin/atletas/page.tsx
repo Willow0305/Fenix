@@ -1,10 +1,17 @@
 'use client';
 
 import Link from 'next/link';
-import { useSearchParams } from 'next/navigation';
-import { Suspense, useState } from 'react';
+import { Suspense, useEffect, useState } from 'react';
 
-import { Alert, Empty, Loading, PageHeader, Pagination } from '../../../components/ui';
+import { Icon } from '../../../components/icon';
+import {
+  Alert,
+  ClearFilters,
+  Empty,
+  PageHeader,
+  Pagination,
+  Skeleton
+} from '../../../components/ui';
 import type { Page } from '../../../lib/api-types';
 import { useAuth } from '../../../lib/auth-context';
 import { formatDate } from '../../../lib/format';
@@ -14,26 +21,28 @@ import {
   type AthleteSummary,
   type Team
 } from '../../../lib/sports-types';
+import { teamOptions } from '../../../lib/team-options';
 import { useResource } from '../../../lib/use-resource';
+import { useUrlFilters } from '../../../lib/use-url-filters';
+
+const DEFAULTS = { busca: '', status: '', equipe: '' };
 
 function AthletesList() {
   const { can } = useAuth();
-  const params = useSearchParams();
-  const [page, setPage] = useState(1);
-  const [status, setStatus] = useState<AthleteStatus | ''>(
-    (params.get('status') as AthleteStatus | null) ?? ''
-  );
-  const [teamId, setTeamId] = useState('');
-  const [search, setSearch] = useState('');
-  const [term, setTerm] = useState('');
+  const filters = useUrlFilters(DEFAULTS);
+  const { busca, status, equipe } = filters.values;
+  // Texto digitado fica local até buscar; os demais filtros aplicam na hora.
+  const [search, setSearch] = useState(busca);
   const teams = useResource<Team[]>('/teams');
   const athletes = useResource<Page<AthleteSummary>>('/athletes', {
-    page,
+    page: filters.page,
     pageSize: 25,
     status,
-    teamId,
-    search: term
+    teamId: equipe,
+    search: busca
   });
+
+  useEffect(() => setSearch(busca), [busca]);
 
   return (
     <>
@@ -43,18 +52,17 @@ function AthletesList() {
         actions={
           can('athletes.create') ? (
             <Link href="/admin/atletas/novo" className="btn btn-primary">
-              Novo atleta
+              <Icon name="plus-lg" /> Novo atleta
             </Link>
           ) : null
         }
       />
       <form
-        className="row"
+        className="row filter-bar"
         role="search"
         onSubmit={(event) => {
           event.preventDefault();
-          setPage(1);
-          setTerm(search);
+          filters.set({ busca: search.trim() });
         }}
       >
         <label className="field">
@@ -70,10 +78,7 @@ function AthletesList() {
           <span className="label">Status</span>
           <select
             value={status}
-            onChange={(e) => {
-              setPage(1);
-              setStatus(e.target.value as AthleteStatus | '');
-            }}
+            onChange={(e) => filters.set({ status: e.target.value as AthleteStatus | '' })}
           >
             <option value="">Todos</option>
             {Object.entries(ATHLETE_STATUS).map(([value, meta]) => (
@@ -85,79 +90,88 @@ function AthletesList() {
         </label>
         <label className="field">
           <span className="label">Equipe</span>
-          <select
-            value={teamId}
-            onChange={(e) => {
-              setPage(1);
-              setTeamId(e.target.value);
-            }}
-          >
+          <select value={equipe} onChange={(e) => filters.set({ equipe: e.target.value })}>
             <option value="">Todas</option>
-            {(teams.data ?? []).map((team) => (
-              <option key={team.id} value={team.id}>
-                {team.name}
+            {teamOptions(teams.data ?? [], 'filter').map((option) => (
+              <option key={option.value} value={option.value}>
+                {option.label}
               </option>
             ))}
           </select>
         </label>
-        <button type="submit" className="btn btn-secondary">
-          Filtrar
-        </button>
+        <div className="form-actions">
+          <button type="submit" className="btn btn-secondary">
+            <Icon name="search" /> Buscar
+          </button>
+          <ClearFilters active={filters.active} onClear={filters.clear} />
+        </div>
       </form>
       {athletes.error ? <Alert kind="error">{athletes.error}</Alert> : null}
-      {athletes.loading && !athletes.data ? <Loading /> : null}
+      {athletes.loading && !athletes.data ? <Skeleton lines={5} /> : null}
       {athletes.data?.data.length === 0 ? (
         <Empty>
-          {term || status || teamId
-            ? 'Nenhum atleta para os filtros.'
-            : 'Nenhum atleta cadastrado ainda.'}
+          {filters.active > 0 ? (
+            <>
+              Nenhum atleta para os filtros.{' '}
+              <button type="button" className="btn btn-link" onClick={filters.clear}>
+                Limpar filtros
+              </button>
+            </>
+          ) : (
+            'Nenhum atleta cadastrado ainda.'
+          )}
         </Empty>
       ) : null}
       {athletes.data && athletes.data.data.length > 0 ? (
-        <div className="table-wrap">
-          <table className="table">
-            <thead>
-              <tr>
-                <th scope="col">Nome</th>
-                <th scope="col">Nascimento</th>
-                <th scope="col">Posição</th>
-                <th scope="col">Equipes</th>
-                <th scope="col">Status</th>
-              </tr>
-            </thead>
-            <tbody>
-              {athletes.data.data.map((athlete) => (
-                <tr key={athlete.id}>
-                  <td>
-                    <Link href={`/admin/atletas/${athlete.id}`}>{athlete.fullName}</Link>
-                    {athlete.hasAccount ? (
-                      <span className="badge" style={{ marginLeft: 6 }}>
-                        com conta
-                      </span>
-                    ) : null}
-                  </td>
-                  <td>{formatDate(athlete.birthDate)}</td>
-                  <td>{athlete.position ?? '—'}</td>
-                  <td>{athlete.teams.join(', ') || '—'}</td>
-                  <td>
-                    <span className={`badge ${ATHLETE_STATUS[athlete.status].badge}`}>
-                      {ATHLETE_STATUS[athlete.status].label}
-                    </span>
-                  </td>
+        <>
+          <p className="muted" aria-live="polite" style={{ margin: 0 }}>
+            {athletes.data.meta.total} atleta(s)
+          </p>
+          <div className="table-wrap">
+            <table className="table table-stack">
+              <thead>
+                <tr>
+                  <th scope="col">Nome</th>
+                  <th scope="col">Nascimento</th>
+                  <th scope="col">Posição</th>
+                  <th scope="col">Equipes</th>
+                  <th scope="col">Status</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+              </thead>
+              <tbody>
+                {athletes.data.data.map((athlete) => (
+                  <tr key={athlete.id}>
+                    <td data-label="Nome">
+                      <Link href={`/admin/atletas/${athlete.id}`}>{athlete.fullName}</Link>
+                      {athlete.hasAccount ? (
+                        <span className="badge" style={{ marginLeft: 6 }}>
+                          <Icon name="person-check" /> com conta
+                        </span>
+                      ) : null}
+                    </td>
+                    <td data-label="Nascimento">{formatDate(athlete.birthDate)}</td>
+                    <td data-label="Posição">{athlete.position ?? '—'}</td>
+                    <td data-label="Equipes">{athlete.teams.join(', ') || '—'}</td>
+                    <td data-label="Status">
+                      <span className={`badge ${ATHLETE_STATUS[athlete.status].badge}`}>
+                        {ATHLETE_STATUS[athlete.status].label}
+                      </span>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </>
       ) : null}
-      {athletes.data ? <Pagination {...athletes.data.meta} onChange={setPage} /> : null}
+      {athletes.data ? <Pagination {...athletes.data.meta} onChange={filters.setPage} /> : null}
     </>
   );
 }
 
 export default function AthletesPage() {
   return (
-    <Suspense fallback={<Loading />}>
+    <Suspense fallback={<Skeleton lines={5} />}>
       <AthletesList />
     </Suspense>
   );

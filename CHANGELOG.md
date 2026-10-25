@@ -6,6 +6,22 @@ O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) e o 
 
 ## [Não publicado]
 
+### Painel administrativo (2026-10-25)
+
+#### Alterado
+
+- equipes inativas: listas de criação mostram só ativas (mantendo a já usada, marcada); filtros mostram ativas primeiro e inativas com "(inativa)". O servidor recusa equipe inativa em partidas, comunicados e seletivas (COR-008);
+- Atletas, Interessados e Mensalidades guardam os filtros no endereço, têm "Limpar filtros", contagem e carregamento com esqueleto; Interessados ganhou busca por nome, e-mail ou telefone (COR-015, COR-020);
+- Equipes: edição de nome, tipo, categoria e descrição; confirmação ao inativar, com o efeito explicado; coluna "Vínculos atuais" (COR-017);
+- ao inativar ou suspender um atleta, o diálogo mostra as pendências e permite cancelar mensalidades futuras sem pagamento, encerrar o plano e os vínculos (COR-018);
+- vínculo fora da faixa etária da categoria pede confirmação (COR-019);
+- tabelas de Atletas, Mensalidades e Equipes viram cartões no celular (COR-006);
+- ícones no menu do painel, no cabeçalho do site, nos contatos e nas ações principais.
+
+#### Adicionado
+
+- `GET /athletes/:id/status-impact` e campos opcionais `cancelFutureFees`, `endPlan` e `endMemberships` em `PUT /athletes/:id/status`.
+
 ### Site público: loja, notícias, eventos e parceiros (2026-10-25)
 
 #### Alterado

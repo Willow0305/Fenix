@@ -13,6 +13,7 @@ import {
   MediaService,
   mediaUrl
 } from '../../media/application/media.service';
+import { assertActiveTeam } from '../../sports/application/active-team';
 import { slugify } from '../../sports/domain/sports-rules';
 import { EVENT_STATUS_LABELS, EVENT_TRANSITIONS, sanitizeText } from '../domain/content-rules';
 
@@ -305,6 +306,7 @@ export class EventsService {
       });
 
       if (input.match) {
+        await assertActiveTeam(tx, input.match.teamId);
         await tx.match.create({ data: { eventId: created.id, ...this.matchData(input.match) } });
       }
 
@@ -373,6 +375,13 @@ export class EventsService {
       });
 
       if (input.match) {
+        const existing = await tx.match.findUnique({
+          where: { eventId: id },
+          select: { teamId: true }
+        });
+
+        await assertActiveTeam(tx, input.match.teamId, existing?.teamId ?? null);
+
         const data = this.matchData(input.match);
 
         await tx.match.upsert({

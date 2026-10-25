@@ -28,6 +28,7 @@ import {
   type OrderStatus
 } from '../../../../lib/store-types';
 import { useResource } from '../../../../lib/use-resource';
+import { Icon } from '../../../../components/icon';
 
 export default function OrderAdminPage() {
   const { id } = useParams<{ id: string }>();
@@ -76,7 +77,11 @@ export default function OrderAdminPage() {
       <PageHeader
         title={`Pedido ${o.orderNumber}`}
         description={`${o.customerName} · ${o.customerEmail ?? ''} · ${o.customerPhone ? formatPhoneDisplay(o.customerPhone) : ''}`}
-        actions={<Link href="/admin/pedidos">Voltar</Link>}
+        actions={
+          <Link href="/admin/pedidos">
+            <Icon name="arrow-left" /> Voltar
+          </Link>
+        }
       />
       {notice ? <Alert kind="success">{notice}</Alert> : null}
       <OrderSummary order={o} />

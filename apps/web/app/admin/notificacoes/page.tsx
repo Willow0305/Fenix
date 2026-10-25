@@ -17,6 +17,7 @@ import type { BroadcastHistoryItem } from '../../../lib/content-types';
 import { formatDateTime } from '../../../lib/format';
 import { useIdempotencyKey } from '../../../lib/idempotency';
 import { useResource } from '../../../lib/use-resource';
+import { teamOptions } from '../../../lib/team-options';
 
 const AUDIENCES = [
   { value: 'ACTIVE_ATHLETES', label: 'Atletas ativos com conta' },
@@ -26,7 +27,7 @@ const AUDIENCES = [
 ];
 
 export default function BroadcastPage() {
-  const teams = useResource<{ id: string; name: string }[]>('/teams');
+  const teams = useResource<{ id: string; name: string; isActive: boolean }[]>('/teams');
   const history = useResource<BroadcastHistoryItem[]>('/notifications/broadcasts');
   const [form, setForm] = useState({
     audience: 'ACTIVE_ATHLETES',
@@ -87,7 +88,7 @@ export default function BroadcastPage() {
               onChange={(e) => setForm({ ...form, teamId: e.target.value })}
               options={[
                 { value: '', label: 'Selecione' },
-                ...(teams.data ?? []).map((t) => ({ value: t.id, label: t.name }))
+                ...teamOptions(teams.data ?? [], 'pick')
               ]}
             />
           ) : null}

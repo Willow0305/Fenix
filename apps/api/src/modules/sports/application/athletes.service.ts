@@ -9,6 +9,7 @@ import { sha256Hex } from '../../../common/crypto/tokens';
 import {
   civilToDate,
   dateToCivil,
+  monthStart,
   optionalCivil,
   todayIn
 } from '../../../common/domain/civil-date';
@@ -65,6 +66,26 @@ export interface AthleteSummary {
   readonly teams: readonly string[];
   readonly hasAccount: boolean;
 }
+
+/** Efeitos opcionais ao inativar ou suspender (docs/29 COR-018, PEN-060). */
+export interface StatusEffects {
+  /** Cancela mensalidades do mês atual em diante sem nenhum pagamento registrado. */
+  readonly cancelFutureFees?: boolean;
+  readonly endPlan?: boolean;
+  /** Só ao inativar: encerra os vínculos abertos com equipes. */
+  readonly endMemberships?: boolean;
+}
+
+/** O que está pendente para o diálogo de mudança de status. */
+export interface StatusImpact {
+  readonly cancellableFees: number;
+  /** Mensalidades em aberto que não serão canceladas (meses passados ou com pagamento). */
+  readonly keptOpenFees: number;
+  readonly activePlan: { readonly name: string } | null;
+  readonly openMemberships: { readonly team: string }[];
+}
+
+const CANCELLABLE_FEE_STATUS = ['OPEN', 'OVERDUE'] as const;
 
 export interface AthleteDetail extends AthleteSummary {
   readonly email: string | null;
@@ -520,13 +541,193 @@ export class AthletesService {
     return this.get(id);
   }
 
+  /** Pendências do atleta exibidas antes de inativar ou suspender (COR-018). */
+  async statusImpact(id: string): Promise<StatusImpact> {
+    const exists = await this.prisma.athlete.count({ where: { id, deletedAt: null } });
+
+    if (exists === 0) {
+      throw AppError.notFound('Atleta não encontrado.');
+    }
+
+    const fromMonth = civilToDate(monthStart(todayIn()));
+    const [cancellableFees, openFees, plan, memberships] = await Promise.all([
+      this.prisma.monthlyFee.count({
+        where: {
+          athleteId: id,
+          status: { in: [...CANCELLABLE_FEE_STATUS] },
+          referenceMonth: { gte: fromMonth },
+          paymentAllocations: { none: {} }
+        }
+      }),
+      this.prisma.monthlyFee.count({
+        where: { athleteId: id, status: { in: ['OPEN', 'OVERDUE', 'PARTIALLY_PAID'] } }
+      }),
+      this.prisma.athleteMonthlyFeePlan.findFirst({
+        where: { athleteId: id, status: 'ACTIVE', endsOn: null },
+        select: { monthlyFeePlan: { select: { name: true } } }
+      }),
+      this.prisma.teamAthlete.findMany({
+        where: { athleteId: id, status: 'ACTIVE', endsOn: null },
+        select: { team: { select: { name: true } } }
+      })
+    ]);
+
+    return {
+      cancellableFees,
+      keptOpenFees: openFees - cancellableFees,
+      activePlan: plan ? { name: plan.monthlyFeePlan.name } : null,
+      openMemberships: memberships.map((m) => ({ team: m.team.name }))
+    };
+  }
+
+  /**
+   * Aplica os efeitos escolhidos no mesmo instante e com o mesmo motivo da mudança de
+   * status. Nunca cancela mensalidade com pagamento nem de mês passado (dívida real).
+   */
+  private async applyStatusEffects(
+    tx: PrismaTx,
+    actor: Principal,
+    id: string,
+    effects: StatusEffects,
+    reason: string,
+    meta: RequestMeta
+  ): Promise<Record<string, number>> {
+    const today = todayIn();
+    const result: Record<string, number> = {};
+
+    if (effects.cancelFutureFees) {
+      const fees = await tx.monthlyFee.findMany({
+        where: {
+          athleteId: id,
+          status: { in: [...CANCELLABLE_FEE_STATUS] },
+          referenceMonth: { gte: civilToDate(monthStart(today)) },
+          paymentAllocations: { none: {} }
+        },
+        select: { id: true, status: true }
+      });
+
+      for (const fee of fees) {
+        await tx.monthlyFee.update({
+          where: { id: fee.id },
+          data: {
+            status: 'CANCELLED',
+            cancelledAt: new Date(),
+            cancelledById: actor.userId,
+            cancellationReason: reason
+          }
+        });
+        await this.audit.record(
+          {
+            actorUserId: actor.userId,
+            action: 'fee.cancelled',
+            entityType: 'MonthlyFee',
+            entityId: fee.id,
+            reason,
+            before: { status: fee.status },
+            after: { status: 'CANCELLED', origin: 'athlete.status.changed' },
+            meta
+          },
+          tx
+        );
+      }
+
+      result['cancelledFees'] = fees.length;
+    }
+
+    if (effects.endPlan) {
+      const plans = await tx.athleteMonthlyFeePlan.findMany({
+        where: { athleteId: id, status: 'ACTIVE', endsOn: null },
+        select: { id: true, startsOn: true }
+      });
+
+      for (const plan of plans) {
+        const startsOn = dateToCivil(plan.startsOn);
+        const endsOn = startsOn > today ? startsOn : today;
+
+        await tx.athleteMonthlyFeePlan.update({
+          where: { id: plan.id },
+          data: { endsOn: civilToDate(endsOn), status: 'ENDED' }
+        });
+        await this.audit.record(
+          {
+            actorUserId: actor.userId,
+            action: 'fee_plan.assignment.ended',
+            entityType: 'Athlete',
+            entityId: id,
+            reason,
+            after: { athletePlanId: plan.id, endsOn, origin: 'athlete.status.changed' },
+            meta
+          },
+          tx
+        );
+      }
+
+      result['endedPlans'] = plans.length;
+    }
+
+    if (effects.endMemberships) {
+      const memberships = await tx.teamAthlete.findMany({
+        where: { athleteId: id, status: 'ACTIVE', endsOn: null },
+        select: { id: true, startsOn: true, team: { select: { name: true } } }
+      });
+
+      for (const membership of memberships) {
+        const startsOn = dateToCivil(membership.startsOn);
+        const endsOn = startsOn > today ? startsOn : today;
+
+        await tx.teamAthlete.update({
+          where: { id: membership.id },
+          data: { endsOn: civilToDate(endsOn), status: 'INACTIVE' }
+        });
+        await this.audit.record(
+          {
+            actorUserId: actor.userId,
+            action: 'athlete.membership.ended',
+            entityType: 'Athlete',
+            entityId: id,
+            reason,
+            after: {
+              membershipId: membership.id,
+              team: membership.team.name,
+              endsOn,
+              origin: 'athlete.status.changed'
+            },
+            meta
+          },
+          tx
+        );
+      }
+
+      result['endedMemberships'] = memberships.length;
+    }
+
+    return result;
+  }
+
   async changeStatus(
     actor: Principal,
     id: string,
     status: AthleteStatus,
     reason: string,
-    meta: RequestMeta
+    meta: RequestMeta,
+    effects: StatusEffects = {}
   ): Promise<AthleteDetail> {
+    const leaving = status === 'INACTIVE' || status === 'SUSPENDED';
+
+    if (!leaving && (effects.cancelFutureFees || effects.endPlan || effects.endMemberships)) {
+      throw AppError.validation(
+        'EFFECTS_NOT_ALLOWED',
+        'Cancelar mensalidades, encerrar plano ou vínculos só vale ao inativar ou suspender.'
+      );
+    }
+
+    if (status === 'SUSPENDED' && effects.endMemberships) {
+      throw AppError.validation(
+        'EFFECTS_NOT_ALLOWED',
+        'Na suspensão o atleta continua na equipe; encerre os vínculos só ao inativar.'
+      );
+    }
+
     await this.prisma.$transaction(async (tx) => {
       const current = await tx.athlete.findFirst({
         where: { id, deletedAt: null },
@@ -539,6 +740,9 @@ export class AthletesService {
 
       assertTransition(ATHLETE_TRANSITIONS, current.status, status, ATHLETE_STATUS_LABELS);
       await tx.athlete.update({ where: { id }, data: { status } });
+
+      const applied = await this.applyStatusEffects(tx, actor, id, effects, reason, meta);
+
       await this.audit.record(
         {
           actorUserId: actor.userId,
@@ -547,7 +751,7 @@ export class AthletesService {
           entityId: id,
           reason,
           before: { status: current.status },
-          after: { status },
+          after: { status, ...applied },
           meta
         },
         tx

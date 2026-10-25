@@ -31,6 +31,7 @@ import {
 import { useResource } from '../../../../lib/use-resource';
 import type { Page } from '../../../../lib/api-types';
 import { COMMISSION_TYPE, type Partner } from '../../../../lib/partner-types';
+import { Icon } from '../../../../components/icon';
 
 interface Movement {
   id: string;
@@ -284,7 +285,9 @@ export default function ProductAdminPage() {
                 Ver na loja
               </Link>
             ) : null}
-            <Link href="/admin/produtos">Voltar</Link>
+            <Link href="/admin/produtos">
+              <Icon name="arrow-left" /> Voltar
+            </Link>
           </>
         }
       />

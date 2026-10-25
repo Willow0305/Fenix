@@ -34,7 +34,9 @@ export function useUrlFilters<K extends string>(defaults: Record<K, string>) {
       const defaultsNow = JSON.parse(serializedDefaults) as Record<string, string>;
 
       for (const [key, value] of Object.entries(next)) {
-        if (value !== '' && value !== defaultsNow[key]) {
+        // Só o que difere do padrão vai para o endereço; vazio também conta quando o
+        // padrão não é vazio (ex.: "Todos os meses" com padrão no mês atual).
+        if (value !== (defaultsNow[key] ?? '')) {
           query.set(key, value);
         }
       }
