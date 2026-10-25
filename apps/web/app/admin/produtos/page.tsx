@@ -194,7 +194,7 @@ export default function ProductsAdminPage() {
       {products.data?.data.length === 0 ? <Empty>Nenhum produto.</Empty> : null}
       {products.data && products.data.data.length > 0 ? (
         <div className="table-wrap">
-          <table className="table">
+          <table className="table table-stack">
             <thead>
               <tr>
                 <th scope="col">Produto</th>
@@ -222,15 +222,17 @@ export default function ProductsAdminPage() {
 
                 return (
                   <tr key={p.id}>
-                    <td>
+                    <td data-label="Produto">
                       <Link href={`/admin/produtos/${p.id}`}>{p.name}</Link>
                       <div className="muted" style={{ fontSize: '0.8rem' }}>
                         {p.category.name} · {p.variants.length} variação(ões)
                       </div>
                     </td>
-                    <td>{FULFILLMENT[p.fulfillmentType]}</td>
-                    <td className="num">{formatMoney(p.priceFrom.amount)}</td>
-                    <td className="num">
+                    <td data-label="Modo">{FULFILLMENT[p.fulfillmentType]}</td>
+                    <td data-label="Preço" className="num">
+                      {formatMoney(p.priceFrom.amount)}
+                    </td>
+                    <td data-label="Estoque disponível" className="num">
                       {p.fulfillmentType === 'STOCK' ? available : '—'}
                       {low ? (
                         <span className="badge badge-warning" style={{ marginLeft: 4 }}>
@@ -238,7 +240,7 @@ export default function ProductsAdminPage() {
                         </span>
                       ) : null}
                     </td>
-                    <td>
+                    <td data-label="Situação">
                       <span className={`badge ${PRODUCT_STATUS[p.status].badge}`}>
                         {PRODUCT_STATUS[p.status].label}
                       </span>

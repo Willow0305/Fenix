@@ -71,7 +71,7 @@ export default function OrdersAdminPage() {
       {orders.data?.data.length === 0 ? <Empty>Nenhum pedido.</Empty> : null}
       {orders.data && orders.data.data.length > 0 ? (
         <div className="table-wrap">
-          <table className="table">
+          <table className="table table-stack">
             <thead>
               <tr>
                 <th scope="col">Pedido</th>
@@ -86,10 +86,10 @@ export default function OrdersAdminPage() {
             <tbody>
               {orders.data.data.map((order) => (
                 <tr key={order.id}>
-                  <td>
+                  <td data-label="Pedido">
                     <Link href={`/admin/pedidos/${order.id}`}>{order.orderNumber}</Link>
                   </td>
-                  <td>
+                  <td data-label="Cliente">
                     {order.customerName}
                     {order.isGuest ? (
                       <span className="badge" style={{ marginLeft: 4 }}>
@@ -97,9 +97,11 @@ export default function OrdersAdminPage() {
                       </span>
                     ) : null}
                   </td>
-                  <td>{formatDateTime(order.createdAt)}</td>
-                  <td className="num">{formatMoney(order.totalAmount.amount)}</td>
-                  <td>
+                  <td data-label="Data">{formatDateTime(order.createdAt)}</td>
+                  <td data-label="Total" className="num">
+                    {formatMoney(order.totalAmount.amount)}
+                  </td>
+                  <td data-label="Situação">
                     <span className={`badge ${ORDER_STATUS[order.status].badge}`}>
                       {ORDER_STATUS[order.status].label}
                     </span>

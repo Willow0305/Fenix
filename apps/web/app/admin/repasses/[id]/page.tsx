@@ -178,7 +178,7 @@ export default function SettlementPage() {
         <h2 id="itens">Itens ({s.itemCount})</h2>
         {s.items && s.items.length > 0 ? (
           <div className="table-wrap">
-            <table className="table">
+            <table className="table table-stack">
               <thead>
                 <tr>
                   <th scope="col">Pedido</th>
@@ -198,16 +198,22 @@ export default function SettlementPage() {
               <tbody>
                 {s.items.map((item) => (
                   <tr key={item.id}>
-                    <td>
+                    <td data-label="Pedido">
                       <Link href={`/admin/pedidos/${item.orderId}`}>{item.orderNumber}</Link>
                     </td>
-                    <td>
+                    <td data-label="Produto">
                       {item.quantity}× {item.productName}
                     </td>
-                    <td>{formatDateTime(item.paidAt)}</td>
-                    <td className="num">{formatMoney(item.gross.amount)}</td>
-                    <td className="num">{formatMoney(item.commission.amount)}</td>
-                    <td className="num">{formatMoney(item.net.amount)}</td>
+                    <td data-label="Pago em">{formatDateTime(item.paidAt)}</td>
+                    <td data-label="Bruto" className="num">
+                      {formatMoney(item.gross.amount)}
+                    </td>
+                    <td data-label="Comissão" className="num">
+                      {formatMoney(item.commission.amount)}
+                    </td>
+                    <td data-label="Parceiro" className="num">
+                      {formatMoney(item.net.amount)}
+                    </td>
                   </tr>
                 ))}
               </tbody>

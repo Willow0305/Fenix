@@ -171,7 +171,7 @@ export default function NewsAdminPage() {
       {list.data && list.data.data.length > 0 ? (
         <>
           <div className="table-wrap">
-            <table className="table">
+            <table className="table table-stack">
               <thead>
                 <tr>
                   <th scope="col">Título</th>
@@ -184,18 +184,18 @@ export default function NewsAdminPage() {
               <tbody>
                 {list.data.data.map((news) => (
                   <tr key={news.id}>
-                    <td>
+                    <td data-label="Título">
                       <Link href={`/admin/noticias/${news.id}`}>{news.title}</Link>
                       {news.isFeatured ? <span className="badge badge-brand">destaque</span> : null}
                     </td>
-                    <td>{news.category.name}</td>
-                    <td>{formatDateTime(news.publishedAt)}</td>
-                    <td>
+                    <td data-label="Categoria">{news.category.name}</td>
+                    <td data-label="Publicação">{formatDateTime(news.publishedAt)}</td>
+                    <td data-label="Canais">
                       {[news.showOnHome ? 'Início' : null, news.showOnForum ? 'Fórum' : null]
                         .filter(Boolean)
                         .join(', ') || '—'}
                     </td>
-                    <td>
+                    <td data-label="Situação">
                       {news.status ? (
                         <span className={`badge ${NEWS_STATUS[news.status].badge}`}>
                           {NEWS_STATUS[news.status].label}

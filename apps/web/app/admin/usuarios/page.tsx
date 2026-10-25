@@ -105,7 +105,7 @@ export default function UsersPage() {
       ) : null}
       {users.data && users.data.data.length > 0 ? (
         <div className="table-wrap">
-          <table className="table">
+          <table className="table table-stack">
             <thead>
               <tr>
                 <th scope="col">Nome</th>
@@ -118,19 +118,19 @@ export default function UsersPage() {
             <tbody>
               {users.data.data.map((user) => (
                 <tr key={user.id}>
-                  <td>
+                  <td data-label="Nome">
                     <strong>{user.name}</strong>
                     <br />
                     <span className="muted">{user.email}</span>
                   </td>
-                  <td>
+                  <td data-label="Papéis">
                     {user.roles.map((role) => (
                       <span key={role} className="badge badge-brand" style={{ marginRight: 4 }}>
                         {roles.data?.find((r) => r.code === role)?.name ?? role}
                       </span>
                     ))}
                   </td>
-                  <td>
+                  <td data-label="Status">
                     <span className={`badge ${STATUS_BADGE[user.status]}`}>
                       {STATUS_LABEL[user.status]}
                     </span>
@@ -140,8 +140,8 @@ export default function UsersPage() {
                       </span>
                     ) : null}
                   </td>
-                  <td>{formatDateTime(user.lastLoginAt)}</td>
-                  <td>
+                  <td data-label="Último acesso">{formatDateTime(user.lastLoginAt)}</td>
+                  <td data-label="Ações">
                     {user.id === profile?.id ? (
                       <span className="muted">Sua conta</span>
                     ) : (

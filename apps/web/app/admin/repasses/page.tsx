@@ -66,7 +66,7 @@ function SalesReport({ partnerId }: { readonly partnerId: string }) {
       ) : null}
       {report.data && report.data.lines.length > 0 ? (
         <div className="table-wrap">
-          <table className="table">
+          <table className="table table-stack">
             <thead>
               <tr>
                 <th scope="col">Parceiro</th>
@@ -93,13 +93,25 @@ function SalesReport({ partnerId }: { readonly partnerId: string }) {
             <tbody>
               {report.data.lines.map((line) => (
                 <tr key={line.partner.id}>
-                  <td>{line.partner.name}</td>
-                  <td className="num">{line.quantity}</td>
-                  <td className="num">{formatMoney(line.gross.amount)}</td>
-                  <td className="num">{formatMoney(line.teamRevenue.amount)}</td>
-                  <td className="num">{formatMoney(line.partnerAmount.amount)}</td>
-                  <td className="num">{formatMoney(line.paidOutAmount.amount)}</td>
-                  <td className="num">{formatMoney(line.pendingAmount.amount)}</td>
+                  <td data-label="Parceiro">{line.partner.name}</td>
+                  <td data-label="Itens" className="num">
+                    {line.quantity}
+                  </td>
+                  <td data-label="Vendido" className="num">
+                    {formatMoney(line.gross.amount)}
+                  </td>
+                  <td data-label="Receita do time" className="num">
+                    {formatMoney(line.teamRevenue.amount)}
+                  </td>
+                  <td data-label="Devido ao parceiro" className="num">
+                    {formatMoney(line.partnerAmount.amount)}
+                  </td>
+                  <td data-label="Já pago" className="num">
+                    {formatMoney(line.paidOutAmount.amount)}
+                  </td>
+                  <td data-label="A pagar" className="num">
+                    {formatMoney(line.pendingAmount.amount)}
+                  </td>
                 </tr>
               ))}
             </tbody>
@@ -262,7 +274,7 @@ function SettlementsAdmin() {
       {list.data && list.data.data.length > 0 ? (
         <>
           <div className="table-wrap">
-            <table className="table">
+            <table className="table table-stack">
               <thead>
                 <tr>
                   <th scope="col">Parceiro</th>
@@ -282,16 +294,22 @@ function SettlementsAdmin() {
               <tbody>
                 {list.data.data.map((s) => (
                   <tr key={s.id}>
-                    <td>
+                    <td data-label="Parceiro">
                       <Link href={`/admin/repasses/${s.id}`}>{s.partner.name}</Link>
                     </td>
-                    <td>
+                    <td data-label="Período">
                       {formatDate(s.periodStart)} a {formatDate(s.periodEnd)}
                     </td>
-                    <td className="num">{formatMoney(s.grossSalesAmount.amount)}</td>
-                    <td className="num">{formatMoney(s.commissionAmount.amount)}</td>
-                    <td className="num">{formatMoney(s.netPayableAmount.amount)}</td>
-                    <td>
+                    <td data-label="Bruto" className="num">
+                      {formatMoney(s.grossSalesAmount.amount)}
+                    </td>
+                    <td data-label="Comissão" className="num">
+                      {formatMoney(s.commissionAmount.amount)}
+                    </td>
+                    <td data-label="Líquido" className="num">
+                      {formatMoney(s.netPayableAmount.amount)}
+                    </td>
+                    <td data-label="Situação">
                       <span className={`badge ${SETTLEMENT_STATUS[s.status].badge}`}>
                         {SETTLEMENT_STATUS[s.status].label}
                       </span>

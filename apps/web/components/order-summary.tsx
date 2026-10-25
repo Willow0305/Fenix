@@ -15,7 +15,7 @@ export function OrderSummary({ order }: { readonly order: Order }) {
         <span className="muted">{formatDateTime(order.createdAt)}</span>
       </div>
       <div className="table-wrap">
-        <table className="table">
+        <table className="table table-stack">
           <thead>
             <tr>
               <th scope="col">Item</th>
@@ -33,7 +33,7 @@ export function OrderSummary({ order }: { readonly order: Order }) {
           <tbody>
             {order.items.map((item) => (
               <tr key={item.id}>
-                <td>
+                <td data-label="Item">
                   {item.productName}
                   <div className="muted" style={{ fontSize: '0.8rem' }}>
                     {item.variantName} · {item.sku}
@@ -41,9 +41,15 @@ export function OrderSummary({ order }: { readonly order: Order }) {
                     {item.pickedUpAt ? ` · retirado em ${formatDateTime(item.pickedUpAt)}` : ''}
                   </div>
                 </td>
-                <td className="num">{item.quantity}</td>
-                <td className="num">{formatMoney(item.unitPrice.amount)}</td>
-                <td className="num">{formatMoney(item.totalAmount.amount)}</td>
+                <td data-label="Qtd." className="num">
+                  {item.quantity}
+                </td>
+                <td data-label="Unitário" className="num">
+                  {formatMoney(item.unitPrice.amount)}
+                </td>
+                <td data-label="Total" className="num">
+                  {formatMoney(item.totalAmount.amount)}
+                </td>
               </tr>
             ))}
           </tbody>

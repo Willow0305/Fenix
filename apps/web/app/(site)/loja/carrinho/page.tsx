@@ -113,7 +113,7 @@ export default function CartPage() {
       {cart && cart.lines.length > 0 ? (
         <>
           <div className="table-wrap">
-            <table className="table">
+            <table className="table table-stack">
               <thead>
                 <tr>
                   <th scope="col">Produto</th>
@@ -132,7 +132,7 @@ export default function CartPage() {
               <tbody>
                 {cart.lines.map((line) => (
                   <tr key={line.id}>
-                    <td>
+                    <td data-label="Produto">
                       <Link href={`/loja/${line.productSlug}`}>{line.productName}</Link>
                       <div className="muted" style={{ fontSize: '0.8rem' }}>
                         {line.variantName}
@@ -145,7 +145,7 @@ export default function CartPage() {
                         <span className="field-error">Só há {line.available} disponível(is).</span>
                       ) : null}
                     </td>
-                    <td>
+                    <td data-label="Quantidade">
                       <input
                         type="number"
                         min={1}
@@ -162,9 +162,13 @@ export default function CartPage() {
                         style={{ width: 70, minHeight: 36 }}
                       />
                     </td>
-                    <td className="num">{formatMoney(line.unitPrice.amount)}</td>
-                    <td className="num">{formatMoney(line.lineTotal.amount)}</td>
-                    <td>
+                    <td data-label="Unitário" className="num">
+                      {formatMoney(line.unitPrice.amount)}
+                    </td>
+                    <td data-label="Total" className="num">
+                      {formatMoney(line.lineTotal.amount)}
+                    </td>
+                    <td data-label="Remover">
                       <button
                         type="button"
                         className="btn btn-link"

@@ -185,7 +185,7 @@ export default function ClosingsPage() {
         {closings.data?.length === 0 ? <Empty>Nenhum fechamento registrado.</Empty> : null}
         {closings.data && closings.data.length > 0 ? (
           <div className="table-wrap">
-            <table className="table">
+            <table className="table table-stack">
               <thead>
                 <tr>
                   <th scope="col">Conta</th>
@@ -205,12 +205,16 @@ export default function ClosingsPage() {
               <tbody>
                 {closings.data.map((c) => (
                   <tr key={c.id}>
-                    <td>{c.account.name}</td>
-                    <td>
+                    <td data-label="Conta">{c.account.name}</td>
+                    <td data-label="Período">
                       {formatDate(c.periodStart)} a {formatDate(c.periodEnd)}
                     </td>
-                    <td className="num">{formatMoney(c.expectedBalance.amount)}</td>
-                    <td className="num">{formatMoney(c.countedBalance.amount)}</td>
+                    <td data-label="Esperado" className="num">
+                      {formatMoney(c.expectedBalance.amount)}
+                    </td>
+                    <td data-label="Contado" className="num">
+                      {formatMoney(c.countedBalance.amount)}
+                    </td>
                     <td
                       className="num"
                       style={{
@@ -220,7 +224,7 @@ export default function ClosingsPage() {
                     >
                       {formatMoney(c.differenceAmount.amount)}
                     </td>
-                    <td>
+                    <td data-label="Diferença">
                       {c.status === 'CLOSED' ? (
                         <>
                           <span className="badge badge-success">Fechado</span>

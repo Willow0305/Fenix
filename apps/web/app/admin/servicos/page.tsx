@@ -347,7 +347,7 @@ function ServicesAdmin() {
         {services.data?.length === 0 ? <Empty>Nenhum serviço.</Empty> : null}
         {services.data && services.data.length > 0 ? (
           <div className="table-wrap">
-            <table className="table">
+            <table className="table table-stack">
               <thead>
                 <tr>
                   <th scope="col">Serviço</th>
@@ -368,17 +368,21 @@ function ServicesAdmin() {
               <tbody>
                 {services.data.map((s) => (
                   <tr key={s.id}>
-                    <td>{s.name}</td>
-                    <td>{s.partner.name}</td>
-                    <td>{s.professional?.fullName ?? 'Qualquer'}</td>
-                    <td className="num">{s.durationMinutes} min</td>
-                    <td className="num">{s.price ? formatMoney(s.price.amount) : 'A combinar'}</td>
-                    <td>
+                    <td data-label="Serviço">{s.name}</td>
+                    <td data-label="Parceiro">{s.partner.name}</td>
+                    <td data-label="Profissional">{s.professional?.fullName ?? 'Qualquer'}</td>
+                    <td data-label="Duração" className="num">
+                      {s.durationMinutes} min
+                    </td>
+                    <td data-label="Valor" className="num">
+                      {s.price ? formatMoney(s.price.amount) : 'A combinar'}
+                    </td>
+                    <td data-label="Situação">
                       <span className={`badge ${SERVICE_STATUS[s.status].badge}`}>
                         {SERVICE_STATUS[s.status].label}
                       </span>
                     </td>
-                    <td>
+                    <td data-label="Ações">
                       <button
                         type="button"
                         className="btn btn-link"

@@ -76,7 +76,7 @@ export default function AppointmentsAdminPage() {
       {list.data && list.data.data.length > 0 ? (
         <>
           <div className="table-wrap">
-            <table className="table">
+            <table className="table table-stack">
               <thead>
                 <tr>
                   <th scope="col">Horário</th>
@@ -91,8 +91,8 @@ export default function AppointmentsAdminPage() {
               <tbody>
                 {list.data.data.map((a) => (
                   <tr key={a.id}>
-                    <td>{formatDateTime(a.scheduledStartsAt)}</td>
-                    <td>
+                    <td data-label="Horário">{formatDateTime(a.scheduledStartsAt)}</td>
+                    <td data-label="Serviço">
                       {a.service.name}
                       <br />
                       <small className="muted">
@@ -101,7 +101,7 @@ export default function AppointmentsAdminPage() {
                         {a.quotedPrice ? ` · ${formatMoney(a.quotedPrice.amount)}` : ''}
                       </small>
                     </td>
-                    <td>
+                    <td data-label="Solicitante">
                       {a.requester.name}
                       <br />
                       <small className="muted">
@@ -119,7 +119,7 @@ export default function AppointmentsAdminPage() {
                         </>
                       ) : null}
                     </td>
-                    <td>
+                    <td data-label="Situação">
                       <span className={`badge ${APPOINTMENT_STATUS[a.status].badge}`}>
                         {APPOINTMENT_STATUS[a.status].label}
                       </span>
@@ -130,7 +130,7 @@ export default function AppointmentsAdminPage() {
                         </>
                       ) : null}
                     </td>
-                    <td>
+                    <td data-label="Ações">
                       <div className="row">
                         {NEXT[a.status].map((next) => (
                           <button

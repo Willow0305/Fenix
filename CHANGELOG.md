@@ -6,6 +6,16 @@ O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) e o 
 
 ## [Não publicado]
 
+### Celular e manutenção (2026-10-25)
+
+#### Alterado
+
+- todas as tabelas do painel, do carrinho e do resumo do pedido viram cartões abaixo de 768 px, com o rótulo de cada coluna (COR-006); Relatórios mantém a rolagem dentro do quadro.
+
+#### Corrigido
+
+- removido do banco local o registro de uma migração antiga que falhou e foi desfeita, que impedia `prisma migrate dev`.
+
 ### Planos de mensalidade e categorias (2026-10-25)
 
 #### Adicionado

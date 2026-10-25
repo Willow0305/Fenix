@@ -254,7 +254,7 @@ function History() {
       {history.data?.data.length === 0 ? <Empty>Nenhuma ação registrada.</Empty> : null}
       {history.data && history.data.data.length > 0 ? (
         <div className="table-wrap">
-          <table className="table">
+          <table className="table table-stack">
             <thead>
               <tr>
                 <th scope="col">Quando</th>
@@ -266,9 +266,9 @@ function History() {
             <tbody>
               {history.data.data.map((item) => (
                 <tr key={item.id}>
-                  <td>{formatDateTime(item.createdAt)}</td>
-                  <td>{item.moderator}</td>
-                  <td>
+                  <td data-label="Quando">{formatDateTime(item.createdAt)}</td>
+                  <td data-label="Moderador">{item.moderator}</td>
+                  <td data-label="Ação">
                     {ACTION_LABEL[item.action] ?? item.action}{' '}
                     {item.topicId ? (
                       <Link href={`/forum/topicos/${item.topicId}`}>
@@ -276,7 +276,7 @@ function History() {
                       </Link>
                     ) : null}
                   </td>
-                  <td>{item.reason}</td>
+                  <td data-label="Motivo">{item.reason}</td>
                 </tr>
               ))}
             </tbody>

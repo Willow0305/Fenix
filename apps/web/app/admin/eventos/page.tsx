@@ -386,7 +386,7 @@ export default function EventsAdminPage() {
       {list.data && list.data.data.length > 0 ? (
         <>
           <div className="table-wrap">
-            <table className="table">
+            <table className="table table-stack">
               <thead>
                 <tr>
                   <th scope="col">Quando</th>
@@ -401,8 +401,8 @@ export default function EventsAdminPage() {
               <tbody>
                 {list.data.data.map((event) => (
                   <tr key={event.id}>
-                    <td>{formatDateTime(event.startsAt)}</td>
-                    <td>
+                    <td data-label="Quando">{formatDateTime(event.startsAt)}</td>
+                    <td data-label="Evento">
                       <strong>{event.match ? scoreLabel(event.match) : event.title}</strong>
                       <br />
                       <small className="muted">
@@ -410,13 +410,13 @@ export default function EventsAdminPage() {
                         {event.locationName ? ` · ${event.locationName}` : ''}
                       </small>
                     </td>
-                    <td>{event.isPublic ? 'Público' : 'Interno'}</td>
-                    <td>
+                    <td data-label="Visibilidade">{event.isPublic ? 'Público' : 'Interno'}</td>
+                    <td data-label="Situação">
                       <span className={`badge ${EVENT_STATUS[event.status].badge}`}>
                         {EVENT_STATUS[event.status].label}
                       </span>
                     </td>
-                    <td>
+                    <td data-label="Ações">
                       <div className="row">
                         <button
                           type="button"

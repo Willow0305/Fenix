@@ -192,7 +192,7 @@ export default function AuditPage() {
       {logs.data?.data.length === 0 ? <Empty>Nenhum registro para os filtros.</Empty> : null}
       {logs.data && logs.data.data.length > 0 ? (
         <div className="table-wrap">
-          <table className="table">
+          <table className="table table-stack">
             <thead>
               <tr>
                 <th scope="col">Quando</th>
@@ -209,19 +209,19 @@ export default function AuditPage() {
               {logs.data.data.map((log) => (
                 <Fragment key={log.id}>
                   <tr>
-                    <td>{formatDateTime(log.occurredAt)}</td>
-                    <td>{log.actor?.name ?? 'Sistema/anônimo'}</td>
-                    <td>
+                    <td data-label="Quando">{formatDateTime(log.occurredAt)}</td>
+                    <td data-label="Quem">{log.actor?.name ?? 'Sistema/anônimo'}</td>
+                    <td data-label="Ação">
                       <code>{log.action}</code>
                     </td>
-                    <td>
+                    <td data-label="Entidade">
                       {log.entityType}
                       {log.entityId ? (
                         <small className="muted"> {log.entityId.slice(0, 8)}</small>
                       ) : null}
                     </td>
-                    <td>{log.reason ?? '—'}</td>
-                    <td>
+                    <td data-label="Motivo">{log.reason ?? '—'}</td>
+                    <td data-label="Detalhe">
                       <button
                         type="button"
                         className="btn btn-link"

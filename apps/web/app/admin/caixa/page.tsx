@@ -267,7 +267,7 @@ export default function CashPage() {
         {list.data?.data.length === 0 ? <Empty>Nenhum lançamento no período.</Empty> : null}
         {list.data && list.data.data.length > 0 ? (
           <div className="table-wrap">
-            <table className="table">
+            <table className="table table-stack">
               <thead>
                 <tr>
                   <th scope="col">Data</th>
@@ -283,8 +283,8 @@ export default function CashPage() {
               <tbody>
                 {list.data.data.map((t) => (
                   <tr key={t.id}>
-                    <td>{formatDate(t.occurredOn)}</td>
-                    <td>
+                    <td data-label="Data">{formatDate(t.occurredOn)}</td>
+                    <td data-label="Descrição">
                       {t.description}
                       <div className="muted" style={{ fontSize: '0.8rem' }}>
                         {ORIGIN_LABEL[t.origin]}
@@ -293,7 +293,7 @@ export default function CashPage() {
                         {t.reversedBy ? ' · estornado' : ''}
                       </div>
                     </td>
-                    <td>
+                    <td data-label="Conta / categoria">
                       {t.account.name}
                       <div className="muted">{t.category.name}</div>
                     </td>
@@ -306,12 +306,12 @@ export default function CashPage() {
                     >
                       {t.direction === 'INCOME' ? '+' : '−'} {formatMoney(t.amount.amount)}
                     </td>
-                    <td>
+                    <td data-label="Valor">
                       <span className={`badge ${TRANSACTION_STATUS[t.status].badge}`}>
                         {TRANSACTION_STATUS[t.status].label}
                       </span>
                     </td>
-                    <td>
+                    <td data-label="Situação">
                       <div className="row" style={{ gap: '0.3rem' }}>
                         {t.status === 'PENDING' && !t.paymentId && can('transactions.confirm') ? (
                           <button

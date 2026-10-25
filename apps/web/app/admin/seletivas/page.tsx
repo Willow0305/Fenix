@@ -61,7 +61,7 @@ export default function TryoutsAdminPage() {
       {tryouts.data?.length === 0 ? <Empty>Nenhuma seletiva criada.</Empty> : null}
       {tryouts.data && tryouts.data.length > 0 ? (
         <div className="table-wrap">
-          <table className="table">
+          <table className="table table-stack">
             <thead>
               <tr>
                 <th scope="col">Seletiva</th>
@@ -75,17 +75,17 @@ export default function TryoutsAdminPage() {
             <tbody>
               {tryouts.data.map((t) => (
                 <tr key={t.id}>
-                  <td>
+                  <td data-label="Seletiva">
                     <Link href={`/admin/seletivas/${t.id}`}>{t.title}</Link>
                     {t.team ? <span className="muted"> · {t.team.name}</span> : null}
                   </td>
-                  <td>{formatDateTime(t.startsAt)}</td>
-                  <td>
+                  <td data-label="Data">{formatDateTime(t.startsAt)}</td>
+                  <td data-label="Status">
                     <span className={`badge ${TRYOUT_STATUS[t.status].badge}`}>
                       {TRYOUT_STATUS[t.status].label}
                     </span>
                   </td>
-                  <td className="num">
+                  <td data-label="Inscrições" className="num">
                     {t.usedSlots}
                     {t.maxSlots ? ` / ${t.maxSlots}` : ''}
                   </td>

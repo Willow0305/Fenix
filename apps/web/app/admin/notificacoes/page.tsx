@@ -127,7 +127,7 @@ export default function BroadcastPage() {
         {history.data?.length === 0 ? <Empty>Nenhum aviso enviado.</Empty> : null}
         {history.data && history.data.length > 0 ? (
           <div className="table-wrap">
-            <table className="table">
+            <table className="table table-stack">
               <thead>
                 <tr>
                   <th scope="col">Quando</th>
@@ -142,11 +142,13 @@ export default function BroadcastPage() {
               <tbody>
                 {history.data.map((item) => (
                   <tr key={item.id}>
-                    <td>{formatDateTime(item.occurredAt)}</td>
-                    <td>{item.title}</td>
-                    <td>{item.audience}</td>
-                    <td className="num">{item.recipients}</td>
-                    <td>{item.actor ?? '—'}</td>
+                    <td data-label="Quando">{formatDateTime(item.occurredAt)}</td>
+                    <td data-label="Título">{item.title}</td>
+                    <td data-label="Grupo">{item.audience}</td>
+                    <td data-label="Pessoas" className="num">
+                      {item.recipients}
+                    </td>
+                    <td data-label="Por">{item.actor ?? '—'}</td>
                   </tr>
                 ))}
               </tbody>

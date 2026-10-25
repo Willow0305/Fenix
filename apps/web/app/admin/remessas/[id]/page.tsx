@@ -248,7 +248,7 @@ export default function CampaignDetailPage() {
         {report.data ? (
           <>
             <div className="table-wrap">
-              <table className="table">
+              <table className="table table-stack">
                 <thead>
                   <tr>
                     <th scope="col">Produto</th>
@@ -262,12 +262,14 @@ export default function CampaignDetailPage() {
                 <tbody>
                   {report.data.lines.map((line) => (
                     <tr key={line.sku}>
-                      <td>{line.productName}</td>
-                      <td>{line.variantName}</td>
-                      <td>
+                      <td data-label="Produto">{line.productName}</td>
+                      <td data-label="Variação">{line.variantName}</td>
+                      <td data-label="SKU">
                         <code>{line.sku}</code>
                       </td>
-                      <td className="num">{line.quantity}</td>
+                      <td data-label="Quantidade" className="num">
+                        {line.quantity}
+                      </td>
                     </tr>
                   ))}
                 </tbody>

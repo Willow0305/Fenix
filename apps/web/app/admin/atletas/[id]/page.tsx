@@ -207,7 +207,7 @@ export default function AthleteDetailPage() {
         {a.memberships.length === 0 ? <p className="muted">Nenhum vínculo.</p> : null}
         {a.memberships.length > 0 ? (
           <div className="table-wrap">
-            <table className="table">
+            <table className="table table-stack">
               <thead>
                 <tr>
                   <th scope="col">Equipe</th>
@@ -220,17 +220,17 @@ export default function AthleteDetailPage() {
               <tbody>
                 {a.memberships.map((m) => (
                   <tr key={m.id}>
-                    <td>{m.team.name}</td>
-                    <td>{formatDate(m.startsOn)}</td>
-                    <td>
+                    <td data-label="Equipe">{m.team.name}</td>
+                    <td data-label="Início">{formatDate(m.startsOn)}</td>
+                    <td data-label="Término">
                       {m.endsOn ? (
                         formatDate(m.endsOn)
                       ) : (
                         <span className="badge badge-success">Atual</span>
                       )}
                     </td>
-                    <td>{m.position ?? '—'}</td>
-                    <td>
+                    <td data-label="Posição">{m.position ?? '—'}</td>
+                    <td data-label="Ação">
                       {!m.endsOn && can('teams.assign') ? (
                         <button
                           type="button"

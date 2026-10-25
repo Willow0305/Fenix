@@ -144,7 +144,7 @@ export default function PartnersAdminPage() {
       {partners.data && partners.data.data.length > 0 ? (
         <>
           <div className="table-wrap">
-            <table className="table">
+            <table className="table table-stack">
               <thead>
                 <tr>
                   <th scope="col">Parceiro</th>
@@ -157,22 +157,22 @@ export default function PartnersAdminPage() {
               <tbody>
                 {partners.data.data.map((p) => (
                   <tr key={p.id}>
-                    <td>
+                    <td data-label="Parceiro">
                       <Link href={`/admin/parceiros/${p.id}`}>{p.displayName}</Link>
                     </td>
-                    <td>{PARTNER_TYPE[p.type]}</td>
-                    <td>
+                    <td data-label="Tipo">{PARTNER_TYPE[p.type]}</td>
+                    <td data-label="Vigência">
                       {p.contractStartsOn ? formatDate(p.contractStartsOn) : '—'}
                       {p.contractEndsOn ? ` a ${formatDate(p.contractEndsOn)}` : ''}
                     </td>
-                    <td>
+                    <td data-label="Comissão">
                       {commissionLabel(
                         p.commissionType,
                         p.commissionPercentage,
                         p.commissionFixedAmount
                       )}
                     </td>
-                    <td>
+                    <td data-label="Situação">
                       <span className={`badge ${PARTNER_STATUS[p.status].badge}`}>
                         {PARTNER_STATUS[p.status].label}
                       </span>

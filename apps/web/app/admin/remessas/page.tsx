@@ -134,7 +134,7 @@ export default function CampaignsPage() {
       {campaigns.data?.length === 0 ? <Empty>Nenhuma remessa criada.</Empty> : null}
       {campaigns.data && campaigns.data.length > 0 ? (
         <div className="table-wrap">
-          <table className="table">
+          <table className="table table-stack">
             <thead>
               <tr>
                 <th scope="col">Remessa</th>
@@ -148,18 +148,18 @@ export default function CampaignsPage() {
             <tbody>
               {campaigns.data.map((c) => (
                 <tr key={c.id}>
-                  <td>
+                  <td data-label="Remessa">
                     <Link href={`/admin/remessas/${c.id}`}>{c.name}</Link>
                   </td>
-                  <td>{formatDateTime(c.salesEndAt)}</td>
-                  <td className="num">
+                  <td data-label="Vendas até">{formatDateTime(c.salesEndAt)}</td>
+                  <td data-label="Pagas / mínimo" className="num">
                     {c.paidQuantity}
                     {c.minimumQuantity ? ` / ${c.minimumQuantity}` : ''}
                     {c.reservedQuantity ? (
                       <span className="muted"> (+{c.reservedQuantity} aguardando)</span>
                     ) : null}
                   </td>
-                  <td>
+                  <td data-label="Situação">
                     <span className={`badge ${CAMPAIGN_STATUS[c.status].badge}`}>
                       {CAMPAIGN_STATUS[c.status].label}
                     </span>

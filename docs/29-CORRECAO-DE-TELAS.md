@@ -3,7 +3,7 @@
 - **Versão:** 1.1
 - **Data:** 2026-10-25
 - **Origem:** revisão das telas feita pelo responsável do projeto em 2026-10-25, com diagnóstico no código do branch `dev` (commit `23fb30f`).
-- **Situação:** 19 de 20 correções concluídas em 2026-10-25; `COR-006` em andamento. Ver a coluna Situação da seção 5.
+- **Situação:** 22 correções concluídas em 2026-10-25. Ver a coluna Situação da seção 5.
 
 Este documento tem duas partes:
 
@@ -250,7 +250,7 @@ Antes de mudar uma correção para "Concluída", conferir:
 | COR-003 | Formulários com documento | Aceita RG; sem máscara nem validação de CPF | Regra de negócio | P1 | Concluída (`fa21ca0`, `ef43877`) |
 | COR-004 | Formulários com telefone | Telefone em texto livre, sem padrão | Padronização | P1 | Concluída (`fa21ca0`, `ef43877`) |
 | COR-005 | Todas | Textos longos quebram o layout | Defeito | P1 | Concluída (`33c4eb7`) |
-| COR-006 | Todas | Layout não preparado para celular | Padronização | P1 | Em correção: base global e tabelas de Atletas, Mensalidades e Equipes (`33c4eb7`, `e49c2f5`); demais tabelas rolam dentro do próprio quadro |
+| COR-006 | Todas | Layout não preparado para celular | Padronização | P1 | Concluída: base global e todas as tabelas viram cartões no celular, exceto Relatórios (tabela sem colunas fixas, rola dentro do quadro) |
 | COR-007 | Site | Sem imagem padrão quando não há imagem | Padronização | P2 | Concluída (`33c4eb7`, `5468531`) |
 | COR-008 | Painel | Equipes inativas em listas de seleção | Inconsistência | P1 | Concluída (`e49c2f5`) |
 | COR-009 | Site · Times | Inativar equipe demora para refletir no site | Defeito | P3 | Concluída (`5468531`) |

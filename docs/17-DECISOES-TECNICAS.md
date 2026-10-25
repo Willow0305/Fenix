@@ -812,7 +812,7 @@ A logo oficial e as configurações do time "sumiam". A auditoria mostrou a caus
 
 ### Consequências
 
-- migração `20261025210000_capas_evento_parceiro`, gerada por `prisma migrate diff` porque o banco local guarda um registro antigo e já desfeito (`20261025200000_mfa_totp`, `rolled_back`) que impede `migrate dev`; `migrate deploy` não é afetado;
+- migração `20261025210000_capas_evento_parceiro`, gerada por `prisma migrate diff` porque o banco local guarda um registro antigo e já desfeito (`20261025200000_mfa_totp`, `rolled_back`) que impede `migrate dev`; `migrate deploy` não é afetado. O registro foi removido do banco local em 2026-10-25, depois de backup (só metadado: 0 passos aplicados); `prisma migrate status` confirma o banco em dia;
 - testes de integração de capa de evento (inclusive WebP e herança da notícia) e de logo e capa do parceiro; 3 testes unitários do interceptor.
 
 ## DT-042 — Equipe ativa, efeitos do status do atleta e faixa etária

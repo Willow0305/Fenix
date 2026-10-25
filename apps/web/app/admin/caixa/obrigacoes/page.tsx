@@ -192,7 +192,7 @@ export default function ObligationsPage() {
       {list.data?.data.length === 0 ? <Empty>Nenhuma conta para os filtros.</Empty> : null}
       {list.data && list.data.data.length > 0 ? (
         <div className="table-wrap">
-          <table className="table">
+          <table className="table table-stack">
             <thead>
               <tr>
                 <th scope="col">Vencimento</th>
@@ -208,21 +208,23 @@ export default function ObligationsPage() {
             <tbody>
               {list.data.data.map((o) => (
                 <tr key={o.id}>
-                  <td>{formatDate(o.dueDate)}</td>
-                  <td>
+                  <td data-label="Vencimento">{formatDate(o.dueDate)}</td>
+                  <td data-label="Descrição">
                     {o.description}
                     <div className="muted">
                       {o.counterpartyName} · {o.category.name}
                     </div>
                   </td>
-                  <td>{o.type === 'PAYABLE' ? 'A pagar' : 'A receber'}</td>
-                  <td className="num">{formatMoney(o.amount.amount)}</td>
-                  <td>
+                  <td data-label="Tipo">{o.type === 'PAYABLE' ? 'A pagar' : 'A receber'}</td>
+                  <td data-label="Valor" className="num">
+                    {formatMoney(o.amount.amount)}
+                  </td>
+                  <td data-label="Situação">
                     <span className={`badge ${OBLIGATION_STATUS[o.status].badge}`}>
                       {OBLIGATION_STATUS[o.status].label}
                     </span>
                   </td>
-                  <td>
+                  <td data-label="Ações">
                     {(o.status === 'OPEN' || o.status === 'OVERDUE') &&
                     can('transactions.confirm') ? (
                       <button
