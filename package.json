@@ -41,7 +41,7 @@
     "prisma:generate": "dotenv -e .env.example -- prisma generate",
     "prisma:validate": "dotenv -e .env.example -- prisma validate",
     "smoke": "node scripts/smoke-runtime.mjs",
-    "test": "node --test scripts/startup.spec.cjs && npm run test --workspaces --if-present",
+    "test": "node --test scripts/startup.spec.cjs apps/api/test/test-database.spec.cjs && npm run test --workspaces --if-present",
     "typecheck": "npm run typecheck --workspaces --if-present",
     "db:migrate": "dotenv -e .env -- prisma migrate deploy",
     "db:migrate:dev": "dotenv -e .env -- prisma migrate dev",
@@ -49,6 +49,8 @@
     "db:setup": "npm run db:migrate && npm run db:seed",
     "test:integration": "dotenv -e .env -- npm run test:integration --workspace=@fenix/api",
     "db:demo": "npm run build --workspace=@fenix/api && dotenv -e .env -- node apps/api/dist/cli/demo.js",
+    "backup": "dotenv -e .env -- node scripts/backup.mjs",
+    "db:clean-test-data": "npm run build --workspace=@fenix/api && dotenv -e .env -- node apps/api/dist/cli/clean-test-data.js",
     "mfa:reset": "npm run build --workspace=@fenix/api && dotenv -e .env -- node apps/api/dist/cli/mfa-reset.js"
   },
   "devDependencies": {

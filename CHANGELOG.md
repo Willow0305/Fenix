@@ -6,6 +6,26 @@ O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) e o 
 
 ## [Não publicado]
 
+### Persistência e proteção dos dados (2026-10-25)
+
+#### Corrigido
+
+- a logo oficial e as configurações do time deixam de ser sobrescritas: os testes de integração gravavam no banco de desenvolvimento e apontavam a logo para um arquivo temporário (DT-038);
+- `npm run db:demo` não sobrescreve mais descrição, história e contatos do time; só preenche campos vazios;
+- arquivo removido do armazenamento responde 404 em vez de erro interno.
+
+#### Adicionado
+
+- testes de integração em banco exclusivo `<banco>_test`, recriado a cada execução, com recusa de usar o banco de desenvolvimento;
+- `npm run db:clean-test-data`: exclusão lógica auditada dos cadastros criados por testes, restauração da logo enviada pelo responsável e remoção de contato e chave PIX de teste;
+- `npm run backup`: dump do banco verificado, cópia dos arquivos, manifesto com SHA-256 e retenção de 30 cópias;
+- imagens públicas otimizadas no envio: recusa de arquivo corrompido, correção de rotação, redução até 1920 px, conversão para WebP e remoção de metadados (DT-039).
+
+#### Alterado
+
+- `STORAGE_LOCAL_DIR` passa a apontar para fora da pasta do projeto; em produção, caminho absoluto obrigatório. A API confere na inicialização se a pasta aceita gravação;
+- imagens públicas aceitas até 10 MB (antes 5 MB), já que são reduzidas antes de gravar.
+
 ### Documentação — correção de telas (2026-10-25)
 
 #### Adicionado

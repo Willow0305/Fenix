@@ -446,6 +446,7 @@ Prioridades:
 - **Questão:** os testes de integração usam o mesmo `DATABASE_URL` do desenvolvimento e não apagam o que criam. Em 2026-10-25 o banco local tinha 16 equipes, das quais 14 criadas por teste ("Feminino 1792…"), além de produtos e remessas de teste que aparecem no site como reais ("Camisa jogo 93ef3", "Remessa 50202").
 - **Recomendação:** banco próprio para testes (`DATABASE_URL_TEST`), recriado a cada execução e recusado se for igual ao de desenvolvimento; script de limpeza do banco de desenvolvimento por exclusão lógica, sem tocar em registros financeiros confirmados.
 - **Impacto:** configuração do Jest de integração, `README.md`, `docs/14-TESTES.md`, CI.
+- **Situação:** resolvida em 2026-10-25 (`DT-038`). Ver seção 12.
 
 ### PEN-060 — Efeito de inativar ou suspender atleta sobre mensalidades, plano e vínculos
 
@@ -514,3 +515,4 @@ As entradas acima permanecem como histórico da questão original. As decisões 
 | PEN-042 | Adiada pelo responsável em 2026-10-20: o sistema é um protótipo funcional em desenvolvimento; provedores serão escolhidos antes da homologação. | Responsável do projeto | — |
 | PEN-043 | Web e API sob a mesma origem pública: o Next.js encaminha `/api/v1` para a API; CORS restrito à lista explícita. | Delegada | `DT-022` |
 | PEN-013 (sessão) | Decidido em 2026-10-25: inatividade de 30 min e duração máxima de 12 h para perfis com permissão administrativa; 7 dias e 30 dias para contas comuns. Substitui o refresh de 30 dias prorrogável. | Responsável do projeto | `DT-036` |
+| PEN-059 | Decidido em 2026-10-25: testes de integração em banco exclusivo `<banco>_test`, recriado a cada execução; limpeza auditada do banco de desenvolvimento (`npm run db:clean-test-data`); arquivos fora da pasta do projeto e `npm run backup`. | Responsável do projeto | `DT-038` |

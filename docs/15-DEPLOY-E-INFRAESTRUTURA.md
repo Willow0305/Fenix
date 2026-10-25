@@ -124,7 +124,8 @@ Variáveis implementadas (valores de exemplo em `.env.example`):
 | `DATABASE_URL`, `POSTGRES_*` | banco | sim |
 | `AUTH_ACCESS_TOKEN_SECRET` | assinatura do access token (mín. 32 caracteres) | sim |
 | `DATA_ENCRYPTION_KEY` | chave AES-256 (32 bytes base64) de PIX, banco e documentos | sim |
-| `STORAGE_DRIVER`, `STORAGE_LOCAL_DIR` | armazenamento de arquivos | adaptador real pendente |
+| `STORAGE_DRIVER`, `STORAGE_LOCAL_DIR` | armazenamento de arquivos; caminho absoluto fora do projeto, volume persistente em produção (DT-038) | adaptador de nuvem pendente (`PEN-042`) |
+| `BACKUP_DIR`, `BACKUP_KEEP` | destino e retenção de `npm run backup` (DT-038) | — |
 | `MAIL_DRIVER`, `MAIL_OUTBOX_DIR`, `MAIL_FROM` | e-mail | adaptador real pendente |
 | `ALLOW_LOCAL_ADAPTERS_IN_PRODUCTION` | opt-in explícito para adaptadores locais | — |
 | `STORE_RESERVATION_HOURS` | validade da reserva de pedido não pago (padrão 72) | não |
@@ -213,6 +214,18 @@ Procedimento validado em 19/10/2026 no ambiente local (Fase 8). **Metas aprovada
 3. **a chave `DATA_ENCRYPTION_KEY`**, guardada no cofre de segredos e **nunca junto do dump**: sem ela, documentos, PIX e dados bancários cifrados ficam irrecuperáveis; com ela junto do dump, o vazamento do backup expõe esses dados.
 
 **Gerar o backup (local, Docker Compose)**
+
+```bash
+npm run backup
+```
+
+O comando (DT-038) grava em `BACKUP_DIR`, fora da pasta do projeto, a pasta `fenix-AAAAMMDD-HHMMSS` com `database.dump` (conferido por `pg_restore --list`), `storage/` (cópia de `STORAGE_LOCAL_DIR`) e `manifest.json` (SHA-256 e contagens), e mantém as `BACKUP_KEEP` cópias mais recentes (padrão 30). Para cumprir a meta diária, agende-o no Agendador de Tarefas do Windows:
+
+```powershell
+schtasks /Create /TN "Fenix Volei - backup diario" /SC DAILY /ST 02:00 /TR "cmd /c cd /d C:\Users\William\Desktop\Fenix && npm run backup >> C:\Users\William\FenixVolei-dados\backups\backup.log 2>&1"
+```
+
+O computador precisa estar ligado e o contêiner do PostgreSQL em execução no horário. Equivalente manual, só do banco:
 
 ```bash
 docker exec fenix-postgres-1 pg_dump -U fenix -d fenix -Fc > backup-AAAAMMDD-HHMM.dump

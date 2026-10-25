@@ -17,20 +17,30 @@ async function main(): Promise<void> {
     const now = new Date();
     const day = 86_400_000;
 
-    await prisma.teamSettings.updateMany({
-      data: {
-        description:
-          'Time de vôlei amador de Rio Branco que renasce a cada jogo. (dados de demonstração)',
-        history:
-          'O Fênix nasceu da vontade de um grupo de amigos de manter o vôlei vivo na cidade.\n\nHoje reúne equipes masculina e feminina, treinos semanais e participação em campeonatos regionais.\n\n(Texto fictício de demonstração.)',
-        email: 'contato@fenix.example',
-        phone: '+55 68 99999-0000',
-        addressCity: 'Rio Branco',
-        addressState: 'AC',
-        socialLinks: [{ label: 'Instagram', url: 'https://instagram.com/' }],
-        pickupInstructions: 'Retirada no ginásio, às terças e quintas, das 18h às 20h.'
-      }
-    });
+    // Só preenche campos vazios: o que a diretoria gravou em Configurações nunca é sobrescrito.
+    const settings = await prisma.teamSettings.findFirst();
+    const demoSettings: Prisma.TeamSettingsUpdateInput = {
+      ...(settings?.description
+        ? {}
+        : {
+            description:
+              'Time de vôlei amador de Rio Branco que renasce a cada jogo. (dados de demonstração)'
+          }),
+      ...(settings?.history
+        ? {}
+        : {
+            history:
+              'O Fênix nasceu da vontade de um grupo de amigos de manter o vôlei vivo na cidade.\n\nHoje reúne equipes masculina e feminina, treinos semanais e participação em campeonatos regionais.\n\n(Texto fictício de demonstração.)'
+          }),
+      ...(settings?.addressCity ? {} : { addressCity: 'Rio Branco', addressState: 'AC' }),
+      ...(settings?.pickupInstructions
+        ? {}
+        : { pickupInstructions: 'Retirada no ginásio, às terças e quintas, das 18h às 20h.' })
+    };
+
+    if (settings && Object.keys(demoSettings).length > 0) {
+      await prisma.teamSettings.update({ where: { id: settings.id }, data: demoSettings });
+    }
 
     const teams = [
       {

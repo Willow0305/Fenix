@@ -567,7 +567,14 @@ describe('Fase 1 — autenticação, permissões e configurações', () => {
         .expect(200);
       const url = uploaded.body.brandAssets.OFFICIAL.url as string;
 
-      await ctx.http().get(url).expect(200).expect('Content-Type', 'image/png');
+      // Imagens públicas são otimizadas e gravadas em WebP (DT-039).
+      await ctx.http().get(url).expect(200).expect('Content-Type', 'image/webp');
+      await ctx
+        .http()
+        .put('/api/v1/team-settings/brand-assets/MALE')
+        .set('Authorization', `Bearer ${board.token}`)
+        .attach('file', PNG_1X1.subarray(0, 40), 'logo.png')
+        .expect(422);
       await ctx
         .http()
         .put('/api/v1/team-settings/brand-assets/MALE')

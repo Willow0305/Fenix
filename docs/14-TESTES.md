@@ -46,7 +46,7 @@ Demonstrar que requisitos, regras, permissões, transições e atributos de qual
 |---|---|---|---|
 | Unitária (API) | `npm test` | domínio puro (autenticação, criptografia, datas e fusos, dinheiro, mensalidades, Caixa, estoque, remessas), inicialização da aplicação | nenhuma |
 | Componentes (web) | `npm test` | formatação de datas/dinheiro, formulários acessíveis, erros e paginação | nenhuma |
-| Integração (API) | `npm run test:integration` | fluxos HTTP reais contra PostgreSQL, uma suíte por fase (`apps/api/test/phase*.int-spec.ts`) | PostgreSQL do `.env` |
+| Integração (API) | `npm run test:integration` | fluxos HTTP reais contra PostgreSQL, uma suíte por fase (`apps/api/test/phase*.int-spec.ts`) | banco exclusivo `<banco>_test`, recriado a cada execução (DT-038) |
 | Smoke | `npm run smoke` | web, health, Swagger e OpenAPI | build |
 
 A suíte de integração cobre, para cada domínio, caso autorizado, sem autenticação, sem permissão, recurso de outro titular, estados inválidos e auditoria, além de concorrência real em pagamentos e estoque. Ela também roda no CI após aplicar as migrations. Os dados criados usam e-mails e nomes fictícios aleatórios.

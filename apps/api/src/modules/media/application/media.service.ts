@@ -13,7 +13,12 @@ import {
   extensionOf,
   sanitizeFileName
 } from '../../../common/storage/file-signature';
-import { ObjectStorage } from '../../../common/storage/object-storage';
+import {
+  ImageDecodeError,
+  type ImageOptimization,
+  optimizeImage
+} from '../../../common/storage/image-processing';
+import { ObjectNotFoundError, ObjectStorage } from '../../../common/storage/object-storage';
 import { PERMISSIONS } from '../../access/domain/permission-catalog';
 
 export interface UploadPolicy {
@@ -21,11 +26,19 @@ export interface UploadPolicy {
   readonly maxBytes: number;
   readonly kind: MediaKind;
   readonly classification: DataClassification;
+  /** Quando presente, a imagem é otimizada e gravada em WebP (DT-039). */
+  readonly optimize?: ImageOptimization;
 }
 
+/**
+ * Imagens públicas (logos, capas, produtos): aceitas até 10 MB porque são reduzidas e
+ * convertidas para WebP antes de gravar. Comprovantes e contratos usam DOCUMENT_POLICY e
+ * são gravados sem alteração, por serem documentos de prova.
+ */
 export const IMAGE_POLICY: Omit<UploadPolicy, 'classification' | 'kind'> = {
   allowedTypes: ['image/png', 'image/jpeg', 'image/webp'],
-  maxBytes: 5 * 1024 * 1024
+  maxBytes: 10 * 1024 * 1024,
+  optimize: { maxWidth: 1920, maxHeight: 1920 }
 };
 
 export const DOCUMENT_POLICY: Omit<UploadPolicy, 'classification' | 'kind'> = {
@@ -92,11 +105,12 @@ export class MediaService {
       );
     }
 
+    const content = await this.prepare(file.buffer, detected, extension, policy);
     const now = new Date();
-    const objectKey = `${now.getUTCFullYear()}/${String(now.getUTCMonth() + 1).padStart(2, '0')}/${randomUUID()}.${extension}`;
-    const checksum = createHash('sha256').update(file.buffer).digest('hex');
+    const objectKey = `${now.getUTCFullYear()}/${String(now.getUTCMonth() + 1).padStart(2, '0')}/${randomUUID()}.${content.extension}`;
+    const checksum = createHash('sha256').update(content.buffer).digest('hex');
 
-    await this.storage.put(objectKey, file.buffer);
+    await this.storage.put(objectKey, content.buffer);
 
     const record = await (tx ?? this.prisma).mediaFile.create({
       data: {
@@ -104,9 +118,9 @@ export class MediaService {
         bucket: this.storage.bucket,
         objectKey,
         originalName: sanitizeFileName(file.originalname),
-        mimeType: detected,
-        extension,
-        sizeBytes: BigInt(file.size),
+        mimeType: content.mimeType,
+        extension: content.extension,
+        sizeBytes: BigInt(content.buffer.length),
         checksumSha256: checksum,
         kind: policy.kind,
         classification: policy.classification,
@@ -117,7 +131,36 @@ export class MediaService {
       select: { id: true }
     });
 
-    return { id: record.id, mimeType: detected, sizeBytes: file.size, url: mediaUrl(record.id) };
+    return {
+      id: record.id,
+      mimeType: content.mimeType,
+      sizeBytes: content.buffer.length,
+      url: mediaUrl(record.id)
+    };
+  }
+
+  /** Otimiza imagens quando a política pede; demais arquivos seguem sem alteração. */
+  private async prepare(
+    buffer: Buffer,
+    detected: DetectedFileType,
+    extension: string,
+    policy: UploadPolicy
+  ): Promise<{ buffer: Buffer; mimeType: DetectedFileType; extension: string }> {
+    if (policy.optimize === undefined || !detected.startsWith('image/')) {
+      return { buffer, mimeType: detected, extension };
+    }
+
+    try {
+      const optimized = await optimizeImage(buffer, policy.optimize);
+
+      return { buffer: optimized.buffer, mimeType: 'image/webp', extension: 'webp' };
+    } catch (error) {
+      if (error instanceof ImageDecodeError) {
+        throw AppError.validation('IMAGE_UNREADABLE', error.message);
+      }
+
+      throw error;
+    }
   }
 
   /**
@@ -156,8 +199,21 @@ export class MediaService {
       throw AppError.notFound('Arquivo não encontrado.');
     }
 
+    let content: Buffer;
+
+    try {
+      content = await this.storage.get(media.objectKey);
+    } catch (error) {
+      if (error instanceof ObjectNotFoundError) {
+        // Metadado sem objeto: o arquivo foi removido do armazenamento fora do sistema.
+        throw AppError.notFound('Arquivo não encontrado.');
+      }
+
+      throw error;
+    }
+
     return {
-      content: await this.storage.get(media.objectKey),
+      content,
       mimeType: media.mimeType,
       fileName: media.originalName,
       isPublic

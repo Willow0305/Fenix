@@ -1,3 +1,5 @@
+import { isAbsolute } from 'node:path';
+
 import { Injectable } from '@nestjs/common';
 
 export type StorageDriver = 'local';
@@ -73,6 +75,14 @@ export function loadAppConfig(env: NodeJS.ProcessEnv = process.env): AppConfigVa
   }
 
   const allowLocalAdaptersInProduction = env['ALLOW_LOCAL_ADAPTERS_IN_PRODUCTION'] === 'true';
+  const storageLocalDir = readString(env, 'STORAGE_LOCAL_DIR', 'var/storage');
+
+  // Em produção os arquivos vivem num volume persistente, nunca na pasta da aplicação.
+  if (isProduction && !isAbsolute(storageLocalDir)) {
+    throw new Error(
+      'Em produção, STORAGE_LOCAL_DIR deve ser um caminho absoluto (volume persistente).'
+    );
+  }
 
   if (isProduction && !allowLocalAdaptersInProduction) {
     throw new Error(
@@ -88,7 +98,7 @@ export function loadAppConfig(env: NodeJS.ProcessEnv = process.env): AppConfigVa
     accessTokenTtlSeconds: 15 * 60,
     dataEncryptionKey,
     storageDriver,
-    storageLocalDir: readString(env, 'STORAGE_LOCAL_DIR', 'var/storage'),
+    storageLocalDir,
     mailDriver,
     mailOutboxDir: readString(env, 'MAIL_OUTBOX_DIR', 'var/mail-outbox'),
     mailFrom: readString(env, 'MAIL_FROM', 'Fênix Vôlei <nao-responda@fenix.example>'),

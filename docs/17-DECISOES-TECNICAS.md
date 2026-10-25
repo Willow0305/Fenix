@@ -733,3 +733,46 @@ Pela `DT-022`, cada renovação emitia um refresh token com mais 30 dias. Com o 
 - migração `20261025175820_mfa_totp`. Sessões abertas antes dela não têm a segunda etapa comprovada: administradores e diretoria precisam ativá-la para voltar ao painel;
 - o helper de testes de integração passa pelo fluxo real (ativa na primeira vez, responde ao desafio nas seguintes), e todas as fases continuam exercitando rotas administrativas como em produção;
 - 9 testes unitários de TOTP, 3 de domínio e 9 de integração.
+
+## DT-038 — Persistência dos dados: banco de testes isolado, arquivos fora do projeto e backup
+
+- **Estado:** Aceita
+- **Data:** 2026-10-25
+- **Aprovador:** responsável do projeto ("quero que os dados estejam bem guardados, persistentes e protegidos", 2026-10-25); resolve `PEN-059`
+
+### Contexto
+
+A logo oficial e as configurações do time "sumiam". A auditoria mostrou a causa: os testes de integração usavam o mesmo `DATABASE_URL` do desenvolvimento. A cada execução, o teste de configurações regravava telefone, redes sociais e chave PIX e apontava a logo oficial para uma imagem gravada numa pasta temporária, que depois era apagada. Além disso, `npm run db:demo` sobrescrevia descrição e história do time, e os arquivos enviados ficavam em `apps/api/var/storage`, dentro da pasta do projeto.
+
+### Decisão
+
+- **banco de testes:** a suíte de integração recria o banco `<banco>_test` (ou `DATABASE_URL_TEST`) e aplica as migrations antes de rodar (`apps/api/test/global-setup.cjs`). Todo `PrismaClient` dos testes aponta para ele (`use-test-database.cjs`). A execução é recusada se o nome não terminar em `_test` ou coincidir com o banco de desenvolvimento;
+- **dados de demonstração:** `db:demo` só preenche campos vazios das configurações e não grava mais contatos fictícios;
+- **limpeza:** `npm run db:clean-test-data` (simula; `-- --apply` grava) identifica pela auditoria o que contas `@exemplo.test` criaram e aplica exclusão lógica só em cadastros não financeiros. Também devolve logos trocadas por teste à última enviada por pessoa real e limpa contato/PIX gravados por teste. Cada ação gera `maintenance.test_data.*` na auditoria;
+- **arquivos:** `STORAGE_LOCAL_DIR` deve apontar para fora da pasta do projeto (no ambiente local, `C:/Users/William/FenixVolei-dados/storage`). Em produção, caminho absoluto obrigatório, montado como volume persistente. A API confere na inicialização se a pasta aceita leitura e escrita. A gravação usa arquivo temporário + renomeação, e arquivo ausente responde `404` em vez de erro interno;
+- **backup:** `npm run backup` gera em `BACKUP_DIR` (absoluto, fora do projeto) uma pasta datada com o dump do banco (verificado por `pg_restore --list`), a cópia dos arquivos e um `manifest.json` com SHA-256. Mantém as `BACKUP_KEEP` cópias mais recentes (padrão 30, conforme `PEN-044`). A `DATA_ENCRYPTION_KEY` nunca é copiada.
+
+### Consequências
+
+- a suíte de integração leva alguns segundos a mais para recriar o banco; o banco de desenvolvimento não muda após rodar todos os testes (conferido: 16 equipes, 5 856 registros de auditoria e 815 usuários antes e depois);
+- na limpeza de 2026-10-25, 1 053 cadastros de teste receberam exclusão lógica, a logo oficial voltou ao arquivo enviado pelo responsável e a chave PIX de teste foi removida;
+- o adaptador de objetos em nuvem (S3 ou compatível) continua dependente de `PEN-042`; até lá, produção usa volume persistente com o adaptador de disco e `ALLOW_LOCAL_ADAPTERS_IN_PRODUCTION=true`.
+
+## DT-039 — Otimização de imagens públicas
+
+- **Estado:** Aceita
+- **Data:** 2026-10-25
+- **Aprovador:** responsável do projeto (fluxo upload → validação → compressão → WebP → redimensionamento → armazenamento, 2026-10-25)
+
+### Decisão
+
+- imagens públicas (logos, capas, fotos de produto e logos de parceiro) passam por `optimizeImage` (`apps/api/src/common/storage/image-processing.ts`, `sharp` 0.35.5, a mesma versão já usada pelo site): decodificação completa, que recusa arquivo corrompido ou truncado com `422 IMAGE_UNREADABLE`; correção da rotação da câmera; redução até 1920 × 1920 sem ampliar; conversão para WebP com qualidade 82; remoção de metadados (EXIF e GPS);
+- limite de entrada de 10 MB e de 50 megapixels decodificados (contra "bombas de descompressão");
+- a validação anterior continua: assinatura binária real, extensão compatível e tamanho;
+- comprovantes, contratos e documentos (`DOCUMENT_POLICY`) **não** são alterados, por serem documentos de prova;
+- o banco guarda só metadados do arquivo final (WebP, tamanho e SHA-256).
+
+### Consequências
+
+- arquivos enviados antes desta decisão continuam no formato original;
+- 4 testes unitários (conversão, não ampliação, remoção de EXIF, arquivo corrompido) e o teste de integração de logo atualizado para WebP e imagem truncada.
