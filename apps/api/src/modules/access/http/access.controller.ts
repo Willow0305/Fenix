@@ -18,6 +18,7 @@ import {
   ReqMeta,
   type RequestMeta
 } from '../../../common/http/request-context';
+import { MfaService } from '../../auth/application/mfa.service';
 import { RequirePermissions } from '../../auth/http/auth.decorators';
 import { AuditQueryService, type AuditLogView } from '../application/audit-query.service';
 import { RolesService, type RoleView } from '../application/roles.service';
@@ -37,7 +38,10 @@ import {
 @ApiBearerAuth()
 @Controller('users')
 export class UsersController {
-  constructor(private readonly users: UsersAdminService) {}
+  constructor(
+    private readonly users: UsersAdminService,
+    private readonly mfa: MfaService
+  ) {}
 
   @Get()
   @RequirePermissions(PERMISSIONS.usersRead)
@@ -102,6 +106,19 @@ export class UsersController {
     @ReqMeta() meta: RequestMeta
   ): Promise<{ revoked: number }> {
     return { revoked: await this.users.revokeSessions(actor, id, body.reason, meta) };
+  }
+
+  /** Remove a segunda etapa de quem perdeu o celular e os códigos (DT-037). */
+  @Post(':id/mfa/reset')
+  @HttpCode(204)
+  @RequirePermissions(PERMISSIONS.usersUpdate, PERMISSIONS.sessionsRevoke)
+  async resetMfa(
+    @CurrentPrincipal() actor: Principal,
+    @Param('id', new ParseUUIDPipe()) id: string,
+    @Body() body: ReasonDto,
+    @ReqMeta() meta: RequestMeta
+  ): Promise<void> {
+    await this.mfa.adminReset(actor, id, body.reason, meta);
   }
 }
 

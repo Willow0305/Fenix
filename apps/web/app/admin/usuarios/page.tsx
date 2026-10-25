@@ -38,6 +38,7 @@ type Dialog =
   | { kind: 'roles'; user: AdminUser }
   | { kind: 'status'; user: AdminUser }
   | { kind: 'sessions'; user: AdminUser }
+  | { kind: 'mfa'; user: AdminUser }
   | null;
 
 export default function UsersPage() {
@@ -132,6 +133,11 @@ export default function UsersPage() {
                     <span className={`badge ${STATUS_BADGE[user.status]}`}>
                       {STATUS_LABEL[user.status]}
                     </span>
+                    {user.mfaEnabled ? (
+                      <span className="badge badge-success" style={{ marginLeft: 4 }}>
+                        2 etapas
+                      </span>
+                    ) : null}
                   </td>
                   <td>{formatDateTime(user.lastLoginAt)}</td>
                   <td>
@@ -170,6 +176,17 @@ export default function UsersPage() {
                             onClick={() => setDialog({ kind: 'sessions', user })}
                           >
                             Encerrar sessões
+                          </button>
+                        ) : null}
+                        {user.mfaEnabled &&
+                        user.id !== profile?.id &&
+                        can('users.update', 'sessions.revoke') ? (
+                          <button
+                            type="button"
+                            className="btn btn-secondary btn-sm"
+                            onClick={() => setDialog({ kind: 'mfa', user })}
+                          >
+                            Redefinir 2 etapas
                           </button>
                         ) : null}
                       </div>
@@ -296,6 +313,24 @@ export default function UsersPage() {
             }
           );
           setNotice(`${result.revoked} sessão(ões) encerrada(s).`);
+        }}
+      />
+
+      <ConfirmDialog
+        open={dialog?.kind === 'mfa'}
+        title="Redefinir verificação em duas etapas"
+        description={`Use só se ${dialog?.user.name ?? ''} perdeu o celular e os códigos de recuperação. A pessoa sai de todos os dispositivos e precisa ativar a verificação de novo.`}
+        confirmLabel="Redefinir"
+        danger
+        requireReason
+        onClose={() => setDialog(null)}
+        onConfirm={async (reason) => {
+          await api(`/users/${dialog?.user.id ?? ''}/mfa/reset`, {
+            method: 'POST',
+            body: { reason }
+          });
+          setNotice('Verificação em duas etapas redefinida.');
+          await users.reload();
         }}
       />
     </>

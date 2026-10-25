@@ -69,7 +69,9 @@ export const REVOCATION = {
   revokedByAdmin: 'REVOKED_BY_ADMIN',
   accountDisabled: 'ACCOUNT_DISABLED',
   idleTimeout: 'IDLE_TIMEOUT',
-  absoluteTimeout: 'ABSOLUTE_TIMEOUT'
+  absoluteTimeout: 'ABSOLUTE_TIMEOUT',
+  mfaEnabled: 'MFA_ENABLED',
+  mfaReset: 'MFA_RESET'
 } as const;
 
 /**
@@ -92,14 +94,46 @@ export interface SessionLimits {
   readonly absoluteSeconds: number;
 }
 
-export function sessionLimitsFor(permissions: Iterable<string>): SessionLimits {
+/** Perfil privilegiado: qualquer permissão além do acesso à área de membros. */
+export function isPrivileged(permissions: Iterable<string>): boolean {
   for (const permission of permissions) {
     if (!NON_PRIVILEGED_PERMISSIONS.has(permission)) {
-      return SESSION_POLICY.privileged;
+      return true;
     }
   }
 
-  return SESSION_POLICY.standard;
+  return false;
+}
+
+export function sessionLimitsFor(permissions: Iterable<string>): SessionLimits {
+  return isPrivileged(permissions) ? SESSION_POLICY.privileged : SESSION_POLICY.standard;
+}
+
+/**
+ * Segunda etapa (DT-037): perfis privilegiados só exercem permissões administrativas em
+ * sessões que comprovaram o autenticador. Sem isso, ficam com as permissões comuns.
+ */
+export const MFA_CHALLENGE_TTL_SECONDS = 5 * 60;
+export const MFA_CHALLENGE_MAX_ATTEMPTS = 5;
+export const MFA_RECOVERY_CODE_COUNT = 10;
+export const MFA_ISSUER = 'Fênix Vôlei';
+
+export function effectivePermissions(
+  permissions: ReadonlySet<string>,
+  mfaVerified: boolean
+): ReadonlySet<string> {
+  if (mfaVerified || !isPrivileged(permissions)) {
+    return permissions;
+  }
+
+  return new Set([...permissions].filter((code) => NON_PRIVILEGED_PERMISSIONS.has(code)));
+}
+
+/** Código de recuperação: 12 caracteres base32 (60 bits) em blocos `XXXX-XXXX-XXXX`. */
+export const RECOVERY_CODE_PATTERN = /^[A-Z2-7]{4}-?[A-Z2-7]{4}-?[A-Z2-7]{4}$/;
+
+export function normalizeRecoveryCode(code: string): string {
+  return code.replace(/[\s-]/g, '').toUpperCase();
 }
 
 export interface SessionTimeline {

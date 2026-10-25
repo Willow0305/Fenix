@@ -12,7 +12,12 @@ export interface Principal {
   readonly name: string;
   readonly email: string;
   readonly roles: readonly string[];
+  /** Permissões efetivas: sem a segunda etapa, perfis privilegiados ficam só com as comuns. */
   readonly permissions: ReadonlySet<string>;
+  /** Tem permissões administrativas pelos papéis, independentemente da segunda etapa. */
+  readonly privileged: boolean;
+  /** A sessão comprovou o autenticador (DT-037). */
+  readonly mfaVerified: boolean;
 }
 
 export interface RequestContext {

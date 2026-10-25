@@ -4,6 +4,7 @@ import { ThrottlerGuard } from '@nestjs/throttler';
 
 import { AccountService } from './application/account.service';
 import { AuthService } from './application/auth.service';
+import { MfaService } from './application/mfa.service';
 import { PrincipalLoader } from './application/principal-loader.service';
 import { SessionLifetimeService } from './application/session-lifetime.service';
 import { AuthController } from './http/auth.controller';
@@ -17,9 +18,10 @@ import { MeController } from './http/me.controller';
     AccountService,
     PrincipalLoader,
     SessionLifetimeService,
+    MfaService,
     { provide: APP_GUARD, useClass: ThrottlerGuard },
     { provide: APP_GUARD, useClass: AuthGuard }
   ],
-  exports: [AuthService]
+  exports: [AuthService, MfaService]
 })
 export class AuthModule {}

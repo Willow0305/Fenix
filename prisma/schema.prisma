@@ -17,6 +17,7 @@ enum UserStatus {
 enum UserTokenType {
   PASSWORD_RESET
   EMAIL_VERIFICATION
+  MFA_CHALLENGE
 }
 
 enum MediaKind {
@@ -421,20 +422,28 @@ enum NotificationDeliveryStatus {
 }
 
 model User {
-  id              String     @id @default(uuid()) @db.Uuid
-  name            String     @db.VarChar(160)
-  email           String     @unique @db.VarChar(180)
-  passwordHash    String     @map("password_hash") @db.Text
-  phone           String?    @db.VarChar(30)
-  status          UserStatus @default(PENDING)
-  emailVerifiedAt DateTime?  @map("email_verified_at") @db.Timestamptz(6)
-  lastLoginAt     DateTime?  @map("last_login_at") @db.Timestamptz(6)
-  createdAt       DateTime   @default(now()) @map("created_at") @db.Timestamptz(6)
-  updatedAt       DateTime   @updatedAt @map("updated_at") @db.Timestamptz(6)
-  deletedAt       DateTime?  @map("deleted_at") @db.Timestamptz(6)
+  id                        String     @id @default(uuid()) @db.Uuid
+  name                      String     @db.VarChar(160)
+  email                     String     @unique @db.VarChar(180)
+  passwordHash              String     @map("password_hash") @db.Text
+  phone                     String?    @db.VarChar(30)
+  status                    UserStatus @default(PENDING)
+  emailVerifiedAt           DateTime?  @map("email_verified_at") @db.Timestamptz(6)
+  lastLoginAt               DateTime?  @map("last_login_at") @db.Timestamptz(6)
+  /// Segredo TOTP cifrado (AES-256-GCM, DATA_ENCRYPTION_KEY); nunca sai da API (DT-037).
+  mfaSecretEncrypted        String?    @map("mfa_secret_encrypted") @db.Text
+  /// Segredo gerado e ainda não confirmado por um código válido.
+  mfaPendingSecretEncrypted String?    @map("mfa_pending_secret_encrypted") @db.Text
+  mfaEnabledAt              DateTime?  @map("mfa_enabled_at") @db.Timestamptz(6)
+  /// Último passo TOTP aceito; impede reutilizar o mesmo código.
+  mfaLastUsedStep           Int?       @map("mfa_last_used_step")
+  createdAt                 DateTime   @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt                 DateTime   @updatedAt @map("updated_at") @db.Timestamptz(6)
+  deletedAt                 DateTime?  @map("deleted_at") @db.Timestamptz(6)
 
   sessions                        UserSession[]
   tokens                          UserToken[]
+  mfaRecoveryCodes                MfaRecoveryCode[]
   userRoles                       UserRole[]              @relation("UserRoleSubject")
   grantedUserRoles                UserRole[]              @relation("UserRoleGrantor")
   grantedRolePermissions          RolePermission[]        @relation("RolePermissionGrantor")
@@ -497,6 +506,8 @@ model UserSession {
   authenticatedAt      DateTime  @map("authenticated_at") @db.Timestamptz(6)
   /// Último uso real pelo titular; renovações automáticas não contam como atividade (DT-036).
   lastActivityAt       DateTime  @map("last_activity_at") @db.Timestamptz(6)
+  /// Segunda etapa comprovada nesta cadeia de sessões; herdado na rotação (DT-037).
+  mfaVerifiedAt        DateTime? @map("mfa_verified_at") @db.Timestamptz(6)
   revokedAt            DateTime? @map("revoked_at") @db.Timestamptz(6)
   revocationReason     String?   @map("revocation_reason") @db.VarChar(250)
   userAgentHash        String?   @map("user_agent_hash") @db.Char(64)
@@ -519,6 +530,8 @@ model UserToken {
   tokenHash  String        @unique @map("token_hash") @db.Char(64)
   expiresAt  DateTime      @map("expires_at") @db.Timestamptz(6)
   consumedAt DateTime?     @map("consumed_at") @db.Timestamptz(6)
+  /// Tentativas inválidas (desafio de segunda etapa).
+  attempts   Int           @default(0)
   createdAt  DateTime      @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt  DateTime      @updatedAt @map("updated_at") @db.Timestamptz(6)
 
@@ -526,6 +539,20 @@ model UserToken {
 
   @@index([userId, type, expiresAt])
   @@map("user_tokens")
+}
+
+/// Código de recuperação de uso único da segunda etapa; somente o hash é guardado (DT-037).
+model MfaRecoveryCode {
+  id        String    @id @default(uuid()) @db.Uuid
+  userId    String    @map("user_id") @db.Uuid
+  codeHash  String    @unique @map("code_hash") @db.Char(64)
+  usedAt    DateTime? @map("used_at") @db.Timestamptz(6)
+  createdAt DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+
+  @@index([userId, usedAt])
+  @@map("mfa_recovery_codes")
 }
 
 model Role {

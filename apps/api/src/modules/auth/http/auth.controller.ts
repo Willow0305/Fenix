@@ -10,9 +10,16 @@ import {
   ReqMeta,
   type RequestMeta
 } from '../../../common/http/request-context';
-import { AuthService, type IssuedSession } from '../application/auth.service';
+import { AuthService, type IssuedSession, type MfaChallenge } from '../application/auth.service';
 import { Public } from './auth.decorators';
-import { ForgotPasswordDto, LoginDto, RefreshDto, RegisterDto, ResetPasswordDto } from './auth.dto';
+import {
+  ForgotPasswordDto,
+  LoginDto,
+  MfaLoginDto,
+  RefreshDto,
+  RegisterDto,
+  ResetPasswordDto
+} from './auth.dto';
 
 export const REFRESH_COOKIE = 'fenix_rt';
 const REFRESH_COOKIE_PATH = '/api/v1/auth';
@@ -99,8 +106,28 @@ export class AuthController {
     @Body() body: LoginDto,
     @ReqMeta() meta: RequestMeta,
     @Res({ passthrough: true }) res: Response
+  ): Promise<AccessTokenResponse | MfaChallenge> {
+    const result = await this.auth.login(body.email, body.password, meta);
+
+    if ('mfaRequired' in result) {
+      res.setHeader('Cache-Control', 'no-store');
+
+      return result;
+    }
+
+    return this.respond(res, result);
+  }
+
+  /** Segunda etapa do login (DT-037). */
+  @Post('mfa/verify')
+  @HttpCode(200)
+  @Throttle(STRICT_LIMIT)
+  async verifyMfa(
+    @Body() body: MfaLoginDto,
+    @ReqMeta() meta: RequestMeta,
+    @Res({ passthrough: true }) res: Response
   ): Promise<AccessTokenResponse> {
-    return this.respond(res, await this.auth.login(body.email, body.password, meta));
+    return this.respond(res, await this.auth.verifyMfaLogin(body.challengeToken, body.code, meta));
   }
 
   @Post('refresh')

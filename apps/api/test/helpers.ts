@@ -10,6 +10,7 @@ import request from 'supertest';
 
 import { AppModule } from '../src/app.module';
 import { hashPassword } from '../src/common/crypto/password-hasher';
+import { totpCode, totpStep } from '../src/common/crypto/totp';
 import { configureApplication } from '../src/configure-application';
 import { syncAccessCatalog } from '../src/modules/access/application/roles.service';
 import { syncFinanceCatalog } from '../src/modules/finance/application/finance-setup.service';
@@ -74,14 +75,85 @@ export async function createUser(
   return { id: user.id, email };
 }
 
+/** Segredos TOTP das contas de teste, para responder ao desafio de segunda etapa. */
+const mfaSecrets = new Map<string, string>();
+
+export function currentTotp(secret: string): string {
+  return totpCode(secret, totpStep(new Date()));
+}
+
+/** Ativa a segunda etapa pela API, como faria a pessoa no painel (DT-037). */
+export async function enrollMfa(
+  ctx: TestContext,
+  email: string,
+  token: string,
+  password = PASSWORD
+): Promise<{ secret: string; recoveryCodes: string[] }> {
+  const setup = await ctx
+    .http()
+    .post('/api/v1/me/mfa/setup')
+    .set('Authorization', `Bearer ${token}`)
+    .send({ password })
+    .expect(200);
+  const secret = (setup.body as { secret: string }).secret;
+  const enabled = await ctx
+    .http()
+    .post('/api/v1/me/mfa/enable')
+    .set('Authorization', `Bearer ${token}`)
+    .send({ code: currentTotp(secret) })
+    .expect(200);
+
+  mfaSecrets.set(email, secret);
+
+  return { secret, recoveryCodes: (enabled.body as { recoveryCodes: string[] }).recoveryCodes };
+}
+
+/**
+ * Login completo. Perfis privilegiados passam pela segunda etapa: na primeira vez ativam o
+ * autenticador; nas seguintes respondem ao desafio com um código válido.
+ */
 export async function login(ctx: TestContext, email: string, password = PASSWORD): Promise<string> {
   const response = await ctx
     .http()
     .post('/api/v1/auth/login')
     .send({ email, password })
     .expect(200);
+  const body = response.body as {
+    accessToken?: string;
+    mfaRequired?: boolean;
+    challengeToken?: string;
+  };
 
-  return (response.body as { accessToken: string }).accessToken;
+  if (body.mfaRequired === true && body.challengeToken !== undefined) {
+    const secret = mfaSecrets.get(email);
+
+    if (secret === undefined) {
+      throw new Error('Conta de teste com MFA sem segredo conhecido.');
+    }
+
+    // Logins repetidos da mesma conta dentro de 30 s usariam o mesmo código, que a proteção
+    // contra reutilização recusa; nos testes de outros módulos isso não está em avaliação.
+    await ctx.prisma.user.update({
+      where: { email: email.toLowerCase() },
+      data: { mfaLastUsedStep: null }
+    });
+    const verified = await ctx
+      .http()
+      .post('/api/v1/auth/mfa/verify')
+      .send({ challengeToken: body.challengeToken, code: currentTotp(secret) })
+      .expect(200);
+
+    return (verified.body as { accessToken: string }).accessToken;
+  }
+
+  const token = body.accessToken ?? '';
+  const me = await ctx.http().get('/api/v1/me').set('Authorization', `Bearer ${token}`).expect(200);
+
+  if ((me.body as { mfa: { required: boolean } }).mfa.required) {
+    await enrollMfa(ctx, email, token, password);
+  }
+
+  return token;
 }
 
 export function refreshCookieFrom(response: { headers: Record<string, unknown> }): string {

@@ -56,6 +56,14 @@ export class AuthGuard implements CanActivate {
 
     const missing = required.filter((permission) => !principal.permissions.has(permission));
 
+    if (missing.length > 0 && principal.privileged && !principal.mfaVerified) {
+      throw new AppError(
+        'FORBIDDEN',
+        'MFA_REQUIRED',
+        'Ative e confirme o login em duas etapas para acessar o painel.'
+      );
+    }
+
     if (missing.length > 0) {
       await this.audit.record({
         actorUserId: principal.userId,

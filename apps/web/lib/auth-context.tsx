@@ -20,6 +20,13 @@ interface TokenResponse {
   readonly idleTimeoutSeconds: number;
 }
 
+/** Senha correta de conta com segunda etapa: falta o código do autenticador (DT-037). */
+export interface MfaChallenge {
+  readonly mfaRequired: true;
+  readonly challengeToken: string;
+  readonly expiresIn: number;
+}
+
 /** Eventos que contam como uso real da página (DT-036). */
 const ACTIVITY_EVENTS = ['pointerdown', 'keydown', 'wheel', 'touchstart'] as const;
 const IDLE_CHECK_INTERVAL_MS = 30_000;
@@ -38,7 +45,9 @@ interface AuthState {
   readonly profile: Profile | null;
   /** A sessão terminou por inatividade ou tempo limite, sem logout explícito. */
   readonly sessionExpired: boolean;
-  readonly login: (email: string, password: string) => Promise<void>;
+  /** Retorna o desafio quando a conta exige a segunda etapa; senão, já entra. */
+  readonly login: (email: string, password: string) => Promise<MfaChallenge | null>;
+  readonly verifyMfa: (challengeToken: string, code: string) => Promise<void>;
   readonly register: (input: RegisterInput) => Promise<void>;
   readonly logout: () => Promise<void>;
   readonly reloadProfile: () => Promise<void>;
@@ -48,7 +57,7 @@ interface AuthState {
 
 const AuthContext = createContext<AuthState | null>(null);
 
-async function postAuth(path: string, body?: unknown): Promise<TokenResponse> {
+async function postAuth<T = TokenResponse>(path: string, body?: unknown): Promise<T> {
   const response = await fetch(`/api/v1/auth/${path}`, {
     method: 'POST',
     credentials: 'same-origin',
@@ -60,7 +69,7 @@ async function postAuth(path: string, body?: unknown): Promise<TokenResponse> {
     throw await parseProblem(response);
   }
 
-  return (await response.json()) as TokenResponse;
+  return (await response.json()) as T;
 }
 
 /**
@@ -216,7 +225,19 @@ export function AuthProvider({ children }: { readonly children: ReactNode }) {
       status,
       profile,
       sessionExpired,
-      login: async (email, password) => startSession(await postAuth('login', { email, password })),
+      login: async (email, password) => {
+        const result = await postAuth<TokenResponse | MfaChallenge>('login', { email, password });
+
+        if ('mfaRequired' in result) {
+          return result;
+        }
+
+        await startSession(result);
+
+        return null;
+      },
+      verifyMfa: async (challengeToken, code) =>
+        startSession(await postAuth('mfa/verify', { challengeToken, code })),
       register: async (input) => startSession(await postAuth('register', input)),
       logout: async () => {
         try {

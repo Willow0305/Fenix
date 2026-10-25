@@ -48,7 +48,8 @@
     "db:seed": "npm run build --workspace=@fenix/api && dotenv -e .env -- node apps/api/dist/cli/seed.js",
     "db:setup": "npm run db:migrate && npm run db:seed",
     "test:integration": "dotenv -e .env -- npm run test:integration --workspace=@fenix/api",
-    "db:demo": "npm run build --workspace=@fenix/api && dotenv -e .env -- node apps/api/dist/cli/demo.js"
+    "db:demo": "npm run build --workspace=@fenix/api && dotenv -e .env -- node apps/api/dist/cli/demo.js",
+    "mfa:reset": "npm run build --workspace=@fenix/api && dotenv -e .env -- node apps/api/dist/cli/mfa-reset.js"
   },
   "devDependencies": {
     "@eslint/js": "10.0.1",

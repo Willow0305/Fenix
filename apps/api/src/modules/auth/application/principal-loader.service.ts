@@ -6,7 +6,9 @@ import type { Principal } from '../../../common/http/request-context';
 import { PrismaService } from '../../../common/prisma/prisma.service';
 import {
   ACTIVITY_WRITE_INTERVAL_SECONDS,
+  effectivePermissions,
   evaluateSessionLifetime,
+  isPrivileged,
   sessionLimitsFor
 } from '../domain/auth-rules';
 import { SessionLifetimeService } from './session-lifetime.service';
@@ -39,6 +41,7 @@ export class PrincipalLoader {
         expiresAt: true,
         authenticatedAt: true,
         lastActivityAt: true,
+        mfaVerifiedAt: true,
         user: {
           select: {
             id: true,
@@ -95,13 +98,17 @@ export class PrincipalLoader {
 
     await this.lifetime.touch(claims.sid, now, ACTIVITY_WRITE_INTERVAL_SECONDS);
 
+    const mfaVerified = session.mfaVerifiedAt !== null;
+
     return {
       userId: session.user.id,
       sessionId: claims.sid,
       name: session.user.name,
       email: session.user.email,
       roles,
-      permissions
+      permissions: effectivePermissions(permissions, mfaVerified),
+      privileged: isPrivileged(permissions),
+      mfaVerified
     };
   }
 }

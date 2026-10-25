@@ -397,7 +397,7 @@ Prioridades:
 - **Prioridade:** P1
 - **Bloqueia:** produção
 - **Questão:** o limite de tentativas é por IP (10/min). Um ataque distribuído contra uma conta específica não é freado, e o cadastro informa quando o e-mail já existe, o que permite descobrir quem tem conta.
-- **Recomendação:** implementar o MFA já decidido (`PEN-013 (MFA)`), que neutraliza a adivinhação de senha nos perfis privilegiados; adicionar atraso progressivo por conta após falhas seguidas e alerta ao titular. Para o cadastro, avaliar resposta neutra com confirmação por e-mail, que depende do provedor de e-mail (`PEN-042`).
+- **Recomendação:** o MFA (`DT-037`) já neutraliza a adivinhação de senha nos perfis privilegiados; para as demais contas, adicionar atraso progressivo por conta após falhas seguidas e alerta ao titular. Para o cadastro, avaliar resposta neutra com confirmação por e-mail, que depende do provedor de e-mail (`PEN-042`).
 
 ### PEN-054 — Arquivos restritos acessíveis por `files.read.restricted`
 
@@ -459,7 +459,7 @@ As entradas acima permanecem como histórico da questão original. As decisões 
 | PEN-047 | Parcialmente resolvida: revisão da Fase 8 confirmou idioma, atalho para o conteúdo, foco visível, movimento reduzido, rótulos associados e contraste AA dos tokens (mínimo 5,64:1). Teste com leitor de tela e navegadores-alvo segue pendente. | Delegada | `DT-035` |
 | PEN-049 | Parcialmente resolvida: paginação por offset limitada; exportação CSV síncrona com período de até 2 anos, permissão própria e auditoria. Exportação assíncrona e concorrência otimista ficam para quando houver volume medido. | Delegada | `DT-035` |
 | PEN-050 | Parcialmente resolvida: linha de base local medida (485 req/s, p95 até 89 ms nas rotas públicas) com `scripts/load-test.mjs`; metas de SLO e limites por rota em produção continuam com o responsável. | Delegada | `DT-035` |
-| PEN-013 (MFA) | Decidido em 2026-10-20: login em duas etapas por aplicativo autenticador (TOTP) obrigatório para administrador e diretoria (quem acessa o painel). Implementação antes da produção. | Responsável do projeto | a registrar em `DT` na implementação |
+| PEN-013 (MFA) | Decidido em 2026-10-20: login em duas etapas por aplicativo autenticador (TOTP) obrigatório para administrador e diretoria (quem acessa o painel). Implementado em 2026-10-25, com códigos de recuperação e redefinição auditada. | Responsável do projeto | `DT-037` |
 | PEN-044 | Decidido em 2026-10-20: backup diário de madrugada, entre 01h e 03h (fuso do time); perda máxima aceitável de 1 dia de dados (RPO 24 h) e até 1 dia fora do ar (RTO 24 h). Retenção e teste periódico de restauração seguem a recomendação do runbook até a escolha do provedor. | Responsável do projeto | `15-DEPLOY-E-INFRAESTRUTURA.md` §10.1 |
 | PEN-042 | Adiada pelo responsável em 2026-10-20: o sistema é um protótipo funcional em desenvolvimento; provedores serão escolhidos antes da homologação. | Responsável do projeto | — |
 | PEN-043 | Web e API sob a mesma origem pública: o Next.js encaminha `/api/v1` para a API; CORS restrito à lista explícita. | Delegada | `DT-022` |

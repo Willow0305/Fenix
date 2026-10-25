@@ -30,7 +30,7 @@ Este documento define controles mínimos e decisões bloqueadoras. Ele não cert
 | Exportações | permissão `reports.export` separada da leitura, auditoria de cada exportação e neutralização de fórmulas em CSV |
 | Titular | cópia dos próprios dados a qualquer momento; pedido de eliminação atendido por anonimização auditada que preserva registros com dever legal de guarda |
 
-Itens ainda exigidos antes de produção: MFA administrativo, provedores reais de arquivos/e-mail com bucket privado e URLs assinadas, antivírus de uploads, backup testado, canal de segurança e revisão jurídica (ver `PENDENCIAS.md`).
+Itens ainda exigidos antes de produção: provedores reais de arquivos/e-mail com bucket privado e URLs assinadas, antivírus de uploads, backup testado, canal de segurança e revisão jurídica (ver `PENDENCIAS.md`).
 
 ## Princípios
 
@@ -83,7 +83,8 @@ Itens ainda exigidos antes de produção: MFA administrativo, provedores reais d
 - cookies de sessão, quando usados, devem ser `HttpOnly`, `Secure` em produção e `SameSite` adequado; proteção CSRF é definida conforme arquitetura;
 - não guardar token sensível em `localStorage` por conveniência sem decisão/ameaça documentada;
 - aplicar limitação e alerta a tentativas de login/recuperação;
-- operações de alto risco podem exigir reautenticação; MFA para perfis críticos deve ser avaliado antes de produção financeira;
+- operações de alto risco podem exigir reautenticação;
+- verificação em duas etapas (TOTP) obrigatória para perfis com permissão administrativa; sem ela, a sessão fica só com permissões comuns (`DT-037`);
 - verificação de e-mail é condicionada à fase/decisão, mas seu eventual token segue os mesmos controles.
 
 ## Autorização

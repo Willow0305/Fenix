@@ -150,6 +150,7 @@ O Next.js lê a porta do frontend pela variável padrão `PORT`; a API usa `API_
 | `npm run db:seed` | sincroniza permissões/papéis e cria o administrador inicial, se não houver |
 | `npm run db:setup` | `db:migrate` + `db:seed` |
 | `npm run db:demo` | dados fictícios de demonstração (recusa produção) |
+| `npm run mfa:reset -- <e-mail> "<motivo>"` | emergência: remove a verificação em duas etapas de uma conta (auditado) |
 | `npm run test:integration` | testes de integração da API contra o PostgreSQL do `.env` |
 | `npm run smoke` | após o build, inicia web/API, valida web, health, Swagger e OpenAPI, e encerra os processos |
 | `npm run check` | executa o gate agregado: formatação, lint, tipos, testes, Prisma e build |

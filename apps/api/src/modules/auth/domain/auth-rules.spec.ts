@@ -1,7 +1,10 @@
 import {
   absoluteDeadline,
   classifyRefreshSession,
+  effectivePermissions,
   evaluateSessionLifetime,
+  normalizeRecoveryCode,
+  RECOVERY_CODE_PATTERN,
   normalizeEmail,
   REVOCATION,
   SESSION_POLICY,
@@ -146,6 +149,27 @@ describe('auth rules', () => {
 
     it('computes the absolute deadline from the password login', () => {
       expect(absoluteDeadline(login, SESSION_POLICY.privileged)).toEqual(minutes(12 * 60));
+    });
+  });
+
+  describe('second factor (DT-037)', () => {
+    const board = new Set(['forum.members.access', 'finance.read', 'fees.read']);
+
+    it('strips administrative permissions until the second factor is verified', () => {
+      expect([...effectivePermissions(board, false)]).toEqual(['forum.members.access']);
+      expect(effectivePermissions(board, true)).toBe(board);
+    });
+
+    it('leaves common accounts untouched', () => {
+      const athlete = new Set(['forum.members.access']);
+
+      expect(effectivePermissions(athlete, false)).toBe(athlete);
+    });
+
+    it('recognizes and normalizes recovery codes', () => {
+      expect(RECOVERY_CODE_PATTERN.test('ABCD-EF23-4567')).toBe(true);
+      expect(RECOVERY_CODE_PATTERN.test('123456')).toBe(false);
+      expect(normalizeRecoveryCode(' abcd-ef23-4567 ')).toBe('ABCDEF234567');
     });
   });
 });

@@ -15,6 +15,12 @@ export interface ProfileView {
   readonly permissions: readonly string[];
   readonly athleteId: string | null;
   readonly createdAt: string;
+  /** Segunda etapa: `required` para perfis privilegiados; `verified` nesta sessão (DT-037). */
+  readonly mfa: {
+    readonly enabled: boolean;
+    readonly required: boolean;
+    readonly verified: boolean;
+  };
 }
 
 export interface SessionView {
@@ -41,6 +47,7 @@ export class AccountService {
         email: true,
         phone: true,
         createdAt: true,
+        mfaEnabledAt: true,
         athlete: { select: { id: true, deletedAt: true } }
       }
     });
@@ -53,7 +60,12 @@ export class AccountService {
       roles: principal.roles,
       permissions: [...principal.permissions].sort(),
       athleteId: user.athlete && user.athlete.deletedAt === null ? user.athlete.id : null,
-      createdAt: user.createdAt.toISOString()
+      createdAt: user.createdAt.toISOString(),
+      mfa: {
+        enabled: user.mfaEnabledAt !== null,
+        required: principal.privileged,
+        verified: principal.mfaVerified
+      }
     };
   }
 

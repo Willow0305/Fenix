@@ -18,11 +18,14 @@ import {
   absoluteDeadline,
   classifyRefreshSession,
   evaluateSessionLifetime,
+  MFA_CHALLENGE_MAX_ATTEMPTS,
+  MFA_CHALLENGE_TTL_SECONDS,
   normalizeEmail,
   PASSWORD_RESET_TTL_SECONDS,
   REVOCATION,
   validatePassword
 } from '../domain/auth-rules';
+import { MfaService } from './mfa.service';
 import { SessionLifetimeService } from './session-lifetime.service';
 
 export interface IssuedSession {
@@ -33,9 +36,17 @@ export interface IssuedSession {
   readonly idleTimeoutSeconds: number;
 }
 
+/** Senha correta de conta com segunda etapa: a sessão só sai após o código (DT-037). */
+export interface MfaChallenge {
+  readonly mfaRequired: true;
+  readonly challengeToken: string;
+  readonly expiresIn: number;
+}
+
 interface SessionTimes {
   readonly authenticatedAt: Date;
   readonly lastActivityAt: Date;
+  readonly mfaVerifiedAt: Date | null;
 }
 
 export interface RegisterInput {
@@ -47,11 +58,14 @@ export interface RegisterInput {
 
 const INVALID_CREDENTIALS = 'E-mail ou senha inválidos.';
 
-function freshTimes(): SessionTimes {
+function freshTimes(mfaVerified = false): SessionTimes {
   const now = new Date();
 
-  return { authenticatedAt: now, lastActivityAt: now };
+  return { authenticatedAt: now, lastActivityAt: now, mfaVerifiedAt: mfaVerified ? now : null };
 }
+
+const SECOND_STEP_EXPIRED = 'A etapa de verificação expirou. Entre novamente.';
+const INVALID_MFA_CODE = 'Código inválido. Confira o horário do celular e tente de novo.';
 
 @Injectable()
 export class AuthService {
@@ -60,7 +74,8 @@ export class AuthService {
     private readonly config: AppConfig,
     private readonly audit: AuditService,
     private readonly mail: MailSender,
-    private readonly lifetime: SessionLifetimeService
+    private readonly lifetime: SessionLifetimeService,
+    private readonly mfa: MfaService
   ) {}
 
   private assertPassword(password: string, context: { email?: string; name?: string }): void {
@@ -90,6 +105,7 @@ export class AuthService {
         expiresAt: refreshExpiresAt,
         authenticatedAt: times.authenticatedAt,
         lastActivityAt: times.lastActivityAt,
+        mfaVerifiedAt: times.mfaVerifiedAt,
         userAgentHash: meta.userAgent ? sha256Hex(meta.userAgent) : null,
         ipAddressHash: meta.ipAddressHash
       },
@@ -166,11 +182,15 @@ export class AuthService {
     });
   }
 
-  async login(emailInput: string, password: string, meta: RequestMeta): Promise<IssuedSession> {
+  async login(
+    emailInput: string,
+    password: string,
+    meta: RequestMeta
+  ): Promise<IssuedSession | MfaChallenge> {
     const email = normalizeEmail(emailInput);
     const user = await this.prisma.user.findUnique({
       where: { email },
-      select: { id: true, passwordHash: true, status: true, deletedAt: true }
+      select: { id: true, passwordHash: true, status: true, deletedAt: true, mfaEnabledAt: true }
     });
     const valid = await verifyPassword(password, user?.passwordHash ?? DUMMY_PASSWORD_HASH);
 
@@ -193,6 +213,10 @@ export class AuthService {
       );
     }
 
+    if (user.mfaEnabledAt !== null) {
+      return this.issueMfaChallenge(user.id, meta);
+    }
+
     return this.prisma.$transaction(async (tx) => {
       await tx.user.update({ where: { id: user.id }, data: { lastLoginAt: new Date() } });
       await this.audit.record(
@@ -201,6 +225,119 @@ export class AuthService {
       );
 
       return this.createSession(tx, user.id, meta, null, freshTimes());
+    });
+  }
+
+  private async issueMfaChallenge(userId: string, meta: RequestMeta): Promise<MfaChallenge> {
+    const challengeToken = generateOpaqueToken();
+
+    await this.prisma.$transaction(async (tx) => {
+      await tx.userToken.updateMany({
+        where: { userId, type: 'MFA_CHALLENGE', consumedAt: null },
+        data: { consumedAt: new Date() }
+      });
+      await tx.userToken.create({
+        data: {
+          userId,
+          type: 'MFA_CHALLENGE',
+          tokenHash: sha256Hex(challengeToken),
+          expiresAt: new Date(Date.now() + MFA_CHALLENGE_TTL_SECONDS * 1000)
+        }
+      });
+      await this.audit.record(
+        {
+          actorUserId: userId,
+          action: 'auth.login.mfa_challenge',
+          entityType: 'User',
+          entityId: userId,
+          meta
+        },
+        tx
+      );
+    });
+
+    return { mfaRequired: true, challengeToken, expiresIn: MFA_CHALLENGE_TTL_SECONDS };
+  }
+
+  /** Segunda etapa do login: código do autenticador ou de recuperação (DT-037). */
+  async verifyMfaLogin(
+    challengeToken: string,
+    code: string,
+    meta: RequestMeta
+  ): Promise<IssuedSession> {
+    const challenge = await this.prisma.userToken.findUnique({
+      where: { tokenHash: sha256Hex(challengeToken) },
+      select: {
+        id: true,
+        type: true,
+        expiresAt: true,
+        consumedAt: true,
+        attempts: true,
+        user: { select: { id: true, status: true, deletedAt: true } }
+      }
+    });
+
+    if (
+      challenge === null ||
+      challenge.type !== 'MFA_CHALLENGE' ||
+      challenge.consumedAt !== null ||
+      challenge.expiresAt <= new Date() ||
+      challenge.attempts >= MFA_CHALLENGE_MAX_ATTEMPTS
+    ) {
+      throw AppError.unauthorized(SECOND_STEP_EXPIRED);
+    }
+
+    const { user } = challenge;
+
+    if (user.status !== 'ACTIVE' || user.deletedAt !== null) {
+      throw new AppError(
+        'FORBIDDEN',
+        'ACCOUNT_UNAVAILABLE',
+        'Conta indisponível. Procure a administração do time.'
+      );
+    }
+
+    const method = await this.mfa.verifySecondFactor(user.id, code);
+
+    if (method === null) {
+      await this.prisma.userToken.update({
+        where: { id: challenge.id },
+        data: { attempts: { increment: 1 } }
+      });
+      await this.audit.record({
+        actorUserId: user.id,
+        action: 'auth.mfa.failed',
+        entityType: 'User',
+        entityId: user.id,
+        meta
+      });
+      throw new AppError('UNAUTHORIZED', 'INVALID_MFA_CODE', INVALID_MFA_CODE);
+    }
+
+    return this.prisma.$transaction(async (tx) => {
+      const consumed = await tx.userToken.updateMany({
+        where: { id: challenge.id, consumedAt: null },
+        data: { consumedAt: new Date() }
+      });
+
+      if (consumed.count !== 1) {
+        throw AppError.unauthorized(SECOND_STEP_EXPIRED);
+      }
+
+      await tx.user.update({ where: { id: user.id }, data: { lastLoginAt: new Date() } });
+      await this.audit.record(
+        {
+          actorUserId: user.id,
+          action: 'auth.login',
+          entityType: 'User',
+          entityId: user.id,
+          metadata: { secondFactor: method },
+          meta
+        },
+        tx
+      );
+
+      return this.createSession(tx, user.id, meta, null, freshTimes(true));
     });
   }
 
@@ -221,6 +358,7 @@ export class AuthService {
         revocationReason: true,
         authenticatedAt: true,
         lastActivityAt: true,
+        mfaVerifiedAt: true,
         user: { select: { status: true, deletedAt: true } }
       }
     });
@@ -268,7 +406,8 @@ export class AuthService {
 
       return this.createSession(tx, session.userId, meta, session.id, {
         authenticatedAt: session.authenticatedAt,
-        lastActivityAt: active ? now : session.lastActivityAt
+        lastActivityAt: active ? now : session.lastActivityAt,
+        mfaVerifiedAt: session.mfaVerifiedAt
       });
     });
   }

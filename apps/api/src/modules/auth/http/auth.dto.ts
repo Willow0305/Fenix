@@ -112,3 +112,45 @@ export class UpdateProfileDto {
   @Matches(/^[0-9+()\s-]{0,30}$/, { message: 'Telefone inválido.' })
   phone?: string;
 }
+
+export class MfaLoginDto {
+  @ApiProperty()
+  @IsString()
+  @MinLength(20)
+  @MaxLength(100)
+  challengeToken!: string;
+
+  @ApiProperty({ description: 'Código de 6 dígitos do autenticador ou de recuperação.' })
+  @IsString()
+  @MinLength(6)
+  @MaxLength(20)
+  code!: string;
+}
+
+export class MfaPasswordDto {
+  @ApiProperty()
+  @IsString()
+  @MaxLength(128)
+  password!: string;
+}
+
+export class MfaCodeDto {
+  @ApiProperty()
+  @IsString()
+  @MinLength(6)
+  @MaxLength(20)
+  code!: string;
+}
+
+export class MfaPasswordCodeDto {
+  @ApiProperty()
+  @IsString()
+  @MaxLength(128)
+  password!: string;
+
+  @ApiProperty()
+  @IsString()
+  @MinLength(6)
+  @MaxLength(20)
+  code!: string;
+}

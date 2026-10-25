@@ -708,3 +708,28 @@ Pela `DT-022`, cada renovação emitia um refresh token com mais 30 dias. Com o 
 - `refreshTokenTtlSeconds` sai da configuração: o prazo é regra de domínio;
 - administradores e diretoria precisam entrar novamente ao menos uma vez por dia de trabalho e após 30 minutos parados;
 - 7 testes unitários e 7 de integração cobrem os limites, a não prorrogação pela renovação automática e a herança do instante de login.
+
+## DT-037 — Login em duas etapas (TOTP) para perfis privilegiados
+
+- **Estado:** Aceita
+- **Data:** 2026-10-25
+- **Aprovador:** responsável do projeto decidiu em 2026-10-20 a obrigatoriedade para quem acessa o painel (`PEN-013 (MFA)`); os detalhes de implementação são delegados
+
+### Decisão
+
+- **algoritmo:** TOTP (RFC 6238), HMAC-SHA1, 6 dígitos, passo de 30 s e tolerância de ±1 passo. É o padrão aceito por todos os aplicativos autenticadores. Implementação própria com `node:crypto`, validada pelos vetores oficiais da RFC;
+- **quem:** obrigatório para perfis privilegiados, com o mesmo critério da `DT-036` (qualquer permissão além de `forum.members.access`). Contas comuns podem ativar e desativar por opção;
+- **aplicação no servidor:** a sessão guarda `mfa_verified_at`, herdado na rotação. Sem ele, um perfil privilegiado fica só com as permissões comuns, e as rotas administrativas respondem `403 MFA_REQUIRED`. Negação por padrão: toda verificação de permissão, inclusive dentro dos serviços, enxerga apenas as permissões efetivas;
+- **login:** com a segunda etapa ativa, a senha correta devolve um desafio opaco (hash em `user_tokens`, 5 min, no máximo 5 tentativas), sem sessão nem cookie. `POST /auth/mfa/verify` troca o desafio e o código pela sessão;
+- **reutilização:** o último passo aceito fica em `users.mfa_last_used_step` e é gravado de forma condicional, então o mesmo código não vale duas vezes, nem em requisições simultâneas;
+- **segredo:** gerado com 160 bits, cifrado com AES-256-GCM (`DATA_ENCRYPTION_KEY`) e mostrado só na ativação. Fica pendente até ser confirmado por um código válido. O QR code é gerado na própria API (`qrcode` 1.5.4, em SVG exibido como imagem), sem serviço externo;
+- **ativação:** exige a senha atual e um código válido; a sessão atual passa a ser verificada e as demais são encerradas;
+- **recuperação:** 10 códigos de uso único (60 bits, `XXXX-XXXX-XXXX`), guardados só como hash e exibidos uma única vez. Gerar novos exige senha e código;
+- **perda do celular:** um administrador com a segunda etapa comprovada redefine a de outra pessoa (`users.update` + `sessions.revoke`, motivo obrigatório, auditado, sessões encerradas). Ninguém redefine a própria. Se o único administrador perder o acesso, `npm run mfa:reset -- <e-mail> "<motivo>"` faz o mesmo a partir do servidor, também auditado;
+- **auditoria:** `auth.login.mfa_challenge`, `auth.login` (com o fator usado), `auth.mfa.failed`, `auth.mfa.enabled`, `auth.mfa.disabled`, `auth.mfa.recovery_codes.regenerated` e `auth.mfa.reset`.
+
+### Consequências
+
+- migração `20261025175820_mfa_totp`. Sessões abertas antes dela não têm a segunda etapa comprovada: administradores e diretoria precisam ativá-la para voltar ao painel;
+- o helper de testes de integração passa pelo fluxo real (ativa na primeira vez, responde ao desafio nas seguintes), e todas as fases continuam exercitando rotas administrativas como em produção;
+- 9 testes unitários de TOTP, 3 de domínio e 9 de integração.

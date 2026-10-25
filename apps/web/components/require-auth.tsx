@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { type ReactNode, useEffect } from 'react';
 
@@ -17,7 +18,7 @@ export function RequireAuth({
   readonly permissions?: readonly string[];
   readonly children: ReactNode;
 }) {
-  const { status, can, sessionExpired } = useAuth();
+  const { status, can, sessionExpired, profile } = useAuth();
   const router = useRouter();
   const pathname = usePathname();
 
@@ -31,6 +32,30 @@ export function RequireAuth({
 
   if (status !== 'authenticated') {
     return <Loading label="Verificando sua sessão…" />;
+  }
+
+  if (
+    permissions.length > 0 &&
+    !can(...permissions) &&
+    profile?.mfa.required &&
+    !profile.mfa.verified
+  ) {
+    return (
+      <div className="container" style={{ paddingTop: '2rem' }}>
+        <Alert kind="warning">
+          {profile.mfa.enabled
+            ? 'Esta sessão não passou pela verificação em duas etapas. Saia e entre novamente.'
+            : 'O painel exige verificação em duas etapas. Ative-a para continuar.'}
+        </Alert>
+        {profile.mfa.enabled ? null : (
+          <p>
+            <Link className="btn btn-primary" href="/minha-conta/seguranca">
+              Ativar verificação em duas etapas
+            </Link>
+          </p>
+        )}
+      </div>
+    );
   }
 
   if (permissions.length > 0 && !can(...permissions)) {

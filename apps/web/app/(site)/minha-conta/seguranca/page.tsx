@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from 'react';
 
+import { MfaSection } from '../../../../components/mfa-section';
 import {
   Alert,
   ErrorSummary,
@@ -51,6 +52,7 @@ export default function SecurityPage() {
   return (
     <>
       <PageHeader title="Segurança" />
+      <MfaSection />
       <form className="form card" onSubmit={(event) => void change.submit(event)}>
         <h2>Alterar senha</h2>
         {change.message ? <Alert kind="success">{change.message}</Alert> : null}

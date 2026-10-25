@@ -21,6 +21,7 @@ export interface AdminUserView {
   readonly roles: readonly string[];
   readonly lastLoginAt: string | null;
   readonly createdAt: string;
+  readonly mfaEnabled: boolean;
 }
 
 const USER_SELECT = {
@@ -31,6 +32,7 @@ const USER_SELECT = {
   status: true,
   lastLoginAt: true,
   createdAt: true,
+  mfaEnabledAt: true,
   userRoles: { select: { role: { select: { code: true } } } }
 } satisfies Prisma.UserSelect;
 
@@ -45,7 +47,8 @@ function toView(user: UserRow): AdminUserView {
     status: user.status,
     roles: user.userRoles.map((userRole) => userRole.role.code).sort(),
     lastLoginAt: user.lastLoginAt?.toISOString() ?? null,
-    createdAt: user.createdAt.toISOString()
+    createdAt: user.createdAt.toISOString(),
+    mfaEnabled: user.mfaEnabledAt !== null
   };
 }
 

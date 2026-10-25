@@ -6,6 +6,16 @@ O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) e o 
 
 ## [Não publicado]
 
+### Segurança — verificação em duas etapas (2026-10-25)
+
+#### Adicionado
+
+- verificação em duas etapas por aplicativo autenticador (TOTP), obrigatória para administrador e diretoria; sem ela, o painel fica bloqueado (DT-037);
+- ativação em **Minha conta → Segurança** com QR code, 10 códigos de recuperação de uso único e geração de novos códigos;
+- login em duas etapas, com limite de 5 tentativas por desafio e recusa de código já usado;
+- redefinição pelo administrador em **Painel → Usuários** e comando de emergência `npm run mfa:reset`;
+- migração `mfa_totp`, 21 testes novos (unitários e de integração).
+
 ### Segurança — sessão e endurecimento (2026-10-25)
 
 #### Alterado

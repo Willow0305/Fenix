@@ -29,6 +29,25 @@ export interface Profile {
   readonly permissions: string[];
   readonly athleteId: string | null;
   readonly createdAt: string;
+  /** Segunda etapa: obrigatória para quem acessa o painel (DT-037). */
+  readonly mfa: {
+    readonly enabled: boolean;
+    readonly required: boolean;
+    readonly verified: boolean;
+  };
+}
+
+export interface MfaStatus {
+  readonly enabled: boolean;
+  readonly required: boolean;
+  readonly verified: boolean;
+  readonly recoveryCodesRemaining: number;
+}
+
+export interface MfaSetup {
+  readonly secret: string;
+  readonly otpauthUri: string;
+  readonly qrSvg: string;
 }
 
 export type BrandContext = 'OFFICIAL' | 'MALE' | 'FEMALE' | 'BOARD' | 'FAVICON' | 'COVER' | 'OTHER';
@@ -76,6 +95,7 @@ export interface AdminUser {
   readonly roles: string[];
   readonly lastLoginAt: string | null;
   readonly createdAt: string;
+  readonly mfaEnabled: boolean;
 }
 
 export interface Role {

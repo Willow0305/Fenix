@@ -70,6 +70,8 @@ Se alguém atualizou o código (`git pull`), rode antes `npm ci` e `npm run db:m
 
 **Acesso de administrador:** e-mail em `SEED_ADMIN_EMAIL` e senha em `SEED_ADMIN_PASSWORD`, ambos no arquivo `.env`.
 
+**Verificação em duas etapas:** no primeiro acesso ao painel, o sistema pede para ativá-la em **Minha conta → Segurança**. Instale um aplicativo autenticador no celular (Google Authenticator, Microsoft Authenticator ou Authy), leia o QR code, digite o código e **guarde os códigos de recuperação**. Daí em diante, o login pede a senha e o código do aplicativo.
+
 **E-mails** (recuperação de senha, pedidos, avisos de remessa): em desenvolvimento não são enviados de verdade, ficam como arquivos em `var/mail-outbox/`.
 
 ## 5. Brasão do time no site
@@ -96,6 +98,7 @@ As versões masculina, feminina e da diretoria também podem ser enviadas no mes
 | `npm run db:migrate` | aplica atualizações do banco |
 | `npm run db:seed` | recria permissões e plano de contas (não apaga dados) |
 | `npm run db:demo` | dados fictícios de demonstração |
+| `npm run mfa:reset -- <e-mail> "<motivo>"` | remove a verificação em duas etapas de quem perdeu o celular e os códigos |
 | `npm run check` | verificação completa: formatação, lint, tipos, testes e build |
 | `npm run test:integration` | testes contra o banco (Docker precisa estar ligado) |
 | `docker compose down` | desliga o banco **sem apagar** os dados |
@@ -111,6 +114,8 @@ Não use `docker compose down -v`: o `-v` apaga o banco inteiro.
 | `Port 3000 (ou 3333) is already in use` | feche outra execução do `npm run dev` ou reinicie o terminal |
 | erro de tabela inexistente | rode `npm run db:migrate` |
 | API não sobe, com centenas de erros de TypeScript ou `Cannot convert undefined or null to object` | pare o `npm run dev` e rode `npm run prisma:generate` (cliente do Prisma desatualizado) |
+| "O painel exige verificação em duas etapas" | ative em **Minha conta → Segurança** (`DT-037`) |
+| perdi o celular e os códigos de recuperação | outro administrador usa **Usuários → Redefinir 2 etapas**; sendo o único, rode `npm run mfa:reset -- seu@email "motivo"` |
 | "Sua sessão foi encerrada por inatividade" | esperado: o painel encerra a sessão após 30 min sem uso e 12 h após o login (`DT-036`) |
 | login com "Papel padrão ausente" | rode `npm run db:seed` |
 | `npm run check` falha em formatação com CRLF | rode `npm run format` (o `.gitattributes` já força LF em novos checkouts) |
