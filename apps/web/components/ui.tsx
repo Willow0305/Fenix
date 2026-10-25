@@ -12,6 +12,16 @@ import {
   useState
 } from 'react';
 
+import {
+  BR_MESSAGES,
+  COUNTER_THRESHOLD,
+  formatCpf,
+  formatPhone,
+  isValidCpf,
+  isValidMobilePhone,
+  isValidPhone
+} from '@fenix/validation';
+
 import { ApiError, errorMessage } from '../lib/api-client';
 
 /** Componentes de formulário acessíveis: rótulo visível, ajuda e erro associados. */
@@ -20,14 +30,17 @@ interface FieldShellProps {
   readonly hint?: string | undefined;
   readonly error?: string | undefined;
   readonly required?: boolean | undefined;
+  /** Contador "n/limite" (docs/29 §3.1); só aparece a partir de COUNTER_THRESHOLD. */
+  readonly counter?: { readonly length: number; readonly max: number } | undefined;
   readonly children: (ids: { id: string; describedBy: string | undefined }) => ReactNode;
 }
 
-function FieldShell({ label, hint, error, required, children }: FieldShellProps) {
+function FieldShell({ label, hint, error, required, counter, children }: FieldShellProps) {
   const id = useId();
   const hintId = hint ? `${id}-hint` : undefined;
   const errorId = error ? `${id}-error` : undefined;
-  const describedBy = [hintId, errorId].filter(Boolean).join(' ') || undefined;
+  const counterId = counter ? `${id}-counter` : undefined;
+  const describedBy = [hintId, errorId, counterId].filter(Boolean).join(' ') || undefined;
 
   return (
     <div className="field">
@@ -46,8 +59,26 @@ function FieldShell({ label, hint, error, required, children }: FieldShellProps)
           {error}
         </span>
       ) : null}
+      {counter ? (
+        <span
+          id={counterId}
+          className={`field-counter${counter.length >= counter.max * 0.9 ? ' is-near' : ''}`}
+          aria-live={counter.length >= counter.max * 0.9 ? 'polite' : 'off'}
+        >
+          {counter.length}/{counter.max}
+        </span>
+      ) : null}
     </div>
   );
+}
+
+function counterFor(
+  value: unknown,
+  maxLength: number | undefined
+): { length: number; max: number } | undefined {
+  return maxLength !== undefined && maxLength >= COUNTER_THRESHOLD
+    ? { length: typeof value === 'string' ? value.length : 0, max: maxLength }
+    : undefined;
 }
 
 type Common = {
@@ -64,7 +95,13 @@ export function TextField({
   ...props
 }: Common & InputHTMLAttributes<HTMLInputElement>) {
   return (
-    <FieldShell label={label} hint={hint} error={error} required={required}>
+    <FieldShell
+      label={label}
+      hint={hint}
+      error={error}
+      required={required}
+      counter={counterFor(props.value, props.maxLength)}
+    >
       {({ id, describedBy }) => (
         <input
           id={id}
@@ -86,7 +123,13 @@ export function TextArea({
   ...props
 }: Common & TextareaHTMLAttributes<HTMLTextAreaElement>) {
   return (
-    <FieldShell label={label} hint={hint} error={error} required={required}>
+    <FieldShell
+      label={label}
+      hint={hint}
+      error={error}
+      required={required}
+      counter={counterFor(props.value, props.maxLength)}
+    >
       {({ id, describedBy }) => (
         <textarea
           id={id}
@@ -97,6 +140,86 @@ export function TextArea({
         />
       )}
     </FieldShell>
+  );
+}
+
+type MaskedProps = Common &
+  Omit<InputHTMLAttributes<HTMLInputElement>, 'value' | 'onChange'> & {
+    readonly value: string;
+    /** Recebe o valor já com máscara; a API aceita com ou sem máscara e grava só dígitos. */
+    readonly onValueChange: (value: string) => void;
+  };
+
+/**
+ * Campo com máscara e validação ao sair do campo (docs/29 §3.2–3.3). A mensagem local
+ * some ao digitar; o erro devolvido pela API (`error`) sempre tem prioridade.
+ */
+function MaskedField({
+  format,
+  isValid,
+  invalidMessage,
+  value,
+  onValueChange,
+  error,
+  ...props
+}: MaskedProps & {
+  readonly format: (value: string) => string;
+  readonly isValid: (value: string) => boolean;
+  readonly invalidMessage: string;
+}) {
+  const [touched, setTouched] = useState(false);
+  const localError = touched && value !== '' && !isValid(value) ? invalidMessage : undefined;
+
+  return (
+    <TextField
+      {...props}
+      value={format(value)}
+      error={error ?? localError}
+      onChange={(event) => {
+        setTouched(false);
+        onValueChange(format(event.target.value));
+      }}
+      onBlur={(event) => {
+        setTouched(true);
+        props.onBlur?.(event);
+      }}
+    />
+  );
+}
+
+/** CPF `000.000.000-00`. RG não é aceito (PEN-056). */
+export function CpfField(props: MaskedProps) {
+  return (
+    <MaskedField
+      inputMode="numeric"
+      autoComplete="off"
+      placeholder="000.000.000-00"
+      maxLength={14}
+      {...props}
+      format={formatCpf}
+      isValid={isValidCpf}
+      invalidMessage={BR_MESSAGES.cpf}
+    />
+  );
+}
+
+/** Telefone `(00) 00000-0000`; `allowLandline` aceita também fixo (PEN-057). */
+export function PhoneField({
+  allowLandline = false,
+  ...props
+}: MaskedProps & { readonly allowLandline?: boolean }) {
+  return (
+    <MaskedField
+      type="tel"
+      inputMode="tel"
+      autoComplete="tel-national"
+      placeholder="(00) 00000-0000"
+      maxLength={15}
+      {...props}
+      format={formatPhone}
+      isValid={allowLandline ? isValidPhone : isValidMobilePhone}
+      invalidMessage={allowLandline ? BR_MESSAGES.phone : BR_MESSAGES.mobile}
+    />
   );
 }
 
@@ -375,5 +498,35 @@ export function ConfirmDialog({
         </div>
       </form>
     </dialog>
+  );
+}
+
+/** "Limpar filtros (n)": aparece só com algum filtro ativo (docs/29 §3.8). */
+export function ClearFilters({
+  active,
+  onClear
+}: {
+  readonly active: number;
+  readonly onClear: () => void;
+}) {
+  if (active === 0) {
+    return null;
+  }
+
+  return (
+    <button type="button" className="btn btn-secondary" onClick={onClear}>
+      Limpar filtros ({active})
+    </button>
+  );
+}
+
+/** Esqueleto de carregamento com o formato do conteúdo que vai aparecer. */
+export function Skeleton({ lines = 3 }: { readonly lines?: number }) {
+  return (
+    <div className="skeleton" aria-busy="true" role="status" aria-label="Carregando">
+      {Array.from({ length: lines }, (_, index) => (
+        <span key={index} className="skeleton-line" />
+      ))}
+    </div>
   );
 }

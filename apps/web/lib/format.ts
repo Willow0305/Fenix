@@ -1,3 +1,5 @@
+import { formatPhone } from '@fenix/validation';
+
 /** Formatação nas bordas (DT-008): instantes UTC exibidos no fuso do time; datas civis sem deslocamento. */
 export const TEAM_TIME_ZONE = 'America/Rio_Branco';
 
@@ -45,4 +47,15 @@ export function formatMonth(civil: string | null | undefined): string {
 
 export function todayCivil(timeZone = TEAM_TIME_ZONE): string {
   return new Intl.DateTimeFormat('en-CA', { timeZone }).format(new Date());
+}
+
+/** Telefone gravado só com dígitos exibido como `(68) 99999-0000` (DT-040). */
+export function formatPhoneDisplay(value: string | null | undefined): string {
+  if (!value) {
+    return '—';
+  }
+
+  const digits = value.replace(/\D+/g, '');
+
+  return digits.length === 10 || digits.length === 11 ? formatPhone(digits) : value;
 }

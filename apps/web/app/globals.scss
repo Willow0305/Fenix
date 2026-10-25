@@ -26,6 +26,13 @@
   --radius-lg: 16px;
   --shadow-card: 0 1px 2px rgb(11 6 19 / 6%), 0 4px 16px rgb(11 6 19 / 6%);
   --content-width: 1180px;
+  // Espaçamentos (docs/29 §3.5). Pontos de quebra: 480px (celular), 768px (tablet), 1024px.
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-6: 1.5rem;
+  --space-8: 2rem;
   --font-sans:
     Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
 }
@@ -63,6 +70,50 @@ h2,
 h3 {
   line-height: 1.2;
   margin: 0 0 0.5em;
+  text-wrap: balance;
+}
+
+// Texto digitado por usuário nunca alarga a página (docs/29 §3.4).
+h1,
+h2,
+h3,
+p,
+li,
+dd,
+td,
+th,
+.card,
+.alert,
+.prose,
+.field-hint,
+.field-error,
+.empty {
+  overflow-wrap: anywhere;
+}
+
+// Filhos de flex/grid encolhem e quebram em vez de esticar a linha.
+.row > *,
+.stack > *,
+.form > *,
+.form-grid > * {
+  min-width: 0;
+}
+
+.line-clamp-2,
+.line-clamp-3 {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.line-clamp-2 {
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+}
+
+.line-clamp-3 {
+  -webkit-line-clamp: 3;
+  line-clamp: 3;
 }
 
 :focus-visible {
@@ -115,8 +166,11 @@ img {
   border-radius: var(--radius-sm);
   font: inherit;
   font-weight: 600;
+  text-align: center;
   text-decoration: none;
   cursor: pointer;
+  max-width: 100%;
+  overflow-wrap: anywhere;
   transition: background-color 0.15s ease;
 
   &:disabled {
@@ -172,7 +226,23 @@ img {
 .form-grid {
   display: grid;
   gap: 1rem;
-  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 240px), 1fr));
+}
+
+// Bloco de formulário com título (ex.: Identificação, Contato, Responsável).
+.form-section {
+  display: grid;
+  gap: 1rem;
+  padding: 0;
+  margin: 0;
+  border: 0;
+
+  > legend {
+    padding: 0;
+    margin-bottom: 0.25rem;
+    font-weight: 700;
+    font-size: 1.05rem;
+  }
 }
 
 .field {
@@ -196,6 +266,8 @@ img {
     background: var(--color-surface);
     color: var(--color-text);
     font: inherit;
+    // 16px evita o zoom automático do iPhone ao focar o campo.
+    font-size: max(16px, 1rem);
   }
 
   textarea {
@@ -223,6 +295,18 @@ img {
   color: var(--color-danger);
   font-size: 0.85rem;
   font-weight: 600;
+}
+
+.field-counter {
+  justify-self: end;
+  color: var(--color-text-muted);
+  font-size: 0.8rem;
+  font-variant-numeric: tabular-nums;
+
+  &.is-near {
+    color: var(--color-warning);
+    font-weight: 700;
+  }
 }
 
 .checkbox {
@@ -309,6 +393,9 @@ img {
   background: #ececf0;
   color: var(--color-text-subtle);
   white-space: nowrap;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .badge-success {
@@ -403,7 +490,14 @@ img {
 .stat-grid {
   display: grid;
   gap: 1rem;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 200px), 1fr));
+}
+
+// Grade de cartões (notícias, produtos, parceiros): mesma altura por linha.
+.card-grid {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, var(--card-min, 260px)), 1fr));
 }
 
 .stat {
@@ -431,10 +525,200 @@ dialog {
   border-radius: var(--radius-md);
   padding: 1.5rem;
   width: min(100% - 2rem, 520px);
+  max-height: calc(100dvh - 2rem);
+  overflow-y: auto;
   box-shadow: 0 20px 60px rgb(0 0 0 / 30%);
 
   &::backdrop {
     background: rgb(11 6 19 / 55%);
+  }
+}
+
+// ---- Imagens com proporção fixa e reserva da logo (docs/29 §3.6) ----
+.media-frame {
+  position: relative;
+  width: 100%;
+  max-width: 100%;
+  overflow: hidden;
+  background: #f0eef3;
+
+  > img {
+    display: block;
+    width: 100%;
+    height: 100%;
+  }
+
+  &.is-fallback {
+    display: grid;
+    place-items: center;
+    background: linear-gradient(135deg, var(--color-ink) 0%, var(--color-ink-soft) 100%);
+  }
+
+  .media-fallback {
+    width: 38%;
+    height: 38%;
+    object-fit: contain;
+    opacity: 0.92;
+  }
+}
+
+// Selos sobre imagem: posição fixa por canto (docs/29 §3.7).
+.media-seal {
+  position: absolute;
+  top: 0.5rem;
+  left: 0.5rem;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: #fff;
+  border: 1px solid var(--color-border);
+  box-shadow: 0 1px 3px rgb(0 0 0 / 20%);
+  object-fit: contain;
+  padding: 2px;
+
+  @media (max-width: 480px) {
+    width: 28px;
+    height: 28px;
+  }
+}
+
+.media-tag {
+  position: absolute;
+  bottom: 0.5rem;
+  left: 0.5rem;
+  max-width: calc(100% - 1rem);
+  padding: 0.15rem 0.55rem;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  background: var(--color-primary);
+  color: #fff;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.media-status {
+  position: absolute;
+  top: 0.5rem;
+  right: 0.5rem;
+  padding: 0.15rem 0.55rem;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  background: var(--color-ink);
+  color: #fff;
+}
+
+// ---- Carregamento ----
+.skeleton {
+  display: grid;
+  gap: 0.6rem;
+  padding: 1rem 0;
+}
+
+.skeleton-line {
+  display: block;
+  height: 0.9rem;
+  border-radius: 4px;
+  background: linear-gradient(90deg, #ececf0 25%, #f6f6f8 50%, #ececf0 75%);
+  background-size: 200% 100%;
+  animation: skeleton 1.2s ease-in-out infinite;
+
+  &:last-child {
+    width: 60%;
+  }
+}
+
+@keyframes skeleton {
+  from {
+    background-position: 200% 0;
+  }
+
+  to {
+    background-position: -200% 0;
+  }
+}
+
+// ---- Celular (docs/29 §3.5) ----
+@media (max-width: 767px) {
+  .card {
+    padding: 1rem;
+  }
+
+  .page-header {
+    align-items: stretch;
+
+    > .row {
+      width: 100%;
+    }
+  }
+
+  // Ações de formulário ocupam a largura toda e ficam no fim.
+  .form-actions > .btn {
+    flex: 1 1 100%;
+  }
+
+  dialog {
+    width: 100%;
+    max-width: 100%;
+    max-height: 100dvh;
+    height: 100dvh;
+    margin: 0;
+    border-radius: 0;
+    padding: 1.25rem max(1rem, env(safe-area-inset-left, 0px));
+  }
+
+  // Tabela que vira lista de cartões: cada <td> precisa de data-label.
+  .table-stack {
+    thead {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      overflow: hidden;
+      clip: rect(0 0 0 0);
+    }
+
+    tr {
+      display: grid;
+      gap: 0.35rem;
+      padding: 0.85rem 0.9rem;
+      border-bottom: 1px solid var(--color-border);
+    }
+
+    tr:last-child {
+      border-bottom: 0;
+    }
+
+    td {
+      display: grid;
+      grid-template-columns: minmax(6.5rem, 38%) minmax(0, 1fr);
+      gap: 0.75rem;
+      padding: 0;
+      border: 0;
+      text-align: left;
+
+      &::before {
+        content: attr(data-label);
+        color: var(--color-text-muted);
+        font-size: 0.8rem;
+        font-weight: 600;
+      }
+
+      &.num {
+        text-align: left;
+      }
+
+      // Primeira coluna (nome) em destaque, sem rótulo.
+      &:first-child {
+        grid-template-columns: minmax(0, 1fr);
+        font-weight: 700;
+
+        &::before {
+          display: none;
+        }
+      }
+    }
   }
 }
 

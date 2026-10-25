@@ -4,13 +4,17 @@
   "private": true,
   "scripts": {
     "build": "next build",
+    "prebuild": "npm run build --workspace=@fenix/validation",
     "dev": "next dev",
+    "predev": "npm run build --workspace=@fenix/validation",
     "start": "next start",
     "test": "jest --runInBand",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "pretypecheck": "npm run build --workspace=@fenix/validation"
   },
   "dependencies": {
     "@fenix/ui": "0.1.0",
+    "@fenix/validation": "0.1.0",
     "next": "16.4.2",
     "react": "19.2.8",
     "react-dom": "19.2.8",
