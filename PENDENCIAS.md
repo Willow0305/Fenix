@@ -413,6 +413,56 @@ Prioridades:
 - **Questão:** as correções de segurança de `multer` 2.5.0 e `body-parser` 2.4.0 foram publicadas em 2026-10-22, três dias antes da adoção.
 - **Recomendação:** reexecutar `npm audit` e conferir os avisos dos mantenedores antes da homologação; automatizar o `npm audit` no CI.
 
+## 10.1 Correção de telas (`docs/29-CORRECAO-DE-TELAS.md`)
+
+### PEN-056 — Documento de pessoa física somente CPF
+
+- **Prioridade:** P1
+- **Bloqueia:** `COR-003`, `COR-016`
+- **Questão:** o responsável decidiu em 2026-10-25 que o campo de documento passa a aceitar só CPF (`000.000.000-00`), sem RG. Falta definir: (a) se o CPF vira obrigatório para atletas; (b) o que fazer com atletas sem CPF (estrangeiros, crianças ainda sem CPF); (c) o tratamento dos documentos já gravados que não são CPF válido.
+- **Recomendação:** manter o CPF opcional; quando preenchido, validar os dígitos verificadores. Não apagar nem converter os documentos atuais: listar os inválidos e marcá-los para revisão pela diretoria. A mudança vai para `CHANGELOG.md` e para uma decisão técnica, porque altera o que o sistema aceita.
+- **Impacto:** formulário de atleta (cadastro, edição e conversões), validação da API, migração de dados.
+
+### PEN-057 — Telefone fixo
+
+- **Prioridade:** P2
+- **Bloqueia:** `COR-004`
+- **Questão:** o padrão decidido é `(00) 00000-0000` (celular, 11 dígitos). Parceiros, profissionais e o contato do time podem ter telefone fixo (10 dígitos), que não cabe nesse padrão.
+- **Recomendação:** pessoas físicas (atleta, responsável, emergência, interessado, inscrição, conta, pedido) só celular; parceiro, profissional e contato do time aceitam também fixo, `(00) 0000-0000`.
+- **Impacto:** validação compartilhada de telefone e migração dos telefones gravados.
+
+### PEN-058 — Novas imagens: capa de evento, capa de parceiro e logo do parceiro nos produtos
+
+- **Prioridade:** P2
+- **Bloqueia:** `COR-011` (parte com banco), `COR-013`, `COR-014`
+- **Questão:** os pedidos exigem campos novos (`Event.coverMediaFileId`, capa do parceiro) e a inclusão da logo do parceiro na resposta pública de produtos. São funcionalidades fora das fases 0 a 8 do roadmap e precisam de aprovação explícita.
+- **Recomendação:** aprovar as três, reutilizando o fluxo de upload público da capa de notícia (PNG, JPG ou WebP até 5 MB, tipo real conferido no servidor). As imagens são públicas e não podem conter dados pessoais além do que o parceiro autorizar.
+- **Impacto:** migração Prisma, endpoints de upload, telas do painel e do site, testes de upload.
+
+### PEN-059 — Testes de integração gravam no banco de desenvolvimento
+
+- **Prioridade:** P1
+- **Bloqueia:** `COR-001`; confiabilidade da avaliação visual do site
+- **Questão:** os testes de integração usam o mesmo `DATABASE_URL` do desenvolvimento e não apagam o que criam. Em 2026-10-25 o banco local tinha 16 equipes, das quais 14 criadas por teste ("Feminino 1792…"), além de produtos e remessas de teste que aparecem no site como reais ("Camisa jogo 93ef3", "Remessa 50202").
+- **Recomendação:** banco próprio para testes (`DATABASE_URL_TEST`), recriado a cada execução e recusado se for igual ao de desenvolvimento; script de limpeza do banco de desenvolvimento por exclusão lógica, sem tocar em registros financeiros confirmados.
+- **Impacto:** configuração do Jest de integração, `README.md`, `docs/14-TESTES.md`, CI.
+
+### PEN-060 — Efeito de inativar ou suspender atleta sobre mensalidades, plano e vínculos
+
+- **Prioridade:** P1
+- **Bloqueia:** `COR-018`
+- **Questão:** hoje Inativo e Suspenso só impedem novas mensalidades. As mensalidades em aberto, o plano vigente e os vínculos com equipes continuam como estavam. Não há regra documentada sobre o que deve acontecer.
+- **Recomendação:** não automatizar sem decisão. Mostrar no diálogo de mudança de status o que está pendente e oferecer, como opções marcáveis, cancelar mensalidades futuras sem pagamento, encerrar o plano e encerrar os vínculos, com o mesmo motivo e auditoria. Mensalidades com pagamento nunca são canceladas por essa ação.
+- **Impacto:** domínio esportivo e financeiro, diálogo de status, testes de transição.
+
+### PEN-061 — Faixa etária da categoria
+
+- **Prioridade:** P3
+- **Bloqueia:** `COR-019`
+- **Questão:** a categoria tem idade mínima e máxima, mas o vínculo do atleta não confere a idade. Não está definido se a faixa é informativa ou obrigatória.
+- **Recomendação:** aviso com confirmação, sem bloqueio, porque atletas podem jogar fora da faixa por decisão técnica.
+- **Impacto:** vínculo de atleta (serviço e tela).
+
 ## 11. Critério de resolução
 
 Ao resolver uma pendência:

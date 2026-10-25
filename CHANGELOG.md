@@ -6,6 +6,13 @@ O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) e o 
 
 ## [Não publicado]
 
+### Documentação — correção de telas (2026-10-25)
+
+#### Adicionado
+
+- `docs/29-CORRECAO-DE-TELAS.md`: ciclo e classificação de correções, padrões de interface (limites de caracteres, CPF, telefone, textos longos, celular, imagens, selos, filtros) e registro de 20 correções (`COR-001` a `COR-020`);
+- pendências `PEN-056` a `PEN-061` para as correções que dependem de decisão.
+
 ### Segurança — verificação em duas etapas (2026-10-25)
 
 #### Adicionado

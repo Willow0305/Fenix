@@ -42,6 +42,7 @@ Quando as fontes divergirem, a divergência é mantida em [`PENDENCIAS.md`](../P
 | [22-RELATORIO-FASE-3](./22-RELATORIO-FASE-3.md) | mensalidades e Caixa Fênix |
 | [23-RELATORIO-FASE-4](./23-RELATORIO-FASE-4.md) | loja, estoque e pedidos |
 | [24-RELATORIO-FASE-5](./24-RELATORIO-FASE-5.md) | remessas e pré-vendas |
+| [29-CORRECAO-DE-TELAS](./29-CORRECAO-DE-TELAS.md) | padrão de correção de telas e registro das correções |
 | [diagramas/ERD](./diagramas/ERD.md) | relacionamentos Mermaid |
 
 ## Governança
