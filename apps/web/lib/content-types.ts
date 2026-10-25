@@ -54,6 +54,7 @@ export interface TeamEvent {
   address: string | null;
   isPublic: boolean;
   publishedAt: string | null;
+  coverUrl: string | null;
   match: {
     opponentName: string;
     competitionName: string | null;

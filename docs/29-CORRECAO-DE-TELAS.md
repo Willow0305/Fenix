@@ -216,6 +216,13 @@ Hoje o selo "Pré-venda" fica no canto superior esquerdo (`product-card.module.s
 - Quando a ação afeta outras telas, o diálogo diz quais ("A equipe some do site e não recebe novos atletas. Os 12 vínculos atuais continuam.").
 - O motivo é obrigatório quando a regra de negócio exige. A ação destrutiva usa o estilo de perigo.
 
+### 3.11 Ícones
+
+- Biblioteca única: Bootstrap Icons (componente `Icon`). Não misturar outras bibliotecas.
+- Ícone acompanha texto, nunca o substitui. Botão só com ícone precisa de `label` (lido pelo leitor de tela).
+- Usar com moderação: menu, ações principais (novo, salvar, buscar, filtrar, limpar, voltar, enviar), alertas e dados de contato, data e local. Não colocar ícone em todo rótulo de campo.
+- Mesmo significado, mesmo ícone em todo o sistema (ex.: `plus-lg` para criar, `search` para buscar, `arrow-left` para voltar, `x-circle` para limpar).
+
 ## 4. Lista de verificação
 
 Antes de mudar uma correção para "Concluída", conferir:

@@ -3,6 +3,7 @@ import type { ReactNode } from 'react';
 
 import { AuthProvider } from '../lib/auth-context';
 import { CartProvider } from '../lib/cart-context';
+import 'bootstrap-icons/font/bootstrap-icons.min.css';
 import './globals.scss';
 
 export const metadata: Metadata = {

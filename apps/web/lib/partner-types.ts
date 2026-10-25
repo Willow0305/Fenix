@@ -33,6 +33,7 @@ export interface Partner {
   contractStartsOn: string | null;
   contractEndsOn: string | null;
   logoUrl: string | null;
+  coverUrl: string | null;
   commissionType: CommissionType;
   commissionPercentage: string | null;
   commissionFixedAmount: MoneyView | null;
@@ -156,6 +157,7 @@ export interface PublicPartner {
   description: string | null;
   websiteUrl: string | null;
   logoUrl: string | null;
+  coverUrl: string | null;
   professionals: {
     id: string;
     fullName: string;

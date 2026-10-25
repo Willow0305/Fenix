@@ -146,6 +146,24 @@ describe('Fase 6 — parceiros e profissionais', () => {
 
     expect(stored.documentNumberEncrypted).not.toContain(cnpj.slice(0, 8));
 
+    // Logo e capa (DT-041): imagens públicas otimizadas, expostas na visão do parceiro.
+    await ctx
+      .http()
+      .post(`/api/v1/partners/${id}/logo`)
+      .set(auth(board.token))
+      .attach('file', PNG_1X1, 'logo.png')
+      .expect(201);
+
+    const covered = await ctx
+      .http()
+      .post(`/api/v1/partners/${id}/cover`)
+      .set(auth(board.token))
+      .attach('file', PNG_1X1, 'capa.png')
+      .expect(201);
+
+    expect(covered.body.logoUrl).toMatch(/^\/api\/v1\/media\//);
+    expect(covered.body.coverUrl).toMatch(/^\/api\/v1\/media\//);
+
     const publicIds = async () =>
       ((await ctx.http().get('/api/v1/public/partners').expect(200)).body as { id: string }[]).map(
         (p) => p.id

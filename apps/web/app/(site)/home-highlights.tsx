@@ -1,9 +1,10 @@
 import Link from 'next/link';
 
+import { EventCard } from '../../components/event-card';
+import { NewsCard } from '../../components/news-card';
 import { ProductCard } from '../../components/product-card';
 import type { Page } from '../../lib/api-types';
-import { EVENT_TYPE, type NewsSummary, scoreLabel, type TeamEvent } from '../../lib/content-types';
-import { formatDateTime } from '../../lib/format';
+import type { NewsSummary, TeamEvent } from '../../lib/content-types';
 import { serverGet } from '../../lib/server-api';
 import type { ProductSummary } from '../../lib/store-types';
 
@@ -39,20 +40,7 @@ export async function HomeHighlights() {
           </div>
           <div style={GRID}>
             {news.data.map((item) => (
-              <article key={item.id} className="card stack">
-                {item.coverUrl ? (
-                  <img
-                    src={item.coverUrl}
-                    alt=""
-                    style={{ width: '100%', aspectRatio: '16 / 9', objectFit: 'cover' }}
-                  />
-                ) : null}
-                <small className="muted">{formatDateTime(item.publishedAt)}</small>
-                <h3 style={{ margin: 0 }}>
-                  <Link href={`/noticias/${item.slug}`}>{item.title}</Link>
-                </h3>
-                {item.summary ? <p style={{ margin: 0 }}>{item.summary}</p> : null}
-              </article>
+              <NewsCard key={item.id} news={item} headingLevel="h3" />
             ))}
           </div>
         </section>
@@ -69,17 +57,7 @@ export async function HomeHighlights() {
           </div>
           <div style={GRID}>
             {events.map((event) => (
-              <article key={event.id} className="card stack">
-                <span className="badge">{EVENT_TYPE[event.type]}</span>
-                <strong>{event.match ? scoreLabel(event.match) : event.title}</strong>
-                <span className="muted">
-                  {formatDateTime(event.startsAt)}
-                  {event.locationName ? ` · ${event.locationName}` : ''}
-                </span>
-                {event.status === 'CANCELLED' ? (
-                  <span className="badge badge-danger">Cancelado</span>
-                ) : null}
-              </article>
+              <EventCard key={event.id} event={event} compact />
             ))}
           </div>
         </section>
@@ -100,10 +78,8 @@ export async function HomeHighlights() {
           </div>
           <div
             style={{
-              display: 'grid',
-              gap: '1rem',
-              gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))',
-              marginTop: '1rem'
+              ...GRID,
+              gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 200px), 1fr))'
             }}
           >
             {featured.data.map((product) => (

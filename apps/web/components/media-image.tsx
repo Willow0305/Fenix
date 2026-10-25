@@ -16,7 +16,8 @@ export function MediaImage({
   alt,
   ratio = '16/9',
   fit = 'cover',
-  fallbackSrc = SYMBOL_SRC,
+  fallbackSrc,
+  fallbackTone = 'brand',
   priority = false,
   className,
   children
@@ -26,7 +27,9 @@ export function MediaImage({
   readonly alt: string;
   readonly ratio?: MediaRatio;
   readonly fit?: 'cover' | 'contain';
-  readonly fallbackSrc?: string;
+  readonly fallbackSrc?: string | undefined;
+  /** Fundo da reserva: escuro da marca (padrão) ou claro, para logos de terceiros. */
+  readonly fallbackTone?: 'brand' | 'light';
   readonly priority?: boolean;
   readonly className?: string;
   /** Selos posicionados sobre a imagem (docs/29 §3.7). */
@@ -40,11 +43,11 @@ export function MediaImage({
 
   return (
     <div
-      className={`media-frame${showFallback ? ' is-fallback' : ''}${className ? ` ${className}` : ''}`}
+      className={`media-frame${showFallback ? ` is-fallback is-${fallbackTone}` : ''}${className ? ` ${className}` : ''}`}
       style={{ aspectRatio: ratio }}
     >
       {showFallback ? (
-        <img src={fallbackSrc} alt={alt} className="media-fallback" loading="lazy" />
+        <img src={fallbackSrc ?? SYMBOL_SRC} alt={alt} className="media-fallback" loading="lazy" />
       ) : (
         <img
           src={src}

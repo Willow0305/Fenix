@@ -15,6 +15,7 @@ import {
   TextField,
   useSubmit
 } from '../../../../components/ui';
+import { ImageUpload } from '../../../../components/image-upload';
 import { api } from '../../../../lib/api-client';
 import type { Page } from '../../../../lib/api-types';
 import {
@@ -47,7 +48,6 @@ export default function NewsEditPage() {
   const [notice, setNotice] = useState<string | null>(null);
   const [scheduleAt, setScheduleAt] = useState('');
   const [statusAction, setStatusAction] = useState<'HIDDEN' | 'ARCHIVED' | 'DRAFT' | null>(null);
-  const [cover, setCover] = useState<File | null>(null);
 
   useEffect(() => {
     const n = news.data;
@@ -98,16 +98,6 @@ export default function NewsEditPage() {
       })
     );
     setNotice(scheduleAt ? 'Publicação agendada.' : 'Notícia publicada.');
-  });
-  const uploadCover = useSubmit(async () => {
-    const body = new FormData();
-
-    if (cover) {
-      body.append('file', cover);
-    }
-
-    news.setData(await api<NewsDetail>(`/news/${id}/cover`, { method: 'POST', body }));
-    setCover(null);
   });
 
   if (news.loading && !news.data) {
@@ -272,23 +262,13 @@ export default function NewsEditPage() {
         </fieldset>
       </form>
 
-      <form className="form card" onSubmit={(event) => void uploadCover.submit(event)}>
-        <h2>Capa</h2>
-        <ErrorSummary error={uploadCover.error} />
-        {n.coverUrl ? <img src={n.coverUrl} alt="" style={{ maxWidth: '24rem' }} /> : null}
-        <div className="row">
-          <TextField
-            label="Imagem (PNG, JPG ou WebP, até 5 MB)"
-            type="file"
-            required
-            accept="image/png,image/jpeg,image/webp"
-            onChange={(e) => setCover(e.target.files?.[0] ?? null)}
-          />
-          <button type="submit" className="btn btn-secondary" disabled={uploadCover.pending}>
-            Enviar capa
-          </button>
-        </div>
-      </form>
+      <ImageUpload<NewsDetail>
+        title="Capa"
+        endpoint={`/news/${id}/cover`}
+        currentUrl={n.coverUrl}
+        recommended="1600 × 900 px (16:9)"
+        onUploaded={news.setData}
+      />
 
       <ConfirmDialog
         open={statusAction !== null}

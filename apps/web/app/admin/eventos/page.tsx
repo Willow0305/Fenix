@@ -15,6 +15,7 @@ import {
   TextField,
   useSubmit
 } from '../../../components/ui';
+import { ImageUpload } from '../../../components/image-upload';
 import { api } from '../../../lib/api-client';
 import type { Page } from '../../../lib/api-types';
 import {
@@ -345,6 +346,16 @@ export default function EventsAdminPage() {
             onSaved={async () => {
               setEditing(null);
               await list.reload();
+            }}
+          />
+          <ImageUpload<TeamEvent>
+            title="Capa do evento"
+            endpoint={`/events/${editing.id}/cover`}
+            currentUrl={editing.coverUrl}
+            recommended="1600 × 900 px (16:9). Sem capa, o site usa a da notícia vinculada ou a logo"
+            onUploaded={(updated) => {
+              setEditing(updated);
+              void list.reload();
             }}
           />
         </>

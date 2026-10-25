@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
 
+import { ImageUpload } from '../../../../components/image-upload';
 import {
   Alert,
   ConfirmDialog,
@@ -189,7 +190,6 @@ export default function PartnerAdminPage() {
   const [form, setForm] = useState<Form>({});
   const [notice, setNotice] = useState<string | null>(null);
   const [next, setNext] = useState<PartnerStatus | null>(null);
-  const [logo, setLogo] = useState<File | null>(null);
 
   useEffect(() => {
     if (partner.data) {
@@ -230,16 +230,6 @@ export default function PartnerAdminPage() {
       })
     );
     setNotice('Parceiro salvo. Mudanças de comissão valem para novas vendas.');
-  });
-  const uploadLogo = useSubmit(async () => {
-    const body = new FormData();
-
-    if (logo) {
-      body.append('file', logo);
-    }
-
-    partner.setData(await api<Partner>(`/partners/${id}/logo`, { method: 'POST', body }));
-    setLogo(null);
   });
 
   if (partner.loading && !partner.data) {
@@ -430,27 +420,21 @@ export default function PartnerAdminPage() {
         </fieldset>
       </form>
 
-      <form className="form card" onSubmit={(event) => void uploadLogo.submit(event)}>
-        <h2>Logo</h2>
-        <ErrorSummary error={uploadLogo.error} />
-        <div className="row">
-          {p.logoUrl ? (
-            <img src={p.logoUrl} alt={`Logo de ${p.displayName}`} width={96} height={96} />
-          ) : (
-            <span className="muted">Sem logo.</span>
-          )}
-          <TextField
-            label="Imagem (PNG, JPG ou WebP, até 5 MB)"
-            type="file"
-            required
-            accept="image/png,image/jpeg,image/webp"
-            onChange={(e) => setLogo(e.target.files?.[0] ?? null)}
-          />
-          <button type="submit" className="btn btn-secondary" disabled={uploadLogo.pending}>
-            Enviar logo
-          </button>
-        </div>
-      </form>
+      <ImageUpload<Partner>
+        title="Logo"
+        endpoint={`/partners/${id}/logo`}
+        currentUrl={p.logoUrl}
+        ratio="1/1"
+        recommended="512 × 512 px, fundo branco ou transparente"
+        onUploaded={partner.setData}
+      />
+      <ImageUpload<Partner>
+        title="Capa"
+        endpoint={`/partners/${id}/cover`}
+        currentUrl={p.coverUrl}
+        recommended="1600 × 900 px (16:9)"
+        onUploaded={partner.setData}
+      />
 
       {p.documents ? <DocumentsPanel partner={p} onChanged={partner.setData} /> : null}
 

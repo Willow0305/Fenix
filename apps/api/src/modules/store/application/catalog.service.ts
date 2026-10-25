@@ -71,8 +71,9 @@ export interface ProductSummary {
   readonly listPriceFrom: MoneyView;
   readonly image: { url: string; altText: string | null } | null;
   readonly purchasable: boolean;
-  readonly partner: { id: string; name: string } | null;
-  readonly campaign: { slug: string; name: string } | null;
+  /** Logo do parceiro para o selo no canto da imagem (docs/29 COR-014). */
+  readonly partner: { id: string; name: string; logoUrl: string | null } | null;
+  readonly campaign: { slug: string; name: string; salesEndAt: string } | null;
 }
 
 export interface ProductDetail extends ProductSummary {
@@ -137,7 +138,8 @@ const PRODUCT_INCLUDE = {
       status: true,
       deletedAt: true,
       contractStartsOn: true,
-      contractEndsOn: true
+      contractEndsOn: true,
+      logoMediaFileId: true
     }
   },
   images: {
@@ -148,7 +150,10 @@ const PRODUCT_INCLUDE = {
   variants: { where: { deletedAt: null }, orderBy: { createdAt: 'asc' } },
   campaignProducts: {
     where: { isActive: true, deletedAt: null, salesCampaign: { status: 'OPEN', deletedAt: null } },
-    select: { campaignPrice: true, salesCampaign: { select: { slug: true, name: true } } },
+    select: {
+      campaignPrice: true,
+      salesCampaign: { select: { slug: true, name: true, salesEndAt: true } }
+    },
     take: 1
   }
 } satisfies Prisma.ProductInclude;
@@ -329,9 +334,19 @@ export class CatalogService {
         variantViews.some((v) => v.isActive && v.inStock),
       partner:
         partnerVisible && row.partner
-          ? { id: row.partner.id, name: row.partner.displayName }
+          ? {
+              id: row.partner.id,
+              name: row.partner.displayName,
+              logoUrl: row.partner.logoMediaFileId ? mediaUrl(row.partner.logoMediaFileId) : null
+            }
           : null,
-      campaign: campaign ? campaign.salesCampaign : null,
+      campaign: campaign
+        ? {
+            slug: campaign.salesCampaign.slug,
+            name: campaign.salesCampaign.name,
+            salesEndAt: campaign.salesCampaign.salesEndAt.toISOString()
+          }
+        : null,
       description: row.description,
       buyerLimit: row.buyerLimit,
       productionLeadDays: row.productionLeadDays,
@@ -364,7 +379,7 @@ export class CatalogService {
 
   /** Vitrine pública: somente produtos ativos e de parceiros aprovados (RN-PAR-001). */
   async publicList(
-    query: PageQueryDto & { category?: string; featured?: boolean }
+    query: PageQueryDto & { category?: string; featured?: boolean; campaign?: boolean }
   ): Promise<Page<ProductSummary>> {
     const { skip, take, page, pageSize } = pageArgs(query);
     const now = new Date();
@@ -399,7 +414,19 @@ export class CatalogService {
             ]
           : [])
       ],
-      ...(query.featured ? { isFeatured: true } : {})
+      ...(query.featured ? { isFeatured: true } : {}),
+      // Filtro "Pré-venda" da loja (docs/29 COR-012): só produtos em remessa aberta.
+      ...(query.campaign
+        ? {
+            campaignProducts: {
+              some: {
+                isActive: true,
+                deletedAt: null,
+                salesCampaign: { status: 'OPEN', deletedAt: null }
+              }
+            }
+          }
+        : {})
     };
     const [rows, total] = await this.prisma.$transaction([
       this.prisma.product.findMany({

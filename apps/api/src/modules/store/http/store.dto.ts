@@ -188,6 +188,11 @@ export class PublicProductQueryDto extends PageQueryDto {
   @Transform(({ value }) => value === true || value === 'true')
   @IsBoolean()
   featured?: boolean;
+  @ApiPropertyOptional({ description: 'Somente produtos em pré-venda (remessa aberta).' })
+  @IsOptional()
+  @Transform(({ value }) => value === true || value === 'true')
+  @IsBoolean()
+  campaign?: boolean;
 }
 
 export class CartItemDto {

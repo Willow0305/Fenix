@@ -48,8 +48,8 @@ export interface ProductSummary {
   listPriceFrom: MoneyView;
   image: { url: string; altText: string | null } | null;
   purchasable: boolean;
-  partner: { id: string; name: string } | null;
-  campaign: { slug: string; name: string } | null;
+  partner: { id: string; name: string; logoUrl: string | null } | null;
+  campaign: { slug: string; name: string; salesEndAt: string } | null;
 }
 
 export interface ProductDetail extends ProductSummary {

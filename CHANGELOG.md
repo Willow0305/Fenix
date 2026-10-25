@@ -6,6 +6,23 @@ O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) e o 
 
 ## [Não publicado]
 
+### Site público: loja, notícias, eventos e parceiros (2026-10-25)
+
+#### Alterado
+
+- loja: a pré-venda aparece como produto normal, com o selo "Pré-venda · até dd/mm" e filtro próprio; o bloco de remessas do topo foi retirado. As condições (data limite, quantidade mínima, previsão de chegada e reembolso) aparecem na página do produto antes do botão de compra (COR-012);
+- produtos de parceiro mostram a logo do parceiro no canto superior esquerdo da imagem (COR-014);
+- notícias e eventos em cartões com imagem 16:9, título em até 2 linhas e resumo em até 3; a primeira notícia fica em destaque; eventos mostram data, horário, local e competição (COR-010, COR-011);
+- parceiros com capa grande e logo sobreposta, na lista e na página do parceiro (COR-013);
+- sem imagem, ou se ela não carregar, aparece a logo do Fênix (COR-007);
+- o site reflete alterações do painel no próximo carregamento, em vez de esperar até 1 minuto (COR-009);
+- ícones do Bootstrap Icons 1.11.3 em ações e informações principais, sempre acompanhando texto.
+
+#### Adicionado
+
+- capa de evento e de parceiro (migração `20261025210000_capas_evento_parceiro`), com envio no painel; sem capa própria, o evento usa a da notícia vinculada;
+- envio de imagem padronizado no painel, com pré-visualização, tamanho recomendado e limite de 10 MB conferido antes de enviar.
+
 ### Formulários padronizados (2026-10-25)
 
 #### Alterado

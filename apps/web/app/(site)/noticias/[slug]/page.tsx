@@ -2,6 +2,8 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 
+import { Icon } from '../../../../components/icon';
+import { MediaImage } from '../../../../components/media-image';
 import type { NewsDetail } from '../../../../lib/content-types';
 import { formatDateTime } from '../../../../lib/format';
 import { serverGet } from '../../../../lib/server-api';
@@ -38,7 +40,9 @@ export default async function NewsItemPage({
   return (
     <article className="container stack" style={{ paddingTop: '2rem', maxWidth: '50rem' }}>
       <p>
-        <Link href="/noticias">← Notícias</Link>
+        <Link href="/noticias">
+          <Icon name="arrow-left" /> Notícias
+        </Link>
       </p>
       <small className="muted">
         {news.category.name} · {formatDateTime(news.publishedAt)}
@@ -46,14 +50,13 @@ export default async function NewsItemPage({
       </small>
       <h1 style={{ margin: 0 }}>{news.title}</h1>
       {news.summary ? <p>{news.summary}</p> : null}
-      {news.coverUrl ? (
-        <img src={news.coverUrl} alt="" style={{ width: '100%', borderRadius: '0.5rem' }} />
-      ) : null}
+      <MediaImage src={news.coverUrl} alt="" priority className="news-cover" />
       {/* Texto simples renderizado como texto, nunca como HTML (DT-034). */}
       <div className="prose">{news.content}</div>
       {news.event ? (
         <aside className="card">
-          Evento relacionado: <Link href={`/eventos#${news.event.slug}`}>{news.event.title}</Link> —{' '}
+          <Icon name="calendar-event" /> Evento relacionado:{' '}
+          <Link href={`/eventos#${news.event.slug}`}>{news.event.title}</Link> —{' '}
           {formatDateTime(news.event.startsAt)}
         </aside>
       ) : null}

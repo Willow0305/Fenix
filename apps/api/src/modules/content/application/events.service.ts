@@ -7,6 +7,12 @@ import { AppError } from '../../../common/errors/app-error';
 import { type Page, pageArgs, type PageQueryDto, toPage } from '../../../common/http/pagination';
 import type { Principal, RequestMeta } from '../../../common/http/request-context';
 import { PrismaService } from '../../../common/prisma/prisma.service';
+import {
+  IMAGE_POLICY,
+  type IncomingFile,
+  MediaService,
+  mediaUrl
+} from '../../media/application/media.service';
 import { slugify } from '../../sports/domain/sports-rules';
 import { EVENT_STATUS_LABELS, EVENT_TRANSITIONS, sanitizeText } from '../domain/content-rules';
 
@@ -32,6 +38,8 @@ export interface EventView {
   readonly address: string | null;
   readonly isPublic: boolean;
   readonly publishedAt: string | null;
+  /** Capa do evento ou, sem ela, a da notícia vinculada mais recente (docs/29 COR-011). */
+  readonly coverUrl: string | null;
   readonly match: MatchView | null;
   readonly tryout: { id: string; title: string; slug: string } | null;
   readonly news: { id: string; title: string; slug: string }[];
@@ -73,7 +81,7 @@ const EVENT_INCLUDE = {
       status: { in: ['PUBLISHED', 'SCHEDULED'] },
       publishedAt: { not: null }
     },
-    select: { id: true, title: true, slug: true, publishedAt: true },
+    select: { id: true, title: true, slug: true, publishedAt: true, coverMediaFileId: true },
     orderBy: { publishedAt: 'desc' }
   }
 } satisfies Prisma.EventInclude;
@@ -85,10 +93,15 @@ type EventRow = Prisma.EventGetPayload<{ include: typeof EVENT_INCLUDE }>;
 export class EventsService {
   constructor(
     private readonly prisma: PrismaService,
-    private readonly audit: AuditService
+    private readonly audit: AuditService,
+    private readonly media: MediaService
   ) {}
 
   private toView(row: EventRow, now: Date): EventView {
+    const visibleNews = row.news.filter((n) => n.publishedAt !== null && n.publishedAt <= now);
+    const cover =
+      row.coverMediaFileId ?? visibleNews.find((n) => n.coverMediaFileId)?.coverMediaFileId;
+
     return {
       id: row.id,
       title: row.title,
@@ -102,6 +115,7 @@ export class EventsService {
       address: row.address,
       isPublic: row.isPublic,
       publishedAt: row.publishedAt?.toISOString() ?? null,
+      coverUrl: cover ? mediaUrl(cover) : null,
       match: row.match
         ? {
             opponentName: row.match.opponentName,
@@ -114,9 +128,7 @@ export class EventsService {
         : null,
       tryout: row.tryout,
       // Somente notícias já visíveis, mesmo na visão do evento (sem vazar agendadas).
-      news: row.news
-        .filter((n) => n.publishedAt !== null && n.publishedAt <= now)
-        .map((n) => ({ id: n.id, title: n.title, slug: n.slug }))
+      news: visibleNews.map((n) => ({ id: n.id, title: n.title, slug: n.slug }))
     };
   }
 
@@ -165,6 +177,48 @@ export class EventsService {
       page,
       pageSize
     );
+  }
+
+  /** Capa 16:9 do evento (PEN-058, DT-041): imagem pública otimizada em WebP. */
+  async setCover(
+    actor: Principal,
+    id: string,
+    file: IncomingFile | undefined,
+    meta: RequestMeta
+  ): Promise<EventView> {
+    const current = await this.prisma.event.findFirst({
+      where: { id, deletedAt: null },
+      select: { coverMediaFileId: true }
+    });
+
+    if (current === null) {
+      throw AppError.notFound('Evento não encontrado.');
+    }
+
+    await this.prisma.$transaction(async (tx) => {
+      const stored = await this.media.store(
+        file,
+        { ...IMAGE_POLICY, kind: 'IMAGE', classification: 'PUBLIC' },
+        actor.userId,
+        tx
+      );
+
+      await tx.event.update({ where: { id }, data: { coverMediaFileId: stored.id } });
+      await this.audit.record(
+        {
+          actorUserId: actor.userId,
+          action: 'event.cover.updated',
+          entityType: 'Event',
+          entityId: id,
+          before: { coverMediaFileId: current.coverMediaFileId },
+          after: { coverMediaFileId: stored.id },
+          meta
+        },
+        tx
+      );
+    });
+
+    return this.get(id);
   }
 
   async get(id: string): Promise<EventView> {

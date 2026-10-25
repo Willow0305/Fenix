@@ -22,6 +22,8 @@ export interface AppConfigValues {
   readonly mailOutboxDir: string;
   readonly mailFrom: string;
   readonly allowLocalAdaptersInProduction: boolean;
+  /** Rota do site que descarta o cache das páginas públicas (DT-041); null desliga. */
+  readonly siteRevalidate: { readonly url: string; readonly secret: string } | null;
 }
 
 const DEV_ACCESS_SECRET = 'development-only-access-token-secret-change-me';
@@ -102,6 +104,12 @@ export function loadAppConfig(env: NodeJS.ProcessEnv = process.env): AppConfigVa
     mailDriver,
     mailOutboxDir: readString(env, 'MAIL_OUTBOX_DIR', 'var/mail-outbox'),
     mailFrom: readString(env, 'MAIL_FROM', 'Fênix Vôlei <nao-responda@fenix.example>'),
+    siteRevalidate: env['SITE_REVALIDATE_SECRET']
+      ? {
+          url: `${readString(env, 'WEB_INTERNAL_URL', 'http://127.0.0.1:3000')}/api/site-revalidate`,
+          secret: env['SITE_REVALIDATE_SECRET']
+        }
+      : null,
     allowLocalAdaptersInProduction
   };
 }

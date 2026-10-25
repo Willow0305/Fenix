@@ -271,6 +271,20 @@ export class PartnersController {
     return this.partners.setLogo(actor, id, file, meta);
   }
 
+  @Post('partners/:id/cover')
+  @ApiBearerAuth()
+  @ApiConsumes('multipart/form-data')
+  @RequirePermissions(PERMISSIONS.partnersManage)
+  @UseInterceptors(FileInterceptor('file', UPLOAD_LIMITS))
+  cover(
+    @CurrentPrincipal() actor: Principal,
+    @Param('id', new ParseUUIDPipe()) id: string,
+    @UploadedFile() file: IncomingFile | undefined,
+    @ReqMeta() meta: RequestMeta
+  ): Promise<PartnerView> {
+    return this.partners.setCover(actor, id, file, meta);
+  }
+
   @Post('partners/:id/documents')
   @ApiBearerAuth()
   @ApiConsumes('multipart/form-data')

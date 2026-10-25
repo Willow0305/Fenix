@@ -700,7 +700,9 @@ model MediaFile {
   teamBrandAssets      TeamBrandAsset[]
   athleteDocuments     AthleteDocument[]
   financialAttachments FinancialTransactionAttachment[]
-  partnerLogos         Partner[]
+  partnerLogos         Partner[]                        @relation("PartnerLogo")
+  partnerCovers        Partner[]                        @relation("PartnerCover")
+  eventCovers          Event[]
   partnerDocuments     PartnerDocument[]
   productImages        ProductImage[]
   newsCovers           News[]
@@ -1736,6 +1738,8 @@ model Partner {
   contractStartsOn        DateTime?      @map("contract_starts_on") @db.Date
   contractEndsOn          DateTime?      @map("contract_ends_on") @db.Date
   logoMediaFileId         String?        @map("logo_media_file_id") @db.Uuid
+  /// Imagem de capa 16:9 exibida no site (PEN-058, DT-041).
+  coverMediaFileId        String?        @map("cover_media_file_id") @db.Uuid
   commissionType          CommissionType @default(NONE) @map("commission_type")
   commissionPercentage    Decimal?       @map("commission_percentage") @db.Decimal(7, 4)
   commissionFixedAmount   Decimal?       @map("commission_fixed_amount") @db.Decimal(19, 4)
@@ -1745,7 +1749,8 @@ model Partner {
   updatedAt               DateTime       @updatedAt @map("updated_at") @db.Timestamptz(6)
   deletedAt               DateTime?      @map("deleted_at") @db.Timestamptz(6)
 
-  logoMediaFile        MediaFile?            @relation(fields: [logoMediaFileId], references: [id], onDelete: SetNull, onUpdate: Cascade)
+  logoMediaFile        MediaFile?            @relation("PartnerLogo", fields: [logoMediaFileId], references: [id], onDelete: SetNull, onUpdate: Cascade)
+  coverMediaFile       MediaFile?            @relation("PartnerCover", fields: [coverMediaFileId], references: [id], onDelete: SetNull, onUpdate: Cascade)
   documents            PartnerDocument[]
   professionals        PartnerProfessional[]
   services             PartnerService[]
@@ -1757,6 +1762,8 @@ model Partner {
 
   @@index([status, type, deletedAt])
   @@index([displayName])
+  @@index([logoMediaFileId])
+  @@index([coverMediaFileId])
   @@map("partners")
 }
 
@@ -1956,27 +1963,31 @@ model NewsCategory {
 }
 
 model Event {
-  id           String      @id @default(uuid()) @db.Uuid
-  title        String      @db.VarChar(180)
-  slug         String      @unique @db.VarChar(200)
-  type         EventType
-  status       EventStatus @default(DRAFT)
-  description  String?     @db.Text
-  startsAt     DateTime    @map("starts_at") @db.Timestamptz(6)
-  endsAt       DateTime?   @map("ends_at") @db.Timestamptz(6)
-  locationName String?     @map("location_name") @db.VarChar(180)
-  address      String?     @db.Text
-  isPublic     Boolean     @default(false) @map("is_public")
-  publishedAt  DateTime?   @map("published_at") @db.Timestamptz(6)
-  createdAt    DateTime    @default(now()) @map("created_at") @db.Timestamptz(6)
-  updatedAt    DateTime    @updatedAt @map("updated_at") @db.Timestamptz(6)
-  deletedAt    DateTime?   @map("deleted_at") @db.Timestamptz(6)
+  id               String      @id @default(uuid()) @db.Uuid
+  title            String      @db.VarChar(180)
+  slug             String      @unique @db.VarChar(200)
+  type             EventType
+  status           EventStatus @default(DRAFT)
+  description      String?     @db.Text
+  startsAt         DateTime    @map("starts_at") @db.Timestamptz(6)
+  endsAt           DateTime?   @map("ends_at") @db.Timestamptz(6)
+  locationName     String?     @map("location_name") @db.VarChar(180)
+  address          String?     @db.Text
+  isPublic         Boolean     @default(false) @map("is_public")
+  publishedAt      DateTime?   @map("published_at") @db.Timestamptz(6)
+  /// Imagem de capa 16:9 (PEN-058, DT-041).
+  coverMediaFileId String?     @map("cover_media_file_id") @db.Uuid
+  createdAt        DateTime    @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt        DateTime    @updatedAt @map("updated_at") @db.Timestamptz(6)
+  deletedAt        DateTime?   @map("deleted_at") @db.Timestamptz(6)
 
-  match  Match?
-  tryout Tryout?
-  news   News[]
+  coverMediaFile MediaFile? @relation(fields: [coverMediaFileId], references: [id], onDelete: SetNull, onUpdate: Cascade)
+  match          Match?
+  tryout         Tryout?
+  news           News[]
 
   @@index([status, startsAt])
+  @@index([coverMediaFileId])
   @@index([type, startsAt])
   @@index([isPublic, publishedAt])
   @@map("events")

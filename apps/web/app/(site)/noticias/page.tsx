@@ -1,9 +1,9 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 
+import { NewsCard } from '../../../components/news-card';
 import type { Page } from '../../../lib/api-types';
 import type { NewsCategory, NewsSummary } from '../../../lib/content-types';
-import { formatDateTime } from '../../../lib/format';
 import { serverGet } from '../../../lib/server-api';
 
 export const metadata: Metadata = { title: 'Notícias' };
@@ -60,34 +60,13 @@ export default async function NewsPage({
         </nav>
       ) : null}
       {!news || news.data.length === 0 ? (
-        <div className="card">
-          <p>Nenhuma notícia publicada.</p>
+        <div className="card empty">
+          <p>Nenhuma notícia publicada por enquanto.</p>
         </div>
       ) : (
-        <div
-          style={{
-            display: 'grid',
-            gap: '1rem',
-            gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 300px), 1fr))'
-          }}
-        >
-          {news.data.map((item) => (
-            <article key={item.id} className="card stack">
-              {item.coverUrl ? (
-                <img
-                  src={item.coverUrl}
-                  alt=""
-                  style={{ width: '100%', aspectRatio: '16 / 9', objectFit: 'cover' }}
-                />
-              ) : null}
-              <small className="muted">
-                {item.category.name} · {formatDateTime(item.publishedAt)}
-              </small>
-              <h2 style={{ margin: 0, fontSize: '1.2rem' }}>
-                <Link href={`/noticias/${item.slug}`}>{item.title}</Link>
-              </h2>
-              {item.summary ? <p style={{ margin: 0 }}>{item.summary}</p> : null}
-            </article>
+        <div className="card-grid" style={{ '--card-min': '300px' } as React.CSSProperties}>
+          {news.data.map((item, index) => (
+            <NewsCard key={item.id} news={item} featured={page === 1 && index === 0} />
           ))}
         </div>
       )}

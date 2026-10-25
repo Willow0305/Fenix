@@ -440,6 +440,7 @@ Prioridades:
 - **Questão:** os pedidos exigem campos novos (`Event.coverMediaFileId`, capa do parceiro) e a inclusão da logo do parceiro na resposta pública de produtos. São funcionalidades fora das fases 0 a 8 do roadmap e precisam de aprovação explícita.
 - **Recomendação:** aprovar as três, reutilizando o fluxo de upload público da capa de notícia (PNG, JPG ou WebP até 5 MB, tipo real conferido no servidor). As imagens são públicas e não podem conter dados pessoais além do que o parceiro autorizar.
 - **Impacto:** migração Prisma, endpoints de upload, telas do painel e do site, testes de upload.
+- **Situação:** resolvida em 2026-10-25 (`DT-041`). Ver seção 12.
 
 ### PEN-059 — Testes de integração gravam no banco de desenvolvimento
 
@@ -520,3 +521,4 @@ As entradas acima permanecem como histórico da questão original. As decisões 
 | PEN-059 | Decidido em 2026-10-25: testes de integração em banco exclusivo `<banco>_test`, recriado a cada execução; limpeza auditada do banco de desenvolvimento (`npm run db:clean-test-data`); arquivos fora da pasta do projeto e `npm run backup`. | Responsável do projeto | `DT-038` |
 | PEN-056 | Decidido em 2026-10-25: só CPF (`000.000.000-00`) para pessoa física, opcional, com dígitos verificadores; RG recusado. Documentos antigos não são apagados: a ficha mostra "precisa de revisão". | Responsável do projeto | `DT-040` |
 | PEN-057 | Decidido em 2026-10-25 com a recomendação: pessoa física só celular `(00) 00000-0000`; contato de emergência, parceiro, profissional e contato do time aceitam também fixo `(00) 0000-0000`. | Responsável do projeto | `DT-040` |
+| PEN-058 | Aprovado em 2026-10-25 pelo pedido do responsável: capa de evento, capa de parceiro e logo do parceiro nos produtos, no mesmo fluxo de imagem pública otimizada. | Responsável do projeto | `DT-041` |

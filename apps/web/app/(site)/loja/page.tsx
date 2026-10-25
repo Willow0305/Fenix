@@ -1,10 +1,9 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 
+import { Icon } from '../../../components/icon';
 import { ProductCard } from '../../../components/product-card';
 import type { Page } from '../../../lib/api-types';
-import type { Campaign } from '../../../lib/campaign-types';
-import { formatDateTime } from '../../../lib/format';
 import { serverGet } from '../../../lib/server-api';
 import type { ProductSummary, StoreCategory } from '../../../lib/store-types';
 import { StoreToolbar } from './store-toolbar';
@@ -14,7 +13,12 @@ export const metadata: Metadata = { title: 'Loja' };
 export default async function StorePage({
   searchParams
 }: {
-  readonly searchParams: Promise<{ categoria?: string; busca?: string; pagina?: string }>;
+  readonly searchParams: Promise<{
+    categoria?: string;
+    busca?: string;
+    pagina?: string;
+    prevenda?: string;
+  }>;
 }) {
   const params = await searchParams;
   const page = Math.max(1, Number(params.pagina ?? 1) || 1);
@@ -28,15 +32,23 @@ export default async function StorePage({
     query.set('search', params.busca);
   }
 
+  if (params.prevenda) {
+    query.set('campaign', 'true');
+  }
+
   const [products, categories] = await Promise.all([
     serverGet<Page<ProductSummary>>(`/public/products?${query.toString()}`, 30),
     serverGet<StoreCategory[]>('/public/product-categories', 60)
   ]);
-  const campaigns = (await serverGet<Campaign[]>('/public/campaigns', 30)) ?? [];
   const totalPages = products ? Math.ceil(products.meta.total / products.meta.pageSize) : 1;
   const link = (overrides: Record<string, string | undefined>) => {
     const next = new URLSearchParams();
-    const merged = { categoria: params.categoria, busca: params.busca, ...overrides };
+    const merged = {
+      categoria: params.categoria,
+      busca: params.busca,
+      prevenda: params.prevenda,
+      ...overrides
+    };
 
     for (const [k, v] of Object.entries(merged)) {
       if (v) {
@@ -56,52 +68,28 @@ export default async function StorePage({
         </div>
         <StoreToolbar />
       </div>
-      {campaigns.map((campaign) => (
-        <section
-          key={campaign.id}
-          className="card stack"
-          style={{ borderLeft: '4px solid var(--color-primary)' }}
-        >
-          <div className="row">
-            <strong>Pré-venda: {campaign.name}</strong>
-            <span className="badge badge-success">até {formatDateTime(campaign.salesEndAt)}</span>
-          </div>
-          {campaign.description ? (
-            <p className="prose" style={{ margin: 0 }}>
-              {campaign.description}
-            </p>
-          ) : null}
-          {campaign.minimumQuantity ? (
-            <small className="muted">
-              A encomenda ao fornecedor acontece se forem atingidas {campaign.minimumQuantity}{' '}
-              unidades pagas.
-              {campaign.refundPolicy ? ` ${campaign.refundPolicy}` : ''}
-            </small>
-          ) : null}
-          <div className="row">
-            {campaign.products.map((product) => (
-              <Link
-                key={product.id}
-                href={`/loja/${product.productSlug}`}
-                className="btn btn-secondary btn-sm"
-              >
-                {product.productName}
-              </Link>
-            ))}
-          </div>
-        </section>
-      ))}
       <nav aria-label="Categorias" className="row">
         <Link
-          href={link({ categoria: undefined, pagina: undefined })}
-          className={`btn btn-sm ${params.categoria ? 'btn-secondary' : 'btn-primary'}`}
+          href={link({ categoria: undefined, prevenda: undefined, pagina: undefined })}
+          className={`btn btn-sm ${params.categoria || params.prevenda ? 'btn-secondary' : 'btn-primary'}`}
         >
           Todas
+        </Link>
+        <Link
+          href={link({
+            categoria: undefined,
+            prevenda: params.prevenda ? undefined : '1',
+            pagina: undefined
+          })}
+          className={`btn btn-sm ${params.prevenda ? 'btn-primary' : 'btn-secondary'}`}
+          aria-current={params.prevenda ? 'page' : undefined}
+        >
+          <Icon name="clock-history" /> Pré-venda
         </Link>
         {(categories ?? []).map((category) => (
           <Link
             key={category.id}
-            href={link({ categoria: category.slug, pagina: undefined })}
+            href={link({ categoria: category.slug, prevenda: undefined, pagina: undefined })}
             className={`btn btn-sm ${params.categoria === category.slug ? 'btn-primary' : 'btn-secondary'}`}
           >
             {category.name}
@@ -112,6 +100,7 @@ export default async function StorePage({
         {params.categoria ? (
           <input type="hidden" name="categoria" value={params.categoria} />
         ) : null}
+        {params.prevenda ? <input type="hidden" name="prevenda" value="1" /> : null}
         <input
           maxLength={120}
           name="busca"
@@ -128,25 +117,19 @@ export default async function StorePage({
           }}
         />
         <button type="submit" className="btn btn-secondary">
-          Buscar
+          <Icon name="search" /> Buscar
         </button>
       </form>
       {products === null ? (
         <p className="empty">A loja está indisponível no momento. Tente novamente em instantes.</p>
       ) : products.data.length === 0 ? (
         <p className="empty">
-          {params.busca || params.categoria
+          {params.busca || params.categoria || params.prevenda
             ? 'Nenhum produto encontrado para o filtro.'
             : 'Novos produtos em breve!'}
         </p>
       ) : (
-        <div
-          style={{
-            display: 'grid',
-            gap: '1rem',
-            gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))'
-          }}
-        >
+        <div className="card-grid" style={{ '--card-min': '200px' } as React.CSSProperties}>
           {products.data.map((product) => (
             <ProductCard key={product.id} product={product} />
           ))}

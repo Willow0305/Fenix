@@ -2,7 +2,10 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 
-import { formatDateTime } from '../../../../lib/format';
+import { Icon } from '../../../../components/icon';
+import { MediaImage } from '../../../../components/media-image';
+import type { Campaign } from '../../../../lib/campaign-types';
+import { formatDate, formatDateTime } from '../../../../lib/format';
 import { serverGet } from '../../../../lib/server-api';
 import { FULFILLMENT, type ProductDetail } from '../../../../lib/store-types';
 import { ProductPurchase } from './product-purchase';
@@ -35,6 +38,12 @@ export default async function ProductPage({
     notFound();
   }
 
+  const campaign = product.campaign
+    ? ((await serverGet<Campaign[]>('/public/campaigns', 30)) ?? []).find(
+        (item) => item.slug === product.campaign?.slug
+      )
+    : undefined;
+
   return (
     <div className="container" style={{ paddingTop: '2rem' }}>
       <p>
@@ -49,26 +58,19 @@ export default async function ProductPage({
       >
         <div className="stack">
           {product.images.length > 0 ? (
-            product.images.map((image) => (
-              <img
+            product.images.map((image, index) => (
+              <MediaImage
                 key={image.id}
                 src={image.url}
                 alt={image.altText ?? product.name}
-                style={{
-                  width: '100%',
-                  borderRadius: 'var(--radius-md)',
-                  border: '1px solid var(--color-border)',
-                  background: '#fff'
-                }}
+                ratio="1/1"
+                fit="contain"
+                priority={index === 0}
+                className="product-photo"
               />
             ))
           ) : (
-            <div
-              className="card empty"
-              style={{ aspectRatio: '1', display: 'grid', placeItems: 'center' }}
-            >
-              Sem imagem
-            </div>
+            <MediaImage src={null} alt="" ratio="1/1" className="product-photo" />
           )}
         </div>
         <div className="stack">
@@ -82,10 +84,32 @@ export default async function ProductPage({
             {FULFILLMENT[product.fulfillmentType]}
           </span>
           {product.campaign ? (
-            <div className="alert alert-info">
-              Produto da remessa <strong>{product.campaign.name}</strong>: será encomendado ao
-              fornecedor após o encerramento das vendas.
-            </div>
+            <section
+              className="alert alert-info stack"
+              aria-labelledby="prevenda"
+              style={{ gap: '0.4rem' }}
+            >
+              <strong id="prevenda">
+                <Icon name="clock-history" /> Pré-venda até{' '}
+                {formatDateTime(product.campaign.salesEndAt)}
+              </strong>
+              <span>
+                Este produto será encomendado ao fornecedor depois do fim das vendas da remessa{' '}
+                <strong>{product.campaign.name}</strong>.
+              </span>
+              {campaign?.minimumQuantity ? (
+                <span>
+                  A encomenda só acontece se forem atingidas {campaign.minimumQuantity} unidades
+                  pagas.
+                </span>
+              ) : null}
+              {campaign?.expectedArrivalOn ? (
+                <span>Previsão de chegada: {formatDate(campaign.expectedArrivalOn)}.</span>
+              ) : null}
+              {campaign?.refundPolicy ? (
+                <span className="prose">{campaign.refundPolicy}</span>
+              ) : null}
+            </section>
           ) : null}
           {product.productionLeadDays ? (
             <p className="muted">Prazo de produção: cerca de {product.productionLeadDays} dias.</p>

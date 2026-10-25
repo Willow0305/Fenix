@@ -2,14 +2,18 @@ import type { PublicTeam } from './api-types';
 
 const API_INTERNAL_URL = process.env['API_INTERNAL_URL'] ?? 'http://127.0.0.1:3333';
 
+/** Etiqueta das leituras públicas; a API pede o descarte após alterações (DT-041). */
+export const PUBLIC_CONTENT_TAG = 'public-content';
+
 /**
  * Leitura de conteúdo público no servidor (Server Components). Falhas retornam `null`
- * para que a página exiba estado institucional em vez de erro.
+ * para que a página exiba estado institucional em vez de erro. O cache vale até
+ * `revalidateSeconds` ou até a API avisar que algo mudou no painel.
  */
 export async function serverGet<T>(path: string, revalidateSeconds = 60): Promise<T | null> {
   try {
     const response = await fetch(`${API_INTERNAL_URL}/api/v1${path}`, {
-      next: { revalidate: revalidateSeconds },
+      next: { revalidate: revalidateSeconds, tags: [PUBLIC_CONTENT_TAG] },
       headers: { Accept: 'application/json' }
     });
 

@@ -273,6 +273,20 @@ export class ContentController {
     );
   }
 
+  @Post('events/:id/cover')
+  @ApiBearerAuth()
+  @ApiConsumes('multipart/form-data')
+  @RequirePermissions(PERMISSIONS.eventsManage)
+  @UseInterceptors(FileInterceptor('file', UPLOAD_LIMITS))
+  eventCover(
+    @CurrentPrincipal() actor: Principal,
+    @Param('id', new ParseUUIDPipe()) id: string,
+    @UploadedFile() file: IncomingFile | undefined,
+    @ReqMeta() meta: RequestMeta
+  ): Promise<EventView> {
+    return this.events.setCover(actor, id, file, meta);
+  }
+
   @Patch('events/:id')
   @ApiBearerAuth()
   @RequirePermissions(PERMISSIONS.eventsManage)

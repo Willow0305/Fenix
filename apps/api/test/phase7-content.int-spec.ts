@@ -1,6 +1,6 @@
 import { randomUUID } from 'node:crypto';
 
-import { createTestContext, type TestContext, tokenFor } from './helpers';
+import { createTestContext, PNG_1X1, type TestContext, tokenFor } from './helpers';
 
 describe('Fase 7 — comunicação', () => {
   let ctx: TestContext;
@@ -175,6 +175,21 @@ describe('Fase 7 — comunicação', () => {
       .expect(200);
 
     expect(result.body.match.teamScore).toBe(3);
+
+    // Capa do evento (DT-041): sem ela o evento herda a da notícia; com ela, usa a própria.
+    expect(detail.body.coverUrl).toBeNull();
+
+    const covered = await ctx
+      .http()
+      .post(`/api/v1/events/${event.body.id}/cover`)
+      .set(auth(board.token))
+      .attach('file', PNG_1X1, 'capa.png')
+      .expect(201);
+
+    expect(covered.body.coverUrl).toMatch(/^\/api\/v1\/media\//);
+    detail = await ctx.http().get(`/api/v1/public/events/${event.body.slug}`).expect(200);
+    expect(detail.body.coverUrl).toBe(covered.body.coverUrl);
+    await ctx.http().get(covered.body.coverUrl).expect(200).expect('Content-Type', 'image/webp');
 
     await ctx
       .http()

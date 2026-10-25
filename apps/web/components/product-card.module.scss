@@ -1,6 +1,7 @@
 .card {
   display: grid;
   grid-template-rows: auto 1fr;
+  min-width: 0;
   overflow: hidden;
   border-radius: var(--radius-md);
   border: 1px solid var(--color-border);
@@ -16,54 +17,18 @@
   }
 }
 
-.media {
-  position: relative;
-  aspect-ratio: 1;
-  background: #f0eef3;
-  display: grid;
-  place-items: center;
-
-  img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-  }
-}
-
-.placeholder {
-  font-weight: 900;
-  letter-spacing: 0.2em;
-  color: #c9c4d2;
-}
-
-.tag,
-.soldOut {
-  position: absolute;
-  top: 0.6rem;
-  left: 0.6rem;
-  padding: 0.15rem 0.5rem;
-  border-radius: 999px;
-  font-size: 0.75rem;
-  font-weight: 700;
-  background: var(--color-primary);
-  color: #fff;
-}
-
-.soldOut {
-  left: auto;
-  right: 0.6rem;
-  background: var(--color-ink);
-}
-
 .body {
   display: grid;
+  align-content: start;
   gap: 0.25rem;
   padding: 0.9rem;
+  min-width: 0;
 }
 
 .meta {
   font-size: 0.8rem;
   color: var(--color-text-muted);
+  overflow-wrap: anywhere;
 }
 
 .price {

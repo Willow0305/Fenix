@@ -1,6 +1,9 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 
+import { Icon } from '../../../components/icon';
+import { MediaImage } from '../../../components/media-image';
+import { PartnerLogo } from '../../../components/partner-logo';
 import { PARTNER_TYPE, type PublicPartner } from '../../../lib/partner-types';
 import { serverGet } from '../../../lib/server-api';
 
@@ -17,40 +20,37 @@ export default async function PartnersPage() {
         Empresas e profissionais aprovados pela diretoria do Fênix Vôlei, com contrato vigente.
       </p>
       {partners.length === 0 ? (
-        <div className="card">
+        <div className="card empty">
           <p>Nenhum parceiro publicado no momento.</p>
         </div>
       ) : (
-        <div
-          style={{
-            display: 'grid',
-            gap: '1rem',
-            gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 260px), 1fr))'
-          }}
-        >
+        <div className="card-grid" style={{ '--card-min': '280px' } as React.CSSProperties}>
           {partners.map((partner) => (
-            <article key={partner.id} className="card stack">
-              {partner.logoUrl ? (
-                <img
-                  src={partner.logoUrl}
-                  alt={`Logo de ${partner.displayName}`}
-                  width={96}
-                  height={96}
-                  style={{ objectFit: 'contain' }}
+            <article key={partner.id} className="content-card partner-card">
+              <Link href={`/parceiros/${partner.id}`} tabIndex={-1} aria-hidden="true">
+                <MediaImage
+                  src={partner.coverUrl}
+                  alt=""
+                  fallbackSrc={partner.logoUrl ?? undefined}
+                  fallbackTone="light"
                 />
-              ) : null}
-              <h2 style={{ margin: 0 }}>
-                <Link href={`/parceiros/${partner.id}`}>{partner.displayName}</Link>
-              </h2>
-              <span className="badge">{PARTNER_TYPE[partner.type]}</span>
-              {partner.description ? (
-                <p style={{ margin: 0 }}>{partner.description.slice(0, 180)}</p>
-              ) : null}
-              {partner.services.length > 0 ? (
-                <small className="muted">
-                  {partner.services.length} serviço(s) com agendamento
-                </small>
-              ) : null}
+              </Link>
+              <div className="content-card-body">
+                <PartnerLogo src={partner.logoUrl} name={partner.displayName} />
+                <h2 className="content-card-title line-clamp-2" title={partner.displayName}>
+                  <Link href={`/parceiros/${partner.id}`}>{partner.displayName}</Link>
+                </h2>
+                <span className="badge" style={{ justifySelf: 'start' }}>
+                  {PARTNER_TYPE[partner.type]}
+                </span>
+                {partner.description ? <p className="line-clamp-3">{partner.description}</p> : null}
+                {partner.services.length > 0 ? (
+                  <small className="muted">
+                    <Icon name="calendar-check" /> {partner.services.length} serviço(s) com
+                    agendamento
+                  </small>
+                ) : null}
+              </div>
             </article>
           ))}
         </div>

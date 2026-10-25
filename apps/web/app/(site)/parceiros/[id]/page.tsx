@@ -2,6 +2,9 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 
+import { Icon } from '../../../../components/icon';
+import { MediaImage } from '../../../../components/media-image';
+import { PartnerLogo } from '../../../../components/partner-logo';
 import { formatMoney, formatPhoneDisplay } from '../../../../lib/format';
 import { PARTNER_TYPE, type PublicPartner } from '../../../../lib/partner-types';
 import { serverGet } from '../../../../lib/server-api';
@@ -39,28 +42,33 @@ export default async function PartnerPage({
   return (
     <div className="container stack" style={{ paddingTop: '2rem' }}>
       <p>
-        <Link href="/parceiros">← Parceiros</Link>
+        <Link href="/parceiros">
+          <Icon name="arrow-left" /> Parceiros
+        </Link>
       </p>
-      <div className="row">
-        {partner.logoUrl ? (
-          <img
-            src={partner.logoUrl}
-            alt={`Logo de ${partner.displayName}`}
-            width={112}
-            height={112}
-            style={{ objectFit: 'contain' }}
-          />
-        ) : null}
-        <div className="stack">
-          <h1 style={{ margin: 0 }}>{partner.displayName}</h1>
-          <span className="badge">{PARTNER_TYPE[partner.type]}</span>
-          {partner.websiteUrl ? (
-            <a href={partner.websiteUrl} target="_blank" rel="noopener noreferrer nofollow">
-              Site do parceiro
-            </a>
-          ) : null}
+      <header className="partner-hero">
+        <MediaImage
+          src={partner.coverUrl}
+          alt=""
+          priority
+          fallbackSrc={partner.logoUrl ?? undefined}
+          fallbackTone="light"
+        />
+        <div className="partner-hero-body">
+          <PartnerLogo src={partner.logoUrl} name={partner.displayName} size={112} />
+          <div>
+            <h1 style={{ margin: 0 }}>{partner.displayName}</h1>
+            <span className="badge" style={{ justifySelf: 'start' }}>
+              {PARTNER_TYPE[partner.type]}
+            </span>
+            {partner.websiteUrl ? (
+              <a href={partner.websiteUrl} target="_blank" rel="noopener noreferrer nofollow">
+                <Icon name="box-arrow-up-right" /> Site do parceiro
+              </a>
+            ) : null}
+          </div>
         </div>
-      </div>
+      </header>
       {partner.description ? <p style={{ whiteSpace: 'pre-line' }}>{partner.description}</p> : null}
 
       {partner.services.length > 0 ? (
@@ -84,7 +92,7 @@ export default async function PartnerPage({
                 className="btn btn-primary"
                 style={{ justifySelf: 'start' }}
               >
-                Solicitar horário
+                <Icon name="calendar-plus" /> Solicitar horário
               </Link>
             </article>
           ))}

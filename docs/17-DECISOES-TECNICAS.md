@@ -795,3 +795,22 @@ A logo oficial e as configurações do time "sumiam". A auditoria mostrou a caus
 
 - integrações que enviavam telefone em formato livre (`+55 68 ...`) continuam aceitas, desde que o resultado tenha DDD e número válidos;
 - 20 testes unitários no pacote e um teste de integração de recusa (RG, CPF inválido, telefone sem DDD ou com DDD inválido).
+
+## DT-041 — Imagens de evento e parceiro, selo do parceiro e atualização imediata do site
+
+- **Estado:** Aceita
+- **Data:** 2026-10-25
+- **Aprovador:** responsável do projeto (pedidos de imagens em notícias, eventos e parceiros, logo do parceiro nos produtos e ícones, 2026-10-25); resolve `PEN-058`
+
+### Decisão
+
+- **capas:** `events.cover_media_file_id` e `partners.cover_media_file_id` (FK para `media_files`, `ON DELETE SET NULL`, com índice), enviadas por `POST /events/:id/cover` e `POST /partners/:id/cover` com o fluxo de imagem pública da `DT-039` e auditoria (`event.cover.updated`, `partner.cover.updated`). A visão do evento devolve `coverUrl` própria ou, na falta, a da notícia vinculada visível;
+- **produtos:** a visão pública inclui `partner.logoUrl` e `campaign.salesEndAt`; `GET /public/products?campaign=true` lista só produtos em remessa aberta;
+- **cache do site:** as leituras públicas do Next levam a etiqueta `public-content`. Um interceptor global da API, depois de qualquer alteração bem-sucedida (exceto `/auth` e `/me`), chama `POST {WEB_INTERNAL_URL}/api/site-revalidate` com o cabeçalho `x-revalidate-secret` (`SITE_REVALIDATE_SECRET`), agrupando alterações em 1 s. Sem o segredo, o aviso fica desligado e vale o cache de até 60 s. Falhas viram aviso no log e nunca afetam a resposta;
+- **ícones:** Bootstrap Icons 1.11.3 (MIT, publicado em 2024-01-03), carregado como fonte no layout e usado pelo componente `Icon`: decorativo por padrão (`aria-hidden`), sempre ao lado de texto;
+- **componentes:** `MediaImage`, `NewsCard`, `EventCard`, `PartnerLogo` e `ImageUpload` concentram imagem com reserva, cartões e envio, sem `<img>` solto nas telas.
+
+### Consequências
+
+- migração `20261025210000_capas_evento_parceiro`, gerada por `prisma migrate diff` porque o banco local guarda um registro antigo e já desfeito (`20261025200000_mfa_totp`, `rolled_back`) que impede `migrate dev`; `migrate deploy` não é afetado;
+- testes de integração de capa de evento (inclusive WebP e herança da notícia) e de logo e capa do parceiro; 3 testes unitários do interceptor.

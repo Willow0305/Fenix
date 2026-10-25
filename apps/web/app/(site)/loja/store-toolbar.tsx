@@ -2,6 +2,8 @@
 
 import Link from 'next/link';
 
+import { Icon } from '../../../components/icon';
+
 import { useAuth } from '../../../lib/auth-context';
 import { useCart } from '../../../lib/cart-context';
 
@@ -14,14 +16,14 @@ export function StoreToolbar() {
     <div className="row">
       {status === 'authenticated' ? (
         <Link href="/minha-conta/favoritos" className="btn btn-secondary btn-sm">
-          Favoritos
+          <Icon name="heart" /> Favoritos
         </Link>
       ) : null}
       <Link href="/loja/pedido" className="btn btn-secondary btn-sm">
-        Consultar pedido
+        <Icon name="receipt" /> Consultar pedido
       </Link>
       <Link href="/loja/carrinho" className="btn btn-primary btn-sm">
-        Carrinho{cart && cart.itemCount > 0 ? ` (${cart.itemCount})` : ''}
+        <Icon name="cart3" /> Carrinho{cart && cart.itemCount > 0 ? ` (${cart.itemCount})` : ''}
       </Link>
     </div>
   );

@@ -61,6 +61,7 @@ export interface PartnerView {
   readonly contractStartsOn: string | null;
   readonly contractEndsOn: string | null;
   readonly logoUrl: string | null;
+  readonly coverUrl: string | null;
   readonly commissionType: CommissionType;
   readonly commissionPercentage: string | null;
   readonly commissionFixedAmount: MoneyView | null;
@@ -96,6 +97,8 @@ export interface PublicPartnerView {
   readonly description: string | null;
   readonly websiteUrl: string | null;
   readonly logoUrl: string | null;
+  /** Capa 16:9 (PEN-058, DT-041). */
+  readonly coverUrl: string | null;
   readonly professionals: PublicProfessionalView[];
   readonly services: PublicServiceView[];
   readonly products: { id: string; name: string; slug: string }[];
@@ -206,6 +209,7 @@ export class PartnersService {
       contractStartsOn: optionalCivil(row.contractStartsOn),
       contractEndsOn: optionalCivil(row.contractEndsOn),
       logoUrl: row.logoMediaFileId ? mediaUrl(row.logoMediaFileId) : null,
+      coverUrl: row.coverMediaFileId ? mediaUrl(row.coverMediaFileId) : null,
       commissionType: row.commissionType,
       commissionPercentage: row.commissionPercentage?.toFixed(2) ?? null,
       commissionFixedAmount: row.commissionFixedAmount
@@ -603,6 +607,41 @@ export class PartnersService {
     return this.get(id, actor);
   }
 
+  /** Capa 16:9 do parceiro (PEN-058, DT-041): imagem pública otimizada em WebP. */
+  async setCover(
+    actor: Principal,
+    id: string,
+    file: IncomingFile | undefined,
+    meta: RequestMeta
+  ): Promise<PartnerView> {
+    const current = await this.load(id);
+
+    await this.prisma.$transaction(async (tx) => {
+      const stored = await this.media.store(
+        file,
+        { ...IMAGE_POLICY, kind: 'IMAGE', classification: 'PUBLIC' },
+        actor.userId,
+        tx
+      );
+
+      await tx.partner.update({ where: { id }, data: { coverMediaFileId: stored.id } });
+      await this.audit.record(
+        {
+          actorUserId: actor.userId,
+          action: 'partner.cover.updated',
+          entityType: 'Partner',
+          entityId: id,
+          before: { coverMediaFileId: current.coverMediaFileId },
+          after: { coverMediaFileId: stored.id },
+          meta
+        },
+        tx
+      );
+    });
+
+    return this.get(id, actor);
+  }
+
   /** Documento/contrato do parceiro: sempre CONFIDENTIAL (RN-PAR-004). */
   async addDocument(
     actor: Principal,
@@ -741,6 +780,7 @@ export class PartnersService {
       description: row.description,
       websiteUrl: row.websiteUrl,
       logoUrl: row.logoMediaFileId ? mediaUrl(row.logoMediaFileId) : null,
+      coverUrl: row.coverMediaFileId ? mediaUrl(row.coverMediaFileId) : null,
       professionals: row.professionals.map((p) => ({
         id: p.id,
         fullName: p.fullName,
