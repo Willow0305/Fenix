@@ -1031,3 +1031,60 @@ dialog {
     min-width: 0;
   }
 }
+
+// Cartão de time que abre e fecha o elenco (Times).
+.team-card {
+  padding: 0;
+
+  > summary {
+    display: grid;
+    gap: 0.5rem;
+    padding: 1.25rem;
+    cursor: pointer;
+    list-style: none;
+    border-radius: var(--radius-md);
+
+    &::-webkit-details-marker {
+      display: none;
+    }
+
+    &:hover {
+      background: var(--color-background);
+    }
+  }
+
+  > :not(summary) {
+    margin: 0 1.25rem 1.25rem;
+  }
+
+  &[open] .team-card-chevron {
+    transform: rotate(180deg);
+  }
+}
+
+.team-card-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem 0.75rem;
+}
+
+.team-card-name {
+  font-size: 1.2rem;
+}
+
+.team-card-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  color: var(--color-primary-dark);
+  font-weight: 600;
+}
+
+.team-card-chevron {
+  transition: transform 0.15s ease;
+}
+
+.team-card-description {
+  color: var(--color-text-subtle);
+}

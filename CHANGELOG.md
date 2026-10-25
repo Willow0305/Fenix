@@ -11,7 +11,7 @@ O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) e o 
 #### Adicionado
 
 - foto de perfil para todos os usuários em Minha conta, privada por padrão, e opção "Perfil público" escolhida pela própria pessoa (DT-044);
-- página Times organizada por categoria, com o elenco de cada time: foto, nome de exibição e posição de quem escolheu perfil público;
+- página Times organizada por categoria, com o elenco de cada time: foto, nome de exibição e posição de quem escolheu perfil público. O elenco começa oculto e abre ou fecha ao clicar no cartão do time;
 - para atleta menor de 18 anos, a diretoria registra a autorização do responsável na ficha antes de ele aparecer no site; o nome sai abreviado;
 - foto de perfil no cabeçalho do site e na ficha do atleta no painel; migração `20261025225214_foto_perfil_publico`.
 

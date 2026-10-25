@@ -18,7 +18,8 @@ const FILTERS: { value: TeamType | ''; label: string }[] = [
 /**
  * Times por categoria e elenco público (PEN-062, DT-044). Só aparece quem escolheu perfil
  * público na própria conta; menores, apenas com autorização do responsável. Nome de
- * exibição, posição e foto: nunca idade ou contato.
+ * exibição, posição e foto: nunca idade ou contato. O elenco começa fechado e abre ou
+ * fecha ao clicar no cartão do time.
  */
 export default async function TeamsPage({
   searchParams
@@ -64,12 +65,21 @@ export default async function TeamsPage({
               {group.category ? `Categoria ${group.category.name}` : 'Outras equipes'}
             </h2>
             {group.teams.map((team) => (
-              <article key={team.id} className="card stack" id={team.slug}>
-                <div className="row">
-                  <h3 style={{ margin: 0 }}>{team.name}</h3>
-                  <span className="badge badge-brand">{TEAM_TYPE[team.type]}</span>
-                </div>
-                {team.description ? <p className="prose">{team.description}</p> : null}
+              <details key={team.id} className="card team-card" id={team.slug}>
+                <summary>
+                  <span className="team-card-head">
+                    <strong className="team-card-name">{team.name}</strong>
+                    <span className="badge badge-brand">{TEAM_TYPE[team.type]}</span>
+                    <span className="spacer" />
+                    <span className="team-card-toggle">
+                      <Icon name="people" /> Elenco ({team.athletes.length})
+                      <Icon name="chevron-down" className="team-card-chevron" />
+                    </span>
+                  </span>
+                  {team.description ? (
+                    <span className="prose team-card-description">{team.description}</span>
+                  ) : null}
+                </summary>
                 {team.athletes.length > 0 ? (
                   <ul className="roster" aria-label={`Elenco de ${team.name}`}>
                     {team.athletes.map((athlete) => (
@@ -85,7 +95,7 @@ export default async function TeamsPage({
                     O elenco aparece aqui quando os atletas escolherem perfil público.
                   </p>
                 )}
-              </article>
+              </details>
             ))}
           </section>
         ))
