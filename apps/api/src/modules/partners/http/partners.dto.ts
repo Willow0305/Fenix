@@ -25,6 +25,7 @@ import {
   MinLength
 } from 'class-validator';
 
+import { IsCpfOrCnpj, IsPhoneBr } from '../../../common/validation/br-fields';
 import { PageQueryDto } from '../../../common/http/pagination';
 
 const DATE = /^\d{4}-\d{2}-\d{2}$/;
@@ -34,8 +35,6 @@ const AMOUNT_MSG = { message: 'Valor inválido: use ponto e até 2 casas (ex.: 8
 const SIGNED_AMOUNT = /^-?\d{1,13}(\.\d{1,2})?$/;
 const PERCENT = /^(100(\.0{1,2})?|\d{1,2}(\.\d{1,2})?)$/;
 const PERCENT_MSG = { message: 'Percentual inválido: de 0 a 100, até 2 casas.' };
-const PHONE = /^[0-9+()\s-]{8,30}$/;
-const PHONE_MSG = { message: 'Telefone inválido.' };
 
 export class PartnerDto {
   @ApiProperty() @IsString() @MinLength(2) @MaxLength(180) legalName!: string;
@@ -43,12 +42,11 @@ export class PartnerDto {
   @ApiProperty({ enum: PartnerType }) @IsEnum(PartnerType) type!: PartnerType;
   @ApiPropertyOptional({ description: 'CNPJ/CPF; armazenado cifrado.' })
   @IsOptional()
-  @IsString()
-  @MaxLength(30)
+  @IsCpfOrCnpj()
   documentNumber?: string;
   @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(160) contactName?: string;
   @ApiPropertyOptional() @IsOptional() @IsEmail() @MaxLength(180) email?: string;
-  @ApiPropertyOptional() @IsOptional() @Matches(PHONE, PHONE_MSG) phone?: string;
+  @ApiPropertyOptional() @IsOptional() @IsPhoneBr() phone?: string;
   @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(4000) description?: string;
   @ApiPropertyOptional()
   @IsOptional()
@@ -83,8 +81,7 @@ export class UpdatePartnerDto {
   @ApiPropertyOptional({ enum: PartnerType }) @IsOptional() @IsEnum(PartnerType) type?: PartnerType;
   @ApiPropertyOptional({ description: 'String vazia remove o documento.' })
   @IsOptional()
-  @IsString()
-  @MaxLength(30)
+  @IsCpfOrCnpj({ allowEmpty: true })
   documentNumber?: string;
   @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(160) contactName?: string;
   @ApiPropertyOptional()
@@ -94,7 +91,7 @@ export class UpdatePartnerDto {
   email?: string;
   @ApiPropertyOptional()
   @IsOptional()
-  @Matches(/^([0-9+()\s-]{8,30})?$/, PHONE_MSG)
+  @IsPhoneBr({ allowEmpty: true })
   phone?: string;
   @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(4000) description?: string;
   @ApiPropertyOptional({ description: 'String vazia remove o site.' })
@@ -158,7 +155,7 @@ export class ProfessionalDto {
   @MaxLength(40)
   licenseNumber?: string;
   @ApiPropertyOptional() @IsOptional() @IsEmail() @MaxLength(180) email?: string;
-  @ApiPropertyOptional() @IsOptional() @Matches(PHONE, PHONE_MSG) phone?: string;
+  @ApiPropertyOptional() @IsOptional() @IsPhoneBr() phone?: string;
   @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(2000) publicBio?: string;
   @ApiPropertyOptional({ description: 'Autoriza exibir e-mail e telefone no site.' })
   @IsOptional()
@@ -176,7 +173,7 @@ export class UpdateProfessionalDto {
   profession?: string;
   @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(40) licenseNumber?: string;
   @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(180) email?: string;
-  @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(30) phone?: string;
+  @ApiPropertyOptional() @IsOptional() @IsPhoneBr({ allowEmpty: true }) phone?: string;
   @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(2000) publicBio?: string;
   @ApiPropertyOptional() @IsOptional() @IsBoolean() publicContact?: boolean;
   @ApiPropertyOptional({ enum: ProfessionalStatus })

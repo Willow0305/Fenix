@@ -422,6 +422,7 @@ Prioridades:
 - **Questão:** o responsável decidiu em 2026-10-25 que o campo de documento passa a aceitar só CPF (`000.000.000-00`), sem RG. Falta definir: (a) se o CPF vira obrigatório para atletas; (b) o que fazer com atletas sem CPF (estrangeiros, crianças ainda sem CPF); (c) o tratamento dos documentos já gravados que não são CPF válido.
 - **Recomendação:** manter o CPF opcional; quando preenchido, validar os dígitos verificadores. Não apagar nem converter os documentos atuais: listar os inválidos e marcá-los para revisão pela diretoria. A mudança vai para `CHANGELOG.md` e para uma decisão técnica, porque altera o que o sistema aceita.
 - **Impacto:** formulário de atleta (cadastro, edição e conversões), validação da API, migração de dados.
+- **Situação:** resolvida em 2026-10-25 com a recomendação (`DT-040`). Ver seção 12.
 
 ### PEN-057 — Telefone fixo
 
@@ -430,6 +431,7 @@ Prioridades:
 - **Questão:** o padrão decidido é `(00) 00000-0000` (celular, 11 dígitos). Parceiros, profissionais e o contato do time podem ter telefone fixo (10 dígitos), que não cabe nesse padrão.
 - **Recomendação:** pessoas físicas (atleta, responsável, emergência, interessado, inscrição, conta, pedido) só celular; parceiro, profissional e contato do time aceitam também fixo, `(00) 0000-0000`.
 - **Impacto:** validação compartilhada de telefone e migração dos telefones gravados.
+- **Situação:** resolvida em 2026-10-25 com a recomendação (`DT-040`). Ver seção 12.
 
 ### PEN-058 — Novas imagens: capa de evento, capa de parceiro e logo do parceiro nos produtos
 
@@ -516,3 +518,5 @@ As entradas acima permanecem como histórico da questão original. As decisões 
 | PEN-043 | Web e API sob a mesma origem pública: o Next.js encaminha `/api/v1` para a API; CORS restrito à lista explícita. | Delegada | `DT-022` |
 | PEN-013 (sessão) | Decidido em 2026-10-25: inatividade de 30 min e duração máxima de 12 h para perfis com permissão administrativa; 7 dias e 30 dias para contas comuns. Substitui o refresh de 30 dias prorrogável. | Responsável do projeto | `DT-036` |
 | PEN-059 | Decidido em 2026-10-25: testes de integração em banco exclusivo `<banco>_test`, recriado a cada execução; limpeza auditada do banco de desenvolvimento (`npm run db:clean-test-data`); arquivos fora da pasta do projeto e `npm run backup`. | Responsável do projeto | `DT-038` |
+| PEN-056 | Decidido em 2026-10-25: só CPF (`000.000.000-00`) para pessoa física, opcional, com dígitos verificadores; RG recusado. Documentos antigos não são apagados: a ficha mostra "precisa de revisão". | Responsável do projeto | `DT-040` |
+| PEN-057 | Decidido em 2026-10-25 com a recomendação: pessoa física só celular `(00) 00000-0000`; contato de emergência, parceiro, profissional e contato do time aceitam também fixo `(00) 0000-0000`. | Responsável do projeto | `DT-040` |

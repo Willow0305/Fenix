@@ -14,6 +14,8 @@ import {
   ValidateNested
 } from 'class-validator';
 
+import { IsPhoneBr } from '../../../common/validation/br-fields';
+
 export class SocialLinkDto {
   @IsString()
   @MinLength(1)
@@ -40,7 +42,7 @@ export class UpdatePublicSettingsDto {
   @ApiPropertyOptional() @IsOptional() @IsEmail() @MaxLength(180) email?: string;
   @ApiPropertyOptional()
   @IsOptional()
-  @Matches(/^[0-9+()\s-]{8,30}$/, { message: 'Telefone inválido.' })
+  @IsPhoneBr()
   phone?: string;
 
   @ApiPropertyOptional({ type: [SocialLinkDto] })

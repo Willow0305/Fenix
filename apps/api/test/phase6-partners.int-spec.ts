@@ -3,7 +3,7 @@ import { randomUUID } from 'node:crypto';
 import request from 'supertest';
 
 import { todayIn } from '../src/common/domain/civil-date';
-import { createTestContext, PNG_1X1, type TestContext, tokenFor } from './helpers';
+import { createTestContext, PNG_1X1, randomCnpj, type TestContext, tokenFor } from './helpers';
 
 describe('Fase 6 — parceiros e profissionais', () => {
   let ctx: TestContext;
@@ -125,6 +125,7 @@ describe('Fase 6 — parceiros e profissionais', () => {
   }
 
   it('publishes and sells only active partners within the contract, with restricted documents', async () => {
+    const cnpj = randomCnpj();
     const pending = await ctx
       .http()
       .post('/api/v1/partners')
@@ -133,7 +134,7 @@ describe('Fase 6 — parceiros e profissionais', () => {
         legalName: 'Clínica Exemplo LTDA',
         displayName: `Clínica ${randomUUID().slice(0, 5)}`,
         type: 'PROFESSIONAL',
-        documentNumber: `12.345.678/0001-${String(Math.floor(Math.random() * 90) + 10)}`
+        documentNumber: cnpj
       })
       .expect(201);
     const id = pending.body.id as string;
@@ -143,7 +144,7 @@ describe('Fase 6 — parceiros e profissionais', () => {
 
     const stored = await ctx.prisma.partner.findUniqueOrThrow({ where: { id } });
 
-    expect(stored.documentNumberEncrypted).not.toContain('12345678');
+    expect(stored.documentNumberEncrypted).not.toContain(cnpj.slice(0, 8));
 
     const publicIds = async () =>
       ((await ctx.http().get('/api/v1/public/partners').expect(200)).body as { id: string }[]).map(

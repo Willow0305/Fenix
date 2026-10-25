@@ -776,3 +776,22 @@ A logo oficial e as configurações do time "sumiam". A auditoria mostrou a caus
 
 - arquivos enviados antes desta decisão continuam no formato original;
 - 4 testes unitários (conversão, não ampliação, remoção de EXIF, arquivo corrompido) e o teste de integração de logo atualizado para WebP e imagem truncada.
+
+## DT-040 — CPF, telefone e limites de caracteres compartilhados
+
+- **Estado:** Aceita
+- **Data:** 2026-10-25
+- **Aprovador:** responsável do projeto (só CPF no padrão `000.000.000-00` e telefone `(00) 00000-0000`, 2026-10-25; demais pontos pela recomendação de `PEN-056` e `PEN-057`)
+
+### Decisão
+
+- **pacote único:** `packages/validation` passa a gerar JavaScript (`dist/`) e contém as regras de CPF, CNPJ, telefone e os limites de caracteres (`FIELD_LIMITS`). API e site importam o mesmo código; os testes usam o código-fonte via `moduleNameMapper`. A API compila o pacote antes de `build`, `dev` e `typecheck`;
+- **API:** decoradores `IsCpf`, `IsCpfOrCnpj`, `IsMobilePhoneBr` e `IsPhoneBr` (`apps/api/src/common/validation/br-fields.ts`) normalizam para só dígitos e validam. `allowEmpty` aceita string vazia nos PATCH em que ela remove o valor;
+- **CPF:** opcional; 11 dígitos, dígitos verificadores e recusa de sequências repetidas. Gravado cifrado como antes. Exibição `***.982.247-**`. Documento legado que não é CPF continua gravado e a ficha mostra `documentNeedsReview`;
+- **telefone:** celular (DDD 11–99 sem zero, 9 dígitos começando por 9) para atleta, responsável, interessado, inscrição, conta e pedido. Emergência, parceiro, profissional e contato do time aceitam também fixo (8 dígitos começando por 2 a 5);
+- **migração de dados:** telefones gravados perdem máscara e `+55`; o que não resulta em 10 ou 11 dígitos fica como está.
+
+### Consequências
+
+- integrações que enviavam telefone em formato livre (`+55 68 ...`) continuam aceitas, desde que o resultado tenha DDD e número válidos;
+- 20 testes unitários no pacote e um teste de integração de recusa (RG, CPF inválido, telefone sem DDD ou com DDD inválido).

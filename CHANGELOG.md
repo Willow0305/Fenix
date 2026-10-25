@@ -6,6 +6,19 @@ O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) e o 
 
 ## [Não publicado]
 
+### Padronização de CPF, telefone e limites (2026-10-25)
+
+#### Alterado
+
+- documento de atleta aceita só CPF válido; RG e CPF com dígito errado são recusados. Parceiros aceitam CPF ou CNPJ válidos (DT-040);
+- telefones de pessoa física exigem celular com DDD; emergência, parceiro, profissional e time aceitam também fixo. Todos são gravados só com dígitos;
+- a ficha do atleta exibe o CPF como `***.982.247-**` e marca documentos antigos que não são CPF como "precisa de revisão".
+
+#### Adicionado
+
+- pacote compartilhado `@fenix/validation` com CPF, CNPJ, telefone e limites de caracteres, usado pela API e pelo site;
+- migração `20261025200000_telefones_somente_digitos`, que remove máscara e `+55` dos telefones gravados sem apagar valores não convertíveis.
+
 ### Persistência e proteção dos dados (2026-10-25)
 
 #### Corrigido

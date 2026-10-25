@@ -3,6 +3,7 @@ import {
   createUser,
   login,
   type TestContext,
+  randomCpf,
   tokenFor,
   uniqueEmail
 } from './helpers';
@@ -71,6 +72,26 @@ describe('Fase 2 — atletas, equipes, interessados e seletivas', () => {
   }
 
   describe('atletas', () => {
+    it('aceita só CPF válido e telefone com DDD, gravando apenas dígitos (DT-040)', async () => {
+      const send = (body: Record<string, unknown>) =>
+        ctx
+          .http()
+          .post('/api/v1/athletes')
+          .set(auth(board.token))
+          .send({ fullName: `Atleta ${Date.now()}`, ...ADULT, ...body });
+      const fields = async (body: Record<string, unknown>) =>
+        ((await send(body).expect(422)).body.errors as { field: string }[]).map((e) => e.field);
+
+      expect(await fields({ documentNumber: '12.345.678-9' })).toContain('documentNumber');
+      expect(await fields({ documentNumber: '529.982.247-24' })).toContain('documentNumber');
+      expect(await fields({ phone: '99999-0000' })).toContain('phone');
+      expect(await fields({ guardianPhone: '(10) 99999-0000' })).toContain('guardianPhone');
+
+      const created = await send({ phone: '(68) 99999-1234' }).expect(201);
+
+      expect(created.body.phone).toBe('68999991234');
+    });
+
     it('creates an athlete, tracks history and blocks duplicates', async () => {
       const name = `Atleta ${Date.now()}`;
       const created = await ctx
@@ -81,12 +102,13 @@ describe('Fase 2 — atletas, equipes, interessados e seletivas', () => {
           fullName: name,
           ...ADULT,
           position: 'Levantadora',
-          documentNumber: `DOC${Date.now()}`
+          documentNumber: randomCpf()
         })
         .expect(201);
 
       expect(created.body.status).toBe('PENDING');
-      expect(created.body.documentNumberMasked).toMatch(/^\*+\d{4}$/);
+      expect(created.body.documentNumberMasked).toMatch(/^\*\*\*\.\d{3}\.\d{3}-\*\*$/);
+      expect(created.body.documentNeedsReview).toBe(false);
 
       await ctx
         .http()

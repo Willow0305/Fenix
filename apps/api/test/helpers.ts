@@ -182,3 +182,34 @@ export const PNG_1X1 = Buffer.from(
   'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==',
   'base64'
 );
+
+function withCheckDigits(base: number[], firstWeights: number[]): string {
+  const digits = [...base];
+
+  for (const weights of [firstWeights, [firstWeights[0]! + 1, ...firstWeights]]) {
+    const sum = weights.reduce((total, weight, index) => total + digits[index]! * weight, 0);
+    const rest = sum % 11;
+
+    digits.push(rest < 2 ? 0 : 11 - rest);
+  }
+
+  return digits.join('');
+}
+
+/** CPF válido e aleatório (só dígitos), para testes que exigem documento único. */
+export function randomCpf(): string {
+  const base = Array.from({ length: 9 }, () => Math.floor(Math.random() * 10));
+
+  base[0] = 1 + (base[0]! % 9);
+
+  return withCheckDigits(base, [10, 9, 8, 7, 6, 5, 4, 3, 2]);
+}
+
+/** CNPJ válido e aleatório (só dígitos). */
+export function randomCnpj(): string {
+  const base = [...Array.from({ length: 8 }, () => Math.floor(Math.random() * 10)), 0, 0, 0, 1];
+
+  base[0] = 1 + (base[0]! % 9);
+
+  return withCheckDigits(base, [5, 4, 3, 2, 9, 8, 7, 6, 5, 4, 3, 2]);
+}

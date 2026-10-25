@@ -521,7 +521,7 @@ describe('Fase 1 — autenticação, permissões e configurações', () => {
         .patch('/api/v1/team-settings')
         .set('Authorization', `Bearer ${admin.token}`)
         .send({
-          phone: '+55 68 99999-0000',
+          phone: '(68) 99999-0000',
           socialLinks: [{ label: 'Instagram', url: 'https://instagram.com/fenix' }]
         })
         .expect(200);
@@ -534,7 +534,8 @@ describe('Fase 1 — autenticação, permissões e configurações', () => {
 
       const pub = await ctx.http().get('/api/v1/public/team').expect(200);
 
-      expect(pub.body.phone).toBe('+55 68 99999-0000');
+      // Telefone é gravado só com dígitos (DT-040).
+      expect(pub.body.phone).toBe('68999990000');
       expect(JSON.stringify(pub.body)).not.toContain('pix@fenix.example');
 
       const row = await ctx.prisma.teamSettings.findFirstOrThrow();

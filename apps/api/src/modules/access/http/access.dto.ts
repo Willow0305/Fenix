@@ -9,12 +9,12 @@ import {
   IsOptional,
   IsString,
   IsUUID,
-  Matches,
   MaxLength,
   MinLength
 } from 'class-validator';
 
 import { PageQueryDto } from '../../../common/http/pagination';
+import { IsMobilePhoneBr } from '../../../common/validation/br-fields';
 
 export class ReasonDto {
   @ApiProperty({ description: 'Motivo registrado na auditoria.' })
@@ -51,8 +51,7 @@ export class CreateUserDto {
 
   @ApiPropertyOptional()
   @IsOptional()
-  @IsString()
-  @Matches(/^[0-9+()\s-]{8,30}$/, { message: 'Telefone inválido.' })
+  @IsMobilePhoneBr({ allowEmpty: true })
   phone?: string;
 
   @ApiProperty({ type: [String], example: ['user'] })

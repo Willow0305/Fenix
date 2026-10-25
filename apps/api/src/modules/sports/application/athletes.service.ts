@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+import { isValidCpf, maskCpf } from '@fenix/validation';
 import type { AthleteStatus, Gender, Prisma } from '@prisma/client';
 
 import { AuditService } from '../../../common/audit/audit.service';
@@ -70,6 +71,8 @@ export interface AthleteDetail extends AthleteSummary {
   readonly phone: string | null;
   readonly gender: Gender | null;
   readonly documentNumberMasked: string | null;
+  /** Documento gravado antes do padrão CPF (PEN-056): precisa ser revisto pela diretoria. */
+  readonly documentNeedsReview: boolean;
   readonly emergencyContactName: string | null;
   readonly emergencyContactPhone: string | null;
   readonly guardianName: string | null;
@@ -126,14 +129,24 @@ export class AthletesService {
     private readonly notifications: NotificationsService
   ) {}
 
-  private maskDocument(encrypted: string | null): string | null {
+  /** Exibe o CPF mascarado; documento legado (RG ou inválido) fica marcado para revisão. */
+  private documentView(encrypted: string | null): {
+    documentNumberMasked: string | null;
+    documentNeedsReview: boolean;
+  } {
     if (encrypted === null) {
-      return null;
+      return { documentNumberMasked: null, documentNeedsReview: false };
     }
 
     const plain = decryptField(encrypted, this.config.values.dataEncryptionKey);
 
-    return plain.length <= 4 ? '****' : `${'*'.repeat(plain.length - 4)}${plain.slice(-4)}`;
+    return isValidCpf(plain)
+      ? { documentNumberMasked: maskCpf(plain), documentNeedsReview: false }
+      : {
+          documentNumberMasked:
+            plain.length <= 4 ? '****' : `${'*'.repeat(plain.length - 4)}${plain.slice(-4)}`,
+          documentNeedsReview: true
+        };
   }
 
   private activeTeams(row: AthleteRow): string[] {
@@ -155,7 +168,7 @@ export class AthletesService {
       email: row.email,
       phone: row.phone,
       gender: row.gender,
-      documentNumberMasked: this.maskDocument(row.documentNumberEncrypted),
+      ...this.documentView(row.documentNumberEncrypted),
       emergencyContactName: row.emergencyContactName,
       emergencyContactPhone: row.emergencyContactPhone,
       guardianName: row.guardianName,

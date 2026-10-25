@@ -5,10 +5,11 @@ import {
   IsEmail,
   IsOptional,
   IsString,
-  Matches,
   MaxLength,
   MinLength
 } from 'class-validator';
+
+import { IsMobilePhoneBr } from '../../../common/validation/br-fields';
 
 export class RegisterDto {
   @ApiProperty({ example: 'Ana Exemplo' })
@@ -27,10 +28,9 @@ export class RegisterDto {
   @MaxLength(128)
   password!: string;
 
-  @ApiPropertyOptional({ example: '+55 68 99999-0000' })
+  @ApiPropertyOptional({ example: '(68) 99999-0000' })
   @IsOptional()
-  @IsString()
-  @Matches(/^[0-9+()\s-]{8,30}$/, { message: 'Telefone inválido.' })
+  @IsMobilePhoneBr()
   phone?: string;
 
   @ApiProperty({ description: 'Aceite dos termos de uso e da política de privacidade.' })
@@ -108,8 +108,7 @@ export class UpdateProfileDto {
 
   @ApiPropertyOptional({ nullable: true })
   @IsOptional()
-  @IsString()
-  @Matches(/^[0-9+()\s-]{0,30}$/, { message: 'Telefone inválido.' })
+  @IsMobilePhoneBr({ allowEmpty: true })
   phone?: string;
 }
 

@@ -25,13 +25,13 @@ import {
   ValidateIf
 } from 'class-validator';
 
+import { IsMobilePhoneBr } from '../../../common/validation/br-fields';
 import { PageQueryDto } from '../../../common/http/pagination';
 
 const AMOUNT = /^\d{1,13}(\.\d{1,2})?$/;
 const AMOUNT_MSG = { message: 'Valor inválido: use ponto e até 2 casas (ex.: 89.90).' };
 const DATE = /^\d{4}-\d{2}-\d{2}$/;
 const DATE_MSG = { message: 'Data inválida (AAAA-MM-DD).' };
-const PHONE = /^[0-9+()\s-]{8,30}$/;
 const PERCENT = /^(100(\.0{1,2})?|\d{1,2}(\.\d{1,2})?)$/;
 const PERCENT_MSG = { message: 'Percentual inválido: de 0 a 100, até 2 casas.' };
 
@@ -205,7 +205,7 @@ export class CheckoutDto {
   @ApiPropertyOptional() @IsOptional() @IsEmail() @MaxLength(180) customerEmail?: string;
   @ApiPropertyOptional()
   @IsOptional()
-  @Matches(PHONE, { message: 'Telefone inválido.' })
+  @IsMobilePhoneBr()
   customerPhone?: string;
   @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(2000) notes?: string;
   @ApiProperty({ description: 'Aceite das regras da loja e da política de privacidade.' })

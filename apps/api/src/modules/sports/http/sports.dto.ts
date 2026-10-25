@@ -22,14 +22,13 @@ import {
   Max,
   MaxLength,
   Min,
-  MinLength,
-  ValidateIf
+  MinLength
 } from 'class-validator';
 
+import { IsCpf, IsMobilePhoneBr, IsPhoneBr } from '../../../common/validation/br-fields';
 import { PageQueryDto } from '../../../common/http/pagination';
 
 export const CIVIL_DATE_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
-const PHONE = /^[0-9+()\s-]{8,30}$/;
 
 export class OptionalReasonDto {
   @ApiPropertyOptional()
@@ -88,25 +87,24 @@ export class AthleteDto {
   birthDate?: string;
   @ApiPropertyOptional({ description: 'Armazenado cifrado; usado para evitar duplicidade.' })
   @IsOptional()
-  @IsString()
-  @MaxLength(30)
+  @IsCpf()
   documentNumber?: string;
   @ApiPropertyOptional() @IsOptional() @IsEmail() @MaxLength(180) email?: string;
   @ApiPropertyOptional()
   @IsOptional()
-  @Matches(PHONE, { message: 'Telefone inválido.' })
+  @IsMobilePhoneBr()
   phone?: string;
   @ApiPropertyOptional({ enum: Gender }) @IsOptional() @IsEnum(Gender) gender?: Gender;
   @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(80) position?: string;
   @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(160) emergencyContactName?: string;
   @ApiPropertyOptional()
   @IsOptional()
-  @Matches(PHONE, { message: 'Telefone inválido.' })
+  @IsPhoneBr()
   emergencyContactPhone?: string;
   @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(160) guardianName?: string;
   @ApiPropertyOptional()
   @IsOptional()
-  @Matches(PHONE, { message: 'Telefone inválido.' })
+  @IsMobilePhoneBr()
   guardianPhone?: string;
   @ApiPropertyOptional() @IsOptional() @IsBoolean() guardianAcknowledged?: boolean;
   @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(4000) notes?: string;
@@ -119,23 +117,26 @@ export class UpdateAthleteDto {
   @IsOptional()
   @Matches(CIVIL_DATE_PATTERN, { message: 'Data inválida (AAAA-MM-DD).' })
   birthDate?: string;
-  @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(30) documentNumber?: string;
+  @ApiPropertyOptional({ description: 'CPF; string vazia remove.' })
+  @IsOptional()
+  @IsCpf({ allowEmpty: true })
+  documentNumber?: string;
   @ApiPropertyOptional() @IsOptional() @IsEmail() @MaxLength(180) email?: string;
   @ApiPropertyOptional()
   @IsOptional()
-  @Matches(PHONE, { message: 'Telefone inválido.' })
+  @IsMobilePhoneBr()
   phone?: string;
   @ApiPropertyOptional({ enum: Gender }) @IsOptional() @IsEnum(Gender) gender?: Gender;
   @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(80) position?: string;
   @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(160) emergencyContactName?: string;
   @ApiPropertyOptional()
   @IsOptional()
-  @Matches(PHONE, { message: 'Telefone inválido.' })
+  @IsPhoneBr()
   emergencyContactPhone?: string;
   @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(160) guardianName?: string;
   @ApiPropertyOptional()
   @IsOptional()
-  @Matches(PHONE, { message: 'Telefone inválido.' })
+  @IsMobilePhoneBr()
   guardianPhone?: string;
   @ApiPropertyOptional() @IsOptional() @IsBoolean() guardianAcknowledged?: boolean;
   @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(4000) notes?: string;
@@ -177,15 +178,14 @@ export class ApplicantDto {
   @Matches(CIVIL_DATE_PATTERN, { message: 'Data inválida (AAAA-MM-DD).' })
   birthDate!: string;
   @ApiProperty() @IsEmail() @MaxLength(180) email!: string;
-  @ApiProperty() @Matches(PHONE, { message: 'Telefone inválido.' }) phone!: string;
+  @ApiProperty() @IsMobilePhoneBr() phone!: string;
   @ApiPropertyOptional({ enum: Gender }) @IsOptional() @IsEnum(Gender) gender?: Gender;
   @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(80) desiredPosition?: string;
   @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(2000) experience?: string;
   @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(160) guardianName?: string;
   @ApiPropertyOptional()
   @IsOptional()
-  @ValidateIf((_, value) => value !== '')
-  @Matches(PHONE, { message: 'Telefone inválido.' })
+  @IsMobilePhoneBr({ allowEmpty: true })
   guardianPhone?: string;
 
   @ApiProperty({ description: 'Ciência do aviso de privacidade.' })
