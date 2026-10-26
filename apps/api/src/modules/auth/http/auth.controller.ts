@@ -1,5 +1,16 @@
-import { Body, Controller, HttpCode, Post, Req, Res } from '@nestjs/common';
-import { ApiTags } from '@nestjs/swagger';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  HttpCode,
+  Param,
+  ParseUUIDPipe,
+  Post,
+  Req,
+  Res
+} from '@nestjs/common';
+import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { Throttle } from '@nestjs/throttler';
 import type { CookieOptions, Response } from 'express';
 
@@ -7,10 +18,16 @@ import { AppConfig } from '../../../common/config/app-config';
 import { AppError } from '../../../common/errors/app-error';
 import {
   type ContextRequest,
+  CurrentPrincipal,
+  type Principal,
   ReqMeta,
   type RequestMeta
 } from '../../../common/http/request-context';
 import { AuthService, type IssuedSession, type MfaChallenge } from '../application/auth.service';
+import {
+  TrustedDevicesService,
+  type TrustedDeviceView
+} from '../application/trusted-devices.service';
 import { Public } from './auth.decorators';
 import {
   ForgotPasswordDto,
@@ -22,7 +39,16 @@ import {
 } from './auth.dto';
 
 export const REFRESH_COOKIE = 'fenix_rt';
+/** Navegador lembrado na segunda etapa (DT-050); mesmo caminho do refresh. */
+export const DEVICE_COOKIE = 'fenix_dv';
 const REFRESH_COOKIE_PATH = '/api/v1/auth';
+
+function readCookie(req: ContextRequest, name: string): string | undefined {
+  const cookies = req.cookies as Record<string, unknown> | undefined;
+  const value = cookies?.[name];
+
+  return typeof value === 'string' && value.length > 0 && value.length <= 200 ? value : undefined;
+}
 const STRICT_LIMIT = { default: { limit: 10, ttl: 60_000 } };
 
 export interface AccessTokenResponse {
@@ -73,10 +99,7 @@ export class AuthController {
   }
 
   private readRefreshCookie(req: ContextRequest): string | undefined {
-    const cookies = req.cookies as Record<string, unknown> | undefined;
-    const value = cookies?.[REFRESH_COOKIE];
-
-    return typeof value === 'string' && value.length > 0 ? value : undefined;
+    return readCookie(req, REFRESH_COOKIE);
   }
 
   @Post('register')
@@ -104,10 +127,16 @@ export class AuthController {
   @Throttle(STRICT_LIMIT)
   async login(
     @Body() body: LoginDto,
+    @Req() req: ContextRequest,
     @ReqMeta() meta: RequestMeta,
     @Res({ passthrough: true }) res: Response
   ): Promise<AccessTokenResponse | MfaChallenge> {
-    const result = await this.auth.login(body.email, body.password, meta);
+    const result = await this.auth.login(
+      body.email,
+      body.password,
+      meta,
+      readCookie(req, DEVICE_COOKIE)
+    );
 
     if ('mfaRequired' in result) {
       res.setHeader('Cache-Control', 'no-store');
@@ -127,7 +156,18 @@ export class AuthController {
     @ReqMeta() meta: RequestMeta,
     @Res({ passthrough: true }) res: Response
   ): Promise<AccessTokenResponse> {
-    return this.respond(res, await this.auth.verifyMfaLogin(body.challengeToken, body.code, meta));
+    const session = await this.auth.verifyMfaLogin(
+      body.challengeToken,
+      body.code,
+      meta,
+      body.rememberDevice === true
+    );
+
+    if (session.device) {
+      res.cookie(DEVICE_COOKIE, session.device.token, this.cookieOptions(session.device.expiresAt));
+    }
+
+    return this.respond(res, session);
   }
 
   @Post('refresh')
@@ -185,5 +225,52 @@ export class AuthController {
   @Throttle(STRICT_LIMIT)
   async reset(@Body() body: ResetPasswordDto, @ReqMeta() meta: RequestMeta): Promise<void> {
     await this.auth.resetPassword(body.token, body.password, meta);
+  }
+}
+
+/** Navegadores lembrados da própria conta (DT-050). Exige login. */
+@ApiTags('Autenticação')
+@ApiBearerAuth()
+@Controller('auth/trusted-devices')
+export class TrustedDevicesController {
+  constructor(
+    private readonly devices: TrustedDevicesService,
+    private readonly config: AppConfig
+  ) {}
+
+  @Get()
+  list(
+    @CurrentPrincipal() principal: Principal,
+    @Req() req: ContextRequest
+  ): Promise<TrustedDeviceView[]> {
+    return this.devices.list(principal.userId, readCookie(req, DEVICE_COOKIE));
+  }
+
+  @Delete(':id')
+  @HttpCode(204)
+  async forget(
+    @CurrentPrincipal() principal: Principal,
+    @Param('id', new ParseUUIDPipe()) id: string,
+    @ReqMeta() meta: RequestMeta
+  ): Promise<void> {
+    await this.devices.forget(principal.userId, id, meta);
+  }
+
+  @Delete()
+  @HttpCode(200)
+  async forgetAll(
+    @CurrentPrincipal() principal: Principal,
+    @Res({ passthrough: true }) res: Response
+  ): Promise<{ forgotten: number }> {
+    res.clearCookie(DEVICE_COOKIE, {
+      httpOnly: true,
+      secure: this.config.values.isProduction,
+      sameSite: 'strict',
+      path: REFRESH_COOKIE_PATH
+    });
+
+    return {
+      forgotten: await this.devices.forgetAll(principal.userId, 'Esquecidos pela pessoa')
+    };
   }
 }

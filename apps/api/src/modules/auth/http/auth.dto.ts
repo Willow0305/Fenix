@@ -124,6 +124,13 @@ export class MfaLoginDto {
   @MinLength(6)
   @MaxLength(20)
   code!: string;
+
+  @ApiPropertyOptional({
+    description: 'Lembrar este navegador por 30 dias, sem pedir o código de novo (DT-050).'
+  })
+  @IsOptional()
+  @IsBoolean()
+  rememberDevice?: boolean;
 }
 
 export class MfaPasswordDto {

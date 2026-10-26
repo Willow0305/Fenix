@@ -260,6 +260,11 @@ Dados de saúde/prontuário continuam fora do escopo, mesmo com responsável.
 - no site aparecem só nome de exibição (apelido; ou nome e último sobrenome; para menor, sobrenome só com a inicial), posição e foto. Nunca idade, data de nascimento, contato ou documento;
 - voltar a privado, remover a foto ou retirar a autorização tira a pessoa do elenco no próximo carregamento do site e fecha a foto. A foto trocada ou removida recebe exclusão lógica; a remoção física do arquivo segue a política de retenção (`PEN-011`).
 
+### Navegador lembrado na segunda etapa (DT-050)
+
+- a pessoa escolhe, na tela do código, lembrar o navegador por 30 dias; o token fica num cookie HttpOnly e o banco guarda só o hash, com o nome do navegador e sem IP;
+- Minha conta → Segurança lista e esquece os navegadores lembrados; troca de senha e mudança na segunda etapa esquecem todos.
+
 ### Avisos por e-mail e WhatsApp (DT-048)
 
 - o aviso no painel sempre existe. E-mail e WhatsApp são **escolha da pessoa por finalidade** (mensalidades, pedidos, seletivas e cadastro, agenda, avisos da diretoria, fórum, conta), em Minha conta → Notificações;

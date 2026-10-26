@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from 'react';
 
 import { MfaSection } from '../../../../components/mfa-section';
+import { TrustedDevicesSection } from '../../../../components/trusted-devices-section';
 import {
   Alert,
   ErrorSummary,
@@ -13,9 +14,11 @@ import {
 } from '../../../../components/ui';
 import { api, errorMessage } from '../../../../lib/api-client';
 import type { SessionInfo } from '../../../../lib/api-types';
+import { useAuth } from '../../../../lib/auth-context';
 import { formatDateTime } from '../../../../lib/format';
 
 export default function SecurityPage() {
+  const { profile } = useAuth();
   const [current, setCurrent] = useState('');
   const [next, setNext] = useState('');
   const [sessions, setSessions] = useState<SessionInfo[] | null>(null);
@@ -53,6 +56,7 @@ export default function SecurityPage() {
     <>
       <PageHeader title="Segurança" />
       <MfaSection />
+      {profile?.mfa.enabled ? <TrustedDevicesSection /> : null}
       <form className="form card" onSubmit={(event) => void change.submit(event)}>
         <h2>Alterar senha</h2>
         {change.message ? <Alert kind="success">{change.message}</Alert> : null}

@@ -26,6 +26,7 @@ import {
   validatePassword
 } from '../domain/auth-rules';
 import { MfaService } from './mfa.service';
+import { TrustedDevicesService } from './trusted-devices.service';
 import { SessionLifetimeService } from './session-lifetime.service';
 
 export interface IssuedSession {
@@ -75,7 +76,8 @@ export class AuthService {
     private readonly audit: AuditService,
     private readonly mail: MailSender,
     private readonly lifetime: SessionLifetimeService,
-    private readonly mfa: MfaService
+    private readonly mfa: MfaService,
+    private readonly trustedDevices: TrustedDevicesService
   ) {}
 
   private assertPassword(password: string, context: { email?: string; name?: string }): void {
@@ -182,10 +184,15 @@ export class AuthService {
     });
   }
 
+  /**
+   * Login por senha. Conta com segunda etapa recebe o desafio, exceto em navegador
+   * lembrado por ela (`deviceToken`, DT-050), que vale como segunda etapa.
+   */
   async login(
     emailInput: string,
     password: string,
-    meta: RequestMeta
+    meta: RequestMeta,
+    deviceToken?: string
   ): Promise<IssuedSession | MfaChallenge> {
     const email = normalizeEmail(emailInput);
     const user = await this.prisma.user.findUnique({
@@ -213,18 +220,28 @@ export class AuthService {
       );
     }
 
-    if (user.mfaEnabledAt !== null) {
+    const trusted =
+      user.mfaEnabledAt !== null && (await this.trustedDevices.check(user.id, deviceToken));
+
+    if (user.mfaEnabledAt !== null && !trusted) {
       return this.issueMfaChallenge(user.id, meta);
     }
 
     return this.prisma.$transaction(async (tx) => {
       await tx.user.update({ where: { id: user.id }, data: { lastLoginAt: new Date() } });
       await this.audit.record(
-        { actorUserId: user.id, action: 'auth.login', entityType: 'User', entityId: user.id, meta },
+        {
+          actorUserId: user.id,
+          action: 'auth.login',
+          entityType: 'User',
+          entityId: user.id,
+          ...(trusted ? { metadata: { secondFactor: 'TRUSTED_DEVICE' } } : {}),
+          meta
+        },
         tx
       );
 
-      return this.createSession(tx, user.id, meta, null, freshTimes());
+      return this.createSession(tx, user.id, meta, null, freshTimes(trusted));
     });
   }
 
@@ -263,8 +280,9 @@ export class AuthService {
   async verifyMfaLogin(
     challengeToken: string,
     code: string,
-    meta: RequestMeta
-  ): Promise<IssuedSession> {
+    meta: RequestMeta,
+    rememberDevice = false
+  ): Promise<IssuedSession & { device: { token: string; expiresAt: Date } | null }> {
     const challenge = await this.prisma.userToken.findUnique({
       where: { tokenHash: sha256Hex(challengeToken) },
       select: {
@@ -337,7 +355,9 @@ export class AuthService {
         tx
       );
 
-      return this.createSession(tx, user.id, meta, null, freshTimes(true));
+      const device = rememberDevice ? await this.trustedDevices.remember(tx, user.id, meta) : null;
+
+      return { ...(await this.createSession(tx, user.id, meta, null, freshTimes(true))), device };
     });
   }
 
@@ -553,6 +573,7 @@ export class AuthService {
         where: { userId: record.user.id, revokedAt: null },
         data: { revokedAt: new Date(), revocationReason: REVOCATION.passwordReset }
       });
+      await this.trustedDevices.forgetAll(record.user.id, 'Senha redefinida', tx);
       await this.audit.record(
         {
           actorUserId: record.user.id,
@@ -593,6 +614,7 @@ export class AuthService {
         where: { userId, revokedAt: null, id: { not: sessionId } },
         data: { revokedAt: new Date(), revocationReason: REVOCATION.passwordChanged }
       });
+      await this.trustedDevices.forgetAll(userId, 'Senha trocada', tx);
       await this.audit.record(
         {
           actorUserId: userId,

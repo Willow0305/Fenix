@@ -6,6 +6,14 @@ O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) e o 
 
 ## [Não publicado]
 
+### Lembrar o dispositivo na verificação em duas etapas (2026-10-26)
+
+#### Adicionado
+
+- caixa "Lembrar este dispositivo por 30 dias" na tela do código: no mesmo navegador, o login pede só a senha (DT-050);
+- lista de dispositivos lembrados em Minha conta → Segurança, com opção de esquecer um ou todos; trocar a senha esquece todos;
+- migração `dispositivos_lembrados`.
+
 ### Tempo real (2026-10-26)
 
 #### Adicionado

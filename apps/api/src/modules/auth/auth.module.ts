@@ -7,18 +7,20 @@ import { AuthService } from './application/auth.service';
 import { MfaService } from './application/mfa.service';
 import { PrincipalLoader } from './application/principal-loader.service';
 import { SessionLifetimeService } from './application/session-lifetime.service';
-import { AuthController } from './http/auth.controller';
+import { TrustedDevicesService } from './application/trusted-devices.service';
+import { AuthController, TrustedDevicesController } from './http/auth.controller';
 import { AuthGuard } from './http/auth.guard';
 import { MeController } from './http/me.controller';
 
 @Module({
-  controllers: [AuthController, MeController],
+  controllers: [AuthController, TrustedDevicesController, MeController],
   providers: [
     AuthService,
     AccountService,
     PrincipalLoader,
     SessionLifetimeService,
     MfaService,
+    TrustedDevicesService,
     { provide: APP_GUARD, useClass: ThrottlerGuard },
     { provide: APP_GUARD, useClass: AuthGuard }
   ],

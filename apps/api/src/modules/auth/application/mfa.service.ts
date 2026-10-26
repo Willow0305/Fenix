@@ -19,6 +19,7 @@ import {
   RECOVERY_CODE_PATTERN,
   REVOCATION
 } from '../domain/auth-rules';
+import { TrustedDevicesService } from './trusted-devices.service';
 
 export interface MfaStatusView {
   readonly enabled: boolean;
@@ -51,7 +52,8 @@ export class MfaService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly config: AppConfig,
-    private readonly audit: AuditService
+    private readonly audit: AuditService,
+    private readonly trustedDevices: TrustedDevicesService
   ) {}
 
   private encrypt(secret: string): string {
@@ -323,6 +325,8 @@ export class MfaService {
       }
     });
     await tx.mfaRecoveryCode.deleteMany({ where: { userId } });
+    // Sem segunda etapa, nenhum navegador lembrado continua valendo (DT-050).
+    await this.trustedDevices.forgetAll(userId, 'Segunda etapa desativada ou redefinida', tx);
   }
 
   /**

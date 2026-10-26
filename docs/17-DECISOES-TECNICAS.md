@@ -981,3 +981,27 @@ As tarefas de 10 em 10 minutos (expirar reservas, encerrar remessas) rodavam com
 - listas do painel (pedidos, inscrições, interessados, mensalidades, atletas) atualizam sozinhas quando outra pessoa ou um cliente faz uma mudança;
 - desligar o servidor encerra as conexões abertas e a escuta, inclusive se ela ainda estiver abrindo;
 - 5 testes unitários (endereço da escuta, destino, lotes, aba de origem, formato), 3 testes no navegador (leitura do fluxo, recursos próprios, quem recarrega) e 5 de integração com conexões reais (login exigido, sessão não tocada, aviso só ao destinatário e só após o commit, mudança só para a diretoria, login sem aviso).
+
+## DT-050 — Lembrar o navegador na segunda etapa
+
+- **Estado:** Aceita
+- **Data:** 2026-10-26
+- **Aprovador:** responsável do projeto ("adicione uma caixa de marcação para que o sistema lembre do dispositivo [...] como o gov.br", 2026-10-26)
+
+### Contexto
+
+Com a segunda etapa (DT-037), o código do autenticador era pedido em todo login, o que afastava as pessoas.
+
+### Decisão
+
+- na tela do código, a caixa **"Lembrar este dispositivo por 30 dias"** vem marcada, com o aviso para desmarcar em computador público ou de outra pessoa;
+- ao confirmar o código com a caixa marcada, a API cria um token aleatório e o envia num cookie `fenix_dv` HttpOnly, `SameSite=Strict`, `Secure` em produção, restrito a `/api/v1/auth`, válido por 30 dias. O banco (`trusted_devices`) guarda só o hash, ligado à conta, com nome legível do navegador ("Chrome no Windows") e sem IP;
+- no login por senha, navegador lembrado **pela mesma conta** vale como segunda etapa: a sessão nasce com a segunda etapa comprovada e a auditoria registra `secondFactor: TRUSTED_DEVICE`. Senha errada continua barrando; o cookie de uma conta não serve para outra;
+- vale para contas comuns e privilegiadas, como nos serviços de referência (gov.br, bancos): o navegador lembrado é o segundo fator "algo que você tem";
+- em Minha conta → Segurança, a pessoa vê os navegadores lembrados (o atual marcado) e pode esquecer um ou todos. Até 10 por conta; ao lembrar o 11º, o mais antigo é esquecido;
+- **esquece todos:** troca ou redefinição de senha, desativação da segunda etapa e redefinição pelo administrador. Criar e esquecer ficam na auditoria.
+
+### Consequências
+
+- login de quem usa sempre o mesmo navegador pede o código só uma vez por mês;
+- 7 testes unitários (nome do navegador, validade) e 6 de integração (sem marcar continua pedindo; lembrado entra só com a senha e com segunda etapa comprovada; cookie de outra conta não serve; listar e trocar a senha esquece todos; esquecer volta a pedir; listar exige login).

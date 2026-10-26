@@ -48,7 +48,12 @@ interface AuthState {
   readonly sessionExpired: boolean;
   /** Retorna o desafio quando a conta exige a segunda etapa; senão, já entra. */
   readonly login: (email: string, password: string) => Promise<MfaChallenge | null>;
-  readonly verifyMfa: (challengeToken: string, code: string) => Promise<void>;
+  /** `rememberDevice` dispensa o código neste navegador por 30 dias (DT-050). */
+  readonly verifyMfa: (
+    challengeToken: string,
+    code: string,
+    rememberDevice?: boolean
+  ) => Promise<void>;
   readonly register: (input: RegisterInput) => Promise<void>;
   readonly logout: () => Promise<void>;
   readonly reloadProfile: () => Promise<void>;
@@ -248,8 +253,8 @@ export function AuthProvider({ children }: { readonly children: ReactNode }) {
 
         return null;
       },
-      verifyMfa: async (challengeToken, code) =>
-        startSession(await postAuth('mfa/verify', { challengeToken, code })),
+      verifyMfa: async (challengeToken, code, rememberDevice = false) =>
+        startSession(await postAuth('mfa/verify', { challengeToken, code, rememberDevice })),
       register: async (input) => startSession(await postAuth('register', input)),
       logout: async () => {
         try {

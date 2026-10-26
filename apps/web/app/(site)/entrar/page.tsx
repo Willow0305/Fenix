@@ -17,6 +17,7 @@ function LoginForm() {
   const [password, setPassword] = useState('');
   const [challenge, setChallenge] = useState<string | null>(null);
   const [code, setCode] = useState('');
+  const [remember, setRemember] = useState(true);
   const goNext = () => router.push(safeInternalPath(params.get('next')));
   const action = useSubmit(async () => {
     const result = await login(email, password);
@@ -30,7 +31,7 @@ function LoginForm() {
   });
   const second = useSubmit(async () => {
     try {
-      await verifyMfa(challenge ?? '', code);
+      await verifyMfa(challenge ?? '', code, remember);
       goNext();
     } catch (error) {
       setCode('');
@@ -60,6 +61,17 @@ function LoginForm() {
           onChange={(e) => setCode(e.target.value)}
           hint="Sem o celular? Use um dos códigos de recuperação (formato XXXX-XXXX-XXXX)."
         />
+        <label className="checkbox">
+          <input
+            type="checkbox"
+            checked={remember}
+            onChange={(e) => setRemember(e.target.checked)}
+          />
+          <span>
+            Lembrar este dispositivo por 30 dias e não pedir o código de novo nele.{' '}
+            <span className="muted">Desmarque em computador público ou de outra pessoa.</span>
+          </span>
+        </label>
         <div className="form-actions">
           <button type="submit" className="btn btn-primary" disabled={second.pending}>
             {second.pending ? 'Verificando…' : 'Verificar'}
