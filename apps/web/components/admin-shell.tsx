@@ -7,6 +7,8 @@ import { type ReactNode, useState } from 'react';
 import { useAuth } from '../lib/auth-context';
 import { useResource } from '../lib/use-resource';
 import styles from './admin-shell.module.scss';
+import type { PublicTeam } from '../lib/api-types';
+import { brandAsset } from '../lib/brand';
 import { BrandLogo } from './brand-logo';
 import { Icon } from './icon';
 import { GlobalSearch } from './global-search';
@@ -211,6 +213,8 @@ export function AdminShell({ children }: { readonly children: ReactNode }) {
     can('dashboard.read') ? '/dashboard/badges' : null
   );
   const pending = (href: string) => badges.data?.[href] ?? 0;
+  const team = useResource<PublicTeam>('/public/team');
+  const boardLogo = team.data ? brandAsset(team.data.brandAssets, 'BOARD') : undefined;
   const total = Object.values(badges.data ?? {}).reduce((sum, count) => sum + count, 0);
 
   return (
@@ -220,7 +224,7 @@ export function AdminShell({ children }: { readonly children: ReactNode }) {
         aria-label="Navegação administrativa"
       >
         <Link href="/" className={styles.brand}>
-          <BrandLogo size={36} />
+          <BrandLogo src={boardLogo?.url} alt={boardLogo?.altText ?? undefined} size={36} />
           <span>Fênix · Painel</span>
         </Link>
         <nav>

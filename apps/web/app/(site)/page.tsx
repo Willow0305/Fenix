@@ -1,6 +1,7 @@
 import Link from 'next/link';
 
 import { BrandLogo } from '../../components/brand-logo';
+import { brandAsset } from '../../lib/brand';
 import { getPublicTeam } from '../../lib/server-api';
 import styles from './home.module.scss';
 import { HomeHighlights } from './home-highlights';
@@ -8,6 +9,8 @@ import { HomeHighlights } from './home-highlights';
 export default async function HomePage() {
   const team = await getPublicTeam();
   const logo = team.brandAssets.OFFICIAL;
+  const male = brandAsset(team.brandAssets, 'MALE');
+  const female = brandAsset(team.brandAssets, 'FEMALE');
 
   return (
     <>
@@ -41,10 +44,16 @@ export default async function HomePage() {
         <h2 id="times-title">Nossos times</h2>
         <div className={styles.cards}>
           <Link href="/times?tipo=MALE" className={styles.teamCard}>
+            <BrandLogo src={male?.url} alt={male?.altText ?? 'Logo do time masculino'} size={64} />
             <strong>Masculino</strong>
             <span>Elenco, agenda e notícias do time masculino.</span>
           </Link>
           <Link href="/times?tipo=FEMALE" className={styles.teamCard}>
+            <BrandLogo
+              src={female?.url}
+              alt={female?.altText ?? 'Logo do time feminino'}
+              size={64}
+            />
             <strong>Feminino</strong>
             <span>Elenco, agenda e notícias do time feminino.</span>
           </Link>

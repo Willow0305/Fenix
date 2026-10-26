@@ -1231,3 +1231,17 @@ O TypeScript 7.0 (compilador nativo) ainda não tem a API em JavaScript que type
 - `DELETE /finance/accounts/:id` (`finance.setup`) e `DELETE /campaigns/:id` (`campaigns.manage`);
 - 2 testes de integração (conta usada recusada e preservada; conta sem uso excluída; remessa aberta e com pedido recusadas; rascunho editado e excluído).
 - correção junto: o ajuste de estoque (+/−) não aceitava o sinal de menos depois de o campo virar só números (DT-051); ganhou o modo "inteiro com sinal", com o teclado comum no celular.
+
+## DT-063 — Logos de cada contexto usadas no site
+
+- **Estado:** Aceita
+- **Data:** 2026-10-26
+- **Aprovador:** responsável do projeto ("existe logo dos times, mas elas não são usadas de fato", 2026-10-26)
+
+### Decisão
+
+As imagens enviadas em Configurações → Marca passam a aparecer onde fazem sentido; sem a do contexto, usa-se o brasão oficial (`lib/brand.ts`):
+
+- **time masculino / feminino:** nos cartões "Nossos times" do Início, no título de Times quando filtrado e em cada time da página Times (misto e outros usam o brasão);
+- **diretoria:** no topo do menu do painel;
+- **capa:** faixa no topo do Sobre e imagem padrão ao compartilhar links do site (sem capa, o brasão). Notícias continuam com a própria capa.

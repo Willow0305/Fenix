@@ -6,6 +6,12 @@ O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) e o 
 
 ## [Não publicado]
 
+### Logos dos times no site (2026-10-26)
+
+#### Adicionado
+
+- logos do time masculino e feminino nos cartões do Início e na página Times; logo da diretoria no painel; imagem de capa no Sobre e ao compartilhar links (DT-063).
+
 ### Excluir contas financeiras e remessas (2026-10-26)
 
 #### Adicionado

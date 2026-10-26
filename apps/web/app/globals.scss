@@ -1079,6 +1079,13 @@ dialog {
   }
 }
 
+.about-cover {
+  width: 100%;
+  max-height: 22rem;
+  object-fit: cover;
+  border-radius: var(--radius-md);
+}
+
 .team-card-head {
   display: flex;
   flex-wrap: wrap;

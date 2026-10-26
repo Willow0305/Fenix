@@ -8,9 +8,13 @@ export const metadata: Metadata = { title: 'Sobre' };
 export default async function AboutPage() {
   const team = await getPublicTeam();
   const logo = team.brandAssets.OFFICIAL;
+  const cover = team.brandAssets.COVER;
 
   return (
     <div className="container stack" style={{ paddingTop: '2.5rem' }}>
+      {cover ? (
+        <img className="about-cover" src={cover.url} alt={cover.altText ?? ''} loading="eager" />
+      ) : null}
       <div className="row">
         <BrandLogo src={logo?.url} alt={logo?.altText ?? undefined} size={96} />
         <div>
