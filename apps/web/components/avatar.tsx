@@ -3,15 +3,7 @@
 import { useEffect, useState } from 'react';
 
 import { apiBlob } from '../lib/api-client';
-
-function initials(name: string): string {
-  return name
-    .split(/\s+/)
-    .filter(Boolean)
-    .slice(0, 2)
-    .map((part) => part[0]?.toUpperCase() ?? '')
-    .join('');
-}
+import { initials } from '../lib/initials';
 
 /**
  * Foto de perfil redonda com iniciais como reserva (DT-044). `authenticated` carrega a

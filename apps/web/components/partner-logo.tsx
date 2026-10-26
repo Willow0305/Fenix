@@ -1,15 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-
-function initials(name: string): string {
-  return name
-    .split(/\s+/)
-    .filter(Boolean)
-    .slice(0, 2)
-    .map((part) => part[0]?.toUpperCase() ?? '')
-    .join('');
-}
+import { initials } from '../lib/initials';
 
 /** Logo do parceiro em círculo; sem logo (ou se falhar), mostra as iniciais (docs/29 §3.6). */
 export function PartnerLogo({

@@ -159,10 +159,13 @@ export class OrdersService implements OnModuleInit, OnModuleDestroy {
     return Number.isFinite(value) && value > 0 ? value : RESERVATION_HOURS_DEFAULT;
   }
 
-  private async toView(row: OrderRow): Promise<OrderView> {
-    const payments = await Promise.all(
-      row.payments.map((payment) => this.payments.view(payment.id))
-    );
+  /** `preloaded` evita uma consulta por pagamento nas listas (N+1). */
+  private async toView(
+    row: OrderRow,
+    preloaded?: ReadonlyMap<string, PaymentView>
+  ): Promise<OrderView> {
+    const views = preloaded ?? (await this.payments.views(row.payments.map((p) => p.id)));
+    const payments = row.payments.flatMap((payment) => views.get(payment.id) ?? []);
     const confirmed = sum(
       row.payments.filter((p) => p.status === 'CONFIRMED').map((p) => p.amount)
     );
@@ -656,7 +659,16 @@ export class OrdersService implements OnModuleInit, OnModuleDestroy {
       this.prisma.order.count({ where })
     ]);
 
-    return toPage(await Promise.all(rows.map((row) => this.toView(row))), total, page, pageSize);
+    const payments = await this.payments.views(
+      rows.flatMap((row) => row.payments.map((p) => p.id))
+    );
+
+    return toPage(
+      await Promise.all(rows.map((row) => this.toView(row, payments))),
+      total,
+      page,
+      pageSize
+    );
   }
 
   async mine(userId: string): Promise<OrderView[]> {
@@ -667,7 +679,11 @@ export class OrdersService implements OnModuleInit, OnModuleDestroy {
       take: 50
     });
 
-    return Promise.all(rows.map((row) => this.toView(row)));
+    const payments = await this.payments.views(
+      rows.flatMap((row) => row.payments.map((p) => p.id))
+    );
+
+    return Promise.all(rows.map((row) => this.toView(row, payments)));
   }
 
   async getOwn(userId: string, id: string): Promise<OrderView> {

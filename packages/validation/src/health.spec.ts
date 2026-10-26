@@ -1,4 +1,4 @@
-import { technicalHealthSchema } from './index';
+import { technicalHealthSchema } from './health';
 
 describe('technicalHealthSchema', () => {
   it('accepts the public technical health contract', () => {

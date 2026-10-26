@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import type { FinancialOrigin, PaymentStatus } from '@prisma/client';
+import type { FinancialOrigin, PaymentStatus, Prisma } from '@prisma/client';
 
 import { AuditService } from '../../../common/audit/audit.service';
 import {
@@ -40,6 +40,33 @@ export interface NewPayment {
  * Caixa (`payment_id` único no lançamento). Estorno gera `Refund` e lançamento oposto
  * vinculado; nada é apagado (RN-MEN-007, RN-FIN-005).
  */
+const PAYMENT_VIEW_INCLUDE = {
+  paymentMethod: { select: { id: true, name: true } },
+  createdBy: { select: { name: true } },
+  financialTransaction: { select: { id: true } },
+  attachments: {
+    where: { deletedAt: null },
+    select: { id: true, mediaFile: { select: { originalName: true } } }
+  }
+} satisfies Prisma.PaymentInclude;
+
+function toPaymentView(
+  row: Prisma.PaymentGetPayload<{ include: typeof PAYMENT_VIEW_INCLUDE }>
+): PaymentView {
+  return {
+    id: row.id,
+    amount: moneyView(row.amount, row.currency),
+    status: row.status,
+    method: row.paymentMethod,
+    paidAt: row.paidAt?.toISOString() ?? null,
+    notes: row.notes,
+    createdBy: row.createdBy?.name ?? null,
+    createdAt: row.createdAt.toISOString(),
+    transactionId: row.financialTransaction?.id ?? null,
+    attachments: row.attachments.map((a) => ({ id: a.id, fileName: a.mediaFile.originalName }))
+  };
+}
+
 @Injectable()
 export class PaymentsService {
   constructor(
@@ -49,31 +76,27 @@ export class PaymentsService {
   ) {}
 
   async view(id: string): Promise<PaymentView> {
-    const row = await this.prisma.payment.findUniqueOrThrow({
-      where: { id },
-      include: {
-        paymentMethod: { select: { id: true, name: true } },
-        createdBy: { select: { name: true } },
-        financialTransaction: { select: { id: true } },
-        attachments: {
-          where: { deletedAt: null },
-          select: { id: true, mediaFile: { select: { originalName: true } } }
-        }
-      }
+    const view = (await this.views([id])).get(id);
+
+    if (!view) {
+      throw AppError.notFound('Pagamento não encontrado.');
+    }
+
+    return view;
+  }
+
+  /** Vários pagamentos numa só consulta (listas de pedidos e mensalidades, sem N+1). */
+  async views(ids: readonly string[]): Promise<Map<string, PaymentView>> {
+    if (ids.length === 0) {
+      return new Map();
+    }
+
+    const rows = await this.prisma.payment.findMany({
+      where: { id: { in: [...new Set(ids)] } },
+      include: PAYMENT_VIEW_INCLUDE
     });
 
-    return {
-      id: row.id,
-      amount: moneyView(row.amount, row.currency),
-      status: row.status,
-      method: row.paymentMethod,
-      paidAt: row.paidAt?.toISOString() ?? null,
-      notes: row.notes,
-      createdBy: row.createdBy?.name ?? null,
-      createdAt: row.createdAt.toISOString(),
-      transactionId: row.financialTransaction?.id ?? null,
-      attachments: row.attachments.map((a) => ({ id: a.id, fileName: a.mediaFile.originalName }))
-    };
+    return new Map(rows.map((row) => [row.id, toPaymentView(row)]));
   }
 
   /** Cria pagamento pendente; reenvio com a mesma chave pelo mesmo autor devolve o existente. */

@@ -1,14 +1,3 @@
-import { z } from 'zod';
-
-export const technicalHealthSchema = z
-  .object({
-    service: z.string().min(1),
-    status: z.literal('ok'),
-    timestamp: z.string().datetime({
-      offset: true
-    })
-  })
-  .strict();
-
+/** Regras usadas no site e na API, sem dependências: seguro para o navegador. */
 export * from './br-documents';
 export * from './field-limits';

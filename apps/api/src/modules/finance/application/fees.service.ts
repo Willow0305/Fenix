@@ -731,9 +731,9 @@ export class FeesService {
       throw AppError.notFound('Mensalidade não encontrada.');
     }
 
-    const payments = await Promise.all(
-      row.paymentAllocations.map((a) => this.payments.view(a.payment.id))
-    );
+    const ids = row.paymentAllocations.map((a) => a.payment.id);
+    const views = await this.payments.views(ids);
+    const payments = ids.flatMap((paymentId) => views.get(paymentId) ?? []);
 
     return { ...this.toView(row, todayIn()), payments };
   }
