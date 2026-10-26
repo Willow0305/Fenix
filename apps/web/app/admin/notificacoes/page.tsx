@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 
+import { DeliverySummaryCard } from '../../../components/delivery-summary';
 import {
   Alert,
   Empty,
@@ -68,7 +69,7 @@ export default function BroadcastPage() {
     <>
       <PageHeader
         title="Avisos"
-        description="Notificação interna (sino da conta) para um grupo. Cada envio é registrado na auditoria."
+        description="Aviso para um grupo: aparece em Notificações e sai por e-mail e WhatsApp para quem escolheu esses canais. Cada envio é registrado na auditoria."
       />
       {notice ? <Alert kind="success">{notice}</Alert> : null}
       <form className="form card" onSubmit={(event) => void send.submit(event)}>
@@ -122,6 +123,7 @@ export default function BroadcastPage() {
           </button>
         </div>
       </form>
+      <DeliverySummaryCard />
       <section className="card stack" aria-labelledby="enviados">
         <h2 id="enviados">Enviados recentemente</h2>
         {history.data?.length === 0 ? <Empty>Nenhum aviso enviado.</Empty> : null}

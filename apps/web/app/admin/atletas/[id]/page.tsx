@@ -17,6 +17,7 @@ import {
   useSubmit
 } from '../../../../components/ui';
 import { Avatar } from '../../../../components/avatar';
+import { ContactActions } from '../../../../components/contact-actions';
 import { Icon } from '../../../../components/icon';
 import { api } from '../../../../lib/api-client';
 import { ageFrom } from '../../../../lib/age';
@@ -148,6 +149,21 @@ export default function AthleteDetailPage() {
             ))
           : null}
       </section>
+
+      {whatsappOrEmail(a) ? (
+        <section className="card row" aria-label="Contato">
+          <span>Contato:</span>
+          <ContactActions phone={a.phone} email={a.email ?? a.user?.email ?? null} who="atleta" />
+          {a.guardianPhone ? (
+            <>
+              <span className="muted">
+                Responsável{a.guardianName ? ` (${a.guardianName})` : ''}:
+              </span>
+              <ContactActions phone={a.guardianPhone} who="responsável" />
+            </>
+          ) : null}
+        </section>
+      ) : null}
 
       {can('athletes.update') ? (
         <section className="card stack" aria-labelledby="dados">
@@ -520,4 +536,8 @@ export default function AthleteDetailPage() {
       />
     </>
   );
+}
+
+function whatsappOrEmail(a: AthleteDetail): boolean {
+  return Boolean(a.phone || a.email || a.user?.email || a.guardianPhone);
 }

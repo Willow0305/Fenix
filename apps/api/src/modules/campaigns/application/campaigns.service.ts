@@ -709,7 +709,9 @@ export class CampaignsService implements OnModuleInit {
         });
       }
 
-      if (order.customerEmail) {
+      // Quem tem conta recebe pelo aviso, no canal que escolheu (DT-048); o e-mail direto
+      // fica para compras sem conta.
+      if (order.customerEmail && !order.customerUserId) {
         await this.mail
           .send({
             to: order.customerEmail,

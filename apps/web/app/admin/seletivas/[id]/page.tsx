@@ -31,6 +31,7 @@ import {
   type TryoutStatus
 } from '../../../../lib/sports-types';
 import { useResource } from '../../../../lib/use-resource';
+import { ContactActions } from '../../../../components/contact-actions';
 import { Icon } from '../../../../components/icon';
 
 const REASON_REQUIRED: RegistrationStatus[] = ['REJECTED', 'CANCELLED'];
@@ -180,6 +181,12 @@ export default function TryoutDetailPage() {
                 Responsável: {r.guardianName} ({formatPhoneDisplay(r.guardianPhone)})
               </span>
             ) : null}
+            <div className="row gap-sm">
+              <ContactActions phone={r.phone} email={r.email} who="inscrito" />
+              {r.guardianPhone ? (
+                <ContactActions phone={r.guardianPhone} who="responsável" />
+              ) : null}
+            </div>
             {r.experience ? (
               <p className="prose" style={{ margin: 0 }}>
                 {r.experience}

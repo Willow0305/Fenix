@@ -98,8 +98,9 @@ Tipos e regras transversais:
 | `NewsStatus` | `DRAFT`, `SCHEDULED`, `PUBLISHED`, `HIDDEN`, `ARCHIVED` |
 | `EventType` | `TRYOUT`, `MATCH`, `FRIENDLY`, `TRAINING`, `COMMUNITY`, `OTHER` |
 | `EventStatus` | `DRAFT`, `SCHEDULED`, `CANCELLED`, `COMPLETED` |
-| `NotificationChannel` | `IN_APP`, `EMAIL` |
-| `NotificationDeliveryStatus` | `PENDING`, `SENT`, `FAILED`, `CANCELLED` |
+| `NotificationChannel` | `IN_APP`, `EMAIL`, `WHATSAPP` |
+| `NotificationCategory` | `FINANCE`, `STORE`, `SPORTS`, `AGENDA`, `ANNOUNCEMENTS`, `COMMUNITY`, `ACCOUNT` |
+| `NotificationDeliveryStatus` | `PENDING`, `SENDING`, `SENT`, `FAILED`, `CANCELLED` |
 
 Mapeamento completo dos campos enumerados:
 
@@ -171,7 +172,7 @@ Enums de estados descrevem o vocabulário inicial; transições e responsáveis 
 
 - Finalidade: conta autenticável e identidade técnica.
 - Campos O: `name`, `email`, `passwordHash`, `status`.
-- Campos P: `phone`, `emailVerifiedAt`, `lastLoginAt`, `deletedAt`.
+- Campos P: `phone`, `emailVerifiedAt`, `lastLoginAt`, `whatsappOptInAt` (consentimento para avisos por WhatsApp, `DT-048`), `deletedAt`.
 - FKs: nenhuma.
 - Índices/restrições: UK `email`; IX `(status, deletedAt)`. E-mail é normalizado antes da persistência; reutilização após exclusão depende de índice parcial futuro.
 - Exclusão/auditoria: soft delete; senha nunca entra em log/auditoria. Mudança de estado, senha, e-mail ou RBAC gera `AuditLog`.
@@ -767,6 +768,23 @@ Enums de estados descrevem o vocabulário inicial; transições e responsáveis 
 - FKs: `userId -> User` (C).
 - Índices/restrições: UK `(userId, deduplicationKey)` quando preenchido; IX `(userId, readAt, createdAt)`, `(deliveryStatus, scheduledAt)` e `(type, createdAt)`. Envio/leitura coerentes com estado.
 - Exclusão/auditoria: soft delete e retenção por política; payload contém apenas o mínimo e nunca comprovante/token.
+
+### `NotificationDelivery` — grupo T
+
+- Finalidade: fila de envio de uma notificação por e-mail ou WhatsApp (`DT-048`).
+- Campos O: `notificationId`, `channel` (`EMAIL`, `WHATSAPP`), `status`, `attempts`, `nextAttemptAt`.
+- Campos P: `lockedUntil` (reserva do envio em andamento), `sentAt`, `failureCode` (código curto, sem dados), `providerMessageId`.
+- FKs: `notificationId -> Notification` (`CASCADE`).
+- Índices/restrições: UK `(notificationId, channel)`; IX `(status, nextAttemptAt)` e `(channel, status, createdAt)`; `CHECK channel <> IN_APP` e `attempts >= 0`.
+- Exclusão/auditoria: não guarda destino nem conteúdo; segue a notificação. Consentimento e preferência são conferidos de novo no envio.
+
+### `NotificationPreference` — grupo T
+
+- Finalidade: escolha da pessoa por finalidade e canal (`DT-048`); sem linha, vale o padrão (e-mail ligado para mensalidades, pedidos, seletivas, agenda e avisos da diretoria).
+- Campos O: `userId`, `category`, `channel`, `enabled`.
+- FKs: `userId -> User` (`CASCADE`).
+- Índices/restrições: UK `(userId, category, channel)`.
+- Exclusão/auditoria: apagada na anonimização do titular. O consentimento do WhatsApp fica em `User.whatsappOptInAt`, com aceite e retirada na auditoria.
 
 ### `ScheduledJobLease` — grupo T
 

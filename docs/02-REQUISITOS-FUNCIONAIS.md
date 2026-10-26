@@ -104,7 +104,7 @@ Atualizado em 19/10/2026. "Parcial" indica que a parte da fase entregue está im
 | RF-019 | implementado | 2–6 | área do atleta/cliente: dados, inscrições, mensalidades, pedidos, favoritos e agendamentos | `/minha-conta` |
 | RF-020 | implementado | 2–4 | atletas ativos, inscrições novas, mensalidades em aberto, saldo e vendas do mês | `dashboard/summary` |
 | RF-021 | implementado | 8 | relatórios integrados com exportação CSV por permissão própria e auditada | `reports`, `reports/:key/csv` |
-| RF-022 | parcial | 2–7 | notificações internas de inscrição, cobrança, pedido, chegada, agenda, fórum e avisos da diretoria; envio por e-mail real pendente (`PEN-042`) | `me/notifications`, `notifications/broadcast` |
+| RF-022 | parcial | 2–7 | notificações internas de inscrição, cobrança, pedido, chegada, agenda, fórum e avisos da diretoria; também por e-mail e WhatsApp conforme a escolha da pessoa, com lembretes de mensalidade (`DT-048`). Envio real depende das credenciais do provedor (`PEN-042`, `PEN-064`) | `me/notifications`, `me/notifications/preferences`, `notifications/broadcast` |
 | RF-023 | implementado | 1 | configurações públicas sem deploy | `team-settings` |
 | RF-024 | implementado | 1–8 | auditoria em todos os módulos; filtros avançados e detalhe por requisição | `audit-logs`, `audit-logs/:id` |
 | RF-025 | implementado | 3 | Caixa com saldos derivados | `finance/summary` |

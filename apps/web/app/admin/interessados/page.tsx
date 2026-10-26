@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { Suspense, useEffect, useState } from 'react';
 
 import { AthleteForm } from '../../../components/athlete-form';
+import { ContactActions } from '../../../components/contact-actions';
 import { Icon } from '../../../components/icon';
 import {
   Alert,
@@ -121,6 +122,12 @@ function InterestedList() {
               Responsável: {person.guardianName} ({formatPhoneDisplay(person.guardianPhone)})
             </span>
           ) : null}
+          <div className="row gap-sm">
+            <ContactActions phone={person.phone} email={person.email} who="interessado" />
+            {person.guardianPhone ? (
+              <ContactActions phone={person.guardianPhone} who="responsável" />
+            ) : null}
+          </div>
           {person.notes ? (
             <p className="prose" style={{ margin: 0 }}>
               {person.notes}

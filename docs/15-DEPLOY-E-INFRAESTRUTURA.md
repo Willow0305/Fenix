@@ -126,7 +126,10 @@ Variáveis implementadas (valores de exemplo em `.env.example`):
 | `DATA_ENCRYPTION_KEY` | chave AES-256 (32 bytes base64) de PIX, banco e documentos | sim |
 | `STORAGE_DRIVER`, `STORAGE_LOCAL_DIR` | armazenamento de arquivos; caminho absoluto fora do projeto, volume persistente em produção (DT-038) | adaptador de nuvem pendente (`PEN-042`) |
 | `BACKUP_DIR`, `BACKUP_KEEP` | destino e retenção de `npm run backup` (DT-038) | — |
-| `MAIL_DRIVER`, `MAIL_OUTBOX_DIR`, `MAIL_FROM` | e-mail | adaptador real pendente |
+| `MAIL_DRIVER`, `MAIL_OUTBOX_DIR`, `MAIL_FROM` | e-mail: `outbox` (teste, grava em arquivo) ou `smtp` (DT-048) | `smtp` em produção |
+| `SMTP_HOST`, `SMTP_PORT`, `SMTP_SECURE`, `SMTP_USER`, `SMTP_PASSWORD` | servidor SMTP do provedor; 587 com STARTTLS obrigatório ou 465 com TLS | com `MAIL_DRIVER=smtp` |
+| `WHATSAPP_DRIVER`, `WHATSAPP_OUTBOX_DIR` | `off` (padrão em produção), `outbox` (teste, padrão fora de produção) ou `cloud` (Meta) (DT-048) | não |
+| `WHATSAPP_PHONE_NUMBER_ID`, `WHATSAPP_ACCESS_TOKEN`, `WHATSAPP_TEMPLATE_NAME`, `WHATSAPP_TEMPLATE_LANGUAGE`, `WHATSAPP_API_VERSION` | WhatsApp Cloud API: número, token permanente do usuário de sistema e modelo aprovado (padrão `fenix_aviso`, `pt_BR`, `v23.0`) | com `WHATSAPP_DRIVER=cloud` |
 | `ALLOW_LOCAL_ADAPTERS_IN_PRODUCTION` | opt-in explícito para adaptadores locais | — |
 | `STORE_RESERVATION_HOURS` | validade da reserva de pedido não pago (padrão 72) | não |
 | `SCHEDULED_JOBS` | `off` desativa as tarefas automáticas neste servidor (`ORDER_EXPIRY_JOB=off`, nome antigo, também vale) | não |
@@ -299,3 +302,17 @@ Alertas precisam de severidade, janela, canal e responsável. Logs não substitu
 ## 13. Pendências para produção
 
 Provedor, domínio, orçamento, região de dados, escala, objetivos de recuperação, monitoramento, e-mail e armazenamento ainda precisam de aprovação. Consulte [`PENDENCIAS.md`](../PENDENCIAS.md) e [18-ESTUDO-DE-VIABILIDADE.md](./18-ESTUDO-DE-VIABILIDADE.md).
+
+## Avisos por e-mail e WhatsApp (DT-048)
+
+Sem credenciais, tudo funciona em modo de teste: e-mails vão para `MAIL_OUTBOX_DIR` e mensagens de WhatsApp para `WHATSAPP_OUTBOX_DIR`, como arquivos. Para enviar de verdade:
+
+1. **E-mail:** contratar um provedor SMTP (ex.: Brevo, Amazon SES, Google Workspace), validar o domínio do remetente (SPF, DKIM e DMARC) e preencher `MAIL_DRIVER=smtp`, `SMTP_*` e `MAIL_FROM` com um endereço desse domínio.
+2. **WhatsApp:** na Meta (WhatsApp Business Platform), registrar o número do clube, criar um usuário de sistema com token permanente e cadastrar o modelo de mensagem de categoria **Utilidade**, idioma português (Brasil), com o nome de `WHATSAPP_TEMPLATE_NAME` e quatro variáveis no corpo, nesta ordem:
+
+   ```text
+   Olá, {{1}}! {{2}}: {{3}} Acesse: {{4}}
+   ```
+
+   Depois da aprovação do modelo, preencher `WHATSAPP_DRIVER=cloud` e `WHATSAPP_*`. Com o recurso de coexistência da Meta, o número do clube continua respondendo conversas pelo aplicativo WhatsApp Business; sem ele, as respostas das pessoas chegam só pela API (`PEN-064`).
+3. Conferir em Painel → Avisos a situação dos canais e as falhas dos últimos dias.

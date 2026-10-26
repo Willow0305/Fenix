@@ -28,6 +28,7 @@ import {
   type OrderStatus
 } from '../../../../lib/store-types';
 import { useResource } from '../../../../lib/use-resource';
+import { ContactActions } from '../../../../components/contact-actions';
 import { Icon } from '../../../../components/icon';
 
 export default function OrderAdminPage() {
@@ -78,9 +79,17 @@ export default function OrderAdminPage() {
         title={`Pedido ${o.orderNumber}`}
         description={`${o.customerName} · ${o.customerEmail ?? ''} · ${o.customerPhone ? formatPhoneDisplay(o.customerPhone) : ''}`}
         actions={
-          <Link href="/admin/pedidos">
-            <Icon name="arrow-left" /> Voltar
-          </Link>
+          <>
+            <ContactActions
+              phone={o.customerPhone}
+              email={o.customerEmail}
+              who="cliente"
+              subject={`Pedido ${o.orderNumber} — Fênix Vôlei`}
+            />
+            <Link href="/admin/pedidos">
+              <Icon name="arrow-left" /> Voltar
+            </Link>
+          </>
         }
       />
       {notice ? <Alert kind="success">{notice}</Alert> : null}

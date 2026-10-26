@@ -21,15 +21,18 @@ export interface TestContext {
   readonly app: INestApplication;
   readonly prisma: PrismaClient;
   readonly outboxDir: string;
+  readonly whatsappOutboxDir: string;
   readonly http: () => ReturnType<typeof request>;
 }
 
 /** Sobe a aplicação real contra o PostgreSQL definido em DATABASE_URL. */
 export async function createTestContext(): Promise<TestContext> {
   const outboxDir = mkdtempSync(join(tmpdir(), 'fenix-outbox-'));
+  const whatsappOutboxDir = mkdtempSync(join(tmpdir(), 'fenix-whatsapp-'));
 
   process.env['NODE_ENV'] = 'test';
   process.env['MAIL_OUTBOX_DIR'] = outboxDir;
+  process.env['WHATSAPP_OUTBOX_DIR'] = whatsappOutboxDir;
   process.env['STORAGE_LOCAL_DIR'] = mkdtempSync(join(tmpdir(), 'fenix-storage-'));
   process.env['WEB_ORIGIN'] = 'http://localhost:3000';
   process.env['THROTTLE_DISABLED'] = 'true';
@@ -47,7 +50,13 @@ export async function createTestContext(): Promise<TestContext> {
   configureApplication(app);
   await app.init();
 
-  return { app, prisma, outboxDir, http: () => request(app.getHttpServer()) };
+  return {
+    app,
+    prisma,
+    outboxDir,
+    whatsappOutboxDir,
+    http: () => request(app.getHttpServer())
+  };
 }
 
 export function uniqueEmail(prefix = 'teste'): string {

@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 
 import { ClosingsService } from './application/closings.service';
+import { FeeRemindersService } from './application/fee-reminders.service';
 import { FeesService } from './application/fees.service';
 import { FinanceReportsService } from './application/finance-reports.service';
 import { FinanceSetupService } from './application/finance-setup.service';
@@ -16,6 +17,7 @@ import { FeesController, FinanceController } from './http/finance.controller';
     LedgerService,
     PaymentsService,
     FeesService,
+    FeeRemindersService,
     ObligationsService,
     ClosingsService,
     FinanceReportsService

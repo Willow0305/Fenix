@@ -487,6 +487,14 @@ Prioridades:
 - **Recomendação:** manter assim até haver acordo comercial. Se o time quiser oferecer desconto em produto de parceiro, registrar no contrato quem absorve o desconto e calcular o repasse sobre o valor cheio (time paga) ou sobre o valor com desconto (parceiro divide).
 - **Impacto:** regras de cupom, cálculo de comissão (`splitCommission`) e repasses.
 
+### PEN-064 — Envio real de e-mail e WhatsApp
+
+- **Prioridade:** P1
+- **Bloqueia:** envio real dos avisos (o sistema funciona em modo de teste)
+- **Questão:** o clube precisa contratar o provedor de e-mail e a conta na WhatsApp Business Platform da Meta, aprovar o modelo de mensagem `fenix_aviso` (passo a passo em `docs/15`) e decidir se o número do clube continua no aplicativo WhatsApp Business (recurso de coexistência) ou passa só para a API. Também não está definido se o lembrete de mensalidade de atleta menor sem conta deve ir ao telefone do responsável, que hoje não deu consentimento no sistema.
+- **Recomendação:** usar o mesmo número do clube com coexistência, para a diretoria continuar respondendo pelo aplicativo; lembrete ao responsável só depois de coletar o consentimento dele no cadastro do atleta; ativar depois o webhook de status da Meta para marcar entregas e leituras.
+- **Impacto:** `DT-048`, custos por mensagem da Meta, inventário de operadores (`docs/13`) e `PEN-042`.
+
 ## 11. Critério de resolução
 
 Ao resolver uma pendência:
@@ -529,7 +537,7 @@ As entradas acima permanecem como histórico da questão original. As decisões 
 | PEN-037 | Parcialmente resolvida: agendamento manual por horários livres, confirmação pela diretoria, cancelamento com motivo, realizado/ausência; antecedência mínima, recorrência e avaliações continuam abertas. | Delegada | `DT-033` |
 | PEN-038 | Notícia é a fonte única; página inicial e comunicados do fórum são canais sobre a mesma linha; evento e seletiva relacionados por referência. | Delegada | `DT-034` |
 | PEN-039 | Parcialmente resolvida: fórum com participação de contas ativas autenticadas, visibilidades pública/membros/diretoria, moderação motivada e auditada, exclusão lógica e limites antiabuso. Política publicada de convivência, SLA e recurso continuam com o responsável. | Delegada | `DT-034` |
-| PEN-040 | Parcialmente resolvida: avisos e notificações somente in-app; e-mail transacional pelo adaptador local até a escolha do provedor (`PEN-042`); preferências por finalidade e WhatsApp seguem abertos. | Delegada | `DT-034` |
+| PEN-040 | Resolvida em 2026-10-26: avisos no painel sempre; e-mail e WhatsApp por finalidade, à escolha da pessoa, com os padrões da recomendação; WhatsApp só com consentimento auditado e revogável; provedores reais dependem de `PEN-064`. | Responsável do projeto | `DT-034`, `DT-048` |
 | PEN-047 | Parcialmente resolvida: revisão da Fase 8 confirmou idioma, atalho para o conteúdo, foco visível, movimento reduzido, rótulos associados e contraste AA dos tokens (mínimo 5,64:1). Teste com leitor de tela e navegadores-alvo segue pendente. | Delegada | `DT-035` |
 | PEN-049 | Parcialmente resolvida: paginação por offset limitada; exportação CSV síncrona com período de até 2 anos, permissão própria e auditoria. Exportação assíncrona e concorrência otimista ficam para quando houver volume medido. | Delegada | `DT-035` |
 | PEN-050 | Parcialmente resolvida: linha de base local medida (485 req/s, p95 até 89 ms nas rotas públicas) com `scripts/load-test.mjs`; metas de SLO e limites por rota em produção continuam com o responsável. | Delegada | `DT-035` |

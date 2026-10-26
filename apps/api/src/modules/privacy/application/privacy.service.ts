@@ -78,6 +78,8 @@ export class PrivacyService {
         status: true,
         createdAt: true,
         lastLoginAt: true,
+        whatsappOptInAt: true,
+        notificationPreferences: { select: { category: true, channel: true, enabled: true } },
         userRoles: { select: { role: { select: { name: true } } } },
         athlete: {
           select: {
@@ -407,6 +409,7 @@ export class PrivacyService {
           name: 'Titular anonimizado',
           email: `anonimizado+${userId}@invalid.local`,
           phone: null,
+          whatsappOptInAt: null,
           passwordHash,
           status: 'INACTIVE',
           emailVerifiedAt: null,
@@ -432,6 +435,12 @@ export class PrivacyService {
         where: { userId, deletedAt: null },
         data: { deletedAt: now }
       });
+      // Nada mais sai por e-mail ou WhatsApp para a conta anonimizada (DT-048).
+      await tx.notificationDelivery.updateMany({
+        where: { status: { in: ['PENDING', 'SENDING'] }, notification: { userId } },
+        data: { status: 'CANCELLED', failureCode: 'CONTA_ANONIMIZADA', lockedUntil: null }
+      });
+      await tx.notificationPreference.deleteMany({ where: { userId } });
       await tx.athlete.updateMany({ where: { userId }, data: { userId: null } });
       await tx.userRole.deleteMany({ where: { userId } });
 

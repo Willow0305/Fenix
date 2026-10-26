@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { useState } from 'react';
 
+import { NotificationPreferencesSection } from '../../../../components/notification-preferences';
 import { Alert, Empty, Loading, PageHeader, Pagination } from '../../../../components/ui';
 import { api } from '../../../../lib/api-client';
 import type { Page } from '../../../../lib/api-types';
@@ -34,6 +35,8 @@ export default function NotificationsPage() {
           </button>
         }
       />
+      <NotificationPreferencesSection />
+      <h2 className="h-small">Recebidas</h2>
       {list.error ? <Alert kind="error">{list.error}</Alert> : null}
       {list.loading && !list.data ? <Loading /> : null}
       {list.data?.data.length === 0 ? <Empty>Você não tem notificações.</Empty> : null}

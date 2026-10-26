@@ -6,6 +6,21 @@ O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) e o 
 
 ## [Não publicado]
 
+### Avisos por e-mail e WhatsApp (2026-10-26)
+
+#### Adicionado
+
+- contato com a diretoria pelo WhatsApp e pelo e-mail do clube, sem chat no site: botões na página Contato e atalho fixo de WhatsApp nas páginas públicas (DT-048);
+- botões de WhatsApp e e-mail no painel, nas fichas de atleta (e do responsável), interessados, inscrições de seletiva e pedidos;
+- avisos também por e-mail e WhatsApp, conforme a escolha de cada pessoa por finalidade em Minha conta → Notificações; WhatsApp só depois do aceite, que pode ser retirado a qualquer momento;
+- lembretes automáticos de mensalidade: 3 dias antes, no dia, 1 e 7 dias depois do vencimento;
+- situação dos canais e falhas de envio em Painel → Avisos;
+- envio por SMTP e pela WhatsApp Cloud API da Meta, em modo de teste até as credenciais serem configuradas; migração `20261026044923_avisos_email_whatsapp`.
+
+#### Alterado
+
+- quem tem conta não recebe mais o e-mail de chegada de remessa em dobro: o aviso segue o canal escolhido.
+
 ### Escala com mais de um servidor (2026-10-25)
 
 #### Alterado

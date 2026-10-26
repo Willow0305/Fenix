@@ -936,3 +936,27 @@ As tarefas de 10 em 10 minutos (expirar reservas, encerrar remessas) rodavam com
 
 - uma escrita pequena no banco por requisição limitada; com a carga atual do clube não pesa (linha de base de `docs/15`);
 - testes de integração simulam dois servidores: execução única com disparos simultâneos, troca de servidor quando a concessão vence, falha sem mensagem, soma das tentativas entre servidores, 12 requisições simultâneas com limite 10, recomeço após janela e bloqueio, limites com nomes separados e limpeza. Testes unitários do registro de erro sem mensagem e da configuração.
+
+## DT-048 — Avisos por e-mail e WhatsApp, sem atendimento no site
+
+- **Estado:** Aceita
+- **Data:** 2026-10-26
+- **Aprovador:** responsável do projeto ("preciso de um canal de comunicação por meio de e-mail ou WhatsApp, não quero fazer um atendimento no site", com aprovação das recomendações de `docs/30-REVISAO-GERAL.md`, 2026-10-25); resolve `PEN-040` com a recomendação registrada lá
+
+### Decisão
+
+- **sem chat no site:** o contato com a diretoria é pelo WhatsApp e pelo e-mail do clube. A página Contato e um atalho fixo nas páginas públicas abrem o WhatsApp (`wa.me`, com mensagem inicial) ou o e-mail de quem clica. No painel, fichas de atleta, interessados, inscrições de seletiva e pedidos ganham botões de WhatsApp e e-mail para a pessoa e o responsável. Nada passa pelo servidor;
+- **avisos automáticos:** toda notificação continua no painel e, conforme a finalidade, entra na fila de e-mail e WhatsApp. A finalidade sai do tipo (`fee.` → mensalidades, `order.`/`campaign.` → pedidos, `tryout`/`athlete.` → seletivas e cadastro, `appointment.` → agenda, `announcement` → avisos da diretoria, `forum.` → fórum, `privacy.` e demais → conta);
+- **padrões (recomendação de `PEN-040`):** e-mail ligado para mensalidades, pedidos, seletivas, agenda e avisos da diretoria; fórum e conta só no painel. A pessoa muda por finalidade e canal. WhatsApp segue o mesmo padrão, mas só depois do consentimento dela, com celular válido no cadastro;
+- **consentimento do WhatsApp:** aceite destacado com o número exibido, retirada a qualquer momento, ambos auditados. Retirar cancela os envios pendentes;
+- **fila (`notification_deliveries`):** uma entrega por notificação e canal, sem copiar destino nem conteúdo. No envio, conta ativa, preferência e consentimento são conferidos de novo. Lotes reservados com `FOR UPDATE SKIP LOCKED` (nada sai em dobro com vários servidores, `DT-047`); a fila roda logo depois do aviso e a cada 30 segundos. Falha temporária tenta de novo em 1 min, 5 min, 30 min e 2 h; recusa definitiva (destino inválido, modelo recusado) para na hora. Só um código curto fica gravado;
+- **horários:** WhatsApp não sai entre 21h e 8h no fuso do clube e espera sem gastar tentativa; e-mail sai a qualquer hora. Lembretes de mensalidade são criados entre 9h e 19h;
+- **lembretes de mensalidade:** mensalidade em aberto (aberta ou paga em parte), de atleta com conta ligada, recebe lembrete 3 dias antes, no dia, 1 e 7 dias depois do vencimento, uma vez por tipo. O texto não informa valor. Pedido pronto para retirada e resultado de seletiva já geravam aviso e passam a sair também por e-mail e WhatsApp;
+- **sem duplicidade:** a chegada de remessa manda e-mail direto só para quem comprou sem conta; quem tem conta recebe pelo aviso, no canal que escolheu;
+- **provedores:** e-mail por SMTP (`nodemailer` 10.1.7, sem dependências; adotado 8 dias após a publicação porque corrige três falhas moderadas do leitor de endereços da 10.1.0, mesmo critério de `PEN-055`) e WhatsApp pela Cloud API oficial da Meta, com modelo de mensagem aprovado de quatro variáveis (nome, título, texto, link). Sem credenciais, os dois gravam arquivos (modo de teste); em produção, o WhatsApp começa desligado e o modo de teste exige opt-in explícito.
+
+### Consequências
+
+- `PEN-040` resolvida; `PEN-064` registra o que depende do clube: contas nos provedores, aprovação do modelo na Meta, lembrete ao responsável de atleta menor sem conta e confirmação de entrega por webhook;
+- Painel → Avisos mostra a situação dos canais, os envios dos últimos 7 dias e as falhas recentes, sem destinatário;
+- 46 testes unitários (finalidades, padrões, número de WhatsApp, horários, tentativas, lembretes, textos, erros dos provedores e configuração), 3 testes de interface dos botões de contato e 11 testes de integração (envio por e-mail e WhatsApp em modo de teste, deduplicação, consentimento auditado e retirada, horário noturno, preferência conferida no envio, nova tentativa e recusa definitiva, dois processadores simultâneos, conta inativa, lembretes e resumo com permissão).

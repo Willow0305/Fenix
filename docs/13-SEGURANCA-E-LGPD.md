@@ -260,6 +260,17 @@ Dados de saúde/prontuário continuam fora do escopo, mesmo com responsável.
 - no site aparecem só nome de exibição (apelido; ou nome e último sobrenome; para menor, sobrenome só com a inicial), posição e foto. Nunca idade, data de nascimento, contato ou documento;
 - voltar a privado, remover a foto ou retirar a autorização tira a pessoa do elenco no próximo carregamento do site e fecha a foto. A foto trocada ou removida recebe exclusão lógica; a remoção física do arquivo segue a política de retenção (`PEN-011`).
 
+### Avisos por e-mail e WhatsApp (DT-048)
+
+- o aviso no painel sempre existe. E-mail e WhatsApp são **escolha da pessoa por finalidade** (mensalidades, pedidos, seletivas e cadastro, agenda, avisos da diretoria, fórum, conta), em Minha conta → Notificações;
+- **WhatsApp exige consentimento** destacado, com o número mostrado na hora do aceite, e pode ser retirado a qualquer momento na mesma tela. Aceite e retirada ficam na auditoria (instante, IP e navegador) como prova; a retirada cancela o que estava na fila;
+- a fila de envios **não copia o destino**: e-mail e telefone são lidos da conta na hora do envio, junto com o consentimento e a preferência, que são conferidos de novo;
+- mensagens trazem só o necessário: primeiro nome, título, texto do aviso e link para o site. Lembrete de mensalidade não informa valor; os textos dos avisos já seguem `RN-COM-007`;
+- falhas guardam só um código curto (`SMTP_RECUSADO`, `WHATSAPP_131026`); logs não têm destinatário nem conteúdo;
+- WhatsApp não sai entre 21h e 8h; lembretes de mensalidade só entre 9h e 19h (fuso do clube);
+- a exportação dos dados do titular inclui consentimento e preferências; a anonimização apaga as preferências, limpa o consentimento e cancela envios pendentes;
+- provedores de e-mail e a Meta (WhatsApp Cloud API) são operadores: entram no inventário de terceiros abaixo e no contrato (`PEN-042`, `PEN-064`).
+
 ## Terceiros e operadores
 
 - inventariar hospedagem, banco, objeto, e-mail, observabilidade e futuros gateways;

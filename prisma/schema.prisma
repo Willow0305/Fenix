@@ -403,10 +403,23 @@ enum PrivacyRequestStatus {
 enum NotificationChannel {
   IN_APP
   EMAIL
+  WHATSAPP
+}
+
+/// Finalidade do aviso; a pessoa escolhe os canais por finalidade (PEN-040, DT-048).
+enum NotificationCategory {
+  FINANCE
+  STORE
+  SPORTS
+  AGENDA
+  ANNOUNCEMENTS
+  COMMUNITY
+  ACCOUNT
 }
 
 enum NotificationDeliveryStatus {
   PENDING
+  SENDING
   SENT
   FAILED
   CANCELLED
@@ -432,6 +445,8 @@ model User {
   avatarMediaFileId         String?    @map("avatar_media_file_id") @db.Uuid
   /// Escolha da própria pessoa de aparecer no elenco público do site com foto, nome e posição.
   profilePublic             Boolean    @default(false) @map("profile_public")
+  /// Consentimento para avisos por WhatsApp (DT-048); nulo enquanto não aceito ou após retirar.
+  whatsappOptInAt           DateTime?  @map("whatsapp_opt_in_at") @db.Timestamptz(6)
   createdAt                 DateTime   @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt                 DateTime   @updatedAt @map("updated_at") @db.Timestamptz(6)
   deletedAt                 DateTime?  @map("deleted_at") @db.Timestamptz(6)
@@ -439,54 +454,55 @@ model User {
   sessions                        UserSession[]
   tokens                          UserToken[]
   mfaRecoveryCodes                MfaRecoveryCode[]
-  userRoles                       UserRole[]              @relation("UserRoleSubject")
-  grantedUserRoles                UserRole[]              @relation("UserRoleGrantor")
-  grantedRolePermissions          RolePermission[]        @relation("RolePermissionGrantor")
+  userRoles                       UserRole[]               @relation("UserRoleSubject")
+  grantedUserRoles                UserRole[]               @relation("UserRoleGrantor")
+  grantedRolePermissions          RolePermission[]         @relation("RolePermissionGrantor")
   athlete                         Athlete?
   interestedPerson                InterestedPerson?
-  uploadedMedia                   MediaFile[]             @relation("MediaUploader")
+  uploadedMedia                   MediaFile[]              @relation("MediaUploader")
   couponRedemptions               CouponRedemption[]
   createdCoupons                  Coupon[]
-  avatarMediaFile                 MediaFile?              @relation("UserAvatar", fields: [avatarMediaFileId], references: [id], onDelete: SetNull, onUpdate: Cascade)
-  updatedTeamSettings             TeamSettings[]          @relation("TeamSettingsUpdater")
-  tryoutApplications              TryoutRegistration[]    @relation("TryoutApplicant")
-  tryoutRegistrationsReviewed     TryoutRegistration[]    @relation("TryoutReviewer")
-  monthlyFeesCreated              MonthlyFee[]            @relation("MonthlyFeeCreator")
-  monthlyFeesCancelled            MonthlyFee[]            @relation("MonthlyFeeCanceller")
+  avatarMediaFile                 MediaFile?               @relation("UserAvatar", fields: [avatarMediaFileId], references: [id], onDelete: SetNull, onUpdate: Cascade)
+  updatedTeamSettings             TeamSettings[]           @relation("TeamSettingsUpdater")
+  tryoutApplications              TryoutRegistration[]     @relation("TryoutApplicant")
+  tryoutRegistrationsReviewed     TryoutRegistration[]     @relation("TryoutReviewer")
+  monthlyFeesCreated              MonthlyFee[]             @relation("MonthlyFeeCreator")
+  monthlyFeesCancelled            MonthlyFee[]             @relation("MonthlyFeeCanceller")
   monthlyFeePaymentsCreated       MonthlyFeePayment[]
-  paymentsMade                    Payment[]               @relation("PaymentPayer")
-  paymentsCreated                 Payment[]               @relation("PaymentCreator")
-  refundsRequested                Refund[]                @relation("RefundRequester")
-  refundsApproved                 Refund[]                @relation("RefundApprover")
-  financialObligationsCreated     FinancialObligation[]   @relation("FinancialObligationCreator")
-  financialObligationsCancelled   FinancialObligation[]   @relation("FinancialObligationCanceller")
-  financialTransactionsCreated    FinancialTransaction[]  @relation("FinancialTransactionCreator")
-  financialTransactionsConfirmed  FinancialTransaction[]  @relation("FinancialTransactionConfirmer")
-  financialTransactionsCancelled  FinancialTransaction[]  @relation("FinancialTransactionCanceller")
-  financialTransactionsReconciled FinancialTransaction[]  @relation("FinancialTransactionReconciler")
+  paymentsMade                    Payment[]                @relation("PaymentPayer")
+  paymentsCreated                 Payment[]                @relation("PaymentCreator")
+  refundsRequested                Refund[]                 @relation("RefundRequester")
+  refundsApproved                 Refund[]                 @relation("RefundApprover")
+  financialObligationsCreated     FinancialObligation[]    @relation("FinancialObligationCreator")
+  financialObligationsCancelled   FinancialObligation[]    @relation("FinancialObligationCanceller")
+  financialTransactionsCreated    FinancialTransaction[]   @relation("FinancialTransactionCreator")
+  financialTransactionsConfirmed  FinancialTransaction[]   @relation("FinancialTransactionConfirmer")
+  financialTransactionsCancelled  FinancialTransaction[]   @relation("FinancialTransactionCanceller")
+  financialTransactionsReconciled FinancialTransaction[]   @relation("FinancialTransactionReconciler")
   financialTransfersCreated       FinancialTransfer[]
-  cashClosingsClosed              CashClosing[]           @relation("CashClosingCloser")
-  cashClosingsReopened            CashClosing[]           @relation("CashClosingReopener")
+  cashClosingsClosed              CashClosing[]            @relation("CashClosingCloser")
+  cashClosingsReopened            CashClosing[]            @relation("CashClosingReopener")
   inventoryMovementsCreated       InventoryMovement[]
   salesCampaignsCreated           SalesCampaign[]
   orders                          Order[]
   partnerProfessional             PartnerProfessional?
   appointments                    Appointment[]
-  partnerSettlementsCreated       PartnerSettlement[]     @relation("PartnerSettlementCreator")
-  partnerSettlementsApproved      PartnerSettlement[]     @relation("PartnerSettlementApprover")
+  partnerSettlementsCreated       PartnerSettlement[]      @relation("PartnerSettlementCreator")
+  partnerSettlementsApproved      PartnerSettlement[]      @relation("PartnerSettlementApprover")
   forumTopics                     ForumTopic[]
   forumPosts                      ForumPost[]
   forumReactions                  ForumReaction[]
-  forumReports                    ForumReport[]           @relation("ForumReportReporter")
-  forumReportsReviewed            ForumReport[]           @relation("ForumReportReviewer")
+  forumReports                    ForumReport[]            @relation("ForumReportReporter")
+  forumReportsReviewed            ForumReport[]            @relation("ForumReportReviewer")
   forumModerationActions          ForumModerationAction[]
   newsAuthored                    News[]
   notifications                   Notification[]
+  notificationPreferences         NotificationPreference[]
   auditLogs                       AuditLog[]
   favorites                       Favorite[]
   carts                           Cart[]
-  privacyRequests                 PrivacyRequest[]        @relation("PrivacyRequestSubject")
-  privacyRequestsHandled          PrivacyRequest[]        @relation("PrivacyRequestHandler")
+  privacyRequests                 PrivacyRequest[]         @relation("PrivacyRequestSubject")
+  privacyRequestsHandled          PrivacyRequest[]         @relation("PrivacyRequestHandler")
 
   @@index([status, deletedAt])
   @@index([avatarMediaFileId])
@@ -2165,7 +2181,8 @@ model Notification {
   updatedAt        DateTime                   @updatedAt @map("updated_at") @db.Timestamptz(6)
   deletedAt        DateTime?                  @map("deleted_at") @db.Timestamptz(6)
 
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  user       User                   @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  deliveries NotificationDelivery[]
 
   @@unique([userId, deduplicationKey])
   @@index([deduplicationKey])
@@ -2355,4 +2372,48 @@ model RateLimitBucket {
 
   @@index([windowEndsAt])
   @@map("rate_limit_buckets")
+}
+
+// Avisos por e-mail e WhatsApp (DT-048).
+
+/// Envio de uma notificação por um canal externo. O destino (e-mail, telefone) não é
+/// copiado: é lido da conta na hora do envio, para respeitar mudanças e a retirada do
+/// consentimento.
+model NotificationDelivery {
+  id                String                     @id @default(uuid()) @db.Uuid
+  notificationId    String                     @map("notification_id") @db.Uuid
+  channel           NotificationChannel
+  status            NotificationDeliveryStatus @default(PENDING)
+  attempts          Int                        @default(0)
+  nextAttemptAt     DateTime                   @default(now()) @map("next_attempt_at") @db.Timestamptz(6)
+  /// Reserva do envio em andamento; vencida, a entrega volta para a fila.
+  lockedUntil       DateTime?                  @map("locked_until") @db.Timestamptz(6)
+  sentAt            DateTime?                  @map("sent_at") @db.Timestamptz(6)
+  failureCode       String?                    @map("failure_code") @db.VarChar(100)
+  providerMessageId String?                    @map("provider_message_id") @db.VarChar(160)
+  createdAt         DateTime                   @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt         DateTime                   @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  notification Notification @relation(fields: [notificationId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+
+  @@unique([notificationId, channel])
+  @@index([status, nextAttemptAt])
+  @@index([channel, status, createdAt])
+  @@map("notification_deliveries")
+}
+
+/// Escolha da pessoa por finalidade e canal. Sem linha, vale o padrão de `channel-rules.ts`.
+model NotificationPreference {
+  id        String               @id @default(uuid()) @db.Uuid
+  userId    String               @map("user_id") @db.Uuid
+  category  NotificationCategory
+  channel   NotificationChannel
+  enabled   Boolean
+  createdAt DateTime             @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt DateTime             @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+
+  @@unique([userId, category, channel])
+  @@map("notification_preferences")
 }

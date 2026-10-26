@@ -382,6 +382,23 @@ img {
   color: var(--color-text-muted);
 }
 
+// Utilitários pequenos, no lugar de `style={{…}}` (R-09).
+.m-0 {
+  margin: 0;
+}
+
+.gap-sm {
+  gap: 0.5rem;
+}
+
+.h-small {
+  font-size: 1rem;
+}
+
+.text-break {
+  overflow-wrap: anywhere;
+}
+
 .badge {
   display: inline-flex;
   align-items: center;
@@ -1114,4 +1131,32 @@ dialog {
   text-align: center;
   padding-block: 4rem;
   max-width: 40rem;
+}
+
+// Atalho para o WhatsApp do clube (DT-048): discreto, acima do conteúdo, fora da área de gestos.
+.whatsapp-float {
+  position: fixed;
+  right: max(1rem, env(safe-area-inset-right, 0px));
+  bottom: max(1rem, env(safe-area-inset-bottom, 0px));
+  z-index: 40;
+  display: grid;
+  place-items: center;
+  width: 3.25rem;
+  height: 3.25rem;
+  border-radius: 50%;
+  background: #1f8f4e;
+  color: #fff;
+  font-size: 1.5rem;
+  box-shadow: 0 4px 14px rgb(0 0 0 / 25%);
+  transition: transform 0.15s ease;
+
+  &:hover,
+  &:focus-visible {
+    color: #fff;
+    transform: scale(1.06);
+  }
+
+  @media print {
+    display: none;
+  }
 }

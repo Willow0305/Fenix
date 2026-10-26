@@ -150,3 +150,4 @@ Aprovado por inteiro pelo responsável do projeto em 2026-10-25.
 | R-13 pacotes e tabela sem uso | removidos (`DT-046`) |
 | Padrão pt-BR em mensagens, testes e migrações | feito (`DT-046`) |
 | PWA | manifesto e ícones feitos; service worker pendente |
+| Avisos por e-mail e WhatsApp | feito em modo de teste; envio real depende das contas nos provedores (`DT-048`, `PEN-064`) |
