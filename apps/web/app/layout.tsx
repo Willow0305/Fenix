@@ -4,6 +4,7 @@ import type { ReactNode } from 'react';
 
 import { AuthProvider } from '../lib/auth-context';
 import { CartProvider } from '../lib/cart-context';
+import { LiveToasts } from '../components/live-toasts';
 import { ServiceWorkerRegistration } from '../components/pwa';
 import { QueryProvider } from '../components/query-provider';
 import { SITE_URL } from '../lib/site-url';
@@ -48,6 +49,7 @@ export default async function RootLayout({ children }: RootLayoutProps) {
         <QueryProvider>
           <AuthProvider>
             <CartProvider>{children}</CartProvider>
+            <LiveToasts />
           </AuthProvider>
         </QueryProvider>
       </body>

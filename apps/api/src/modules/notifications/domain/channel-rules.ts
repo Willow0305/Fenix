@@ -15,7 +15,8 @@ export const CATEGORY_LABELS: Record<NotificationCategory, string> = {
   AGENDA: 'Atendimentos com parceiros',
   ANNOUNCEMENTS: 'Avisos da diretoria',
   COMMUNITY: 'Fórum',
-  ACCOUNT: 'Conta e privacidade'
+  ACCOUNT: 'Conta e privacidade',
+  OPERATIONS: 'Tarefas da diretoria'
 };
 
 export const CATEGORIES = Object.keys(CATEGORY_LABELS) as NotificationCategory[];
@@ -30,7 +31,8 @@ const PREFIX_CATEGORY: readonly (readonly [string, NotificationCategory])[] = [
   ['appointment.', 'AGENDA'],
   ['announcement', 'ANNOUNCEMENTS'],
   ['forum.', 'COMMUNITY'],
-  ['privacy.', 'ACCOUNT']
+  ['privacy.', 'ACCOUNT'],
+  ['staff.', 'OPERATIONS']
 ];
 
 export function categoryOf(type: string): NotificationCategory {

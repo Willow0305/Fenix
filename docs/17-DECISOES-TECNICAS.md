@@ -1195,3 +1195,20 @@ O TypeScript 7.0 (compilador nativo) ainda não tem a API em JavaScript que type
 
 - a presença em treinos (treinos por equipe e chamada por atleta), recomendada em `docs/30-REVISAO-GERAL.md` §4 item 3, foi cancelada durante a implementação, antes de qualquer entrega. Nada foi commitado; a migração aplicada só no banco de desenvolvimento foi desfeita (tabelas vazias removidas e o registro da migração apagado), e o esquema voltou a coincidir com o banco;
 - o item volta para "itens futuros sem fase autorizada" do roadmap.
+
+## DT-061 — Pendências no menu do painel e avisos flutuantes
+
+- **Estado:** Aceita
+- **Data:** 2026-10-26
+- **Aprovador:** responsável do projeto ("mostrar bolinhas informando quando chegar coisas novas" e "notificações flutuantes em tempo real", 2026-10-26)
+
+### Decisão
+
+- **bolinhas do menu** (`GET /dashboard/badges`): contam o que espera ação, não o que cada pessoa já viu, para todos da diretoria verem o mesmo número e ele zerar quando a tarefa é feita. Pedidos: comprovantes a conferir + pedidos pagos a separar; Mensalidades: comprovantes a conferir; Interessados e Seletivas: novos; Agendamentos: pedidos; Fórum: denúncias abertas; Privacidade: pedidos de titulares em aberto. Cada contagem só sai com a permissão do módulo; o botão "Menu" do celular mostra o total; tudo se atualiza pelo tempo real (DT-049);
+- **avisos à diretoria:** pedido novo, comprovante de pedido, comprovante de mensalidade, interessado novo e inscrição em seletiva viram notificação para quem tem a permissão do módulo. Finalidade nova **"Tarefas da diretoria"** (`OPERATIONS`, tipos `staff.*`): no painel sempre, e-mail e WhatsApp desligados por padrão, para não lotar a caixa de entrada; só quem acessa o painel vê essa finalidade nas preferências. O aviso roda depois da operação e nunca a desfaz;
+- **avisos flutuantes:** ao chegar uma notificação nova, ela surge no canto superior direito, some em 7 s (pausa com o mouse ou o foco), pode ser fechada ou clicada para abrir; no máximo 3 de uma vez; só o que chegou depois de a página abrir.
+
+### Consequências
+
+- migração `finalidade_tarefas_diretoria` (valor novo no enum);
+- 3 testes de integração (interessado novo soma na bolinha e avisa a diretoria; sem pendência o item some; finalidade só para a diretoria, com e-mail desligado).

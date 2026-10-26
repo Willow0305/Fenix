@@ -52,7 +52,7 @@ export class PreferencesService {
     private readonly delivery: DeliveryService
   ) {}
 
-  async get(userId: string): Promise<PreferencesView> {
+  async get(userId: string, staff = false): Promise<PreferencesView> {
     const user = await this.prisma.user.findUniqueOrThrow({
       where: { id: userId },
       select: {
@@ -73,16 +73,22 @@ export class PreferencesService {
         consentedAt: user.whatsappOptInAt?.toISOString() ?? null,
         phone: phone ? phone.slice(2) : null
       },
-      categories: CATEGORIES.map((category) => ({
-        category,
-        label: CATEGORY_LABELS[category],
-        email: preferenceEnabled(user.notificationPreferences, category, 'EMAIL'),
-        whatsapp: preferenceEnabled(user.notificationPreferences, category, 'WHATSAPP')
-      }))
+      categories: CATEGORIES.filter((category) => staff || category !== 'OPERATIONS').map(
+        (category) => ({
+          category,
+          label: CATEGORY_LABELS[category],
+          email: preferenceEnabled(user.notificationPreferences, category, 'EMAIL'),
+          whatsapp: preferenceEnabled(user.notificationPreferences, category, 'WHATSAPP')
+        })
+      )
     };
   }
 
-  async update(userId: string, changes: readonly PreferenceChange[]): Promise<PreferencesView> {
+  async update(
+    userId: string,
+    changes: readonly PreferenceChange[],
+    staff = false
+  ): Promise<PreferencesView> {
     await this.prisma.$transaction(
       changes.map((change) =>
         this.prisma.notificationPreference.upsert({
@@ -99,7 +105,7 @@ export class PreferencesService {
       )
     );
 
-    return this.get(userId);
+    return this.get(userId, staff);
   }
 
   /**
@@ -109,9 +115,10 @@ export class PreferencesService {
   async setWhatsAppConsent(
     userId: string,
     accept: boolean,
-    meta: RequestMeta
+    meta: RequestMeta,
+    staff = false
   ): Promise<PreferencesView> {
-    const current = await this.get(userId);
+    const current = await this.get(userId, staff);
 
     if (accept && !current.whatsapp.available) {
       throw AppError.conflict('WHATSAPP_UNAVAILABLE', 'Os avisos por WhatsApp não estão ativos.');
@@ -157,6 +164,6 @@ export class PreferencesService {
       );
     });
 
-    return this.get(userId);
+    return this.get(userId, staff);
   }
 }

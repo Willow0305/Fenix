@@ -6,6 +6,14 @@ O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) e o 
 
 ## [Não publicado]
 
+### Pendências no menu e avisos flutuantes (2026-10-26)
+
+#### Adicionado
+
+- bolinhas no menu do painel com o que espera ação (comprovantes, pedidos a separar, interessados, inscrições, agendamentos, denúncias, pedidos de titulares) (DT-061);
+- avisos que surgem e somem no canto da tela quando chega algo novo; a diretoria passa a ser avisada de pedido novo, comprovante enviado, interessado e inscrição;
+- em Notificações, apagar uma notificação ou todas as lidas; preferências de aviso recolhidas no fim da página; foto de perfil no topo de Minha conta.
+
 ### App instalável (2026-10-26)
 
 #### Adicionado

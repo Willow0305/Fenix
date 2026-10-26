@@ -47,6 +47,7 @@ import {
 } from '../domain/finance-rules';
 import { lockRow } from './ledger.service';
 import { PaymentsService, type PaymentView } from './payments.service';
+import { StaffAlertsService } from '../../notifications/application/staff-alerts.service';
 
 export interface PlanView {
   readonly id: string;
@@ -157,7 +158,8 @@ export class FeesService {
     private readonly audit: AuditService,
     private readonly payments: PaymentsService,
     private readonly notifications: NotificationsService,
-    private readonly media: MediaService
+    private readonly media: MediaService,
+    private readonly staffAlerts: StaffAlertsService
   ) {}
 
   // ---------- Planos ----------
@@ -1209,7 +1211,17 @@ export class FeesService {
       );
     });
 
-    return this.get(feeId, principal.userId);
+    const detail = await this.get(feeId, principal.userId);
+
+    await this.staffAlerts.alert(PERMISSIONS.feesRead, {
+      type: 'staff.fee.proof',
+      title: 'Comprovante de mensalidade',
+      message: `${detail.athlete.fullName} enviou o comprovante da mensalidade de ${detail.referenceMonth.slice(5, 7)}/${detail.referenceMonth.slice(0, 4)}.`,
+      link: `/admin/mensalidades/${feeId}`,
+      key: `staff-fee-proof:${feeId}:${idempotencyKey}`
+    });
+
+    return detail;
   }
 
   /** Comprovante de pagamento: dono do pagamento ou quem tem `fees.read`. */

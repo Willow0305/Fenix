@@ -419,6 +419,7 @@ enum NotificationCategory {
   ANNOUNCEMENTS
   COMMUNITY
   ACCOUNT
+  OPERATIONS
 }
 
 enum NotificationDeliveryStatus {

@@ -120,20 +120,105 @@ export class DashboardService {
 
 @ApiTags('Painel')
 @ApiBearerAuth()
+/**
+ * Bolinhas do menu do painel (DT-061): contam o que espera ação da diretoria, não o que a
+ * pessoa já viu. Assim todos da diretoria veem o mesmo número, e ele zera quando a tarefa
+ * é feita. Cada contagem só sai para quem tem a permissão daquele módulo.
+ */
+@Injectable()
+export class PendingBadgesService {
+  constructor(private readonly prisma: PrismaService) {}
+
+  async forPrincipal(principal: Principal): Promise<Record<string, number>> {
+    const can = (permission: string) => principal.permissions.has(permission);
+    const tasks: [string, () => Promise<number>][] = [];
+
+    if (can(PERMISSIONS.ordersRead)) {
+      // Comprovante de pedido a conferir + pedido pago a separar.
+      tasks.push([
+        '/admin/pedidos',
+        async () =>
+          (await this.prisma.payment.count({
+            where: { status: 'PENDING', orderId: { not: null } }
+          })) + (await this.prisma.order.count({ where: { status: 'PAID' } }))
+      ]);
+    }
+
+    if (can(PERMISSIONS.feesRead)) {
+      tasks.push([
+        '/admin/mensalidades',
+        () =>
+          this.prisma.payment.count({
+            where: { status: 'PENDING', monthlyFeeAllocations: { some: {} } }
+          })
+      ]);
+    }
+
+    if (can(PERMISSIONS.registrationsRead)) {
+      tasks.push([
+        '/admin/interessados',
+        () => this.prisma.interestedPerson.count({ where: { status: 'NEW', deletedAt: null } })
+      ]);
+      tasks.push([
+        '/admin/seletivas',
+        () => this.prisma.tryoutRegistration.count({ where: { status: 'NEW', deletedAt: null } })
+      ]);
+    }
+
+    if (can(PERMISSIONS.appointmentsManage)) {
+      tasks.push([
+        '/admin/agendamentos',
+        () => this.prisma.appointment.count({ where: { status: 'REQUESTED' } })
+      ]);
+    }
+
+    if (can(PERMISSIONS.forumModerate)) {
+      tasks.push([
+        '/admin/forum',
+        () => this.prisma.forumReport.count({ where: { status: { in: ['OPEN', 'UNDER_REVIEW'] } } })
+      ]);
+    }
+
+    if (can(PERMISSIONS.privacyRequestsManage)) {
+      tasks.push([
+        '/admin/privacidade',
+        () =>
+          this.prisma.privacyRequest.count({ where: { status: { in: ['OPEN', 'IN_PROGRESS'] } } })
+      ]);
+    }
+
+    const counts = await Promise.all(
+      tasks.map(async ([href, run]) => [href, await run()] as const)
+    );
+
+    return Object.fromEntries(counts.filter(([, count]) => count > 0));
+  }
+}
+
 @Controller('dashboard')
 export class DashboardController {
-  constructor(private readonly dashboard: DashboardService) {}
+  constructor(
+    private readonly dashboard: DashboardService,
+    private readonly badges: PendingBadgesService
+  ) {}
 
   @Get('summary')
   @RequirePermissions(PERMISSIONS.dashboardRead)
   summary(@CurrentPrincipal() principal: Principal): Promise<DashboardIndicator[]> {
     return this.dashboard.summary(principal);
   }
+
+  /** Pendências por item do menu (DT-061); só dos módulos que a pessoa pode ver. */
+  @Get('badges')
+  @RequirePermissions(PERMISSIONS.dashboardRead)
+  pending(@CurrentPrincipal() principal: Principal): Promise<Record<string, number>> {
+    return this.badges.forPrincipal(principal);
+  }
 }
 
 @Module({
   imports: [FinanceModule, StoreModule],
   controllers: [DashboardController],
-  providers: [DashboardService]
+  providers: [DashboardService, PendingBadgesService]
 })
 export class DashboardModule {}

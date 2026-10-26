@@ -40,6 +40,7 @@ import {
 import { cartItemPrice, cartItemSellable, type CartOwner, CartService } from './cart.service';
 import { type AppliedCoupon, CouponsService } from './coupons.service';
 import { InventoryService } from './inventory.service';
+import { StaffAlertsService } from '../../notifications/application/staff-alerts.service';
 
 export interface OrderItemView {
   readonly id: string;
@@ -136,7 +137,8 @@ export class OrdersService implements OnModuleInit {
     private readonly settings: SettingsService,
     private readonly coupons: CouponsService,
     private readonly jobs: JobScheduler,
-    private readonly site: SiteRevalidateService
+    private readonly site: SiteRevalidateService,
+    private readonly staffAlerts: StaffAlertsService
   ) {}
 
   onModuleInit(): void {
@@ -570,6 +572,14 @@ export class OrdersService implements OnModuleInit {
       })
       .catch(() => undefined);
 
+    await this.staffAlerts.alert(PERMISSIONS.ordersRead, {
+      type: 'staff.order.created',
+      title: `Novo pedido ${order.orderNumber}`,
+      message: `${order.customerName} · R$ ${order.totalAmount.amount.replace('.', ',')}`,
+      link: `/admin/pedidos/${order.id}`,
+      key: `staff-order:${order.id}`
+    });
+
     return { order, guestAccessCode };
   }
 
@@ -969,7 +979,17 @@ export class OrdersService implements OnModuleInit {
       );
     });
 
-    return this.get(order.id);
+    const view = await this.get(order.id);
+
+    await this.staffAlerts.alert(PERMISSIONS.ordersRead, {
+      type: 'staff.order.proof',
+      title: `Comprovante no pedido ${view.orderNumber}`,
+      message: `${view.customerName} enviou o comprovante de pagamento. Confira e confirme.`,
+      link: `/admin/pedidos/${order.id}`,
+      key: `staff-order-proof:${order.id}:${idempotencyKey}`
+    });
+
+    return view;
   }
 
   async paymentAttachmentForOrder(orderId: string, paymentId: string, attachmentId: string) {

@@ -33,6 +33,8 @@ import {
 } from '../domain/sports-rules';
 import { type AthleteDetail, type AthleteInput, AthletesService } from './athletes.service';
 import { assertActiveTeam } from './active-team';
+import { StaffAlertsService } from '../../notifications/application/staff-alerts.service';
+import { PERMISSIONS } from '../../access/domain/permission-catalog';
 
 export interface ApplicantInput {
   readonly fullName: string;
@@ -182,7 +184,8 @@ export class RecruitmentService {
     private readonly prisma: PrismaService,
     private readonly audit: AuditService,
     private readonly athletes: AthletesService,
-    private readonly notifications: NotificationsService
+    private readonly notifications: NotificationsService,
+    private readonly staffAlerts: StaffAlertsService
   ) {}
 
   private assertApplicant(input: ApplicantInput): void {
@@ -233,6 +236,13 @@ export class RecruitmentService {
       entityType: 'InterestedPerson',
       entityId: created.id,
       meta
+    });
+    await this.staffAlerts.alert(PERMISSIONS.registrationsRead, {
+      type: 'staff.interest.created',
+      title: 'Novo interessado',
+      message: `${input.fullName.trim()} quer jogar no Fênix.`,
+      link: '/admin/interessados',
+      key: `staff-interest:${created.id}`
     });
 
     return created;
@@ -670,7 +680,17 @@ export class RecruitmentService {
       meta
     });
 
-    return toRegistrationView(created);
+    const view = toRegistrationView(created);
+
+    await this.staffAlerts.alert(PERMISSIONS.registrationsRead, {
+      type: 'staff.tryout.registration',
+      title: `Nova inscrição: ${view.tryout.title}`,
+      message: `${view.fullName} se inscreveu na seletiva.`,
+      link: `/admin/seletivas/${view.tryout.id}`,
+      key: `staff-tryout-registration:${created.id}`
+    });
+
+    return view;
   }
 
   async listRegistrations(

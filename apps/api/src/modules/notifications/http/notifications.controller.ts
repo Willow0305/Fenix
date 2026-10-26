@@ -38,6 +38,9 @@ import { NotificationsService, type NotificationView } from '../application/noti
 import { PreferencesService, type PreferencesView } from '../application/preferences.service';
 import { CATEGORIES, EXTERNAL_CHANNELS, type ExternalChannel } from '../domain/channel-rules';
 
+/** Quem acessa o painel vê a finalidade "Tarefas da diretoria" (DT-061). */
+const isStaff = (principal: Principal) => principal.permissions.has(PERMISSIONS.dashboardRead);
+
 export class NotificationQueryDto extends PageQueryDto {
   @ApiPropertyOptional()
   @IsOptional()
@@ -100,7 +103,7 @@ export class NotificationsController {
 
   @Get('preferences')
   getPreferences(@CurrentPrincipal() principal: Principal): Promise<PreferencesView> {
-    return this.preferences.get(principal.userId);
+    return this.preferences.get(principal.userId, isStaff(principal));
   }
 
   @Put('preferences')
@@ -108,7 +111,7 @@ export class NotificationsController {
     @CurrentPrincipal() principal: Principal,
     @Body() body: UpdatePreferencesDto
   ): Promise<PreferencesView> {
-    return this.preferences.update(principal.userId, body.items);
+    return this.preferences.update(principal.userId, body.items, isStaff(principal));
   }
 
   @Put('whatsapp-consent')
@@ -117,7 +120,12 @@ export class NotificationsController {
     @Body() body: WhatsAppConsentDto,
     @ReqMeta() meta: RequestMeta
   ): Promise<PreferencesView> {
-    return this.preferences.setWhatsAppConsent(principal.userId, body.accept, meta);
+    return this.preferences.setWhatsAppConsent(
+      principal.userId,
+      body.accept,
+      meta,
+      isStaff(principal)
+    );
   }
 
   @Post('read-all')

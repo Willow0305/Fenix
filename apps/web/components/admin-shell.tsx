@@ -5,6 +5,7 @@ import { usePathname } from 'next/navigation';
 import { type ReactNode, useState } from 'react';
 
 import { useAuth } from '../lib/auth-context';
+import { useResource } from '../lib/use-resource';
 import styles from './admin-shell.module.scss';
 import { BrandLogo } from './brand-logo';
 import { Icon } from './icon';
@@ -205,6 +206,12 @@ export function AdminShell({ children }: { readonly children: ReactNode }) {
   const { profile, can, logout } = useAuth();
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
+  // Pendências por item do menu (DT-061); atualizam sozinhas pelo tempo real.
+  const badges = useResource<Record<string, number>>(
+    can('dashboard.read') ? '/dashboard/badges' : null
+  );
+  const pending = (href: string) => badges.data?.[href] ?? 0;
+  const total = Object.values(badges.data ?? {}).reduce((sum, count) => sum + count, 0);
 
   return (
     <div className={styles.shell}>
@@ -236,6 +243,14 @@ export function AdminShell({ children }: { readonly children: ReactNode }) {
                         onClick={() => setOpen(false)}
                       >
                         <Icon name={link.icon} /> {link.label}
+                        {pending(link.href) > 0 ? (
+                          <span
+                            className="nav-badge"
+                            aria-label={`${pending(link.href)} aguardando ação`}
+                          >
+                            {pending(link.href) > 99 ? '99+' : pending(link.href)}
+                          </span>
+                        ) : null}
                       </Link>
                     </li>
                   ))}
@@ -254,6 +269,11 @@ export function AdminShell({ children }: { readonly children: ReactNode }) {
             onClick={() => setOpen((value) => !value)}
           >
             <Icon name="list" /> Menu
+            {total > 0 ? (
+              <span className="nav-badge" aria-label={`${total} aguardando ação`}>
+                {total > 99 ? '99+' : total}
+              </span>
+            ) : null}
           </button>
           <span className="spacer" />
           <GlobalSearch />
