@@ -46,7 +46,9 @@ describe('Apagar notificações', () => {
 
     expect(await list(user.token)).toHaveLength(0);
     expect(
-      await ctx.prisma.notification.count({ where: { id: item?.id, deletedAt: { not: null } } })
+      await ctx.prisma.notification.count({
+        where: { id: item?.id ?? '', deletedAt: { not: null } }
+      })
     ).toBe(1);
   });
 
