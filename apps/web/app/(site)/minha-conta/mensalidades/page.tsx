@@ -48,7 +48,7 @@ function ProofForm({ fee, onDone }: { readonly fee: Fee; readonly onDone: () => 
         <TextField
           label="Valor pago (R$)"
           maxLength={16}
-          inputMode="decimal"
+          numeric="decimal"
           required
           value={amount}
           onChange={(e) => setAmount(e.target.value)}

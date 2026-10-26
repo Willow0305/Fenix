@@ -257,7 +257,7 @@ export default function FinanceSetupPage() {
         <TextField
           label="Valor (R$)"
           maxLength={16}
-          inputMode="decimal"
+          numeric="decimal"
           value={openingForm.amount}
           onChange={(e) => setOpeningForm({ ...openingForm, amount: e.target.value })}
         />

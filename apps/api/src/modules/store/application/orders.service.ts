@@ -8,6 +8,7 @@ import { assertTransition } from '../../../common/domain/state-machine';
 import { endOfDayExclusive, startOfDayInZone } from '../../../common/domain/time-zone';
 import { AppError } from '../../../common/errors/app-error';
 import { type Page, pageArgs, type PageQueryDto, toPage } from '../../../common/http/pagination';
+import { SiteRevalidateService } from '../../../common/http/site-revalidate.interceptor';
 import { JobScheduler } from '../../../common/jobs/job-scheduler';
 import type { Principal, RequestMeta } from '../../../common/http/request-context';
 import { MailSender } from '../../../common/mail/mail.service';
@@ -134,11 +135,17 @@ export class OrdersService implements OnModuleInit {
     private readonly config: AppConfig,
     private readonly settings: SettingsService,
     private readonly coupons: CouponsService,
-    private readonly jobs: JobScheduler
+    private readonly jobs: JobScheduler,
+    private readonly site: SiteRevalidateService
   ) {}
 
   onModuleInit(): void {
-    this.jobs.every('store.orders.expire', 10 * 60_000, () => this.expireStale());
+    // Reserva vencida devolve estoque: a loja aberta no navegador se atualiza (DT-051).
+    this.jobs.every('store.orders.expire', 10 * 60_000, async () => {
+      if ((await this.expireStale()) > 0) {
+        this.site.changed(['store']);
+      }
+    });
   }
 
   private reservationHours(): number {

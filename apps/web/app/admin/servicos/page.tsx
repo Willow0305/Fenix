@@ -423,7 +423,7 @@ function ServicesAdmin() {
               <TextField
                 label="Valor (R$)"
                 maxLength={16}
-                inputMode="decimal"
+                numeric="decimal"
                 value={svc.price}
                 onChange={(e) => setSvc({ ...svc, price: e.target.value })}
                 hint="Vazio = a combinar."

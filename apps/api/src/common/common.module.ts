@@ -4,7 +4,10 @@ import { APP_INTERCEPTOR } from '@nestjs/core';
 import { AuditService } from './audit/audit.service';
 import { AppConfig } from './config/app-config';
 import { PostgresThrottlerStorage } from './http/postgres-throttler-storage';
-import { SiteRevalidateInterceptor } from './http/site-revalidate.interceptor';
+import {
+  SiteRevalidateInterceptor,
+  SiteRevalidateService
+} from './http/site-revalidate.interceptor';
 import { JobScheduler } from './jobs/job-scheduler';
 import { MailSender, mailSenderFor } from './mail/mail.service';
 import { PrismaService } from './prisma/prisma.service';
@@ -22,6 +25,7 @@ import { WhatsAppSender, whatsappSenderFor } from './whatsapp/whatsapp.service';
     JobScheduler,
     PostgresThrottlerStorage,
     RealtimeService,
+    SiteRevalidateService,
     { provide: MailSender, useFactory: mailSenderFor, inject: [AppConfig] },
     { provide: WhatsAppSender, useFactory: whatsappSenderFor, inject: [AppConfig] },
     { provide: ObjectStorage, useClass: LocalObjectStorage },
@@ -34,6 +38,7 @@ import { WhatsAppSender, whatsappSenderFor } from './whatsapp/whatsapp.service';
     JobScheduler,
     PostgresThrottlerStorage,
     RealtimeService,
+    SiteRevalidateService,
     MailSender,
     WhatsAppSender,
     ObjectStorage

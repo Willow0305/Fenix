@@ -32,7 +32,16 @@ import {
   partnerOperational
 } from '../../partners/domain/partner-rules';
 import { slugify } from '../../sports/domain/sports-rules';
-import { effectiveUnitPrice, isPurchasable, listPrice, requiresStock } from '../domain/store-rules';
+import { lockRow } from '../../finance/application/ledger.service';
+import {
+  effectiveUnitPrice,
+  isPurchasable,
+  isSameImageSet,
+  LOW_STOCK_THRESHOLD,
+  listPrice,
+  MAX_PRODUCT_IMAGES,
+  requiresStock
+} from '../domain/store-rules';
 import { InventoryService, type StockLevel } from './inventory.service';
 import { softDeleteIfUnused } from '../../../common/domain/safe-delete';
 
@@ -57,6 +66,8 @@ export interface VariantView {
   readonly minimumStock: number;
   readonly stock: StockLevel | null;
   readonly inStock: boolean;
+  /** Restam poucas unidades (sem revelar quantas). */
+  readonly lowStock: boolean;
 }
 
 export interface ProductSummary {
@@ -300,7 +311,9 @@ export class CatalogService {
         isActive: variant.isActive,
         minimumStock: variant.minimumStock,
         stock: options.admin ? level : null,
-        inStock: !tracked || level.available > 0
+        inStock: !tracked || level.available > 0,
+        // Só o aviso de poucas unidades vai ao site, nunca a quantidade (DT-051).
+        lowStock: tracked && level.available > 0 && level.available <= LOW_STOCK_THRESHOLD
       };
     });
     const prices = variantViews.map((v) => v.price.amount);
@@ -868,6 +881,13 @@ export class CatalogService {
         throw AppError.notFound('Produto não encontrado.');
       }
 
+      if (product.images.length >= MAX_PRODUCT_IMAGES) {
+        throw AppError.validation(
+          'TOO_MANY_IMAGES',
+          `Cada produto pode ter até ${MAX_PRODUCT_IMAGES} fotos. Remova uma antes de enviar outra.`
+        );
+      }
+
       const stored = await this.media.store(
         file,
         { ...IMAGE_POLICY, kind: 'IMAGE', classification: 'PUBLIC' },
@@ -891,6 +911,96 @@ export class CatalogService {
           entityType: 'Product',
           entityId: productId,
           after: { mediaFileId: stored.id },
+          meta
+        },
+        tx
+      );
+    });
+
+    return this.adminDetail(productId);
+  }
+
+  /** Ordem das fotos; a primeira é a capa (DT-051). */
+  async reorderImages(
+    actor: Principal,
+    productId: string,
+    imageIds: readonly string[],
+    meta: RequestMeta
+  ): Promise<ProductDetail> {
+    await this.prisma.$transaction(async (tx) => {
+      await lockRow(tx, 'product', productId);
+
+      const current = await tx.productImage.findMany({
+        where: { productId, deletedAt: null, product: { deletedAt: null } },
+        orderBy: [{ isPrimary: 'desc' }, { sortOrder: 'asc' }],
+        select: { id: true }
+      });
+
+      if (current.length === 0) {
+        throw AppError.notFound('Produto sem fotos.');
+      }
+
+      if (
+        !isSameImageSet(
+          current.map((image) => image.id),
+          imageIds
+        )
+      ) {
+        throw AppError.conflict(
+          'IMAGES_CHANGED',
+          'As fotos mudaram enquanto você reorganizava. Recarregue a página e tente de novo.'
+        );
+      }
+
+      for (const [index, id] of imageIds.entries()) {
+        await tx.productImage.update({
+          where: { id },
+          data: { sortOrder: index, isPrimary: index === 0 }
+        });
+      }
+
+      await this.audit.record(
+        {
+          actorUserId: actor.userId,
+          action: 'store.image.reordered',
+          entityType: 'Product',
+          entityId: productId,
+          before: { order: current.map((image) => image.id) },
+          after: { order: imageIds },
+          meta
+        },
+        tx
+      );
+    });
+
+    return this.adminDetail(productId);
+  }
+
+  async updateImageAlt(
+    actor: Principal,
+    productId: string,
+    imageId: string,
+    altText: string | null,
+    meta: RequestMeta
+  ): Promise<ProductDetail> {
+    const image = await this.prisma.productImage.findFirst({
+      where: { id: imageId, productId, deletedAt: null }
+    });
+
+    if (image === null) {
+      throw AppError.notFound('Imagem não encontrada.');
+    }
+
+    await this.prisma.$transaction(async (tx) => {
+      await tx.productImage.update({ where: { id: imageId }, data: { altText } });
+      await this.audit.record(
+        {
+          actorUserId: actor.userId,
+          action: 'store.image.updated',
+          entityType: 'Product',
+          entityId: productId,
+          before: { altText: image.altText },
+          after: { altText },
           meta
         },
         tx

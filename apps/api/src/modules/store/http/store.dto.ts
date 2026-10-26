@@ -12,6 +12,7 @@ import {
 import { Transform } from 'class-transformer';
 import {
   ArrayMaxSize,
+  ArrayMinSize,
   IsArray,
   IsBoolean,
   IsEmail,
@@ -178,6 +179,18 @@ export class ImageBodyDto {
   @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(180) altText?: string;
 }
 
+export class ImageOrderDto {
+  @ApiProperty({
+    type: [String],
+    description: 'Todas as fotos do produto na nova ordem; a primeira é a capa.'
+  })
+  @IsArray()
+  @ArrayMinSize(1)
+  @ArrayMaxSize(12)
+  @IsUUID('all', { each: true })
+  imageIds!: string[];
+}
+
 export class AdminProductQueryDto extends PageQueryDto {
   @ApiPropertyOptional({ enum: ProductStatus })
   @IsOptional()
@@ -203,6 +216,12 @@ export class PublicProductQueryDto extends PageQueryDto {
 export class CartItemDto {
   @ApiProperty() @IsUUID() variantId!: string;
   @ApiProperty({ minimum: 0, maximum: 50 }) @IsInt() @Min(0) @Max(50) quantity!: number;
+}
+
+export class CartChangeDto {
+  @ApiProperty() @IsUUID() fromVariantId!: string;
+  @ApiProperty() @IsUUID() toVariantId!: string;
+  @ApiProperty({ minimum: 1, maximum: 50 }) @IsInt() @Min(1) @Max(50) quantity!: number;
 }
 
 export class CheckoutDto {

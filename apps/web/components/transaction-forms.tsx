@@ -81,7 +81,7 @@ export function TransactionForm({ onDone }: { readonly onDone: () => void }) {
           label="Valor (R$)"
           maxLength={16}
           required
-          inputMode="decimal"
+          numeric="decimal"
           value={form.amount}
           onChange={(e) => setForm({ ...form, amount: e.target.value })}
         />
@@ -191,7 +191,7 @@ export function TransferForm({ onDone }: { readonly onDone: () => void }) {
           label="Valor (R$)"
           maxLength={16}
           required
-          inputMode="decimal"
+          numeric="decimal"
           value={form.amount}
           onChange={(e) => setForm({ ...form, amount: e.target.value })}
         />

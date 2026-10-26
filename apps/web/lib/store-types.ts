@@ -33,6 +33,8 @@ export interface Variant {
   minimumStock: number;
   stock: { available: number; reserved: number; onHand: number } | null;
   inStock: boolean;
+  /** Restam poucas unidades (DT-051). */
+  lowStock: boolean;
 }
 
 export interface ProductSummary {
@@ -86,6 +88,8 @@ export interface CartLine {
   campaign: { slug: string; name: string } | null;
   warning: 'UNAVAILABLE' | 'INSUFFICIENT_STOCK' | null;
   available: number | null;
+  /** Outras opções do mesmo produto, para trocar no carrinho (DT-051). */
+  options: { variantId: string; name: string; available: number | null }[];
 }
 
 export interface Cart {

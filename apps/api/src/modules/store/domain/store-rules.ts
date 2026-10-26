@@ -165,3 +165,21 @@ export function buyerLimitExceeded(
 ): boolean {
   return limit !== null && alreadyBought + requested > limit;
 }
+
+/** Fotos por produto (DT-051): o bastante para mostrar ângulos e detalhes. */
+export const MAX_PRODUCT_IMAGES = 12;
+
+/**
+ * Nova ordem das fotos: precisa conter exatamente as fotos atuais, sem repetir. A primeira
+ * vira a capa (vitrine, carrinho e compartilhamento).
+ */
+export function isSameImageSet(current: readonly string[], requested: readonly string[]): boolean {
+  return (
+    current.length === requested.length &&
+    new Set(requested).size === requested.length &&
+    requested.every((id) => current.includes(id))
+  );
+}
+
+/** A partir de quantas unidades a loja mostra "últimas unidades". */
+export const LOW_STOCK_THRESHOLD = 3;

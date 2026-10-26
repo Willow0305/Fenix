@@ -2,6 +2,7 @@
 
 import {
   type FormEvent,
+  type ChangeEvent,
   type InputHTMLAttributes,
   type ReactNode,
   type SelectHTMLAttributes,
@@ -26,6 +27,7 @@ import {
 } from '@fenix/validation';
 
 import { ApiError, errorMessage } from '../lib/api-client';
+import { decimalDisplay, type NumericMode, sanitizeNumeric } from '../lib/numeric-input';
 
 /** Componentes de formulário acessíveis: rótulo visível, ajuda e erro associados. */
 interface FieldShellProps {
@@ -90,13 +92,36 @@ type Common = {
   readonly error?: string | undefined;
 };
 
+/**
+ * Campo de texto. `numeric` (ou `type="number"`) só aceita número: `integer` só dígitos;
+ * `decimal` mostra vírgula e entrega ponto ao formulário (DT-051).
+ */
 export function TextField({
   label,
   hint,
   error,
   required,
+  numeric,
   ...props
-}: Common & InputHTMLAttributes<HTMLInputElement>) {
+}: Common &
+  InputHTMLAttributes<HTMLInputElement> & { readonly numeric?: NumericMode | undefined }) {
+  const mode: NumericMode | undefined =
+    numeric ?? (props.type === 'number' ? 'integer' : undefined);
+  const numericProps = mode
+    ? {
+        type: 'text',
+        inputMode: mode === 'decimal' ? ('decimal' as const) : ('numeric' as const),
+        autoComplete: props.autoComplete ?? 'off',
+        ...(mode === 'decimal' && typeof props.value === 'string'
+          ? { value: decimalDisplay(props.value) }
+          : {}),
+        onChange: (event: ChangeEvent<HTMLInputElement>) => {
+          event.target.value = sanitizeNumeric(mode, event.target.value);
+          props.onChange?.(event);
+        }
+      }
+    : {};
+
   return (
     <FieldShell
       label={label}
@@ -112,6 +137,7 @@ export function TextField({
           aria-invalid={error ? true : undefined}
           aria-describedby={describedBy}
           {...props}
+          {...numericProps}
         />
       )}
     </FieldShell>

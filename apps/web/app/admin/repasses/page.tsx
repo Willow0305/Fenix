@@ -243,7 +243,7 @@ function SettlementsAdmin() {
             <TextField
               label="Ajuste (R$)"
               maxLength={17}
-              inputMode="decimal"
+              numeric="decimal"
               value={form.adjustmentAmount}
               onChange={(e) => setForm({ ...form, adjustmentAmount: e.target.value })}
               hint="Opcional. Use sinal de menos para descontar (ex.: -15,00)."

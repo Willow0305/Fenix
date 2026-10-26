@@ -40,6 +40,15 @@ export interface CartLine {
   readonly campaign: { slug: string; name: string } | null;
   readonly warning: 'UNAVAILABLE' | 'INSUFFICIENT_STOCK' | null;
   readonly available: number | null;
+  /** Opções do mesmo produto, para trocar no carrinho (DT-051). */
+  readonly options: CartOption[];
+}
+
+export interface CartOption {
+  readonly variantId: string;
+  readonly name: string;
+  /** Unidades disponíveis; nulo quando o produto não controla estoque (encomenda, pré-venda). */
+  readonly available: number | null;
 }
 
 export interface CartView {
@@ -62,6 +71,11 @@ const CART_INCLUDE = {
                 where: { deletedAt: null },
                 orderBy: [{ isPrimary: 'desc' }, { sortOrder: 'asc' }],
                 take: 1
+              },
+              variants: {
+                where: { deletedAt: null, isActive: true },
+                orderBy: { createdAt: 'asc' },
+                select: { id: true, name: true }
               },
               partner: {
                 select: {
@@ -205,7 +219,14 @@ export class CartService {
     }
 
     const now = new Date();
-    const levels = await this.inventory.levels(cart.items.map((item) => item.productVariantId));
+    const levels = await this.inventory.levels([
+      ...new Set(
+        cart.items.flatMap((item) => [
+          item.productVariantId,
+          ...item.productVariant.product.variants.map((variant) => variant.id)
+        ])
+      )
+    ]);
     const lines: CartLine[] = cart.items.map((item) => {
       const product = item.productVariant.product;
       const unit = cartItemPrice(item);
@@ -237,7 +258,12 @@ export class CartService {
           : available !== null && available < item.quantity
             ? 'INSUFFICIENT_STOCK'
             : null,
-        available
+        available,
+        options: product.variants.map((variant) => ({
+          variantId: variant.id,
+          name: variant.name,
+          available: tracked ? (levels.get(variant.id)?.available ?? 0) : null
+        }))
       };
     });
 
@@ -258,6 +284,46 @@ export class CartService {
         )
       ),
       hasWarnings: lines.some((line) => line.warning !== null)
+    };
+  }
+
+  /**
+   * Troca a opção de um item (ex.: tamanho M por G), somando se a nova opção já estiver no
+   * carrinho. A nova opção é validada antes (estoque, limite); só então a antiga sai.
+   */
+  async changeVariant(
+    owner: CartOwner,
+    fromVariantId: string,
+    toVariantId: string,
+    quantity: number
+  ): Promise<{ view: CartView; newGuestToken: string | null }> {
+    const cart = await this.findActive(owner);
+    const current = cart?.items.find((item) => item.productVariantId === fromVariantId);
+
+    if (!cart || !current) {
+      throw AppError.notFound('Item não está no carrinho.');
+    }
+
+    if (fromVariantId === toVariantId) {
+      return this.setItem(owner, toVariantId, quantity);
+    }
+
+    const target = await this.prisma.productVariant.findFirst({
+      where: { id: toVariantId, deletedAt: null, isActive: true },
+      select: { productId: true }
+    });
+
+    if (target === null || target.productId !== current.productVariant.productId) {
+      throw AppError.validation('INVALID_OPTION', 'Escolha uma opção deste mesmo produto.');
+    }
+
+    const existing = cart.items.find((item) => item.productVariantId === toVariantId);
+    const merged = Math.min(MAX_ITEM_QUANTITY, (existing?.quantity ?? 0) + quantity);
+    const result = await this.setItem(owner, toVariantId, merged);
+
+    return {
+      ...(await this.setItem(owner, fromVariantId, 0)),
+      newGuestToken: result.newGuestToken
     };
   }
 

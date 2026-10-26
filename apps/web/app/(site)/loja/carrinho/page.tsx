@@ -3,7 +3,11 @@
 import Link from 'next/link';
 import { useState } from 'react';
 
+import { Icon } from '../../../../components/icon';
+import { LiveRefresh } from '../../../../components/live-refresh';
+import { MediaImage } from '../../../../components/media-image';
 import { OrderPayment } from '../../../../components/payment-instructions';
+import { QuantityStepper } from '../../../../components/quantity-stepper';
 import { OrderSummary } from '../../../../components/order-summary';
 import {
   Alert,
@@ -25,7 +29,7 @@ import { CouponBox } from '../../../../components/coupon-box';
 
 export default function CartPage() {
   const { status, profile } = useAuth();
-  const { cart, setQuantity, reload } = useCart();
+  const { cart, setQuantity, changeOption, reload } = useCart();
   const [lineError, setLineError] = useState<string | null>(null);
   const [form, setForm] = useState({
     customerName: '',
@@ -60,15 +64,19 @@ export default function CartPage() {
     await reload();
   });
 
-  async function change(variantId: string, quantity: number) {
+  async function run(action: () => Promise<unknown>) {
     setLineError(null);
 
     try {
-      await setQuantity(variantId, quantity);
+      await action();
     } catch (error) {
       setLineError(errorMessage(error));
+      await reload();
     }
   }
+
+  const change = (variantId: string, quantity: number) =>
+    run(() => setQuantity(variantId, quantity));
 
   if (result) {
     const { order, guestAccessCode } = result;
@@ -105,7 +113,18 @@ export default function CartPage() {
 
   return (
     <div className="container stack" style={{ paddingTop: '2rem', maxWidth: 960 }}>
-      <PageHeader title="Carrinho" actions={<Link href="/loja">Continuar comprando</Link>} />
+      <LiveRefresh topics={['store']} onChange={() => void reload()} />
+      <PageHeader
+        title="Carrinho"
+        {...(cart && cart.itemCount > 0
+          ? { description: `${cart.itemCount} ${cart.itemCount === 1 ? 'item' : 'itens'}` }
+          : {})}
+        actions={
+          <Link href="/loja">
+            <Icon name="arrow-left" /> Continuar comprando
+          </Link>
+        }
+      />
       {cart === null ? <Loading /> : null}
       {cart && cart.lines.length === 0 ? (
         <Empty>
@@ -115,76 +134,80 @@ export default function CartPage() {
       {lineError ? <Alert kind="error">{lineError}</Alert> : null}
       {cart && cart.lines.length > 0 ? (
         <>
-          <div className="table-wrap">
-            <table className="table table-stack">
-              <thead>
-                <tr>
-                  <th scope="col">Produto</th>
-                  <th scope="col">Quantidade</th>
-                  <th scope="col" className="num">
-                    Unitário
-                  </th>
-                  <th scope="col" className="num">
-                    Total
-                  </th>
-                  <th scope="col">
-                    <span className="visually-hidden">Remover</span>
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                {cart.lines.map((line) => (
-                  <tr key={line.id}>
-                    <td data-label="Produto">
-                      <Link href={`/loja/${line.productSlug}`}>{line.productName}</Link>
-                      <div className="muted" style={{ fontSize: '0.8rem' }}>
-                        {line.variantName}
-                        {line.campaign ? ` · pré-venda ${line.campaign.name}` : ''}
-                      </div>
-                      {line.warning === 'UNAVAILABLE' ? (
-                        <span className="field-error">Indisponível — remova para continuar.</span>
-                      ) : null}
-                      {line.warning === 'INSUFFICIENT_STOCK' ? (
-                        <span className="field-error">Só há {line.available} disponível(is).</span>
-                      ) : null}
-                    </td>
-                    <td data-label="Quantidade">
-                      <input
-                        type="number"
-                        min={1}
-                        max={50}
-                        aria-label={`Quantidade de ${line.productName}`}
-                        defaultValue={line.quantity}
-                        onBlur={(e) => {
-                          const value = Number(e.target.value);
+          <ul className="cart-lines">
+            {cart.lines.map((line) => {
+              const choices = line.options.filter(
+                (option) => option.variantId === line.variantId || option.available !== 0
+              );
 
-                          if (value !== line.quantity && value > 0) {
-                            void change(line.variantId, value);
+              return (
+                <li key={line.id} className="cart-line">
+                  <Link href={`/loja/${line.productSlug}`} className="cart-thumb" tabIndex={-1}>
+                    <MediaImage src={line.image} alt="" ratio="1/1" fit="contain" />
+                  </Link>
+                  <div className="cart-line-body">
+                    <Link href={`/loja/${line.productSlug}`} className="cart-line-name">
+                      {line.productName}
+                    </Link>
+                    {line.campaign ? (
+                      <small className="muted">Pré-venda · {line.campaign.name}</small>
+                    ) : null}
+                    {choices.length > 1 ? (
+                      <label className="cart-option">
+                        <span className="muted">Opção</span>
+                        <select
+                          value={line.variantId}
+                          aria-label={`Opção de ${line.productName}`}
+                          onChange={(event) =>
+                            void run(() =>
+                              changeOption(line.variantId, event.target.value, line.quantity)
+                            )
                           }
-                        }}
-                        style={{ width: 70, minHeight: 36 }}
+                        >
+                          {choices.map((option) => (
+                            <option key={option.variantId} value={option.variantId}>
+                              {option.name}
+                            </option>
+                          ))}
+                        </select>
+                      </label>
+                    ) : (
+                      <small className="muted">{line.variantName}</small>
+                    )}
+                    {line.warning === 'UNAVAILABLE' ? (
+                      <span className="field-error">Indisponível — remova para continuar.</span>
+                    ) : null}
+                    {line.warning === 'INSUFFICIENT_STOCK' ? (
+                      <span className="field-error">
+                        Só há {line.available} disponível(is). Ajuste a quantidade.
+                      </span>
+                    ) : null}
+                    <div className="cart-line-actions">
+                      <QuantityStepper
+                        label={`Quantidade de ${line.productName}`}
+                        value={line.quantity}
+                        max={Math.min(50, line.available ?? 50) || line.quantity}
+                        onChange={(value) => void change(line.variantId, value)}
                       />
-                    </td>
-                    <td data-label="Unitário" className="num">
-                      {formatMoney(line.unitPrice.amount)}
-                    </td>
-                    <td data-label="Total" className="num">
-                      {formatMoney(line.lineTotal.amount)}
-                    </td>
-                    <td data-label="Remover">
                       <button
                         type="button"
                         className="btn btn-link"
                         onClick={() => void change(line.variantId, 0)}
                       >
-                        Remover
+                        <Icon name="trash3" /> Remover
                       </button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                    </div>
+                  </div>
+                  <div className="cart-line-price">
+                    <strong>{formatMoney(line.lineTotal.amount)}</strong>
+                    {line.quantity > 1 ? (
+                      <small className="muted">{formatMoney(line.unitPrice.amount)} cada</small>
+                    ) : null}
+                  </div>
+                </li>
+              );
+            })}
+          </ul>
           <CouponBox cartTotal={cart.total.amount} applied={coupon} onChange={setCoupon} />
           <div className="cart-totals">
             {coupon ? (

@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 
+import { LiveRefresh } from '../../../components/live-refresh';
 import { formatDateTime } from '../../../lib/format';
 import { serverGet } from '../../../lib/server-api';
 import { TRYOUT_STATUS, type Tryout } from '../../../lib/sports-types';
@@ -13,6 +14,7 @@ export default async function TryoutsPage() {
 
   return (
     <div className="container stack" style={{ paddingTop: '2.5rem' }}>
+      <LiveRefresh topics={['tryouts']} />
       <h1>Seletivas</h1>
       <p className="muted">Horários exibidos no fuso do time (Rio Branco).</p>
       {tryouts.length === 0 ? (

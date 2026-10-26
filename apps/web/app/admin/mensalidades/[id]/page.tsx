@@ -199,7 +199,7 @@ export default function FeeDetailPage() {
                 label="Valor (R$)"
                 maxLength={16}
                 required
-                inputMode="decimal"
+                numeric="decimal"
                 placeholder={f.remainingAmount.amount.replace('.', ',')}
                 value={form.amount}
                 onChange={(e) => setForm({ ...form, amount: e.target.value })}
@@ -351,7 +351,7 @@ export default function FeeDetailPage() {
         <TextField
           label="Desconto (R$)"
           maxLength={16}
-          inputMode="decimal"
+          numeric="decimal"
           value={discount}
           onChange={(e) => setDiscount(e.target.value)}
         />

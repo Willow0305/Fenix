@@ -10,6 +10,12 @@ interface CartState {
   readonly cart: Cart | null;
   readonly reload: () => Promise<void>;
   readonly setQuantity: (variantId: string, quantity: number) => Promise<Cart>;
+  /** Troca a opção (tamanho, cor) de um item, mantendo a quantidade (DT-051). */
+  readonly changeOption: (
+    fromVariantId: string,
+    toVariantId: string,
+    quantity: number
+  ) => Promise<Cart>;
 }
 
 const CartContext = createContext<CartState | null>(null);
@@ -44,8 +50,24 @@ export function CartProvider({ children }: { readonly children: ReactNode }) {
     return updated;
   }, []);
 
+  const changeOption = useCallback(
+    async (fromVariantId: string, toVariantId: string, quantity: number) => {
+      const updated = await api<Cart>('/cart/items/change', {
+        method: 'POST',
+        body: { fromVariantId, toVariantId, quantity }
+      });
+
+      setCart(updated);
+
+      return updated;
+    },
+    []
+  );
+
   return (
-    <CartContext.Provider value={{ cart, reload, setQuantity }}>{children}</CartContext.Provider>
+    <CartContext.Provider value={{ cart, reload, setQuantity, changeOption }}>
+      {children}
+    </CartContext.Provider>
   );
 }
 

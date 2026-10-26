@@ -3,6 +3,8 @@
 import Link from 'next/link';
 import { useState } from 'react';
 
+import { Icon } from '../../../../components/icon';
+import { QuantityStepper } from '../../../../components/quantity-stepper';
 import { Alert, ErrorSummary, useSubmit } from '../../../../components/ui';
 import { api } from '../../../../lib/api-client';
 import { useAuth } from '../../../../lib/auth-context';
@@ -65,6 +67,7 @@ export function ProductPurchase({ product }: { readonly product: ProductDetail }
                   onChange={() => {
                     setVariantId(v.id);
                     setAdded(false);
+                    setQty(1);
                   }}
                   className="visually-hidden"
                 />
@@ -75,25 +78,21 @@ export function ProductPurchase({ product }: { readonly product: ProductDetail }
           </div>
         </fieldset>
       ) : null}
+      {variant?.lowStock ? (
+        <span className="badge badge-warning">
+          <Icon name="hourglass-split" /> Últimas unidades
+        </span>
+      ) : null}
       {product.purchasable && variant?.inStock ? (
         <form className="row" onSubmit={(event) => void add.submit(event)}>
-          <label className="field" style={{ width: 110 }}>
-            <span className="label">Quantidade</span>
-            <input
-              type="number"
-              min={1}
-              max={product.buyerLimit ?? 50}
-              value={quantity}
-              onChange={(e) => setQty(Math.max(1, Number(e.target.value) || 1))}
-            />
-          </label>
-          <button
-            type="submit"
-            className="btn btn-primary"
-            disabled={add.pending || !variantId}
-            style={{ alignSelf: 'end' }}
-          >
-            {add.pending ? 'Adicionando…' : 'Adicionar ao carrinho'}
+          <QuantityStepper
+            label={`Quantidade de ${product.name}`}
+            value={quantity}
+            max={Math.max(1, (product.buyerLimit ?? 50) - inCart)}
+            onChange={setQty}
+          />
+          <button type="submit" className="btn btn-primary" disabled={add.pending || !variantId}>
+            <Icon name="cart-plus" /> {add.pending ? 'Adicionando…' : 'Adicionar ao carrinho'}
           </button>
         </form>
       ) : (

@@ -389,7 +389,7 @@ export default function PartnerAdminPage() {
               <TextField
                 label="Percentual (%)"
                 maxLength={6}
-                inputMode="decimal"
+                numeric="decimal"
                 required
                 value={form['commissionPercentage'] ?? ''}
                 onChange={set('commissionPercentage')}
@@ -399,7 +399,7 @@ export default function PartnerAdminPage() {
               <TextField
                 label="Valor por unidade (R$)"
                 maxLength={16}
-                inputMode="decimal"
+                numeric="decimal"
                 required
                 value={form['commissionFixedAmount'] ?? ''}
                 onChange={set('commissionFixedAmount')}

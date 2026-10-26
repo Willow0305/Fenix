@@ -116,7 +116,7 @@ export default function ProductsAdminPage() {
                 label="Preço (R$)"
                 maxLength={16}
                 required
-                inputMode="decimal"
+                numeric="decimal"
                 value={form.basePrice}
                 onChange={(e) => setForm({ ...form, basePrice: e.target.value })}
               />

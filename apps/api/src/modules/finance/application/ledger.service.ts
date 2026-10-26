@@ -124,6 +124,7 @@ const LOCKABLE_TABLES = {
   payment: 'payments',
   order: 'orders',
   variant: 'product_variants',
+  product: 'products',
   campaign: 'sales_campaigns',
   coupon: 'coupons',
   obligation: 'financial_obligations',

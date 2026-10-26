@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 
 import { Icon } from '../../../components/icon';
+import { LiveRefresh } from '../../../components/live-refresh';
 import { ProductCard } from '../../../components/product-card';
 import type { Page } from '../../../lib/api-types';
 import { serverGet } from '../../../lib/server-api';
@@ -61,6 +62,7 @@ export default async function StorePage({
 
   return (
     <div className="container stack" style={{ paddingTop: '2.5rem' }}>
+      <LiveRefresh topics={['store']} />
       <div className="page-header">
         <div>
           <h1>Loja oficial</h1>

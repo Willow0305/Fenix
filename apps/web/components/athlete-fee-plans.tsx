@@ -96,7 +96,7 @@ export function AthleteFeePlans({ athleteId }: { readonly athleteId: string }) {
             <TextField
               label="Valor individual (opcional)"
               maxLength={16}
-              inputMode="decimal"
+              numeric="decimal"
               value={form.amountOverride}
               onChange={(e) => setForm({ ...form, amountOverride: e.target.value })}
               hint="Para bolsa ou desconto permanente."

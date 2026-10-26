@@ -6,6 +6,20 @@ O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) e o 
 
 ## [Não publicado]
 
+### Loja profissional e páginas ao vivo (2026-10-26)
+
+#### Adicionado
+
+- até 12 fotos por produto, enviadas de uma vez, com ordem por arrastar ou por botões, capa e descrição de cada foto (DT-051);
+- galeria na página do produto com miniaturas, lupa ao passar o mouse e tela cheia com zoom;
+- carrinho com a foto de cada item, troca de tamanho ou cor na própria linha e quantidade com − e +;
+- aviso "Últimas unidades" e caminho de navegação na página do produto;
+- loja e seletivas se atualizam sozinhas quando estoque, preço ou vagas mudam.
+
+#### Alterado
+
+- campos numéricos aceitam só números, inclusive ao colar; valores em reais aceitam vírgula ("89,90"), que antes dava erro.
+
 ### Lembrar o dispositivo na verificação em duas etapas (2026-10-26)
 
 #### Adicionado

@@ -174,8 +174,8 @@ export function MfaSection() {
               <ErrorSummary error={confirm.error} />
               <TextField
                 label="Código de 6 dígitos mostrado no aplicativo"
-                maxLength={20}
-                inputMode="numeric"
+                maxLength={6}
+                numeric="integer"
                 autoComplete="one-time-code"
                 required
                 value={code}

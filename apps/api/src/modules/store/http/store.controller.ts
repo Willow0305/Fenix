@@ -69,11 +69,13 @@ import {
   CouponDto,
   CouponPreviewDto,
   AdminProductQueryDto,
+  CartChangeDto,
   CartItemDto,
   CheckoutDto,
   GuestLookupDto,
   GuestProofDto,
   ImageBodyDto,
+  ImageOrderDto,
   OrderPaymentDto,
   OrderProofDto,
   OrderQueryDto,
@@ -218,6 +220,31 @@ export class StorefrontController {
     const result = await this.carts.setItem(
       this.owner(req, principal),
       body.variantId,
+      body.quantity
+    );
+
+    if (result.newGuestToken) {
+      res.cookie(CART_COOKIE, result.newGuestToken, this.cookieOptions());
+    }
+
+    return result.view;
+  }
+
+  /** Troca a opção de um item do carrinho (tamanho, cor) mantendo a quantidade (DT-051). */
+  @Post('cart/items/change')
+  @Public()
+  @HttpCode(200)
+  @Throttle({ default: { limit: 60, ttl: 60_000 } })
+  async changeItem(
+    @Req() req: ContextRequest,
+    @OptionalPrincipal() principal: Principal | undefined,
+    @Body() body: CartChangeDto,
+    @Res({ passthrough: true }) res: Response
+  ): Promise<CartView> {
+    const result = await this.carts.changeVariant(
+      this.owner(req, principal),
+      body.fromVariantId,
+      body.toVariantId,
       body.quantity
     );
 
@@ -659,6 +686,29 @@ export class StoreAdminController {
     @ReqMeta() meta: RequestMeta
   ): Promise<ProductDetail> {
     return this.catalog.addImage(actor, id, file, body.altText?.trim() || null, meta);
+  }
+
+  @Put('products/:id/images/order')
+  @RequirePermissions(PERMISSIONS.productsManage)
+  reorderImages(
+    @CurrentPrincipal() actor: Principal,
+    @Param('id', new ParseUUIDPipe()) id: string,
+    @Body() body: ImageOrderDto,
+    @ReqMeta() meta: RequestMeta
+  ): Promise<ProductDetail> {
+    return this.catalog.reorderImages(actor, id, body.imageIds, meta);
+  }
+
+  @Patch('products/:id/images/:imageId')
+  @RequirePermissions(PERMISSIONS.productsManage)
+  updateImage(
+    @CurrentPrincipal() actor: Principal,
+    @Param('id', new ParseUUIDPipe()) id: string,
+    @Param('imageId', new ParseUUIDPipe()) imageId: string,
+    @Body() body: ImageBodyDto,
+    @ReqMeta() meta: RequestMeta
+  ): Promise<ProductDetail> {
+    return this.catalog.updateImageAlt(actor, id, imageId, body.altText?.trim() || null, meta);
   }
 
   @Delete('products/:id/images/:imageId')

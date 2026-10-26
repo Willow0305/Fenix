@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 
+import { LiveRefresh } from '../../../../components/live-refresh';
 import { formatDateTime } from '../../../../lib/format';
 import { serverGet } from '../../../../lib/server-api';
 import { TRYOUT_STATUS, type Tryout } from '../../../../lib/sports-types';
@@ -31,6 +32,7 @@ export default async function TryoutPage({
 
   return (
     <div className="container stack" style={{ paddingTop: '2.5rem', maxWidth: 860 }}>
+      <LiveRefresh topics={['tryouts']} />
       <div className="row">
         <h1 style={{ margin: 0 }}>{tryout.title}</h1>
         <span className={`badge ${TRYOUT_STATUS[tryout.status].badge}`}>

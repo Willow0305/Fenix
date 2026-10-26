@@ -11,13 +11,19 @@ export const REALTIME_CHANNEL = 'fenix_realtime';
  * permissões. `origin` identifica a aba que fez a mudança, que não precisa recarregar.
  */
 export interface RealtimeEvent {
-  readonly type: 'notification' | 'changed';
+  readonly type: 'notification' | 'changed' | 'catalog';
   readonly origin?: string;
 }
 
+/** Assuntos das páginas públicas que se atualizam sozinhas (DT-051). */
+export const PUBLIC_TOPICS = ['store', 'tryouts'] as const;
+export type PublicTopic = (typeof PUBLIC_TOPICS)[number];
+
 /** Destino: pessoas escolhidas ou quem tem uma permissão. */
 export type RealtimeAudience =
-  { readonly userIds: readonly string[] } | { readonly permission: string };
+  | { readonly userIds: readonly string[] }
+  | { readonly permission: string }
+  | { readonly topic: PublicTopic };
 
 interface Envelope {
   readonly to: RealtimeAudience;
@@ -25,8 +31,13 @@ interface Envelope {
 }
 
 export interface RealtimeSubscriber {
-  readonly userId: string;
+  /** Nulo para visitante sem login (páginas públicas). */
+  readonly userId: string | null;
   readonly permissions: ReadonlySet<string>;
+  /** Assuntos públicos acompanhados. */
+  readonly topics?: ReadonlySet<PublicTopic>;
+  /** Hash do IP, para limitar conexões de visitantes. */
+  readonly ipHash?: string | null;
   readonly send: (event: RealtimeEvent) => void;
   /** Encerra a conexão do navegador (desligamento do servidor). */
   readonly close: () => void;
@@ -64,9 +75,15 @@ export function listenerUrl(databaseUrl: string): string {
 }
 
 export function matches(subscriber: RealtimeSubscriber, to: RealtimeAudience): boolean {
-  return 'userIds' in to
-    ? to.userIds.includes(subscriber.userId)
-    : subscriber.permissions.has(to.permission);
+  if ('topic' in to) {
+    return subscriber.topics?.has(to.topic) ?? false;
+  }
+
+  if ('userIds' in to) {
+    return subscriber.userId !== null && to.userIds.includes(subscriber.userId);
+  }
+
+  return subscriber.permissions.has(to.permission);
 }
 
 /**
@@ -107,6 +124,13 @@ export class RealtimeService implements OnModuleInit, OnApplicationShutdown {
 
     await this.client?.end().catch(() => undefined);
     this.client = null;
+  }
+
+  /** Conexões públicas abertas por um IP (hash) neste servidor. */
+  publicConnectionsOf(ipHash: string | null): number {
+    return [...this.subscribers].filter(
+      (subscriber) => subscriber.userId === null && subscriber.ipHash === ipHash
+    ).length;
   }
 
   /** Conexões abertas da pessoa neste servidor. */

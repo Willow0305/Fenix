@@ -150,7 +150,7 @@ export default function ClosingsPage() {
                       label="Saldo contado / extrato (R$)"
                       maxLength={16}
                       required
-                      inputMode="decimal"
+                      numeric="decimal"
                       value={form.countedBalance}
                       onChange={(e) => setForm({ ...form, countedBalance: e.target.value })}
                     />

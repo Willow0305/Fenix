@@ -1005,3 +1005,23 @@ Com a segunda etapa (DT-037), o código do autenticador era pedido em todo login
 
 - login de quem usa sempre o mesmo navegador pede o código só uma vez por mês;
 - 7 testes unitários (nome do navegador, validade) e 6 de integração (sem marcar continua pedindo; lembrado entra só com a senha e com segunda etapa comprovada; cookie de outra conta não serve; listar e trocar a senha esquece todos; esquecer volta a pedir; listar exige login).
+
+## DT-051 — Loja profissional e páginas públicas ao vivo
+
+- **Estado:** Aceita
+- **Data:** 2026-10-26
+- **Aprovador:** responsável do projeto ("quero o sistema em tempo real por conta da loja e inscrições [...] melhora da loja e carrinho de compras e edição do item escolhido, campos que só podem aceitar numeração [...] mais imagens [...] mover a foto [...] zoom [...] imagem do item no carrinho", 2026-10-26)
+
+### Decisão
+
+- **fotos:** até 12 por produto. No painel: envio de várias de uma vez com progresso, ordem por arrastar (computador) ou pelos botões de mover (celular), "Tornar capa", descrição de cada foto e remoção com confirmação. A primeira é a capa (`PUT /store/products/:id/images/order`, que exige exatamente as fotos atuais, trava o produto e registra antes/depois na auditoria; `PATCH /store/products/:id/images/:imageId` para a descrição);
+- **galeria no site:** foto principal com lupa ao passar o mouse, miniaturas, setas, teclado (← →) e tela cheia com zoom que acompanha o mouse ou o dedo. Respeita "reduzir movimento";
+- **carrinho:** cada item com miniatura, troca de opção (tamanho, cor) na própria linha (`POST /cart/items/change`: valida a nova opção antes de tirar a antiga e soma se ela já estiver no carrinho), quantidade com − e +, preço unitário e total. Opções esgotadas não aparecem para troca;
+- **produto:** caminho de navegação (Loja / categoria / produto), quantidade com − e + limitada pelo que ainda cabe no limite por comprador, e o aviso "Últimas unidades" quando restam 3 ou menos. O site continua sem mostrar a quantidade em estoque;
+- **campos numéricos em todo o sistema:** o `TextField` com `numeric="integer"` (ou `type="number"`) só aceita dígitos, inclusive ao colar; o `type="number"` do navegador, que aceita "e", "+" e "-", deixou de ser usado. Valores em reais (`numeric="decimal"`) aparecem com vírgula e seguem com ponto para a API; com vírgula, pontos são lidos como milhar ("1.234,50" → 1234.50). Isso corrige também o erro de quem digitava "89,90";
+- **páginas públicas ao vivo:** `GET /api/v1/public/live?topics=store,tryouts` (Server-Sent Events, sem login, até 6 conexões por IP em cada servidor). A loja (vitrine, produto e carrinho) e as seletivas (lista e página) recarregam os dados quando estoque, preço, pedidos ou vagas mudam. O aviso sai **depois** do descarte do cache do site (DT-041), para a página não recarregar dados velhos; as tarefas que liberam estoque (reservas vencidas, remessas encerradas) também avisam. Mexer no carrinho não descarta o cache nem gera aviso.
+
+### Consequências
+
+- correção de passagem: o carrinho fica em `/cart`, e as mexidas nele geravam aviso de mudança à diretoria (DT-049); agora não geram;
+- 8 testes de integração (ordem das fotos e capa no site, ordem inválida, descrição e permissão, opções com estoque e troca, troca sem estoque mantém o item, soma e opção de outro produto, fluxo público com assunto inválido e aviso ao mudar estoque), 6 testes de unidade da API (assuntos públicos e ordem cache → aviso) e 7 de interface (números, quantidade, ordem das fotos, campo de valor e galeria).

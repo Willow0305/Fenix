@@ -12,6 +12,7 @@ import {
 import { assertTransition } from '../../../common/domain/state-machine';
 import { AppError } from '../../../common/errors/app-error';
 import type { Principal, RequestMeta } from '../../../common/http/request-context';
+import { SiteRevalidateService } from '../../../common/http/site-revalidate.interceptor';
 import { JobScheduler } from '../../../common/jobs/job-scheduler';
 import { MailSender } from '../../../common/mail/mail.service';
 import { PrismaService } from '../../../common/prisma/prisma.service';
@@ -140,11 +141,16 @@ export class CampaignsService implements OnModuleInit {
     private readonly orders: OrdersService,
     private readonly notifications: NotificationsService,
     private readonly mail: MailSender,
-    private readonly jobs: JobScheduler
+    private readonly jobs: JobScheduler,
+    private readonly site: SiteRevalidateService
   ) {}
 
   onModuleInit(): void {
-    this.jobs.every('store.campaigns.close', 10 * 60_000, () => this.closeExpired());
+    this.jobs.every('store.campaigns.close', 10 * 60_000, async () => {
+      if ((await this.closeExpired()) > 0) {
+        this.site.changed(['store']);
+      }
+    });
   }
 
   private toView(row: CampaignRow): CampaignView {

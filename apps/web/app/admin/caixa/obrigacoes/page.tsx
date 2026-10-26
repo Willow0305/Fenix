@@ -137,7 +137,7 @@ export default function ObligationsPage() {
               label="Valor (R$)"
               maxLength={16}
               required
-              inputMode="decimal"
+              numeric="decimal"
               value={form.amount}
               onChange={(e) => setForm({ ...form, amount: e.target.value })}
             />

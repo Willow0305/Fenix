@@ -61,7 +61,7 @@ export function PlanForm({
           label="Valor (R$)"
           maxLength={16}
           required
-          inputMode="decimal"
+          numeric="decimal"
           placeholder="80,00"
           value={form.amount}
           onChange={(e) => setForm({ ...form, amount: e.target.value })}

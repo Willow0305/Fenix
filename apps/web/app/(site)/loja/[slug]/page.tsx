@@ -3,7 +3,8 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 
 import { Icon } from '../../../../components/icon';
-import { MediaImage } from '../../../../components/media-image';
+import { LiveRefresh } from '../../../../components/live-refresh';
+import { ProductGallery } from '../../../../components/product-gallery';
 import type { Campaign } from '../../../../lib/campaign-types';
 import { formatDate, formatDateTime } from '../../../../lib/format';
 import { serverGet } from '../../../../lib/server-api';
@@ -46,9 +47,18 @@ export default async function ProductPage({
 
   return (
     <div className="container" style={{ paddingTop: '2rem' }}>
-      <p>
-        <Link href="/loja">← Voltar para a loja</Link>
-      </p>
+      <LiveRefresh topics={['store']} />
+      <nav aria-label="Você está em" className="breadcrumbs">
+        <Link href="/loja">Loja</Link>
+        <span aria-hidden="true">/</span>
+        <Link href={`/loja?categoria=${encodeURIComponent(product.category.slug)}`}>
+          {product.category.name}
+        </Link>
+        <span aria-hidden="true">/</span>
+        <span aria-current="page" className="text-break">
+          {product.name}
+        </span>
+      </nav>
       <div
         style={{
           display: 'grid',
@@ -56,23 +66,7 @@ export default async function ProductPage({
           gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 340px), 1fr))'
         }}
       >
-        <div className="stack">
-          {product.images.length > 0 ? (
-            product.images.map((image, index) => (
-              <MediaImage
-                key={image.id}
-                src={image.url}
-                alt={image.altText ?? product.name}
-                ratio="1/1"
-                fit="contain"
-                priority={index === 0}
-                className="product-photo"
-              />
-            ))
-          ) : (
-            <MediaImage src={null} alt="" ratio="1/1" className="product-photo" />
-          )}
-        </div>
+        <ProductGallery images={product.images} productName={product.name} />
         <div className="stack">
           <span className="muted">
             {product.category.name}

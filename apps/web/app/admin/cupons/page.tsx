@@ -226,7 +226,7 @@ function CouponForm({
         <TextField
           label={form.discountType === 'PERCENTAGE' ? 'Percentual (%)' : 'Valor (R$)'}
           required
-          inputMode="decimal"
+          numeric="decimal"
           maxLength={16}
           value={form.value}
           onChange={(e) => set('value', e.target.value)}
@@ -239,7 +239,7 @@ function CouponForm({
         />
         <TextField
           label="Pedido mínimo (R$, opcional)"
-          inputMode="decimal"
+          numeric="decimal"
           maxLength={16}
           value={form.minimumOrderAmount}
           onChange={(e) => set('minimumOrderAmount', e.target.value)}

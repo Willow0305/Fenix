@@ -277,7 +277,7 @@ export default function PlanDetailPage() {
                 <TextField
                   label="Valor individual (opcional)"
                   maxLength={16}
-                  inputMode="decimal"
+                  numeric="decimal"
                   value={form.amountOverride}
                   onChange={(e) => setForm({ ...form, amountOverride: e.target.value })}
                   hint={`Vazio = valor do plano (${formatMoney(plan.amount.amount)}). Use para bolsa ou desconto.`}

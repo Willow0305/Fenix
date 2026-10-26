@@ -32,6 +32,7 @@ import { useResource } from '../../../../lib/use-resource';
 import type { Page } from '../../../../lib/api-types';
 import { COMMISSION_TYPE, type Partner } from '../../../../lib/partner-types';
 import { Icon } from '../../../../components/icon';
+import { ProductImagesManager } from '../../../../components/product-images-manager';
 
 interface Movement {
   id: string;
@@ -141,8 +142,6 @@ export default function ProductAdminPage() {
     priceOverride: '',
     sku: ''
   });
-  const [file, setFile] = useState<File | null>(null);
-  const [alt, setAlt] = useState('');
 
   useEffect(() => {
     const p = product.data;
@@ -224,22 +223,6 @@ export default function ProductAdminPage() {
     );
     setVariant({ name: '', size: '', color: '', priceOverride: '', sku: '' });
   });
-  const upload = useSubmit(async () => {
-    if (!file) {
-      return;
-    }
-
-    const body = new FormData();
-
-    body.set('file', file);
-    body.set('altText', alt);
-    product.setData(
-      await api<ProductDetail>(`/store/products/${id}/images`, { method: 'POST', body })
-    );
-    setFile(null);
-    setAlt('');
-  });
-
   async function setStatus(status: ProductStatus, reason?: string) {
     product.setData(
       await api<ProductDetail>(`/store/products/${id}/status`, {
@@ -256,12 +239,6 @@ export default function ProductAdminPage() {
         method: 'PATCH',
         body: { isActive: !v.isActive }
       })
-    );
-  }
-
-  async function removeImage(imageId: string) {
-    product.setData(
-      await api<ProductDetail>(`/store/products/${id}/images/${imageId}`, { method: 'DELETE' })
     );
   }
 
@@ -365,14 +342,14 @@ export default function ProductAdminPage() {
             label="Preço (R$)"
             maxLength={16}
             required
-            inputMode="decimal"
+            numeric="decimal"
             value={form['basePrice'] ?? ''}
             onChange={set('basePrice')}
           />
           <TextField
             label="Preço promocional"
             maxLength={16}
-            inputMode="decimal"
+            numeric="decimal"
             value={form['promotionalPrice'] ?? ''}
             onChange={set('promotionalPrice')}
             hint="Vazio remove a promoção."
@@ -380,7 +357,7 @@ export default function ProductAdminPage() {
           <TextField
             label="Custo (interno)"
             maxLength={16}
-            inputMode="decimal"
+            numeric="decimal"
             value={form['costPrice'] ?? ''}
             onChange={set('costPrice')}
           />
@@ -446,7 +423,7 @@ export default function ProductAdminPage() {
               <TextField
                 label="Percentual (%)"
                 maxLength={6}
-                inputMode="decimal"
+                numeric="decimal"
                 required
                 value={form['commissionPercentageOverride'] ?? ''}
                 onChange={set('commissionPercentageOverride')}
@@ -456,7 +433,7 @@ export default function ProductAdminPage() {
               <TextField
                 label="Valor por unidade (R$)"
                 maxLength={16}
-                inputMode="decimal"
+                numeric="decimal"
                 required
                 value={form['commissionFixedOverride'] ?? ''}
                 onChange={set('commissionFixedOverride')}
@@ -537,7 +514,7 @@ export default function ProductAdminPage() {
           <TextField
             label="Preço próprio"
             maxLength={16}
-            inputMode="decimal"
+            numeric="decimal"
             value={variant.priceOverride}
             onChange={(e) => setVariant({ ...variant, priceOverride: e.target.value })}
           />
@@ -554,55 +531,11 @@ export default function ProductAdminPage() {
         </form>
       </section>
 
-      <section className="card stack" aria-labelledby="imagens">
-        <h2 id="imagens">Imagens</h2>
-        <div className="row">
-          {p.images.map((image) => (
-            <figure key={image.id} style={{ margin: 0, width: 140 }}>
-              <img
-                src={image.url}
-                alt={image.altText ?? ''}
-                style={{ width: 140, height: 140, objectFit: 'cover', borderRadius: 6 }}
-              />
-              <figcaption className="row">
-                {image.isPrimary ? <span className="badge badge-brand">principal</span> : null}
-                <button
-                  type="button"
-                  className="btn btn-link"
-                  onClick={() => void removeImage(image.id)}
-                >
-                  Remover
-                </button>
-              </figcaption>
-            </figure>
-          ))}
-        </div>
-        <form className="row" onSubmit={(event) => void upload.submit(event)}>
-          <div className="field">
-            <label htmlFor="product-image">Nova imagem (PNG, JPG ou WebP)</label>
-            <input
-              id="product-image"
-              type="file"
-              accept="image/png,image/jpeg,image/webp"
-              onChange={(e) => setFile(e.target.files?.[0] ?? null)}
-            />
-          </div>
-          <TextField
-            label="Descrição da imagem"
-            maxLength={180}
-            value={alt}
-            onChange={(e) => setAlt(e.target.value)}
-          />
-          <button
-            type="submit"
-            className="btn btn-secondary btn-sm"
-            disabled={!file || upload.pending}
-          >
-            Enviar
-          </button>
-          <ErrorSummary error={upload.error} />
-        </form>
-      </section>
+      <ProductImagesManager
+        productId={id}
+        images={p.images}
+        onChange={(detail) => product.setData(detail)}
+      />
 
       <ConfirmDialog
         open={archiving}

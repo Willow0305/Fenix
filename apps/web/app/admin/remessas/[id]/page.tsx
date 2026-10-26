@@ -193,7 +193,7 @@ export default function CampaignDetailPage() {
             <TextField
               label="Preço na remessa"
               maxLength={16}
-              inputMode="decimal"
+              numeric="decimal"
               value={link.campaignPrice}
               onChange={(e) => setLink({ ...link, campaignPrice: e.target.value })}
             />
