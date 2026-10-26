@@ -6,6 +6,17 @@ O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) e o 
 
 ## [Não publicado]
 
+### Revisão geral (2026-10-25)
+
+#### Alterado
+
+- o `zod` deixou de ir para o navegador (JavaScript do site de 2,3 MB para 1,9 MB) e as listas de pedidos não fazem mais uma consulta por pagamento;
+- React 19.3.0, Bootstrap Icons 1.13.2 e bibliotecas de teste atualizados.
+
+#### Adicionado
+
+- `docs/30-REVISAO-GERAL.md`: versões defasadas (Prisma 7, NestJS 12, TypeScript 7), riscos de escala e operação, o que remover e o que adicionar, com ordem recomendada.
+
 ### Cupons de desconto (2026-10-25)
 
 #### Adicionado
