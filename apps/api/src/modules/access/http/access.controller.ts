@@ -27,7 +27,7 @@ import { PERMISSIONS } from '../domain/permission-catalog';
 import {
   AuditQueryDto,
   CreateUserDto,
-  ReasonDto,
+  AccessReasonDto,
   SetPermissionsDto,
   SetRolesDto,
   SetStatusDto,
@@ -102,7 +102,7 @@ export class UsersController {
   async revokeSessions(
     @CurrentPrincipal() actor: Principal,
     @Param('id', new ParseUUIDPipe()) id: string,
-    @Body() body: ReasonDto,
+    @Body() body: AccessReasonDto,
     @ReqMeta() meta: RequestMeta
   ): Promise<{ revoked: number }> {
     return { revoked: await this.users.revokeSessions(actor, id, body.reason, meta) };
@@ -115,7 +115,7 @@ export class UsersController {
   async resetMfa(
     @CurrentPrincipal() actor: Principal,
     @Param('id', new ParseUUIDPipe()) id: string,
-    @Body() body: ReasonDto,
+    @Body() body: AccessReasonDto,
     @ReqMeta() meta: RequestMeta
   ): Promise<void> {
     await this.mfa.adminReset(actor, id, body.reason, meta);

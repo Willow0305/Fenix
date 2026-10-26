@@ -62,7 +62,7 @@ import {
   AdjustFeeDto,
   AssignManyDto,
   AssignPlanDto,
-  CategoryDto,
+  FinanceCategoryDto,
   ClosingDto,
   DueDateDto,
   ClosingListDto,
@@ -178,7 +178,7 @@ export class FinanceController {
   @RequirePermissions(PERMISSIONS.financeSetup)
   createCategory(
     @CurrentPrincipal() actor: Principal,
-    @Body() body: CategoryDto,
+    @Body() body: FinanceCategoryDto,
     @ReqMeta() meta: RequestMeta
   ): Promise<CategoryView> {
     return this.setup.createCategory(actor, body, meta);

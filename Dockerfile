@@ -41,12 +41,15 @@ COPY apps/web/package.json apps/web/
 COPY packages/validation/package.json packages/validation/
 COPY packages/config/package.json packages/config/
 RUN npm ci --omit=dev --ignore-scripts --no-audit --no-fund --workspace=@fenix/api --include-workspace-root \
+  && mkdir -p apps/api/node_modules \
   && npm cache clean --force
 
 # ---------- API ----------
 FROM base AS api
 ENV NODE_ENV=production API_HOST=0.0.0.0 API_PORT=3333
 COPY --from=prod-deps --chown=node:node /app/node_modules ./node_modules
+# O npm pode instalar pacotes da API dentro dela (versões que não sobem para a raiz).
+COPY --from=prod-deps --chown=node:node /app/apps/api/node_modules ./apps/api/node_modules
 COPY --from=build --chown=node:node /app/packages/validation/package.json ./packages/validation/package.json
 COPY --from=build --chown=node:node /app/packages/validation/dist ./packages/validation/dist
 COPY --from=build --chown=node:node /app/apps/api/package.json ./apps/api/package.json

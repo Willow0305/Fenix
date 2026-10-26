@@ -51,7 +51,7 @@ import {
   AthleteDto,
   AthleteListQueryDto,
   AthleteStatusDto,
-  CategoryDto,
+  SportCategoryDto,
   EndMembershipDto,
   InterestDto,
   InterestedQueryDto,
@@ -167,7 +167,7 @@ export class TeamsController {
   @RequirePermissions(PERMISSIONS.teamsManage)
   createCategory(
     @CurrentPrincipal() actor: Principal,
-    @Body() body: CategoryDto,
+    @Body() body: SportCategoryDto,
     @ReqMeta() meta: RequestMeta
   ): Promise<CategoryView> {
     return this.teams.createCategory(actor, defined(body), meta);

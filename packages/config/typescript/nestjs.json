@@ -5,8 +5,8 @@
     "emitDecoratorMetadata": true,
     "experimentalDecorators": true,
     "lib": ["ES2022"],
-    "module": "Node16",
-    "moduleResolution": "Node16",
+    "module": "node20",
+    "moduleResolution": "nodenext",
     "sourceMap": true
   }
 }

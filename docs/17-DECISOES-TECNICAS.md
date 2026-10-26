@@ -1091,3 +1091,22 @@ Com a segunda etapa (DT-037), o código do autenticador era pedido em todo login
 - nenhuma mudança no esquema nem nas migrações; consultas, transações, travas de linha e `LISTEN/NOTIFY` seguem iguais;
 - verificado: `npm run check` (lint, typecheck, 216 + 56 testes, build), 132 testes de integração, pilha Docker completa (migrações, preparo, cadastro e arquivo no S3) e a API local contra o banco de desenvolvimento;
 - `prisma migrate dev` não gera mais o cliente sozinho: rodar `npm run prisma:generate` depois de mudar o esquema.
+
+## DT-055 — NestJS 12
+
+- **Estado:** Aceita
+- **Data:** 2026-10-26
+- **Aprovador:** responsável do projeto (aprovação de `docs/30-REVISAO-GERAL.md`, item R-02)
+
+### Decisão
+
+- **versões:** `@nestjs/common`, `core`, `platform-express` e `testing` 12.1.3; `@nestjs/swagger` 12.0.2; `@nestjs/cli` 12.0.8; `@nestjs/throttler` 6.7.1 (já aceita o 12). Todas com 14 dias ou mais. Os `overrides` da raiz passaram a fixar o Nest em 12.1.3;
+- **continua CommonJS:** os pacotes do Nest 12 são só ESM, e o Node 24 permite `require` de ESM. O TypeScript do backend passou de `Node16` para `node20`/`nodenext`, o modo que entende isso (no `Node16`, o compilador recusa). O teste que protege essa configuração foi atualizado;
+- **adaptador HTTP explícito:** `NestFactory.create(AppModule, new ExpressAdapter())` e o mesmo nos testes. A busca automática parte do `@nestjs/core`, na raiz do `node_modules`, e não achava o `@nestjs/platform-express`, que o npm instalou dentro da API. Sem isso, **a API não iniciava**; os testes não mostravam porque o problema só aparecia fora deles. Encontrado ao subir a API de verdade;
+- **imagem Docker:** passa a copiar também `apps/api/node_modules`, pelo mesmo motivo;
+- **DTOs com nome repetido** no Swagger (`CategoryDto`, `ReasonDto`), que virarão erro na próxima versão maior, receberam nomes por módulo (`FinanceCategoryDto`, `SportCategoryDto`, `AccessReasonDto`, `PartnerReasonDto`). A API sobe sem avisos.
+
+### Consequências
+
+- nenhuma mudança de comportamento; a mudança de ordem dos ganchos de ciclo de vida do Nest 12 não afetou nada (testes de integração passam);
+- verificado: `npm run check`, 132 testes de integração, API local contra o banco de desenvolvimento (inclusive `/docs/openapi.json`) e a pilha Docker completa.

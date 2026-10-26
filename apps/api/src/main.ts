@@ -1,5 +1,6 @@
 import { Logger } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
+import { ExpressAdapter, type NestExpressApplication } from '@nestjs/platform-express';
 
 import { AppModule } from './app.module';
 import { configureApplication } from './configure-application';
@@ -22,7 +23,9 @@ function resolveApiPort(rawPort: string | undefined): number {
 }
 
 async function bootstrap(): Promise<void> {
-  const app = await NestFactory.create(AppModule);
+  // Adaptador explícito (DT-055): a busca automática parte do `@nestjs/core`, na raiz do
+  // `node_modules`, e não acha o `@nestjs/platform-express` instalado dentro da API.
+  const app = await NestFactory.create<NestExpressApplication>(AppModule, new ExpressAdapter());
 
   configureApplication(app);
   app.enableShutdownHooks();

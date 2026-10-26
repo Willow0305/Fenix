@@ -1,5 +1,6 @@
 import { type INestApplication } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
+import { ExpressAdapter } from '@nestjs/platform-express';
 import request from 'supertest';
 
 import { AppModule } from '../app.module';
@@ -13,7 +14,7 @@ describe('GET /health', () => {
       imports: [AppModule]
     }).compile();
 
-    app = testingModule.createNestApplication();
+    app = testingModule.createNestApplication(new ExpressAdapter());
     configureApplication(app);
     await app.init();
   });

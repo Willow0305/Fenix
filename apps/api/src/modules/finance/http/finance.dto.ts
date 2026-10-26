@@ -64,7 +64,7 @@ export class UpdateAccountDto {
   @ApiPropertyOptional() @IsOptional() @IsBoolean() isActive?: boolean;
 }
 
-export class CategoryDto {
+export class FinanceCategoryDto {
   @ApiProperty() @IsString() @MinLength(2) @MaxLength(120) name!: string;
   @ApiProperty({ enum: FinancialCategoryNature })
   @IsEnum(FinancialCategoryNature)

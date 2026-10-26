@@ -5,6 +5,7 @@ import { join } from 'node:path';
 
 import type { INestApplication } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
+import { ExpressAdapter } from '@nestjs/platform-express';
 import type { PrismaClient } from '../src/generated/prisma/client';
 import request from 'supertest';
 
@@ -46,7 +47,8 @@ export async function createTestContext(): Promise<TestContext> {
   });
 
   const moduleRef = await Test.createTestingModule({ imports: [AppModule] }).compile();
-  const app = moduleRef.createNestApplication();
+  // Adaptador explícito, como em `main.ts` (DT-055).
+  const app = moduleRef.createNestApplication(new ExpressAdapter());
 
   configureApplication(app);
   await app.init();

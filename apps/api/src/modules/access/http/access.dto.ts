@@ -16,7 +16,7 @@ import {
 import { PageQueryDto } from '../../../common/http/pagination';
 import { IsMobilePhoneBr } from '../../../common/validation/br-fields';
 
-export class ReasonDto {
+export class AccessReasonDto {
   @ApiProperty({ description: 'Motivo registrado na auditoria.' })
   @IsString()
   @MinLength(3)
@@ -61,7 +61,7 @@ export class CreateUserDto {
   roles!: string[];
 }
 
-export class SetRolesDto extends ReasonDto {
+export class SetRolesDto extends AccessReasonDto {
   @ApiProperty({ type: [String] })
   @IsArray()
   @ArrayMaxSize(10)
@@ -69,13 +69,13 @@ export class SetRolesDto extends ReasonDto {
   roles!: string[];
 }
 
-export class SetStatusDto extends ReasonDto {
+export class SetStatusDto extends AccessReasonDto {
   @ApiProperty({ enum: UserStatus })
   @IsEnum(UserStatus)
   status!: UserStatus;
 }
 
-export class SetPermissionsDto extends ReasonDto {
+export class SetPermissionsDto extends AccessReasonDto {
   @ApiProperty({ type: [String] })
   @IsArray()
   @ArrayMaxSize(200)

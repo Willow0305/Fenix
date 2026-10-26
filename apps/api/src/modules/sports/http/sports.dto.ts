@@ -46,7 +46,7 @@ export class RequiredReasonDto {
   reason!: string;
 }
 
-export class CategoryDto {
+export class SportCategoryDto {
   @ApiProperty() @IsString() @MinLength(2) @MaxLength(120) name!: string;
   @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(2000) description?: string;
   @ApiPropertyOptional() @IsOptional() @IsInt() @Min(0) @Max(100) minimumAge?: number;

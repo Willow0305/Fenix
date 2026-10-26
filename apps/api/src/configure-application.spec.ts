@@ -3,6 +3,7 @@ import { join } from 'node:path';
 
 import { type INestApplication } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
+import { ExpressAdapter } from '@nestjs/platform-express';
 import request from 'supertest';
 
 import { AppModule } from './app.module';
@@ -12,7 +13,7 @@ async function createApplication(): Promise<INestApplication> {
   const testingModule = await Test.createTestingModule({
     imports: [AppModule]
   }).compile();
-  const app = testingModule.createNestApplication();
+  const app = testingModule.createNestApplication(new ExpressAdapter());
 
   configureApplication(app);
   await app.init();

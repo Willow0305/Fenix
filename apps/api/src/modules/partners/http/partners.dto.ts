@@ -142,7 +142,7 @@ export class PartnerDocumentDto {
   @ApiPropertyOptional() @IsOptional() @Matches(DATE, DATE_MSG) expiresOn?: string;
 }
 
-export class ReasonDto {
+export class PartnerReasonDto {
   @ApiProperty() @IsString() @MinLength(3) @MaxLength(1000) reason!: string;
 }
 

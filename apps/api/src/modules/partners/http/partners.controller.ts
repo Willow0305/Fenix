@@ -66,7 +66,7 @@ import {
   PartnerQueryDto,
   PartnerStatusDto,
   ProfessionalDto,
-  ReasonDto,
+  PartnerReasonDto,
   SalesReportQueryDto,
   ServiceDto,
   ServiceStatusDto,
@@ -169,7 +169,7 @@ export class PartnersController {
   cancelOwn(
     @CurrentPrincipal() principal: Principal,
     @Param('id', new ParseUUIDPipe()) id: string,
-    @Body() body: ReasonDto,
+    @Body() body: PartnerReasonDto,
     @ReqMeta() meta: RequestMeta
   ): Promise<AppointmentView> {
     return this.appointments.cancelOwn(principal, id, body.reason, meta);
@@ -307,7 +307,7 @@ export class PartnersController {
     @CurrentPrincipal() actor: Principal,
     @Param('id', new ParseUUIDPipe()) id: string,
     @Param('documentId', new ParseUUIDPipe()) documentId: string,
-    @Body() body: ReasonDto,
+    @Body() body: PartnerReasonDto,
     @ReqMeta() meta: RequestMeta
   ): Promise<PartnerView> {
     return this.partners.removeDocument(actor, id, documentId, body.reason, meta);
@@ -465,7 +465,7 @@ export class PartnersController {
   block(
     @CurrentPrincipal() actor: Principal,
     @Param('id', new ParseUUIDPipe()) id: string,
-    @Body() body: ReasonDto,
+    @Body() body: PartnerReasonDto,
     @ReqMeta() meta: RequestMeta
   ): Promise<AvailabilityView> {
     return this.professionals.blockAvailability(actor, id, body.reason, meta);

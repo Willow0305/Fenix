@@ -6,6 +6,16 @@ O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) e o 
 
 ## [Não publicado]
 
+### NestJS 12 (2026-10-26)
+
+#### Alterado
+
+- NestJS 11.2.7 → 12.1.3 e Swagger 12 (DT-055); sem mudança de comportamento.
+
+#### Corrigido
+
+- com o Nest 12, a API não iniciava por não achar o adaptador HTTP; agora ele é passado explicitamente, também na imagem Docker.
+
 ### Prisma 7 (2026-10-26)
 
 #### Alterado
