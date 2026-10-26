@@ -1,7 +1,9 @@
 import { Module } from '@nestjs/common';
+import type { Request } from 'express';
 import { ThrottlerModule } from '@nestjs/throttler';
 
 import { CommonModule } from './common/common.module';
+import { isInternalRequest } from './common/http/internal-request';
 import { PostgresThrottlerStorage } from './common/http/postgres-throttler-storage';
 import { HealthModule } from './health/health.module';
 import { AccessModule } from './modules/access/access.module';
@@ -30,8 +32,10 @@ import { StoreModule } from './modules/store/store.module';
         // desenvolvimento com um servidor.
         ...(process.env['THROTTLE_STORE'] === 'memory' ? {} : { storage: shared }),
         // Desligável apenas fora de produção, para suítes de integração que fazem muitos logins.
-        skipIf: () =>
-          process.env['NODE_ENV'] !== 'production' && process.env['THROTTLE_DISABLED'] === 'true'
+        skipIf: (context) =>
+          (process.env['NODE_ENV'] !== 'production' &&
+            process.env['THROTTLE_DISABLED'] === 'true') ||
+          isInternalRequest(context.switchToHttp().getRequest<Request>())
       })
     }),
     CommonModule,

@@ -13,6 +13,7 @@ import { MailSender, mailSenderFor } from './mail/mail.service';
 import { PrismaService } from './prisma/prisma.service';
 import { RealtimeService } from './realtime/realtime.service';
 import { LocalObjectStorage, ObjectStorage } from './storage/object-storage';
+import { S3ObjectStorage } from './storage/s3-object-storage';
 import { WhatsAppSender, whatsappSenderFor } from './whatsapp/whatsapp.service';
 
 /** Infraestrutura compartilhada por todos os módulos. */
@@ -28,7 +29,12 @@ import { WhatsAppSender, whatsappSenderFor } from './whatsapp/whatsapp.service';
     SiteRevalidateService,
     { provide: MailSender, useFactory: mailSenderFor, inject: [AppConfig] },
     { provide: WhatsAppSender, useFactory: whatsappSenderFor, inject: [AppConfig] },
-    { provide: ObjectStorage, useClass: LocalObjectStorage },
+    {
+      provide: ObjectStorage,
+      useFactory: (config: AppConfig) =>
+        config.values.s3 ? new S3ObjectStorage(config.values.s3) : new LocalObjectStorage(config),
+      inject: [AppConfig]
+    },
     { provide: APP_INTERCEPTOR, useClass: SiteRevalidateInterceptor }
   ],
   exports: [

@@ -317,3 +317,18 @@ Sem credenciais, tudo funciona em modo de teste: e-mails vão para `MAIL_OUTBOX_
 
    Depois da aprovação do modelo, preencher `WHATSAPP_DRIVER=cloud` e `WHATSAPP_*`. Com o recurso de coexistência da Meta, o número do clube continua respondendo conversas pelo aplicativo WhatsApp Business; sem ele, as respostas das pessoas chegam só pela API (`PEN-064`).
 3. Conferir em Painel → Avisos a situação dos canais e as falhas dos últimos dias.
+
+## Produção com Docker (DT-053)
+
+1. Copie `.env.example` para `.env.production` (nunca versionado) e preencha: `POSTGRES_*`, `WEB_ORIGIN` (ex.: `https://fenixvolei.com.br`), `SERVER_NAME` (ex.: `fenixvolei.com.br`), `SITE_REVALIDATE_SECRET`, `AUTH_ACCESS_TOKEN_SECRET`, `DATA_ENCRYPTION_KEY`, `S3_*`, `MAIL_*`/`SMTP_*` e, no primeiro deploy, `SEED_ADMIN_*`.
+2. Certificado: coloque `fullchain.pem` e `privkey.pem` em `infra/certs` (ou aponte `CERTS_DIR`). Com Let's Encrypt, o desafio HTTP é servido em `/.well-known/acme-challenge/`.
+3. Suba: `docker compose -f docker-compose.prod.yml --env-file .env.production up -d --build`. A ordem é automática: banco → migrações → preparo → API → site → Nginx.
+4. Bucket: crie o bucket privado no provedor e ative o versionamento. Com o S3 próprio, use `--profile s3-proprio` e crie o bucket uma vez: `docker compose -f docker-compose.prod.yml exec s3 sh -c "echo 's3.bucket.create -name fenix' | weed shell"`.
+5. Arquivos já existentes em disco: com `STORAGE_DRIVER=local` e as variáveis `S3_*` preenchidas, rode `npm run storage:migrate -- --simular`, depois `npm run storage:migrate`, e só então mude para `STORAGE_DRIVER=s3`.
+6. Backup: o banco segue com `pg_dump` (volume `postgres_data`); os arquivos ficam no S3 com versionamento.
+
+| Variável | Uso |
+|---|---|
+| `TRUST_PROXY` | quem pode informar o IP real; `loopback` (padrão) ou, atrás do Nginx em contêiner, `loopback,uniquelocal` |
+| `STORAGE_DRIVER=s3`, `S3_BUCKET`, `S3_REGION`, `S3_ENDPOINT`, `S3_ACCESS_KEY_ID`, `S3_SECRET_ACCESS_KEY`, `S3_FORCE_PATH_STYLE`, `S3_SERVER_SIDE_ENCRYPTION` | armazenamento S3 ou compatível; endereço público só com `https`; criptografia no servidor ligada salvo `off` |
+| `HTTP_PORT`, `HTTPS_PORT`, `CERTS_DIR`, `SERVER_NAME` | portas publicadas pelo Nginx, pasta dos certificados e domínio |

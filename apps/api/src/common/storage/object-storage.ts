@@ -2,7 +2,7 @@ import { constants } from 'node:fs';
 import { access, mkdir, readFile, rename, writeFile } from 'node:fs/promises';
 import { dirname, join, resolve, sep } from 'node:path';
 
-import { Injectable, type OnModuleInit } from '@nestjs/common';
+import { Injectable, Logger, type OnModuleInit } from '@nestjs/common';
 
 import { AppConfig } from '../config/app-config';
 
@@ -17,7 +17,7 @@ export abstract class ObjectStorage {
 
 export class ObjectNotFoundError extends Error {}
 
-const SAFE_KEY = /^[a-z0-9][a-z0-9/_.-]{0,480}$/;
+export const SAFE_KEY = /^[a-z0-9][a-z0-9/_.-]{0,480}$/;
 
 /**
  * Adaptador de disco: arquivos em `STORAGE_LOCAL_DIR`, que deve ficar fora da pasta do
@@ -42,6 +42,21 @@ export class LocalObjectStorage extends ObjectStorage implements OnModuleInit {
       await access(root, constants.R_OK | constants.W_OK);
     } catch {
       throw new Error(`STORAGE_LOCAL_DIR sem permissão de leitura e escrita: ${root}`);
+    }
+
+    const logger = new Logger('Arquivos');
+
+    logger.log(`Arquivos guardados em ${root}.`);
+
+    // Pasta dentro do projeto se perde em novo clone ou limpeza (DT-038).
+    if (
+      root.startsWith(resolve(process.cwd()) + sep) ||
+      root.includes(`${sep}apps${sep}api${sep}`)
+    ) {
+      logger.warn(
+        'STORAGE_LOCAL_DIR aponta para dentro do projeto. Use um caminho absoluto fora dele, ' +
+          'e reinicie o servidor depois de mudar o .env.'
+      );
     }
   }
 

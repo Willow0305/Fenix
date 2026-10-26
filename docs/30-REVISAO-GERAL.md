@@ -146,6 +146,8 @@ Aprovado por inteiro pelo responsável do projeto em 2026-10-25.
 |---|---|
 | R-04 tarefas e limites com mais de um servidor | feito (`DT-047`) |
 | R-08 cache de dados nas telas | feito (`DT-052`) |
+| R-06 Docker e Nginx | feito e testado numa pilha real (`DT-053`) |
+| R-11 arquivos e e-mail | adaptadores S3 e SMTP prontos (`DT-048`, `DT-053`); falta escolher os provedores (`PEN-042`) |
 | R-05 CSP com nonce | feito (`DT-046`) |
 | R-12 sitemap, robots e imagem de compartilhamento | feito (`DT-046`) |
 | R-13 pacotes e tabela sem uso | removidos (`DT-046`) |

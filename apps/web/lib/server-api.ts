@@ -12,9 +12,11 @@ export const PUBLIC_CONTENT_TAG = 'public-content';
  */
 export async function serverGet<T>(path: string, revalidateSeconds = 60): Promise<T | null> {
   try {
+    const secret = process.env['SITE_REVALIDATE_SECRET'];
     const response = await fetch(`${API_INTERNAL_URL}/api/v1${path}`, {
       next: { revalidate: revalidateSeconds, tags: [PUBLIC_CONTENT_TAG] },
-      headers: { Accept: 'application/json' }
+      // Leitura do próprio site: fora do limite por IP da API (DT-053).
+      headers: { Accept: 'application/json', ...(secret ? { 'x-fenix-internal': secret } : {}) }
     });
 
     return response.ok ? ((await response.json()) as T) : null;

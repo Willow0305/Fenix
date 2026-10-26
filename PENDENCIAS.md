@@ -495,6 +495,14 @@ Prioridades:
 - **Recomendação:** usar o mesmo número do clube com coexistência, para a diretoria continuar respondendo pelo aplicativo; lembrete ao responsável só depois de coletar o consentimento dele no cadastro do atleta; ativar depois o webhook de status da Meta para marcar entregas e leituras.
 - **Impacto:** `DT-048`, custos por mensagem da Meta, inventário de operadores (`docs/13`) e `PEN-042`.
 
+### PEN-065 — Registros de arquivo sem o arquivo no banco de desenvolvimento
+
+- **Prioridade:** P3
+- **Bloqueia:** nada (só o banco de desenvolvimento)
+- **Questão:** a conferência de `npm run storage:migrate -- --simular` encontrou 64 registros em `media_files` sem o arquivo em disco. São anexos dos testes antigos que gravavam no banco de desenvolvimento (`recibo.png`, `pix.png`, `comprovante.png`…), antes do banco de testes isolado (DT-038). Nenhum está ligado a produto, notícia ou foto de perfil em uso. Os 10 envios reais estão íntegros.
+- **Recomendação:** não migrar esses registros para o S3; se quiser limpar, rodar a limpeza de dados de teste ou apagá-los do banco de desenvolvimento. Em produção a situação não existe.
+- **Impacto:** nenhum para o site; a migração para o S3 informa e pula esses registros.
+
 ## 11. Critério de resolução
 
 Ao resolver uma pendência:

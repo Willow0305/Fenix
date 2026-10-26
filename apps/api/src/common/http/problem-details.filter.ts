@@ -11,6 +11,7 @@ import type { Response } from 'express';
 
 import { APP_ERROR_STATUS, AppError, type FieldError } from '../errors/app-error';
 import { type ContextRequest, getRequestContext } from './request-context';
+import { jobErrorTrace } from '../jobs/job-scheduler';
 
 interface ProblemBody {
   type: string;
@@ -96,7 +97,11 @@ export class ProblemDetailsFilter implements ExceptionFilter {
 
     if (problem.status >= 500) {
       const name = exception instanceof Error ? exception.name : 'UnknownError';
-      this.logger.error(`Falha não tratada (${name}) requestId=${requestId}`);
+      // Só o tipo e onde ocorreu: a mensagem pode conter dados pessoais (AGENTS.md).
+      this.logger.error(
+        `Falha não tratada (${name}) requestId=${requestId}`,
+        jobErrorTrace(exception)
+      );
     }
 
     res.status(problem.status).type('application/problem+json').json(problem);

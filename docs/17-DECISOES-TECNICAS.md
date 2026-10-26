@@ -1045,3 +1045,27 @@ Com a segunda etapa (DT-037), o código do autenticador era pedido em todo login
 
 - menos chamadas à API ao navegar no painel e listas compartilhadas (equipes, categorias) buscadas uma vez;
 - 4 testes de interface (chave estável, busca única, troca de página sem piscar, cache apagado).
+
+## DT-053 — Produção com Docker, Nginx e armazenamento S3
+
+- **Estado:** Aceita
+- **Data:** 2026-10-26
+- **Aprovador:** responsável do projeto (aprovação de `docs/30-REVISAO-GERAL.md`, itens R-06 e R-11)
+
+### Decisão
+
+- **imagens:** um `Dockerfile` com alvos `api`, `web` e `migrate`, base Node 24.22.0 fixada por digest, usuário sem privilégio, `tini` como processo inicial e `HEALTHCHECK`. O site usa a saída `standalone` do Next (só na imagem; local segue com `next start`). Medidos: site 411 MB, API 806 MB;
+- **`docker-compose.prod.yml`:** PostgreSQL → `migrate` (aplica migrações e sai) → `preparar` (catálogo de papéis, permissões e plano de contas, repetível, e primeiro administrador por `SEED_ADMIN_*`) → API → site → Nginx. Só o Nginx publica portas; os demais ficam na rede interna. Volumes persistentes para banco e arquivos. S3 próprio opcional (perfil `s3-proprio`, SeaweedFS fixado por digest), já que o MinIO deixou de publicar imagens;
+- **Nginx:** HTTP → HTTPS, TLS 1.2/1.3, HTTP/2, certificados montados (Let's Encrypt com desafio HTTP), uploads até 12 MB, API direto (sem passar pelo site), fluxos ao vivo sem buffer e com 1 h de leitura, cache longo para `/_next/static`, rota interna de cache do site bloqueada para fora. O cabeçalho `X-Forwarded-For` é **substituído** pelo IP real, para ninguém forjar o próprio IP;
+- **IP real:** `TRUST_PROXY` (padrão `loopback`; em contêiner, `loopback,uniquelocal`) define quem pode informar o IP. Sem isso, atrás do Nginx todos os visitantes dividiriam o mesmo limite de requisições;
+- **leituras do próprio site:** as páginas renderizadas no servidor chamam a API com o segredo já compartilhado (`SITE_REVALIDATE_SECRET`, cabeçalho `x-fenix-internal`, comparação em tempo constante) e ficam fora do limite por IP; antes, sob tráfego alto, o limite bloquearia o próprio site;
+- **armazenamento S3 (R-11):** `STORAGE_DRIVER=s3` com AWS ou compatível (R2, B2, SeaweedFS, MinIO), criptografia no servidor ligada por padrão, bucket privado (a API continua sendo a única porta, com autorização). Endereço público exige `https`; serviço da rede interna pode usar `http`. Versionamento do bucket é recomendado para recuperar arquivos;
+- **migração dos arquivos:** `npm run storage:migrate` copia cada arquivo do disco para o S3, confere o SHA-256 antes e depois (lendo de volta) e só então atualiza o registro; repetível; `--simular` só confere;
+- **erros 500:** o log passa a trazer onde ocorreram (pilha de chamadas), ainda sem a mensagem.
+
+### Consequências
+
+- verificado de ponta a ponta numa pilha real (banco, migrações, preparo, API, site, Nginx com HTTPS e S3): páginas públicas, cabeçalhos de segurança, fluxo ao vivo, redirecionamento HTTP → HTTPS, rota interna bloqueada, cadastro de conta e foto de perfil gravada no S3 e lida de volta;
+- **bug de implantação encontrado e corrigido:** num banco novo, sem o catálogo do seed, o cadastro de qualquer pessoa dava erro 500. A etapa `preparar` resolve;
+- **arquivos fora do lugar no desenvolvimento:** o servidor local, iniciado antes da mudança de `STORAGE_LOCAL_DIR` (DT-038), gravava em `apps/api/var/storage`. Os 2 envios afetados foram copiados para o lugar certo (conferidos pelo hash); a API agora mostra no início onde guarda os arquivos e avisa se for dentro do projeto. Ver `PEN-065`;
+- 3 testes de integração contra S3 real (opcionais, com `S3_TEST_ENDPOINT`) e 4 testes unitários (rede interna, regras do S3, proxy confiável, leitura interna).

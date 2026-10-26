@@ -1,3 +1,5 @@
+import { resolve } from 'node:path';
+
 import type { NextConfig } from 'next';
 
 const apiInternalUrl = process.env['API_INTERNAL_URL'] ?? 'http://127.0.0.1:3333';
@@ -18,6 +20,10 @@ const securityHeaders = [
 const nextConfig: NextConfig = {
   reactStrictMode: true,
   poweredByHeader: false,
+  // Imagem Docker: servidor enxuto com só o necessário (DT-053). Local segue com `next start`.
+  ...(process.env['NEXT_OUTPUT'] === 'standalone'
+    ? { output: 'standalone' as const, outputFileTracingRoot: resolve(process.cwd(), '../..') }
+    : {}),
   // Origem única (DT-022): o navegador chama /api/v1 no próprio domínio da web.
   async rewrites() {
     return [{ source: '/api/v1/:path*', destination: `${apiInternalUrl}/api/v1/:path*` }];

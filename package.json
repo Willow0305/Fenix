@@ -53,7 +53,8 @@
     "db:demo": "npm run build --workspace=@fenix/api && dotenv -e .env -- node apps/api/dist/cli/demo.js",
     "backup": "dotenv -e .env -- node scripts/backup.mjs",
     "db:clean-test-data": "npm run build --workspace=@fenix/api && dotenv -e .env -- node apps/api/dist/cli/clean-test-data.js",
-    "mfa:reset": "npm run build --workspace=@fenix/api && dotenv -e .env -- node apps/api/dist/cli/mfa-reset.js"
+    "mfa:reset": "npm run build --workspace=@fenix/api && dotenv -e .env -- node apps/api/dist/cli/mfa-reset.js",
+    "storage:migrate": "npm run build --workspace=@fenix/api && dotenv -e .env -- node apps/api/dist/cli/storage-migrate.js"
   },
   "devDependencies": {
     "@eslint/js": "10.0.1",

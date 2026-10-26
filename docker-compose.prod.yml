@@ -1,0 +1,134 @@
+# Produção com Docker (DT-053). Uso:
+#   docker compose -f docker-compose.prod.yml --env-file .env.production up -d --build
+# Variáveis obrigatórias em `.env.production` (nunca versionado): ver docs/15.
+name: fenix
+
+x-app-env: &app-env
+  NODE_ENV: production
+  DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}?schema=public
+  WEB_ORIGIN: ${WEB_ORIGIN}
+  SITE_REVALIDATE_SECRET: ${SITE_REVALIDATE_SECRET}
+  TZ: America/Rio_Branco
+
+services:
+  postgres:
+    image: postgres:17.10-alpine@sha256:742f40ea20b9ff2ff31db5458d127452988a2164df9e17441e191f3b72252193
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_USER: ${POSTGRES_USER}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U "$${POSTGRES_USER}" -d "$${POSTGRES_DB}"']
+      interval: 5s
+      timeout: 5s
+      retries: 20
+    restart: unless-stopped
+    networks: [interna]
+
+  migrate:
+    build: { context: ., target: migrate }
+    environment:
+      <<: *app-env
+    depends_on:
+      postgres: { condition: service_healthy }
+    restart: 'no'
+    networks: [interna]
+
+  # Catálogo de papéis, permissões e plano de contas (repetível) e primeiro administrador.
+  preparar:
+    build: { context: ., target: api }
+    command: ['node', 'apps/api/dist/cli/seed.js']
+    environment:
+      <<: *app-env
+      SEED_ADMIN_EMAIL: ${SEED_ADMIN_EMAIL:-}
+      SEED_ADMIN_PASSWORD: ${SEED_ADMIN_PASSWORD:-}
+      SEED_ADMIN_NAME: ${SEED_ADMIN_NAME:-Administrador Fênix}
+    depends_on:
+      migrate: { condition: service_completed_successfully }
+    restart: 'no'
+    networks: [interna]
+
+  api:
+    build: { context: ., target: api }
+    environment:
+      <<: *app-env
+      AUTH_ACCESS_TOKEN_SECRET: ${AUTH_ACCESS_TOKEN_SECRET}
+      DATA_ENCRYPTION_KEY: ${DATA_ENCRYPTION_KEY}
+      WEB_INTERNAL_URL: http://web:3000
+      # Só o Nginx (rede interna) informa o IP real dos visitantes.
+      TRUST_PROXY: loopback,uniquelocal
+      STORAGE_DRIVER: ${STORAGE_DRIVER:-s3}
+      STORAGE_LOCAL_DIR: /dados/arquivos
+      S3_BUCKET: ${S3_BUCKET:-}
+      S3_REGION: ${S3_REGION:-us-east-1}
+      S3_ENDPOINT: ${S3_ENDPOINT:-}
+      S3_ACCESS_KEY_ID: ${S3_ACCESS_KEY_ID:-}
+      S3_SECRET_ACCESS_KEY: ${S3_SECRET_ACCESS_KEY:-}
+      MAIL_DRIVER: ${MAIL_DRIVER:-smtp}
+      MAIL_FROM: ${MAIL_FROM}
+      SMTP_HOST: ${SMTP_HOST:-}
+      SMTP_PORT: ${SMTP_PORT:-587}
+      SMTP_USER: ${SMTP_USER:-}
+      SMTP_PASSWORD: ${SMTP_PASSWORD:-}
+      WHATSAPP_DRIVER: ${WHATSAPP_DRIVER:-off}
+      WHATSAPP_PHONE_NUMBER_ID: ${WHATSAPP_PHONE_NUMBER_ID:-}
+      WHATSAPP_ACCESS_TOKEN: ${WHATSAPP_ACCESS_TOKEN:-}
+      ALLOW_LOCAL_ADAPTERS_IN_PRODUCTION: ${ALLOW_LOCAL_ADAPTERS_IN_PRODUCTION:-false}
+    volumes:
+      # Usado só com STORAGE_DRIVER=local; com S3 fica vazio.
+      - arquivos:/dados/arquivos
+    depends_on:
+      preparar: { condition: service_completed_successfully }
+    restart: unless-stopped
+    networks: [interna]
+
+  web:
+    build:
+      context: .
+      target: web
+      args: { API_INTERNAL_URL: 'http://api:3333' }
+    environment:
+      <<: *app-env
+      API_INTERNAL_URL: http://api:3333
+    depends_on:
+      api: { condition: service_healthy }
+    restart: unless-stopped
+    networks: [interna]
+
+  nginx:
+    image: nginx:1.29.3-alpine@sha256:b3c656d55d7ad751196f21b7fd2e8d4da9cb430e32f646adcf92441b72f82b14
+    environment:
+      SERVER_NAME: ${SERVER_NAME}
+    ports:
+      - '${HTTP_PORT:-80}:80'
+      - '${HTTPS_PORT:-443}:443'
+    volumes:
+      - ./infra/nginx/fenix.conf.template:/etc/nginx/templates/default.conf.template:ro
+      - ${CERTS_DIR:-./infra/certs}:/etc/nginx/certs:ro
+      - acme:/var/www/acme
+    depends_on:
+      web: { condition: service_healthy }
+    restart: unless-stopped
+    networks: [interna]
+
+  # Armazenamento S3 próprio (opcional), para quem não contratar um provedor:
+  #   docker compose -f docker-compose.prod.yml --profile s3-proprio up -d
+  s3:
+    profiles: [s3-proprio]
+    image: chrislusf/seaweedfs:3.97@sha256:bb05d66d2963b1cc48073190781c3dd29e2c4c88a2ae2986bf58e38c86d89c6e
+    command: ['server', '-s3', '-dir=/data']
+    volumes:
+      - s3_data:/data
+    restart: unless-stopped
+    networks: [interna]
+
+networks:
+  interna:
+
+volumes:
+  postgres_data:
+  arquivos:
+  acme:
+  s3_data:

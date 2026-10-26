@@ -6,6 +6,20 @@ O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) e o 
 
 ## [Não publicado]
 
+### Pronto para hospedar: Docker, Nginx e S3 (2026-10-26)
+
+#### Adicionado
+
+- imagens Docker da API e do site, `docker-compose.prod.yml` com banco, migrações, preparo, API, site e Nginx com HTTPS (DT-053);
+- armazenamento de arquivos em S3 ou compatível, com criptografia e comando `npm run storage:migrate` para levar os arquivos do disco, conferidos pelo hash;
+- `TRUST_PROXY` para o IP real atrás do Nginx.
+
+#### Corrigido
+
+- num banco novo, o cadastro de pessoas dava erro 500 por falta do catálogo de permissões; a etapa de preparo cria o catálogo;
+- sob tráfego alto, o limite de requisições poderia bloquear as páginas do próprio site;
+- arquivos enviados no ambiente local estavam indo para a pasta antiga dentro do projeto; foram copiados para o lugar certo e a API avisa no início onde guarda os arquivos.
+
 ### Navegação mais rápida no painel (2026-10-26)
 
 #### Alterado

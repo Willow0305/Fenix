@@ -2,10 +2,23 @@ import { isAbsolute } from 'node:path';
 
 import { Injectable } from '@nestjs/common';
 
-export type StorageDriver = 'local';
+export type StorageDriver = 'local' | 's3';
 export type MailDriver = 'outbox' | 'smtp';
 /** `off` desliga o canal; `outbox` grava em arquivo (teste); `cloud` envia pela Meta (DT-048). */
 export type WhatsAppDriver = 'off' | 'outbox' | 'cloud';
+
+export interface S3StorageConfig {
+  readonly bucket: string;
+  readonly region: string;
+  /** Endereço do serviço compatível (MinIO, R2…); vazio usa a AWS. */
+  readonly endpoint: string | null;
+  readonly forcePathStyle: boolean;
+  /** Sem chaves, usa as credenciais do ambiente (ex.: papel da máquina na AWS). */
+  readonly accessKeyId: string | null;
+  readonly secretAccessKey: string | null;
+  /** Criptografia no servidor do provedor (AES-256); desligue só se ele não suportar. */
+  readonly serverSideEncryption: boolean;
+}
 
 export interface SmtpConfig {
   readonly host: string;
@@ -38,6 +51,7 @@ export interface AppConfigValues {
   readonly dataEncryptionKey: Buffer;
   readonly storageDriver: StorageDriver;
   readonly storageLocalDir: string;
+  readonly s3: S3StorageConfig | null;
   readonly mailDriver: MailDriver;
   readonly mailOutboxDir: string;
   readonly mailFrom: string;
@@ -46,6 +60,8 @@ export interface AppConfigValues {
   readonly whatsappOutboxDir: string;
   readonly whatsappCloud: WhatsAppCloudConfig | null;
   readonly allowLocalAdaptersInProduction: boolean;
+  /** Proxies confiáveis para o IP real (`trust proxy` do Express). */
+  readonly trustProxy: string;
   /** Rota do site que descarta o cache das páginas públicas (DT-041); null desliga. */
   readonly siteRevalidate: { readonly url: string; readonly secret: string } | null;
 }
@@ -65,6 +81,53 @@ function readString(env: NodeJS.ProcessEnv, key: string, fallback: string | unde
   }
 
   return fallback;
+}
+
+/**
+ * Quem pode informar o IP real. Aceita os nomes do Express (`loopback`, `uniquelocal`…),
+ * IPs e faixas CIDR separados por vírgula. Padrão: só a própria máquina.
+ */
+export function loadTrustProxy(env: NodeJS.ProcessEnv): string {
+  const value = readString(env, 'TRUST_PROXY', 'loopback');
+
+  if (!/^[a-z0-9.:/]+(\s*,\s*[a-z0-9.:/]+)*$/i.test(value)) {
+    throw new Error('TRUST_PROXY inválido: use nomes (loopback, uniquelocal), IPs ou faixas CIDR.');
+  }
+
+  return value;
+}
+
+/** Serviço na rede interna (nome de contêiner ou IP privado): o tráfego não sai da máquina. */
+export function isInternalHost(url: string): boolean {
+  const host = new URL(url).hostname;
+
+  return !host.includes('.') || /^(10\.|127\.|192\.168\.|172\.(1[6-9]|2\d|3[01])\.)/.test(host);
+}
+
+/** Configuração S3; também usada pelo comando de migração dos arquivos locais. */
+export function loadS3(env: NodeJS.ProcessEnv, isProduction: boolean): S3StorageConfig {
+  const endpoint = env['S3_ENDPOINT']?.trim() || null;
+
+  if (endpoint && isProduction && !endpoint.startsWith('https://') && !isInternalHost(endpoint)) {
+    throw new Error('Em produção, S3_ENDPOINT público deve usar https://.');
+  }
+
+  const accessKeyId = env['S3_ACCESS_KEY_ID']?.trim() || null;
+  const secretAccessKey = env['S3_SECRET_ACCESS_KEY'] || null;
+
+  if ((accessKeyId === null) !== (secretAccessKey === null)) {
+    throw new Error('Informe S3_ACCESS_KEY_ID e S3_SECRET_ACCESS_KEY juntos.');
+  }
+
+  return {
+    bucket: readString(env, 'S3_BUCKET', undefined),
+    region: readString(env, 'S3_REGION', 'us-east-1'),
+    endpoint,
+    forcePathStyle: readString(env, 'S3_FORCE_PATH_STYLE', endpoint ? 'true' : 'false') === 'true',
+    accessKeyId,
+    secretAccessKey,
+    serverSideEncryption: env['S3_SERVER_SIDE_ENCRYPTION'] !== 'off'
+  };
 }
 
 function loadSmtp(env: NodeJS.ProcessEnv): SmtpConfig {
@@ -136,8 +199,8 @@ export function loadAppConfig(env: NodeJS.ProcessEnv = process.env): AppConfigVa
   const storageDriver = readString(env, 'STORAGE_DRIVER', 'local');
   const mailDriver = readString(env, 'MAIL_DRIVER', 'outbox');
 
-  if (storageDriver !== 'local') {
-    throw new Error('STORAGE_DRIVER suportado: local.');
+  if (storageDriver !== 'local' && storageDriver !== 's3') {
+    throw new Error('STORAGE_DRIVER suportado: local ou s3.');
   }
 
   if (mailDriver !== 'outbox' && mailDriver !== 'smtp') {
@@ -156,7 +219,7 @@ export function loadAppConfig(env: NodeJS.ProcessEnv = process.env): AppConfigVa
   const storageLocalDir = readString(env, 'STORAGE_LOCAL_DIR', 'var/storage');
 
   // Em produção os arquivos vivem num volume persistente, nunca na pasta da aplicação.
-  if (isProduction && !isAbsolute(storageLocalDir)) {
+  if (isProduction && storageDriver === 'local' && !isAbsolute(storageLocalDir)) {
     throw new Error(
       'Em produção, STORAGE_LOCAL_DIR deve ser um caminho absoluto (volume persistente).'
     );
@@ -181,6 +244,7 @@ export function loadAppConfig(env: NodeJS.ProcessEnv = process.env): AppConfigVa
     dataEncryptionKey,
     storageDriver,
     storageLocalDir,
+    s3: storageDriver === 's3' ? loadS3(env, isProduction) : null,
     mailDriver,
     mailOutboxDir: readString(env, 'MAIL_OUTBOX_DIR', 'var/mail-outbox'),
     mailFrom: readString(env, 'MAIL_FROM', 'Fênix Vôlei <nao-responda@fenix.example>'),
@@ -194,7 +258,8 @@ export function loadAppConfig(env: NodeJS.ProcessEnv = process.env): AppConfigVa
           secret: env['SITE_REVALIDATE_SECRET']
         }
       : null,
-    allowLocalAdaptersInProduction
+    allowLocalAdaptersInProduction,
+    trustProxy: loadTrustProxy(env)
   };
 }
 

@@ -16,8 +16,9 @@ export function configureApplication(app: INestApplication): void {
   const config = app.get(AppConfig).values;
   const express = app as NestExpressApplication;
 
-  // O proxy do Next.js roda na mesma máquina; confia somente em loopback para X-Forwarded-For.
-  express.set('trust proxy', 'loopback');
+  // Só proxies confiáveis informam o IP real (X-Forwarded-For): o Next.js na mesma máquina
+  // (loopback) e, em contêineres, o Nginx da rede interna (`TRUST_PROXY`, DT-053).
+  express.set('trust proxy', config.trustProxy);
   express.disable('x-powered-by');
 
   app.use(requestIdMiddleware);
