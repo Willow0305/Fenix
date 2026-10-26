@@ -1212,3 +1212,22 @@ O TypeScript 7.0 (compilador nativo) ainda não tem a API em JavaScript que type
 
 - migração `finalidade_tarefas_diretoria` (valor novo no enum);
 - 3 testes de integração (interessado novo soma na bolinha e avisa a diretoria; sem pendência o item some; finalidade só para a diretoria, com e-mail desligado).
+
+## DT-062 — Excluir contas financeiras e remessas sem apagar histórico
+
+- **Estado:** Aceita
+- **Data:** 2026-10-26
+- **Aprovador:** responsável do projeto ("poder excluir Contas financeiras criadas, poder criar, editar, excluir (CRUD) e remessas? [...] e cupons", 2026-10-26)
+
+### Decisão
+
+- **conta financeira:** exclusão lógica (`deletedAt`) só quando a conta nunca foi movimentada (sem lançamentos, transferências nem fechamentos). Com uso, a API recusa (409) dizendo onde está em uso e sugere inativar, que esconde a conta sem perder o histórico (AGENTS.md: registros financeiros não podem sumir). A única conta ativa não pode ser excluída, senão o clube fica sem onde registrar recebimentos. A tela usa o mesmo gerenciador das categorias (editar nome, inativar/reativar, excluir com motivo);
+- **remessa:** exclusão lógica só em rascunho, agendada ou cancelada e sem nenhum item de pedido; remessa aberta precisa ser cancelada antes, e remessa com pedidos fica para sempre (os pedidos e estornos apontam para ela). Ao excluir, os produtos vinculados saem junto e itens de carrinho que apontavam para ela são removidos (carrinho não é histórico). A tela de detalhes ganha **Editar** (nome, descrição, política, previsão de chegada; período e quantidades só até a encomenda, como a API já exigia) e **Excluir**;
+- **cupons:** o cadastro completo já existia (criar, editar, ativar/inativar, excluir sem uso), sem mudança;
+- toda exclusão pede motivo e vai para a auditoria (`finance.account.deleted`, `campaign.deleted`).
+
+### Consequências
+
+- `DELETE /finance/accounts/:id` (`finance.setup`) e `DELETE /campaigns/:id` (`campaigns.manage`);
+- 2 testes de integração (conta usada recusada e preservada; conta sem uso excluída; remessa aberta e com pedido recusadas; rascunho editado e excluído).
+- correção junto: o ajuste de estoque (+/−) não aceitava o sinal de menos depois de o campo virar só números (DT-051); ganhou o modo "inteiro com sinal", com o teclado comum no celular.

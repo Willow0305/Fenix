@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { useParams } from 'next/navigation';
+import { useParams, useRouter } from 'next/navigation';
 import { useState } from 'react';
 
 import {
@@ -38,9 +38,45 @@ import { useResource } from '../../../../lib/use-resource';
 import { Icon } from '../../../../components/icon';
 
 const NEEDS_DATE: CampaignStatus[] = ['ORDERED', 'IN_PRODUCTION', 'RECEIVED'];
+/** Só remessas que nunca venderam podem ser excluídas; as demais são canceladas. */
+const DELETABLE: CampaignStatus[] = ['DRAFT', 'SCHEDULED', 'CANCELLED'];
+
+/** ISO (UTC) para o valor de um campo `datetime-local` no fuso do navegador. */
+function toLocalInput(iso: string): string {
+  const date = new Date(iso);
+
+  return new Date(date.getTime() - date.getTimezoneOffset() * 60_000).toISOString().slice(0, 16);
+}
+
+interface EditForm {
+  name: string;
+  description: string;
+  salesStartAt: string;
+  salesEndAt: string;
+  minimumQuantity: string;
+  maximumQuantity: string;
+  expectedArrivalOn: string;
+  refundPolicy: string;
+}
+
+function editFormOf(c: Campaign): EditForm {
+  return {
+    name: c.name,
+    description: c.description ?? '',
+    salesStartAt: toLocalInput(c.salesStartAt),
+    salesEndAt: toLocalInput(c.salesEndAt),
+    minimumQuantity: c.minimumQuantity === null ? '' : String(c.minimumQuantity),
+    maximumQuantity: c.maximumQuantity === null ? '' : String(c.maximumQuantity),
+    expectedArrivalOn: c.expectedArrivalOn ?? '',
+    refundPolicy: c.refundPolicy ?? ''
+  };
+}
 
 export default function CampaignDetailPage() {
   const { id } = useParams<{ id: string }>();
+  const router = useRouter();
+  const [editing, setEditing] = useState<EditForm | null>(null);
+  const [deleting, setDeleting] = useState(false);
   const campaign = useResource<Campaign>(`/campaigns/${id}`);
   const report = useResource<CampaignReport>(`/campaigns/${id}/report`);
   const products = useResource<Page<ProductDetail>>('/store/products', { pageSize: 100 });
@@ -67,6 +103,42 @@ export default function CampaignDetailPage() {
     );
     setLink({ productId: '', campaignPrice: '', maximumQuantity: '' });
   });
+
+  const save = useSubmit(async () => {
+    if (!editing || !campaign.data) {
+      return;
+    }
+
+    const locked = !['DRAFT', 'SCHEDULED', 'OPEN', 'CLOSED'].includes(campaign.data.status);
+
+    campaign.setData(
+      await api<Campaign>(`/campaigns/${id}`, {
+        method: 'PATCH',
+        body: {
+          name: editing.name.trim(),
+          description: editing.description,
+          refundPolicy: editing.refundPolicy,
+          ...(editing.expectedArrivalOn ? { expectedArrivalOn: editing.expectedArrivalOn } : {}),
+          ...(locked
+            ? {}
+            : {
+                salesStartAt: new Date(editing.salesStartAt).toISOString(),
+                salesEndAt: new Date(editing.salesEndAt).toISOString(),
+                ...(editing.minimumQuantity
+                  ? { minimumQuantity: Number(editing.minimumQuantity) }
+                  : {}),
+                ...(editing.maximumQuantity
+                  ? { maximumQuantity: Number(editing.maximumQuantity) }
+                  : {})
+              })
+        }
+      })
+    );
+    setEditing(null);
+    setNotice('Remessa atualizada.');
+  });
+  const setField = (key: keyof EditForm) => (event: { target: { value: string } }) =>
+    setEditing((current) => (current ? { ...current, [key]: event.target.value } : current));
 
   async function pickup(orderNumber: string) {
     const order = await api<{ data: { id: string }[] }>('/store/orders', {
@@ -104,11 +176,106 @@ export default function CampaignDetailPage() {
         title={c.name}
         description={`Vendas de ${formatDateTime(c.salesStartAt)} a ${formatDateTime(c.salesEndAt)}`}
         actions={
-          <Link href="/admin/remessas">
-            <Icon name="arrow-left" /> Voltar
-          </Link>
+          <div className="row">
+            <button
+              type="button"
+              className="btn btn-secondary btn-sm"
+              onClick={() => {
+                setNotice(null);
+                setEditing(editing ? null : editFormOf(c));
+              }}
+            >
+              <Icon name="pencil" /> {editing ? 'Fechar edição' : 'Editar'}
+            </button>
+            {DELETABLE.includes(c.status) ? (
+              <button
+                type="button"
+                className="btn btn-secondary btn-sm"
+                onClick={() => setDeleting(true)}
+              >
+                <Icon name="trash" /> Excluir
+              </button>
+            ) : null}
+            <Link href="/admin/remessas">
+              <Icon name="arrow-left" /> Voltar
+            </Link>
+          </div>
         }
       />
+      {editing ? (
+        <form className="form card" onSubmit={(event) => void save.submit(event)}>
+          <ErrorSummary error={save.error} />
+          <div className="form-grid">
+            <TextField
+              label="Nome"
+              maxLength={160}
+              required
+              value={editing.name}
+              onChange={setField('name')}
+            />
+            {editable ? (
+              <>
+                <TextField
+                  label="Início das vendas"
+                  type="datetime-local"
+                  required
+                  value={editing.salesStartAt}
+                  onChange={setField('salesStartAt')}
+                />
+                <TextField
+                  label="Encerramento das vendas"
+                  type="datetime-local"
+                  required
+                  value={editing.salesEndAt}
+                  onChange={setField('salesEndAt')}
+                />
+                <TextField
+                  label="Mínimo de unidades pagas"
+                  numeric="integer"
+                  maxLength={6}
+                  value={editing.minimumQuantity}
+                  onChange={setField('minimumQuantity')}
+                />
+                <TextField
+                  label="Máximo de unidades"
+                  numeric="integer"
+                  maxLength={6}
+                  value={editing.maximumQuantity}
+                  onChange={setField('maximumQuantity')}
+                />
+              </>
+            ) : null}
+            <TextField
+              label="Previsão de chegada"
+              type="date"
+              value={editing.expectedArrivalOn}
+              onChange={setField('expectedArrivalOn')}
+            />
+          </div>
+          {editable ? null : (
+            <p className="muted">
+              Após a encomenda, período e quantidades ficam fixos (consolidado enviado à malharia).
+            </p>
+          )}
+          <TextArea
+            label="Descrição pública"
+            maxLength={8000}
+            value={editing.description}
+            onChange={setField('description')}
+          />
+          <TextArea
+            label="Política se o mínimo não for atingido"
+            maxLength={4000}
+            value={editing.refundPolicy}
+            onChange={setField('refundPolicy')}
+          />
+          <div className="form-actions">
+            <button type="submit" className="btn btn-primary" disabled={save.pending}>
+              Salvar alterações
+            </button>
+          </div>
+        </form>
+      ) : null}
       {notice ? <Alert kind="success">{notice}</Alert> : null}
       {c.cancellationReason ? (
         <Alert kind="warning">Cancelada: {c.cancellationReason}</Alert>
@@ -309,6 +476,20 @@ export default function CampaignDetailPage() {
           <Loading />
         )}
       </section>
+
+      <ConfirmDialog
+        open={deleting}
+        title={`Excluir a remessa ${c.name}`}
+        description="Só remessas sem nenhum pedido podem ser excluídas. Com pedidos, cancele a remessa: os pagamentos são estornados e o histórico fica preservado."
+        confirmLabel="Excluir"
+        danger
+        requireReason
+        onClose={() => setDeleting(false)}
+        onConfirm={async (reason) => {
+          await api(`/campaigns/${id}`, { method: 'DELETE', body: { reason } });
+          router.push('/admin/remessas');
+        }}
+      />
 
       <ConfirmDialog
         open={next !== null}

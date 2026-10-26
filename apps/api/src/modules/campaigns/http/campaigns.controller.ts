@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
   HttpCode,
   Module,
@@ -32,6 +33,7 @@ import {
 import type { Response } from 'express';
 
 import { parseMoney } from '../../../common/domain/money';
+import { DeleteReasonDto } from '../../../common/http/delete-reason.dto';
 import {
   CurrentPrincipal,
   type Principal,
@@ -169,6 +171,19 @@ export class CampaignsController {
     @ReqMeta() meta: RequestMeta
   ): Promise<CampaignView> {
     return this.campaigns.update(actor, id, defined(body), meta);
+  }
+
+  @Delete('campaigns/:id')
+  @HttpCode(204)
+  @ApiBearerAuth()
+  @RequirePermissions(PERMISSIONS.campaignsManage)
+  async remove(
+    @CurrentPrincipal() actor: Principal,
+    @Param('id', new ParseUUIDPipe()) id: string,
+    @Body() body: DeleteReasonDto,
+    @ReqMeta() meta: RequestMeta
+  ): Promise<void> {
+    await this.campaigns.remove(actor, id, body.reason, meta);
   }
 
   @Put('campaigns/:id/products')

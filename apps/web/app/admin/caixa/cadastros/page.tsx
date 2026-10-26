@@ -84,34 +84,25 @@ export default function FinanceSetupPage() {
 
       <section className="card stack" aria-labelledby="contas">
         <h2 id="contas">Contas financeiras</h2>
-        <ul>
-          {(accounts.data ?? []).map((a) => (
-            <li key={a.id} className="row">
-              <strong>{a.name}</strong>
-              <span className="muted">{ACCOUNT_TYPE[a.type]}</span>
-              {a.isActive ? null : <span className="badge">Inativa</span>}
-              {manage ? (
-                <>
-                  <button type="button" className="btn btn-link" onClick={() => setOpening(a)}>
-                    Saldo inicial
-                  </button>
-                  <button
-                    type="button"
-                    className="btn btn-link"
-                    onClick={() =>
-                      void api(`/finance/accounts/${a.id}`, {
-                        method: 'PATCH',
-                        body: { isActive: !a.isActive }
-                      }).then(accounts.reload)
-                    }
-                  >
-                    {a.isActive ? 'Inativar' : 'Reativar'}
-                  </button>
-                </>
-              ) : null}
-            </li>
-          ))}
-        </ul>
+        <CategoryManager
+          items={(accounts.data ?? []).map((a) => ({
+            ...a,
+            detail: [ACCOUNT_TYPE[a.type], a.institutionName].filter(Boolean).join(' · ')
+          }))}
+          endpoint="/finance/accounts"
+          manage={manage}
+          withDescription={false}
+          noun="conta"
+          emptyText="Nenhuma conta cadastrada."
+          rowExtra={(a) =>
+            manage ? (
+              <button type="button" className="btn btn-link" onClick={() => setOpening(a)}>
+                Saldo inicial
+              </button>
+            ) : null
+          }
+          onChanged={accounts.reload}
+        />
         {manage ? (
           <form className="row" onSubmit={(event) => void createAccount.submit(event)}>
             <TextField

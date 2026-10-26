@@ -407,6 +407,69 @@ describe('Fase 5 — remessas e campanhas', () => {
     expect(refunds).toHaveLength(1);
   });
 
+  it('exclui só remessa sem pedidos; aberta ou com pedido, exige cancelar e preserva', async () => {
+    const reason = { reason: 'Criada por engano' };
+    const c = await openCampaign();
+
+    const open = await ctx
+      .http()
+      .delete(`/api/v1/campaigns/${c.id}`)
+      .set(auth(board.token))
+      .send(reason)
+      .expect(409);
+
+    expect(open.body.code).toBe('CAMPAIGN_ACTIVE');
+
+    await buy(c.variantG, 1).then((res) => expect(res.status).toBe(201));
+    await ctx
+      .http()
+      .put(`/api/v1/campaigns/${c.id}/status`)
+      .set(auth(board.token))
+      .send({ status: 'CANCELLED', reason: 'Teste de exclusão' })
+      .expect(200);
+
+    const withOrders = await ctx
+      .http()
+      .delete(`/api/v1/campaigns/${c.id}`)
+      .set(auth(board.token))
+      .send(reason)
+      .expect(409);
+
+    expect(withOrders.body.code).toBe('IN_USE');
+
+    const draft = await ctx
+      .http()
+      .post('/api/v1/campaigns')
+      .set(auth(board.token))
+      .send({
+        name: `Rascunho ${randomUUID().slice(0, 5)}`,
+        salesStartAt: new Date(Date.now() + hour).toISOString(),
+        salesEndAt: new Date(Date.now() + 48 * hour).toISOString()
+      })
+      .expect(201);
+
+    await ctx
+      .http()
+      .patch(`/api/v1/campaigns/${draft.body.id}`)
+      .set(auth(board.token))
+      .send({ name: 'Rascunho renomeado', refundPolicy: 'Devolução integral por PIX.' })
+      .expect(200)
+      .then((res) => expect(res.body.name).toBe('Rascunho renomeado'));
+    await ctx
+      .http()
+      .delete(`/api/v1/campaigns/${draft.body.id}`)
+      .set(auth(board.token))
+      .send(reason)
+      .expect(204);
+    await ctx.http().get(`/api/v1/campaigns/${draft.body.id}`).set(auth(board.token)).expect(404);
+
+    const row = await ctx.prisma.salesCampaign.findUniqueOrThrow({
+      where: { id: draft.body.id }
+    });
+
+    expect(row.deletedAt).not.toBeNull();
+  });
+
   it('restringe a gestão de remessas', async () => {
     const user = await tokenFor(ctx, ['user']);
 

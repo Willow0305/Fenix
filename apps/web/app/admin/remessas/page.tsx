@@ -96,15 +96,15 @@ export default function CampaignsPage() {
             />
             <TextField
               label="Mínimo de unidades pagas"
-              type="number"
-              min={1}
+              numeric="integer"
+              maxLength={6}
               value={form.minimumQuantity}
               onChange={set('minimumQuantity')}
             />
             <TextField
               label="Máximo de unidades"
-              type="number"
-              min={1}
+              numeric="integer"
+              maxLength={6}
               value={form.maximumQuantity}
               onChange={set('maximumQuantity')}
             />

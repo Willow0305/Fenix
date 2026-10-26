@@ -655,6 +655,50 @@ describe('Fase 3 — mensalidades e Caixa Fênix', () => {
         .expect(422);
     });
 
+    it('exclui conta nunca movimentada; com lançamento, recusa e sugere inativar', async () => {
+      const unused = await newAccount();
+      const used = await newAccount();
+      const reason = { reason: 'Cadastrada por engano' };
+
+      await ctx
+        .http()
+        .post(`/api/v1/finance/accounts/${used}/opening-balance`)
+        .set(auth(board.token))
+        .set(key())
+        .send({ amount: '50.00', occurredOn: '2026-01-01', notes: 'Extrato' })
+        .expect(201);
+
+      const refused = await ctx
+        .http()
+        .delete(`/api/v1/finance/accounts/${used}`)
+        .set(auth(board.token))
+        .send(reason)
+        .expect(409);
+
+      expect(refused.body.code).toBe('IN_USE');
+      expect(refused.body.detail).toContain('Inative');
+
+      await ctx
+        .http()
+        .delete(`/api/v1/finance/accounts/${unused}`)
+        .set(auth(board.token))
+        .send(reason)
+        .expect(204);
+
+      const list = await ctx
+        .http()
+        .get('/api/v1/finance/accounts')
+        .set(auth(board.token))
+        .expect(200);
+      const ids = (list.body as { id: string }[]).map((a) => a.id);
+
+      expect(ids).toContain(used);
+      expect(ids).not.toContain(unused);
+      await expect(
+        ctx.prisma.financialTransaction.count({ where: { accountId: used } })
+      ).resolves.toBe(1);
+    });
+
     it('transfere com dois lançamentos vinculados sem mudar o saldo total', async () => {
       const a = await newAccount();
       const b = await newAccount();

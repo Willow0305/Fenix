@@ -10,6 +10,7 @@ import {
   moneyView
 } from '../../../common/domain/money';
 import { assertTransition } from '../../../common/domain/state-machine';
+import { softDeleteIfUnused } from '../../../common/domain/safe-delete';
 import { AppError } from '../../../common/errors/app-error';
 import type { Principal, RequestMeta } from '../../../common/http/request-context';
 import { SiteRevalidateService } from '../../../common/http/site-revalidate.interceptor';
@@ -133,6 +134,8 @@ function civilOrNull(value: string | null | undefined): Date | null {
 }
 
 /** Remessas/campanhas (RF-035, RF-036, RF-044, RCF-009, DT-032). */
+const DELETABLE_STATUSES: readonly SalesCampaignStatus[] = ['DRAFT', 'SCHEDULED', 'CANCELLED'];
+
 @Injectable()
 export class CampaignsService implements OnModuleInit {
   constructor(
@@ -358,6 +361,60 @@ export class CampaignsService implements OnModuleInit {
     });
 
     return this.get(id);
+  }
+
+  /**
+   * Exclusão lógica de remessa que nunca vendeu: rascunho, agendada ou cancelada e sem
+   * nenhum item de pedido. Com pedidos, a remessa só pode ser cancelada (histórico de venda).
+   * Itens de carrinho que apontavam para ela saem do carrinho.
+   */
+  async remove(actor: Principal, id: string, reason: string, meta: RequestMeta): Promise<void> {
+    await softDeleteIfUnused({
+      prisma: this.prisma,
+      audit: this.audit,
+      actor,
+      meta,
+      reason,
+      entityId: id,
+      entityType: 'SalesCampaign',
+      action: 'campaign.deleted',
+      noun: 'a remessa',
+      load: async (tx) => {
+        const row = await tx.salesCampaign.findFirst({
+          where: { id, deletedAt: null },
+          select: { name: true, status: true }
+        });
+
+        if (row && !DELETABLE_STATUSES.includes(row.status)) {
+          throw AppError.conflict(
+            'CAMPAIGN_ACTIVE',
+            'Só é possível excluir remessa em rascunho, agendada ou cancelada. Cancele antes.'
+          );
+        }
+
+        return row;
+      },
+      usage: async (tx) => [
+        {
+          count: await tx.orderItem.count({
+            where: { salesCampaignProduct: { salesCampaignId: id } }
+          }),
+          label: 'item(ns) de pedido'
+        }
+      ],
+      remove: async (tx) => {
+        const now = new Date();
+
+        await tx.cartItem.deleteMany({
+          where: { salesCampaignProduct: { salesCampaignId: id } }
+        });
+        await tx.salesCampaignProduct.updateMany({
+          where: { salesCampaignId: id, deletedAt: null },
+          data: { deletedAt: now, isActive: false }
+        });
+        await tx.salesCampaign.update({ where: { id }, data: { deletedAt: now } });
+      }
+    });
   }
 
   async setProduct(

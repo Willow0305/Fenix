@@ -110,7 +110,13 @@ export function TextField({
   const numericProps = mode
     ? {
         type: 'text',
-        inputMode: mode === 'decimal' ? ('decimal' as const) : ('numeric' as const),
+        // O teclado numérico do celular não tem "-": o modo com sinal usa o teclado comum.
+        inputMode:
+          mode === 'decimal'
+            ? ('decimal' as const)
+            : mode === 'signed'
+              ? ('text' as const)
+              : ('numeric' as const),
         autoComplete: props.autoComplete ?? 'off',
         ...(mode === 'decimal' && typeof props.value === 'string'
           ? { value: decimalDisplay(props.value) }

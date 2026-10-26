@@ -201,6 +201,68 @@ export class FinanceSetupService {
     return (await this.accounts()).find((a) => a.id === id) as AccountView;
   }
 
+  /**
+   * Exclusão lógica de conta só quando nunca movimentada (sem lançamentos, transferências
+   * nem fechamentos): o histórico financeiro não pode sumir (AGENTS.md). Com uso, inativar.
+   */
+  async deleteAccount(
+    actor: Principal,
+    id: string,
+    reason: string,
+    meta: RequestMeta
+  ): Promise<void> {
+    await softDeleteIfUnused({
+      prisma: this.prisma,
+      audit: this.audit,
+      actor,
+      meta,
+      reason,
+      entityId: id,
+      entityType: 'FinancialAccount',
+      action: 'finance.account.deleted',
+      noun: 'a conta',
+      load: async (tx) => {
+        const others = await tx.financialAccount.count({
+          where: { deletedAt: null, isActive: true, id: { not: id } }
+        });
+
+        // Sem nenhuma conta ativa o clube não consegue registrar recebimentos.
+        if (others === 0) {
+          throw AppError.conflict(
+            'LAST_ACCOUNT',
+            'Esta é a única conta ativa. Cadastre ou ative outra antes de excluir.'
+          );
+        }
+
+        return tx.financialAccount.findFirst({
+          where: { id, deletedAt: null },
+          select: { name: true }
+        });
+      },
+      usage: async (tx) => [
+        {
+          count: await tx.financialTransaction.count({ where: { accountId: id } }),
+          label: 'lançamento(s)'
+        },
+        {
+          count: await tx.financialTransfer.count({
+            where: { OR: [{ sourceAccountId: id }, { destinationAccountId: id }] }
+          }),
+          label: 'transferência(s)'
+        },
+        {
+          count: await tx.cashClosing.count({ where: { financialAccountId: id } }),
+          label: 'fechamento(s)'
+        }
+      ],
+      remove: (tx) =>
+        tx.financialAccount.update({
+          where: { id },
+          data: { deletedAt: new Date(), isActive: false }
+        })
+    });
+  }
+
   async categories(): Promise<CategoryView[]> {
     const rows = await this.prisma.financialCategory.findMany({
       where: { deletedAt: null },

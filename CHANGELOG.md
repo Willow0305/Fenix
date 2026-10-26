@@ -6,6 +6,17 @@ O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) e o 
 
 ## [Não publicado]
 
+### Excluir contas financeiras e remessas (2026-10-26)
+
+#### Adicionado
+
+- excluir conta financeira que nunca foi movimentada; com lançamentos, o sistema explica e sugere inativar, preservando o histórico (DT-062);
+- editar e excluir remessa: exclusão só sem pedidos (rascunho, agendada ou cancelada); com pedidos, só cancelar.
+
+#### Corrigido
+
+- o ajuste de estoque voltou a aceitar quantidade negativa (ex.: -2).
+
 ### Listas que não crescem sem fim (2026-10-26)
 
 #### Alterado

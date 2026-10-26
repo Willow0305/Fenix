@@ -92,8 +92,10 @@ function StockPanel({
           />
           <TextField
             label="Quantidade"
-            type="number"
+            numeric={form.type === 'ADJUSTMENT' ? 'signed' : 'integer'}
+            maxLength={7}
             required
+            hint={form.type === 'ADJUSTMENT' ? 'Use "-" para baixar, ex.: -2.' : undefined}
             value={form.quantity}
             onChange={(e) => setForm({ ...form, quantity: e.target.value })}
           />

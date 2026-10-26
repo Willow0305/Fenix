@@ -154,6 +154,18 @@ export class FinanceController {
     return this.setup.updateAccount(actor, id, defined(body), meta);
   }
 
+  @Delete('accounts/:id')
+  @HttpCode(204)
+  @RequirePermissions(PERMISSIONS.financeSetup)
+  async deleteAccount(
+    @CurrentPrincipal() actor: Principal,
+    @Param('id', new ParseUUIDPipe()) id: string,
+    @Body() body: DeleteReasonDto,
+    @ReqMeta() meta: RequestMeta
+  ): Promise<void> {
+    await this.setup.deleteAccount(actor, id, body.reason, meta);
+  }
+
   @Post('accounts/:id/opening-balance')
   @ApiHeader(IDEMPOTENCY_HEADER)
   @RequirePermissions(PERMISSIONS.financeSetup, PERMISSIONS.transactionsConfirm)

@@ -3,10 +3,17 @@
  * Valores em reais aparecem com vírgula para a pessoa e seguem com ponto para a API
  * (`89,90` na tela, `89.90` no envio).
  */
-export type NumericMode = 'integer' | 'decimal';
+export type NumericMode = 'integer' | 'signed' | 'decimal';
 
 export function digitsOnly(value: string, maxLength = 9): string {
   return value.replace(/\D/g, '').slice(0, maxLength);
+}
+
+/** Inteiro que pode ser negativo (ajuste de estoque): um "-" só no início. */
+export function signedDigits(value: string, maxLength = 9): string {
+  const negative = value.trim().startsWith('-');
+
+  return `${negative ? '-' : ''}${digitsOnly(value, maxLength)}`;
 }
 
 /** Número com até 2 casas, no formato da API (ponto), a partir do que foi digitado. */
@@ -29,5 +36,9 @@ export function decimalDisplay(value: string): string {
 }
 
 export function sanitizeNumeric(mode: NumericMode, value: string): string {
-  return mode === 'integer' ? digitsOnly(value) : decimalInput(value);
+  if (mode === 'integer') {
+    return digitsOnly(value);
+  }
+
+  return mode === 'signed' ? signedDigits(value) : decimalInput(value);
 }
