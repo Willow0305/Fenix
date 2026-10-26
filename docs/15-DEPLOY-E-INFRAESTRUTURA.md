@@ -129,7 +129,8 @@ Variáveis implementadas (valores de exemplo em `.env.example`):
 | `MAIL_DRIVER`, `MAIL_OUTBOX_DIR`, `MAIL_FROM` | e-mail | adaptador real pendente |
 | `ALLOW_LOCAL_ADAPTERS_IN_PRODUCTION` | opt-in explícito para adaptadores locais | — |
 | `STORE_RESERVATION_HOURS` | validade da reserva de pedido não pago (padrão 72) | não |
-| `ORDER_EXPIRY_JOB` | `off` desativa rotinas internas | não |
+| `SCHEDULED_JOBS` | `off` desativa as tarefas automáticas neste servidor (`ORDER_EXPIRY_JOB=off`, nome antigo, também vale) | não |
+| `THROTTLE_STORE` | `postgres` (padrão, contagem comum a todos os servidores) ou `memory` (só desenvolvimento com um servidor) (DT-047) | não |
 | `THROTTLE_DISABLED` | desliga rate limit fora de produção (testes) | não |
 | `SEED_ADMIN_*` | administrador inicial criado pelo seed | apenas no primeiro deploy |
 

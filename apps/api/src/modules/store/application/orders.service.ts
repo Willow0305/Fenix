@@ -1,4 +1,4 @@
-import { Injectable, type OnModuleDestroy, type OnModuleInit } from '@nestjs/common';
+import { Injectable, type OnModuleInit } from '@nestjs/common';
 import type { OrderStatus, Prisma } from '@prisma/client';
 
 import { AuditService } from '../../../common/audit/audit.service';
@@ -8,6 +8,7 @@ import { assertTransition } from '../../../common/domain/state-machine';
 import { endOfDayExclusive, startOfDayInZone } from '../../../common/domain/time-zone';
 import { AppError } from '../../../common/errors/app-error';
 import { type Page, pageArgs, type PageQueryDto, toPage } from '../../../common/http/pagination';
+import { JobScheduler } from '../../../common/jobs/job-scheduler';
 import type { Principal, RequestMeta } from '../../../common/http/request-context';
 import { MailSender } from '../../../common/mail/mail.service';
 import { PrismaService, type PrismaTx } from '../../../common/prisma/prisma.service';
@@ -120,9 +121,7 @@ type OrderRow = Prisma.OrderGetPayload<{ include: typeof ORDER_INCLUDE }>;
  * transação; pagamento confirmado converte a reserva em saída e lança no Caixa.
  */
 @Injectable()
-export class OrdersService implements OnModuleInit, OnModuleDestroy {
-  private expiryTimer: ReturnType<typeof setInterval> | null = null;
-
+export class OrdersService implements OnModuleInit {
   constructor(
     private readonly prisma: PrismaService,
     private readonly audit: AuditService,
@@ -134,23 +133,12 @@ export class OrdersService implements OnModuleInit, OnModuleDestroy {
     private readonly mail: MailSender,
     private readonly config: AppConfig,
     private readonly settings: SettingsService,
-    private readonly coupons: CouponsService
+    private readonly coupons: CouponsService,
+    private readonly jobs: JobScheduler
   ) {}
 
   onModuleInit(): void {
-    if (process.env['NODE_ENV'] !== 'test' && process.env['ORDER_EXPIRY_JOB'] !== 'off') {
-      this.expiryTimer = setInterval(
-        () => void this.expireStale().catch(() => undefined),
-        10 * 60_000
-      );
-      this.expiryTimer.unref();
-    }
-  }
-
-  onModuleDestroy(): void {
-    if (this.expiryTimer) {
-      clearInterval(this.expiryTimer);
-    }
+    this.jobs.every('store.orders.expire', 10 * 60_000, () => this.expireStale());
   }
 
   private reservationHours(): number {

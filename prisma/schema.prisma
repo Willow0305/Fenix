@@ -2320,3 +2320,39 @@ model CouponRedemption {
   @@index([couponId, customerEmail, status])
   @@map("coupon_redemptions")
 }
+
+// Escala com mais de um servidor (DT-047).
+
+enum ScheduledJobStatus {
+  SUCCEEDED
+  FAILED
+}
+
+/// Concessão das tarefas automáticas: cada tarefa roda em um só servidor por intervalo.
+model ScheduledJobLease {
+  id             String              @id @default(uuid()) @db.Uuid
+  name           String              @unique @db.VarChar(80)
+  holder         String              @db.VarChar(160)
+  lockedUntil    DateTime            @map("locked_until") @db.Timestamptz(6)
+  lastStartedAt  DateTime            @map("last_started_at") @db.Timestamptz(6)
+  lastFinishedAt DateTime?           @map("last_finished_at") @db.Timestamptz(6)
+  lastStatus     ScheduledJobStatus? @map("last_status")
+  /// Só o tipo do erro; a mensagem pode conter dados pessoais e não é guardada.
+  lastError      String?             @map("last_error") @db.VarChar(200)
+  updatedAt      DateTime            @default(now()) @map("updated_at") @db.Timestamptz(6)
+
+  @@map("scheduled_job_leases")
+}
+
+/// Contagem compartilhada do limite de requisições. A chave é um hash da rota e do IP;
+/// nenhum endereço é guardado em claro.
+model RateLimitBucket {
+  id           String    @id @default(uuid()) @db.Uuid
+  key          String    @unique @db.VarChar(200)
+  hits         Int
+  windowEndsAt DateTime  @map("window_ends_at") @db.Timestamptz(6)
+  blockedUntil DateTime? @map("blocked_until") @db.Timestamptz(6)
+
+  @@index([windowEndsAt])
+  @@map("rate_limit_buckets")
+}

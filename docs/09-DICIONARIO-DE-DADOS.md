@@ -768,6 +768,22 @@ Enums de estados descrevem o vocabulário inicial; transições e responsáveis 
 - Índices/restrições: UK `(userId, deduplicationKey)` quando preenchido; IX `(userId, readAt, createdAt)`, `(deliveryStatus, scheduledAt)` e `(type, createdAt)`. Envio/leitura coerentes com estado.
 - Exclusão/auditoria: soft delete e retenção por política; payload contém apenas o mínimo e nunca comprovante/token.
 
+### `ScheduledJobLease` — grupo T
+
+- Finalidade: concessão das tarefas automáticas, para cada uma rodar em um só servidor por intervalo (`DT-047`).
+- Campos O: `name` (nome da tarefa), `holder` (servidor e processo), `lockedUntil`, `lastStartedAt`, `updatedAt`.
+- Campos P: `lastFinishedAt`, `lastStatus` (`SUCCEEDED`, `FAILED`), `lastError` (só o tipo do erro, nunca a mensagem).
+- Índices/restrições: UK `name`.
+- Exclusão/auditoria: sem dado pessoal; uma linha por tarefa, reaproveitada a cada execução.
+
+### `RateLimitBucket` — sem grupo comum
+
+- Finalidade: contagem do limite de requisições compartilhada entre servidores (`DT-047`).
+- Campos O: `key` (nome do limite e hash da rota com o IP; o endereço nunca fica em claro), `hits`, `windowEndsAt`.
+- Campos P: `blockedUntil`.
+- Índices/restrições: UK `key`; IX `windowEndsAt`; `CHECK hits >= 0`.
+- Exclusão/auditoria: exclusão física pela limpeza a cada 10 minutos, assim que a janela e o bloqueio vencem.
+
 ## 10. Restrições físicas pendentes de migration
 
 O Prisma expressa PKs, FKs, índices e grande parte das unicidades, mas não todos os `CHECK`, índices parciais ou proteções de imutabilidade. A primeira migration de cada módulo deverá implementar e testar, no mínimo:

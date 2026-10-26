@@ -6,6 +6,17 @@ O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) e o 
 
 ## [Não publicado]
 
+### Escala com mais de um servidor (2026-10-25)
+
+#### Alterado
+
+- as tarefas automáticas (expirar reservas, encerrar remessas) rodam em um só servidor por vez, com registro da última execução e do erro, se houver (DT-047);
+- o limite de requisições conta no banco, igual para todos os servidores; falhas das tarefas aparecem no log em vez de serem ignoradas.
+
+#### Adicionado
+
+- variáveis `THROTTLE_STORE` e `SCHEDULED_JOBS`; migração `20261026043819_escala_tarefas_limites`.
+
 ### Limpeza, segurança e padrão pt-BR (2026-10-25)
 
 #### Adicionado

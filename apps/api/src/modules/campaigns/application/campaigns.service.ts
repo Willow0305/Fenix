@@ -1,4 +1,4 @@
-import { Injectable, type OnModuleDestroy, type OnModuleInit } from '@nestjs/common';
+import { Injectable, type OnModuleInit } from '@nestjs/common';
 import type { OrderStatus, Prisma, SalesCampaignStatus } from '@prisma/client';
 
 import { AuditService } from '../../../common/audit/audit.service';
@@ -12,6 +12,7 @@ import {
 import { assertTransition } from '../../../common/domain/state-machine';
 import { AppError } from '../../../common/errors/app-error';
 import type { Principal, RequestMeta } from '../../../common/http/request-context';
+import { JobScheduler } from '../../../common/jobs/job-scheduler';
 import { MailSender } from '../../../common/mail/mail.service';
 import { PrismaService } from '../../../common/prisma/prisma.service';
 import { PERMISSIONS } from '../../access/domain/permission-catalog';
@@ -132,31 +133,18 @@ function civilOrNull(value: string | null | undefined): Date | null {
 
 /** Remessas/campanhas (RF-035, RF-036, RF-044, RCF-009, DT-032). */
 @Injectable()
-export class CampaignsService implements OnModuleInit, OnModuleDestroy {
-  private closeTimer: ReturnType<typeof setInterval> | null = null;
-
+export class CampaignsService implements OnModuleInit {
   constructor(
     private readonly prisma: PrismaService,
     private readonly audit: AuditService,
     private readonly orders: OrdersService,
     private readonly notifications: NotificationsService,
-    private readonly mail: MailSender
+    private readonly mail: MailSender,
+    private readonly jobs: JobScheduler
   ) {}
 
   onModuleInit(): void {
-    if (process.env['NODE_ENV'] !== 'test' && process.env['ORDER_EXPIRY_JOB'] !== 'off') {
-      this.closeTimer = setInterval(
-        () => void this.closeExpired().catch(() => undefined),
-        10 * 60_000
-      );
-      this.closeTimer.unref();
-    }
-  }
-
-  onModuleDestroy(): void {
-    if (this.closeTimer) {
-      clearInterval(this.closeTimer);
-    }
+    this.jobs.every('store.campaigns.close', 10 * 60_000, () => this.closeExpired());
   }
 
   private toView(row: CampaignRow): CampaignView {

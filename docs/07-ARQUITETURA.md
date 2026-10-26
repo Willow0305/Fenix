@@ -232,4 +232,6 @@ Ainda não fazem parte do escopo implementado:
 
 ### Rotinas internas
 
-A API executa, a cada 10 minutos, a expiração de reservas de pedidos não pagos e o encerramento de remessas com prazo vencido. Ambas são idempotentes, auditadas, podem ser disparadas pelo painel e são desligadas em testes (`ORDER_EXPIRY_JOB=off` desativa em qualquer ambiente).
+A API executa, a cada 10 minutos, a expiração de reservas de pedidos não pagos, o encerramento de remessas com prazo vencido e a limpeza das contagens de limite de requisições. As tarefas são idempotentes, auditadas quando mudam dados, podem ser disparadas pelo painel e são desligadas em testes (`SCHEDULED_JOBS=off`, ou o nome antigo `ORDER_EXPIRY_JOB=off`, desativa em qualquer ambiente).
+
+Com mais de um servidor, cada tarefa roda em um só deles por intervalo: `JobScheduler` reserva a tarefa na tabela `scheduled_job_leases` e guarda a última execução e o tipo do erro, se houver. O limite de requisições conta no PostgreSQL (`rate_limit_buckets`), igual para todos os servidores; se o banco falhar, cada servidor conta na própria memória até ele voltar (`DT-047`).

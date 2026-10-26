@@ -912,3 +912,27 @@ A logo oficial e as configurações do time "sumiam". A auditoria mostrou a caus
 - nenhum script embutido roda sem o nonce da página; testes unitários conferem a política de produção e de desenvolvimento;
 - 11 testes unitários das mensagens de validação; 404 e JSON inválido conferidos na API em execução;
 - `npm run check` e os 94 testes de integração passam.
+
+## DT-047 — Tarefas automáticas e limite de requisições com mais de um servidor
+
+- **Estado:** Aceita
+- **Data:** 2026-10-25
+- **Aprovador:** responsável do projeto (aprovação de `docs/30-REVISAO-GERAL.md`, item R-04, 2026-10-25)
+
+### Contexto
+
+As tarefas de 10 em 10 minutos (expirar reservas, encerrar remessas) rodavam com `setInterval` em cada processo, e o limite de requisições contava na memória de cada processo. Com dois ou mais servidores, as tarefas rodariam em dobro e cada servidor contaria os limites sozinho, o que enfraquece a proteção contra força bruta. Também havia erros engolidos em silêncio (`.catch(() => undefined)`).
+
+### Decisão
+
+- **sem serviço novo:** tudo no PostgreSQL que o projeto já usa. Redis só se a carga pedir no futuro;
+- **concessão das tarefas:** `JobScheduler` (`common/jobs`) reserva cada tarefa na tabela `scheduled_job_leases` com uma instrução atômica (`INSERT … ON CONFLICT … WHERE locked_until <= now()`). A concessão dura 90% do intervalo e não é devolvida ao terminar: a tarefa roda no máximo uma vez por intervalo no conjunto de servidores. Se o servidor cair, a concessão vence e outro assume. Foi escolhida no lugar de `pg_try_advisory_lock` porque a trava de sessão do PostgreSQL exige a mesma conexão do começo ao fim, o que o pool do Prisma não garante;
+- **falhas:** registradas no log com o tipo e a pilha de chamadas e na concessão (`last_status`, `last_error`), sem a mensagem do erro, que pode conter dado pessoal;
+- **limite de requisições:** `PostgresThrottlerStorage` guarda a contagem em `rate_limit_buckets`, com a mesma regra da memória do Nest (janela fixa, bloqueio ao passar do limite, tentativas durante o bloqueio não somam). Uma instrução atômica por requisição. A chave é o hash que o Nest já gera (rota + IP); nenhum IP fica em claro. Contagens vencidas são apagadas a cada 10 minutos por uma tarefa do próprio agendador;
+- **banco indisponível:** a contagem passa para a memória do processo até o banco voltar, com aviso no log no máximo uma vez por minuto. Sem banco a API já não atende quase nada; derrubar também as rotas que ainda funcionam não protegeria nada;
+- **configuração:** `THROTTLE_STORE=memory` volta à contagem em memória (só desenvolvimento). `SCHEDULED_JOBS=off` desliga as tarefas no servidor; `ORDER_EXPIRY_JOB=off` continua valendo.
+
+### Consequências
+
+- uma escrita pequena no banco por requisição limitada; com a carga atual do clube não pesa (linha de base de `docs/15`);
+- testes de integração simulam dois servidores: execução única com disparos simultâneos, troca de servidor quando a concessão vence, falha sem mensagem, soma das tentativas entre servidores, 12 requisições simultâneas com limite 10, recomeço após janela e bloqueio, limites com nomes separados e limpeza. Testes unitários do registro de erro sem mensagem e da configuração.
