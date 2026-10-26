@@ -11,7 +11,7 @@ O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) e o 
 #### Alterado
 
 - o `zod` deixou de ir para o navegador (JavaScript do site de 2,3 MB para 1,9 MB) e as listas de pedidos não fazem mais uma consulta por pagamento;
-- React 19.3.0, Bootstrap Icons 1.13.2 e bibliotecas de teste atualizados.
+- React 19.3.0, Bootstrap Icons 1.13.2 e bibliotecas de teste atualizados; `supertest` fica na 7.2.2, porque a 7.3.1 quebra os testes de integração com requisições simultâneas.
 
 #### Adicionado
 
