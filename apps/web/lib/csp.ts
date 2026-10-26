@@ -12,6 +12,9 @@ export function contentSecurityPolicy(nonce: string, isProduction: boolean): str
     "img-src 'self' blob: data:",
     "font-src 'self' data:",
     `connect-src 'self'${isProduction ? '' : ' ws:'}`,
+    // Service worker do app instalável (DT-059): só do próprio site.
+    "worker-src 'self'",
+    "manifest-src 'self'",
     "object-src 'none'",
     "base-uri 'self'",
     "form-action 'self'",

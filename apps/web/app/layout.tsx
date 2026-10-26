@@ -4,6 +4,7 @@ import type { ReactNode } from 'react';
 
 import { AuthProvider } from '../lib/auth-context';
 import { CartProvider } from '../lib/cart-context';
+import { ServiceWorkerRegistration } from '../components/pwa';
 import { QueryProvider } from '../components/query-provider';
 import { SITE_URL } from '../lib/site-url';
 import 'bootstrap-icons/font/bootstrap-icons.min.css';
@@ -43,6 +44,7 @@ export default async function RootLayout({ children }: RootLayoutProps) {
         <a href="#conteudo" className="skip-link">
           Pular para o conteúdo
         </a>
+        <ServiceWorkerRegistration />
         <QueryProvider>
           <AuthProvider>
             <CartProvider>{children}</CartProvider>

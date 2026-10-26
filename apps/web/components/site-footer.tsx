@@ -1,6 +1,7 @@
 import Link from 'next/link';
 
 import type { PublicTeam } from '../lib/api-types';
+import { InstallAppButton } from './pwa';
 import styles from './site-footer.module.scss';
 import { formatPhoneDisplay } from '../lib/format';
 
@@ -44,6 +45,9 @@ export function SiteFooter({ team }: { readonly team: PublicTeam }) {
             </li>
             <li>
               <Link href="/interesse">Quero jogar no Fênix</Link>
+            </li>
+            <li>
+              <InstallAppButton />
             </li>
           </ul>
         </div>

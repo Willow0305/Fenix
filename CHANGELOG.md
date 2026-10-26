@@ -6,6 +6,12 @@ O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) e o 
 
 ## [Não publicado]
 
+### App instalável (2026-10-26)
+
+#### Adicionado
+
+- o site pode ser instalado no celular e no computador como aplicativo, com página de aviso quando não há internet; nada da conta fica guardado no aparelho (DT-059).
+
 ### Busca global e painel financeiro (2026-10-26)
 
 #### Adicionado

@@ -1167,3 +1167,20 @@ O TypeScript 7.0 (compilador nativo) ainda não tem a API em JavaScript que type
 
 - conferido com uma prévia renderizada: corrigidos rótulos do eixo cortados e marcas quebradas (1,3 mil), e o eixo repetido "R$ 0" num clube sem movimento;
 - 3 testes de unidade da API, 3 de interface e 3 de integração (meses em ordem, só lançamentos confirmados, inadimplência só com permissão).
+
+## DT-059 — App instalável (PWA)
+
+- **Estado:** Aceita
+- **Data:** 2026-10-26
+- **Aprovador:** responsável do projeto (Fase 9, `docs/30-REVISAO-GERAL.md` §4 item 6)
+
+### Decisão
+
+- manifesto com ícones (DT-046) e **service worker conservador** (`public/sw.js`), registrado só em produção: guarda apenas arquivos estáticos com hash no nome e a pasta da marca; **nunca** páginas, respostas da API ou fotos, para que dados de uma conta não fiquem no aparelho. Sem internet, abre `/offline` ("Você está sem internet");
+- botão "Instalar aplicativo" no rodapé, visível só quando o navegador oferece a instalação;
+- CSP com `worker-src 'self'` e `manifest-src 'self'`; `/offline` fora da indexação.
+
+### Consequências
+
+- verificado na pilha Docker (modo produção): `/sw.js`, `/offline` e o manifesto servidos e liberados pela CSP. O comportamento no navegador entra nos testes de ponta a ponta;
+- avisos no celular por notificação push ficam para depois: hoje os avisos saem por e-mail e WhatsApp (DT-048).
