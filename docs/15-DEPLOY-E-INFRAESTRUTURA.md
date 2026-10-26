@@ -134,6 +134,7 @@ Variáveis implementadas (valores de exemplo em `.env.example`):
 | `STORE_RESERVATION_HOURS` | validade da reserva de pedido não pago (padrão 72) | não |
 | `SCHEDULED_JOBS` | `off` desativa as tarefas automáticas neste servidor (`ORDER_EXPIRY_JOB=off`, nome antigo, também vale) | não |
 | `THROTTLE_STORE` | `postgres` (padrão, contagem comum a todos os servidores) ou `memory` (só desenvolvimento com um servidor) (DT-047) | não |
+| `REALTIME`, `REALTIME_DATABASE_URL` | `off` desliga o tempo real; conexão direta ao PostgreSQL para o `LISTEN` quando `DATABASE_URL` passa por pooler em modo transação (DT-049) | não |
 | `THROTTLE_DISABLED` | desliga rate limit fora de produção (testes) | não |
 | `SEED_ADMIN_*` | administrador inicial criado pelo seed | apenas no primeiro deploy |
 

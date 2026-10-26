@@ -8,6 +8,7 @@ import { useAuth } from '../lib/auth-context';
 import styles from './admin-shell.module.scss';
 import { BrandLogo } from './brand-logo';
 import { Icon } from './icon';
+import { NotificationBell } from './notification-bell';
 
 export interface AdminLink {
   readonly href: string;
@@ -248,6 +249,7 @@ export function AdminShell({ children }: { readonly children: ReactNode }) {
             <Icon name="list" /> Menu
           </button>
           <span className="spacer" />
+          <NotificationBell />
           <Link href="/minha-conta">
             <Icon name="person-circle" /> {profile?.name}
           </Link>

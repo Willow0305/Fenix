@@ -1,4 +1,5 @@
 import type { Problem } from './api-types';
+import { clientId } from './realtime';
 
 /** Erro de API com Problem Details já interpretado. */
 export class ApiError extends Error {
@@ -97,6 +98,11 @@ async function send(
 
   if (token) {
     headers['Authorization'] = `Bearer ${token}`;
+  }
+
+  // Identifica esta aba nos avisos em tempo real, para ela não recarregar à toa (DT-049).
+  if (typeof window !== 'undefined') {
+    headers['X-Client-Id'] = clientId();
   }
 
   return fetch(buildUrl(path, options.query), {

@@ -236,4 +236,6 @@ A API executa, a cada 10 minutos, a expiração de reservas de pedidos não pago
 
 Avisos por e-mail e WhatsApp (`DT-048`): `NotificationsService.notify` grava o aviso do painel e, pela finalidade e escolha da pessoa, coloca envios em `notification_deliveries`. `DeliveryService` processa a fila logo após o aviso e a cada 30 segundos, reservando lotes com `FOR UPDATE SKIP LOCKED`; os adaptadores `MailSender` (arquivo ou SMTP) e `WhatsAppSender` (desligado, arquivo ou WhatsApp Cloud API) isolam o provedor. Os lembretes de mensalidade rodam de hora em hora (`FeeRemindersService`).
 
+Tempo real (`DT-049`): `GET /api/v1/me/events` (Server-Sent Events) entrega avisos sem dados (`notification`, `changed`); `RealtimeService` espalha os eventos entre servidores com `LISTEN/NOTIFY` do PostgreSQL, e o navegador busca de novo pela API.
+
 Com mais de um servidor, cada tarefa roda em um só deles por intervalo: `JobScheduler` reserva a tarefa na tabela `scheduled_job_leases` e guarda a última execução e o tipo do erro, se houver. O limite de requisições conta no PostgreSQL (`rate_limit_buckets`), igual para todos os servidores; se o banco falhar, cada servidor conta na própria memória até ele voltar (`DT-047`).

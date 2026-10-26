@@ -13,6 +13,7 @@ import {
 
 import { api, parseProblem, setTokenProvider } from './api-client';
 import type { Profile } from './api-types';
+import { startRealtime, stopRealtime } from './realtime';
 
 interface TokenResponse {
   readonly accessToken: string;
@@ -184,6 +185,17 @@ export function AuthProvider({ children }: { readonly children: ReactNode }) {
       clearInterval(interval);
     };
   }, [endSession]);
+
+  // Conexão em tempo real enquanto houver sessão (DT-049).
+  useEffect(() => {
+    if (status !== 'authenticated') {
+      return undefined;
+    }
+
+    startRealtime(() => tokenRef.current);
+
+    return () => stopRealtime();
+  }, [status]);
 
   useEffect(() => {
     setTokenProvider({ getToken: () => tokenRef.current, refresh });

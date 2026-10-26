@@ -8,6 +8,7 @@ import { Alert, Empty, Loading, PageHeader, Pagination } from '../../../../compo
 import { api } from '../../../../lib/api-client';
 import type { Page } from '../../../../lib/api-types';
 import { formatDateTime } from '../../../../lib/format';
+import { refreshOwnResources } from '../../../../lib/realtime';
 import type { NotificationItem } from '../../../../lib/sports-types';
 import { useResource } from '../../../../lib/use-resource';
 
@@ -17,12 +18,12 @@ export default function NotificationsPage() {
 
   async function markRead(id: string) {
     await api(`/me/notifications/${id}/read`, { method: 'POST' });
-    await list.reload();
+    refreshOwnResources();
   }
 
   async function markAll() {
     await api('/me/notifications/read-all', { method: 'POST' });
-    await list.reload();
+    refreshOwnResources();
   }
 
   return (

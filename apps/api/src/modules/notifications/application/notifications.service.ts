@@ -6,6 +6,7 @@ import type { Prisma } from '@prisma/client';
 import { AppError } from '../../../common/errors/app-error';
 import { type Page, pageArgs, type PageQueryDto, toPage } from '../../../common/http/pagination';
 import { PrismaService, type PrismaTx } from '../../../common/prisma/prisma.service';
+import { RealtimeService } from '../../../common/realtime/realtime.service';
 import { categoryOf, channelsFor, whatsappNumber } from '../domain/channel-rules';
 import { DeliveryService, recipientPhone } from './delivery.service';
 
@@ -38,7 +39,8 @@ export interface NotificationView {
 export class NotificationsService {
   constructor(
     private readonly prisma: PrismaService,
-    private readonly delivery: DeliveryService
+    private readonly delivery: DeliveryService,
+    private readonly realtime: RealtimeService
   ) {}
 
   async notify(inputs: NotifyInput | readonly NotifyInput[], tx?: PrismaTx): Promise<number> {
@@ -75,6 +77,15 @@ export class NotificationsService {
       )) > 0
     ) {
       this.delivery.kick();
+    }
+
+    if (result.count > 0) {
+      // Dentro da transação, o aviso em tempo real só sai depois do commit (DT-049).
+      await this.realtime.publish(
+        { userIds: [...new Set(list.map((input) => input.userId))] },
+        { type: 'notification' },
+        tx
+      );
     }
 
     return result.count;

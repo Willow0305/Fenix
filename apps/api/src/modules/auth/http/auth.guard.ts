@@ -10,7 +10,7 @@ import {
 } from '../../../common/http/request-context';
 import type { PermissionCode } from '../../access/domain/permission-catalog';
 import { PrincipalLoader } from '../application/principal-loader.service';
-import { IS_PUBLIC, REQUIRED_PERMISSIONS } from './auth.decorators';
+import { IS_PUBLIC, PASSIVE, REQUIRED_PERMISSIONS } from './auth.decorators';
 
 /**
  * Guard global: nega por padrão. Rotas sem `@Public()` exigem access token válido;
@@ -38,9 +38,13 @@ export class AuthGuard implements CanActivate {
         REQUIRED_PERMISSIONS,
         targets
       ) ?? [];
+    const passive =
+      this.reflector.getAllAndOverride<boolean | undefined>(PASSIVE, targets) === true;
     const header = req.header('authorization');
     const token = header?.startsWith('Bearer ') ? header.slice(7).trim() : undefined;
-    const principal = token ? await this.principals.fromAccessToken(token) : null;
+    const principal = token
+      ? await this.principals.fromAccessToken(token, new Date(), { touch: !passive })
+      : null;
 
     if (principal !== null) {
       getRequestContext(req).principal = principal;

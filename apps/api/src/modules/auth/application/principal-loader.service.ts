@@ -26,7 +26,11 @@ export class PrincipalLoader {
     private readonly lifetime: SessionLifetimeService
   ) {}
 
-  async fromAccessToken(token: string, now: Date = new Date()): Promise<Principal | null> {
+  async fromAccessToken(
+    token: string,
+    now: Date = new Date(),
+    options: { readonly touch: boolean } = { touch: true }
+  ): Promise<Principal | null> {
     const claims = verifyAccessToken(token, this.config.values.accessTokenSecret);
 
     if (claims === null) {
@@ -96,7 +100,9 @@ export class PrincipalLoader {
       return null;
     }
 
-    await this.lifetime.touch(claims.sid, now, ACTIVITY_WRITE_INTERVAL_SECONDS);
+    if (options.touch) {
+      await this.lifetime.touch(claims.sid, now, ACTIVITY_WRITE_INTERVAL_SECONDS);
+    }
 
     const mfaVerified = session.mfaVerifiedAt !== null;
 

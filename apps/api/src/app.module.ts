@@ -14,6 +14,7 @@ import { MediaModule } from './modules/media/media.module';
 import { NotificationsModule } from './modules/notifications/notifications.module';
 import { PartnersModule } from './modules/partners/partners.module';
 import { PrivacyModule } from './modules/privacy/http/privacy.controller';
+import { RealtimeModule } from './modules/realtime/realtime.module';
 import { ReportsModule } from './modules/reports/http/reports.controller';
 import { SettingsModule } from './modules/settings/settings.module';
 import { SportsModule } from './modules/sports/sports.module';
@@ -48,7 +49,8 @@ import { StoreModule } from './modules/store/store.module';
     ContentModule,
     ReportsModule,
     PrivacyModule,
-    DashboardModule
+    DashboardModule,
+    RealtimeModule
   ]
 })
 export class AppModule {}

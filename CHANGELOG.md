@@ -6,6 +6,14 @@ O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) e o 
 
 ## [Não publicado]
 
+### Tempo real (2026-10-26)
+
+#### Adicionado
+
+- listas do painel atualizam sozinhas quando alguém muda algo: pedidos, inscrições, interessados, mensalidades e demais telas (DT-049);
+- sino de notificações no cabeçalho do site e do painel, com a contagem de não lidas atualizada na hora;
+- telas de Minha conta (pedidos, mensalidades, notificações) atualizam quando chega um aviso.
+
 ### Avisos por e-mail e WhatsApp (2026-10-26)
 
 #### Adicionado

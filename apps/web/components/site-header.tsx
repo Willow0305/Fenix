@@ -9,6 +9,7 @@ import { useCart } from '../lib/cart-context';
 import { BrandLogo } from './brand-logo';
 import styles from './site-header.module.scss';
 import { Avatar } from './avatar';
+import { NotificationBell } from './notification-bell';
 import { Icon } from './icon';
 
 export interface NavItem {
@@ -102,6 +103,7 @@ export function SiteHeader({
                     <Icon name="speedometer2" /> Painel
                   </Link>
                 ) : null}
+                <NotificationBell onNavigate={() => setOpen(false)} />
                 <Link
                   href="/minha-conta"
                   className="btn btn-primary btn-sm"

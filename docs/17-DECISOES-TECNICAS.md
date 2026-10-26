@@ -960,3 +960,24 @@ As tarefas de 10 em 10 minutos (expirar reservas, encerrar remessas) rodavam com
 - `PEN-040` resolvida; `PEN-064` registra o que depende do clube: contas nos provedores, aprovação do modelo na Meta, lembrete ao responsável de atleta menor sem conta e confirmação de entrega por webhook;
 - Painel → Avisos mostra a situação dos canais, os envios dos últimos 7 dias e as falhas recentes, sem destinatário;
 - 46 testes unitários (finalidades, padrões, número de WhatsApp, horários, tentativas, lembretes, textos, erros dos provedores e configuração), 3 testes de interface dos botões de contato e 11 testes de integração (envio por e-mail e WhatsApp em modo de teste, deduplicação, consentimento auditado e retirada, horário noturno, preferência conferida no envio, nova tentativa e recusa definitiva, dois processadores simultâneos, conta inativa, lembretes e resumo com permissão).
+
+## DT-049 — Tempo real
+
+- **Estado:** Aceita
+- **Data:** 2026-10-26
+- **Aprovador:** responsável do projeto ("preciso que o sistema seja em tempo real", 2026-10-25)
+
+### Decisão
+
+- **transporte:** Server-Sent Events em `GET /api/v1/me/events`, lido no navegador com `fetch` e o token no cabeçalho `Authorization`, nunca na URL. Passa pelo mesmo caminho `/api/v1` do site (DT-022). `Cache-Control: no-cache, no-transform` e `X-Accel-Buffering: no` impedem compressão e buffer no caminho; comentário a cada 25 s mantém a conexão viva;
+- **eventos sem dados:** `notification` (a pessoa recebeu um aviso) e `changed` (algo mudou no sistema, só para quem tem `dashboard.read`). A tela que recebe busca de novo pela API, com as permissões de quem está vendo; nada vaza pelo evento. `changed` sai depois de cada escrita bem-sucedida, exceto login, sessão, carrinho, leitura de notificações, favoritos e preferências;
+- **vários servidores:** `LISTEN/NOTIFY` do PostgreSQL (driver `pg` 8.23.1), sem serviço novo. Publicado dentro da transação, o evento só sai depois do commit. Destinatários vão em lotes de 100 por evento (limite de 8000 bytes do `NOTIFY`). Sem a conexão de escuta, entrega só no próprio servidor e tenta reconectar com espera crescente até 30 s. `REALTIME_DATABASE_URL` permite uma conexão direta quando o `DATABASE_URL` passa por pooler em modo transação; `REALTIME=off` desliga;
+- **sessão:** a conexão é marcada como passiva (`@Passive()`): não conta como uso e não adia a expiração por inatividade (DT-036, DT-037). Fecha sozinha a cada 10 minutos, e o navegador reconecta com o token atual; sessão revogada ou vencida não reconecta. Até 8 conexões por pessoa em cada servidor;
+- **navegador:** `lib/realtime.ts` liga a conexão enquanto há sessão, reconecta sozinho e, depois de uma queda maior que 5 s, pede ressincronização. `useResource` busca de novo: recursos da própria pessoa (`/me…`) em `notification`; os demais em `changed`, exceto quando a mudança veio da mesma aba (`X-Client-Id`). Eventos seguidos viram uma busca só, e a busca espera a pessoa sair do campo que está editando;
+- **sino:** cabeçalho do site e do painel mostram a contagem de notificações não lidas, que atualiza na hora.
+
+### Consequências
+
+- listas do painel (pedidos, inscrições, interessados, mensalidades, atletas) atualizam sozinhas quando outra pessoa ou um cliente faz uma mudança;
+- desligar o servidor encerra as conexões abertas e a escuta, inclusive se ela ainda estiver abrindo;
+- 5 testes unitários (endereço da escuta, destino, lotes, aba de origem, formato), 3 testes no navegador (leitura do fluxo, recursos próprios, quem recarrega) e 5 de integração com conexões reais (login exigido, sessão não tocada, aviso só ao destinatário e só após o commit, mudança só para a diretoria, login sem aviso).

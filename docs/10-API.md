@@ -38,6 +38,7 @@ O contrato completo e executável fica no OpenAPI (`/docs` fora de produção). 
 | `GET`/`POST` | `/api/v1/me/notifications` · `unread-count` · `read-all` · `:id/read` | próprio | 2 |
 | `GET`/`PUT` | `/api/v1/me/notifications/preferences` · `PUT` `whatsapp-consent` | próprio (`DT-048`) | 7 |
 | `GET` | `/api/v1/notifications/deliveries/summary` | `notifications.send` (`DT-048`) | 7 |
+| `GET` | `/api/v1/me/events` (Server-Sent Events, não conta como uso da sessão) | autenticado (`DT-049`) | 7 |
 | `GET` | `/api/v1/dashboard/summary` | `dashboard.read` | 2 |
 | `GET`/`POST`/`PATCH` | `/api/v1/fee-plans` · `athletes/:id/fee-plans` · `:id/fee-plans/:link/end` | `fees.read` / `fees.plans.manage` | 3 |
 | `POST` | `/api/v1/monthly-fees/generate` | `fees.generate` | 3 |

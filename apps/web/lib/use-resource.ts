@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 
 import { api, errorMessage, type RequestOptions } from './api-client';
+import { onRealtime, scheduleReload, shouldReload } from './realtime';
 
 export interface Resource<T> {
   readonly data: T | null;
@@ -52,6 +53,30 @@ export function useResource<T>(path: string | null, query?: RequestOptions['quer
   useEffect(() => {
     void reload();
   }, [reload]);
+
+  // Tempo real (DT-049): busca de novo quando algo que a tela mostra pode ter mudado.
+  useEffect(() => {
+    if (path === null) {
+      return undefined;
+    }
+
+    let cancelPending: (() => void) | null = null;
+    const unsubscribe = onRealtime((message) => {
+      if (cancelPending || !shouldReload(path, message)) {
+        return;
+      }
+
+      cancelPending = scheduleReload(() => {
+        cancelPending = null;
+        void reload();
+      });
+    });
+
+    return () => {
+      unsubscribe();
+      cancelPending?.();
+    };
+  }, [path, reload]);
 
   return { data, error, loading, reload, setData };
 }

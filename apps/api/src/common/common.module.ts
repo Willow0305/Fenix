@@ -8,6 +8,7 @@ import { SiteRevalidateInterceptor } from './http/site-revalidate.interceptor';
 import { JobScheduler } from './jobs/job-scheduler';
 import { MailSender, mailSenderFor } from './mail/mail.service';
 import { PrismaService } from './prisma/prisma.service';
+import { RealtimeService } from './realtime/realtime.service';
 import { LocalObjectStorage, ObjectStorage } from './storage/object-storage';
 import { WhatsAppSender, whatsappSenderFor } from './whatsapp/whatsapp.service';
 
@@ -20,6 +21,7 @@ import { WhatsAppSender, whatsappSenderFor } from './whatsapp/whatsapp.service';
     AuditService,
     JobScheduler,
     PostgresThrottlerStorage,
+    RealtimeService,
     { provide: MailSender, useFactory: mailSenderFor, inject: [AppConfig] },
     { provide: WhatsAppSender, useFactory: whatsappSenderFor, inject: [AppConfig] },
     { provide: ObjectStorage, useClass: LocalObjectStorage },
@@ -31,6 +33,7 @@ import { WhatsAppSender, whatsappSenderFor } from './whatsapp/whatsapp.service';
     AuditService,
     JobScheduler,
     PostgresThrottlerStorage,
+    RealtimeService,
     MailSender,
     WhatsAppSender,
     ObjectStorage
