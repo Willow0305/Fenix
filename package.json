@@ -26,7 +26,9 @@
       "js-yaml": "5.5.0"
     },
     "@nestjs/common": "11.2.7",
-    "@nestjs/core": "11.2.7"
+    "@nestjs/core": "11.2.7",
+    "react": "19.3.0",
+    "react-dom": "19.3.0"
   },
   "scripts": {
     "build": "npm run build --workspaces --if-present",
