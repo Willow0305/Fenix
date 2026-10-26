@@ -3,6 +3,7 @@ import { Injectable } from '@nestjs/common';
 import { AuditService } from '../../../common/audit/audit.service';
 import { AppError } from '../../../common/errors/app-error';
 import type { Principal, RequestMeta } from '../../../common/http/request-context';
+import { type Page, pageArgs, type PageQueryDto, toPage } from '../../../common/http/pagination';
 import { PrismaService } from '../../../common/prisma/prisma.service';
 import { PERMISSIONS } from '../../access/domain/permission-catalog';
 import { NotificationsService } from '../../notifications/application/notifications.service';
@@ -159,15 +160,21 @@ export class AnnouncementsService {
     return { recipients: userIds.length, delivered, replayed: false };
   }
 
-  async history(): Promise<BroadcastHistoryItem[]> {
-    const rows = await this.prisma.auditLog.findMany({
-      where: { action: 'notification.broadcast' },
-      include: { actorUser: { select: { name: true } } },
-      orderBy: { occurredAt: 'desc' },
-      take: 50
-    });
+  async history(query: PageQueryDto): Promise<Page<BroadcastHistoryItem>> {
+    const { skip, take, page, pageSize } = pageArgs(query);
+    const where = { action: 'notification.broadcast' };
+    const [rows, total] = await this.prisma.$transaction([
+      this.prisma.auditLog.findMany({
+        where,
+        include: { actorUser: { select: { name: true } } },
+        orderBy: { occurredAt: 'desc' },
+        skip,
+        take
+      }),
+      this.prisma.auditLog.count({ where })
+    ]);
 
-    return rows.map((row) => {
+    const items = rows.map((row) => {
       const after = (row.afterData ?? {}) as {
         audience?: BroadcastAudience;
         title?: string;
@@ -183,5 +190,7 @@ export class AnnouncementsService {
         recipients: after.recipients ?? 0
       };
     });
+
+    return toPage(items, total, page, pageSize);
   }
 }

@@ -249,7 +249,10 @@ export class RecruitmentService {
   }
 
   async listInterested(
-    query: PageQueryDto & { status?: InterestedPersonStatus }
+    query: PageQueryDto & {
+      status?: InterestedPersonStatus;
+      scope?: 'open' | 'closed' | undefined;
+    }
   ): Promise<Page<InterestedView>> {
     const { skip, take, page, pageSize } = pageArgs(query);
     const search = query.search?.trim();
@@ -257,7 +260,14 @@ export class RecruitmentService {
     const digits = search ? search.replace(/\D+/g, '') : '';
     const where: Prisma.InterestedPersonWhereInput = {
       deletedAt: null,
-      ...(query.status ? { status: query.status } : {}),
+      // Em aberto: novo, contatado, qualificado. Encerrado: convertido em atleta ou arquivado.
+      ...(query.status
+        ? { status: query.status }
+        : query.scope === 'closed'
+          ? { status: { in: ['CONVERTED', 'ARCHIVED'] } }
+          : query.scope === 'open'
+            ? { status: { in: ['NEW', 'CONTACTED', 'QUALIFIED'] } }
+            : {}),
       ...(search
         ? {
             OR: [
@@ -399,6 +409,41 @@ export class RecruitmentService {
     const now = new Date();
 
     return rows.map((row) => this.toTryoutView(row, now));
+  }
+
+  /**
+   * Seletivas no painel, paginadas: "em andamento" (rascunho, agendada, aberta, fechada) ou
+   * "encerradas" (realizada, cancelada), para a lista não crescer sem fim.
+   */
+  async listTryoutsPage(
+    query: PageQueryDto & { scope?: 'active' | 'finished' | undefined }
+  ): Promise<Page<TryoutView>> {
+    const { skip, take, page, pageSize } = pageArgs(query);
+    const finished: TryoutStatus[] = ['COMPLETED', 'CANCELLED'];
+    const search = query.search?.trim();
+    const where: Prisma.TryoutWhereInput = {
+      deletedAt: null,
+      status: query.scope === 'finished' ? { in: finished } : { notIn: finished },
+      ...(search ? { title: { contains: search, mode: 'insensitive' } } : {})
+    };
+    const [rows, total] = await this.prisma.$transaction([
+      this.prisma.tryout.findMany({
+        where,
+        include: TRYOUT_INCLUDE,
+        orderBy: [{ startsAt: 'desc' }, { createdAt: 'desc' }],
+        skip,
+        take
+      }),
+      this.prisma.tryout.count({ where })
+    ]);
+    const now = new Date();
+
+    return toPage(
+      rows.map((row) => this.toTryoutView(row, now)),
+      total,
+      page,
+      pageSize
+    );
   }
 
   async getTryout(idOrSlug: string, publicOnly: boolean): Promise<TryoutView> {

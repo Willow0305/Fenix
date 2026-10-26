@@ -561,7 +561,7 @@ export class ContentController {
   @Get('notifications/broadcasts')
   @ApiBearerAuth()
   @RequirePermissions(PERMISSIONS.notificationsSend)
-  broadcasts(): Promise<BroadcastHistoryItem[]> {
-    return this.announcements.history();
+  broadcasts(@Query() query: PageQueryDto): Promise<Page<BroadcastHistoryItem>> {
+    return this.announcements.history(query);
   }
 }

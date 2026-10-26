@@ -10,8 +10,10 @@ import {
   ErrorSummary,
   PageHeader,
   TextField,
-  useSubmit
+  useSubmit,
+  Pagination
 } from '../../../../components/ui';
+import type { Page } from '../../../../lib/api-types';
 import { api } from '../../../../lib/api-client';
 import { useAuth } from '../../../../lib/auth-context';
 import type { Closing, ClosingPreview } from '../../../../lib/finance-types';
@@ -22,7 +24,8 @@ import { useResource } from '../../../../lib/use-resource';
 export default function ClosingsPage() {
   const { can } = useAuth();
   const idem = useIdempotencyKey();
-  const closings = useResource<Closing[]>('/finance/closings');
+  const [page, setPage] = useState(1);
+  const closings = useResource<Page<Closing>>('/finance/closings', { page, pageSize: 20 });
   const [form, setForm] = useState({
     accountId: '',
     periodStart: `${todayCivil().slice(0, 7)}-01`,
@@ -182,8 +185,8 @@ export default function ClosingsPage() {
       <section className="stack" aria-labelledby="historico">
         <h2 id="historico">Histórico de fechamentos</h2>
         {closings.error ? <Alert kind="error">{closings.error}</Alert> : null}
-        {closings.data?.length === 0 ? <Empty>Nenhum fechamento registrado.</Empty> : null}
-        {closings.data && closings.data.length > 0 ? (
+        {closings.data?.data.length === 0 ? <Empty>Nenhum fechamento registrado.</Empty> : null}
+        {closings.data && closings.data.data.length > 0 ? (
           <div className="table-wrap">
             <table className="table table-stack">
               <thead>
@@ -203,7 +206,7 @@ export default function ClosingsPage() {
                 </tr>
               </thead>
               <tbody>
-                {closings.data.map((c) => (
+                {closings.data.data.map((c) => (
                   <tr key={c.id}>
                     <td data-label="Conta">{c.account.name}</td>
                     <td data-label="Período">
@@ -256,6 +259,7 @@ export default function ClosingsPage() {
             </table>
           </div>
         ) : null}
+        {closings.data ? <Pagination {...closings.data.meta} onChange={setPage} /> : null}
       </section>
 
       <ConfirmDialog

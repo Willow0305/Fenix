@@ -11,8 +11,10 @@ import {
   SelectField,
   TextArea,
   TextField,
-  useSubmit
+  useSubmit,
+  Pagination
 } from '../../../components/ui';
+import type { Page } from '../../../lib/api-types';
 import { api } from '../../../lib/api-client';
 import type { BroadcastHistoryItem } from '../../../lib/content-types';
 import { formatDateTime } from '../../../lib/format';
@@ -29,7 +31,11 @@ const AUDIENCES = [
 
 export default function BroadcastPage() {
   const teams = useResource<{ id: string; name: string; isActive: boolean }[]>('/teams');
-  const history = useResource<BroadcastHistoryItem[]>('/notifications/broadcasts');
+  const [historyPage, setHistoryPage] = useState(1);
+  const history = useResource<Page<BroadcastHistoryItem>>('/notifications/broadcasts', {
+    page: historyPage,
+    pageSize: 20
+  });
   const [form, setForm] = useState({
     audience: 'ACTIVE_ATHLETES',
     teamId: '',
@@ -126,8 +132,8 @@ export default function BroadcastPage() {
       <DeliverySummaryCard />
       <section className="card stack" aria-labelledby="enviados">
         <h2 id="enviados">Enviados recentemente</h2>
-        {history.data?.length === 0 ? <Empty>Nenhum aviso enviado.</Empty> : null}
-        {history.data && history.data.length > 0 ? (
+        {history.data?.data.length === 0 ? <Empty>Nenhum aviso enviado.</Empty> : null}
+        {history.data && history.data.data.length > 0 ? (
           <div className="table-wrap">
             <table className="table table-stack">
               <thead>
@@ -142,7 +148,7 @@ export default function BroadcastPage() {
                 </tr>
               </thead>
               <tbody>
-                {history.data.map((item) => (
+                {history.data.data.map((item) => (
                   <tr key={item.id}>
                     <td data-label="Quando">{formatDateTime(item.occurredAt)}</td>
                     <td data-label="Título">{item.title}</td>
@@ -157,6 +163,7 @@ export default function BroadcastPage() {
             </table>
           </div>
         ) : null}
+        {history.data ? <Pagination {...history.data.meta} onChange={setHistoryPage} /> : null}
       </section>
     </>
   );

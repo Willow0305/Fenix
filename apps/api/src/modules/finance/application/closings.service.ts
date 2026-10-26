@@ -6,6 +6,7 @@ import { civilToDate, dateToCivil } from '../../../common/domain/civil-date';
 import { type Money, type MoneyView, moneyView, round2 } from '../../../common/domain/money';
 import { endOfDayExclusive, startOfDayInZone } from '../../../common/domain/time-zone';
 import { AppError } from '../../../common/errors/app-error';
+import { type Page, pageArgs, type PageQueryDto, toPage } from '../../../common/http/pagination';
 import type { Principal, RequestMeta } from '../../../common/http/request-context';
 import { PrismaService } from '../../../common/prisma/prisma.service';
 import { periodsIntersect } from '../domain/finance-rules';
@@ -48,18 +49,25 @@ export class ClosingsService {
     private readonly audit: AuditService
   ) {}
 
-  async list(accountId?: string): Promise<ClosingView[]> {
-    const rows = await this.prisma.cashClosing.findMany({
-      where: accountId ? { financialAccountId: accountId } : {},
-      orderBy: [{ periodEnd: 'desc' }],
-      include: {
-        financialAccount: { select: { id: true, name: true } },
-        closedBy: { select: { name: true } },
-        reopenedBy: { select: { name: true } }
-      }
-    });
+  async list(query: PageQueryDto & { accountId?: string | undefined }): Promise<Page<ClosingView>> {
+    const { skip, take, page, pageSize } = pageArgs(query);
+    const where = query.accountId ? { financialAccountId: query.accountId } : {};
+    const [rows, total] = await this.prisma.$transaction([
+      this.prisma.cashClosing.findMany({
+        where,
+        orderBy: [{ periodEnd: 'desc' }],
+        skip,
+        take,
+        include: {
+          financialAccount: { select: { id: true, name: true } },
+          closedBy: { select: { name: true } },
+          reopenedBy: { select: { name: true } }
+        }
+      }),
+      this.prisma.cashClosing.count({ where })
+    ]);
 
-    return rows.map((row) => ({
+    const items = rows.map((row) => ({
       id: row.id,
       account: row.financialAccount,
       periodStart: dateToCivil(row.periodStart),
@@ -75,6 +83,8 @@ export class ClosingsService {
       reopenedAt: row.reopenedAt?.toISOString() ?? null,
       reopeningReason: row.reopeningReason
     }));
+
+    return toPage(items, total, page, pageSize);
   }
 
   private assertPeriod(periodStart: string, periodEnd: string): void {
@@ -128,7 +138,7 @@ export class ClosingsService {
     },
     idempotencyKey: string,
     meta: RequestMeta
-  ): Promise<ClosingView[]> {
+  ): Promise<Page<ClosingView>> {
     this.assertPeriod(input.periodStart, input.periodEnd);
     const key = `closing:${idempotencyKey}`;
 
@@ -265,7 +275,7 @@ export class ClosingsService {
       );
     });
 
-    return this.list(input.accountId);
+    return this.list({ accountId: input.accountId });
   }
 
   /** RN-FIN-011: reabertura exige permissão própria e motivo; histórico preservado na auditoria. */
@@ -274,7 +284,7 @@ export class ClosingsService {
     id: string,
     reason: string,
     meta: RequestMeta
-  ): Promise<ClosingView[]> {
+  ): Promise<Page<ClosingView>> {
     const accountId = await this.prisma.$transaction(async (tx) => {
       const closing = await tx.cashClosing.findUnique({ where: { id } });
 
@@ -316,6 +326,6 @@ export class ClosingsService {
       return closing.financialAccountId;
     });
 
-    return this.list(accountId);
+    return this.list({ accountId });
   }
 }

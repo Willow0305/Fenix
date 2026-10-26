@@ -754,7 +754,7 @@ describe('Fase 3 — mensalidades e Caixa Fênix', () => {
         })
         .expect(201);
 
-      expect(closed.body[0].differenceAmount.amount).toBe('-5.00');
+      expect(closed.body.data[0].differenceAmount.amount).toBe('-5.00');
 
       const blocked = await ctx
         .http()
@@ -774,7 +774,7 @@ describe('Fase 3 — mensalidades e Caixa Fênix', () => {
 
       expect(blocked.body.code).toBe('PERIOD_CLOSED');
 
-      const closingId = closed.body[0].id as string;
+      const closingId = closed.body.data[0].id as string;
       const role = await ctx.prisma.role.findUniqueOrThrow({ where: { code: 'board' } });
       const reopenPermission = await ctx.prisma.permission.findUniqueOrThrow({
         where: { code: 'cash.reopen' }

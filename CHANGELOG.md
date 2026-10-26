@@ -6,6 +6,14 @@ O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) e o 
 
 ## [Não publicado]
 
+### Listas que não crescem sem fim (2026-10-26)
+
+#### Alterado
+
+- Interessados abre só nos casos em aberto (novo, contatado, qualificado); convertidos e arquivados ficam em "Encerrados";
+- Seletivas separadas em "Em andamento" e "Encerradas", com paginação;
+- paginação em Fechamentos, Avisos enviados e Vendas por parceiro (Agendamentos já tinha).
+
 ### Pendências no menu e avisos flutuantes (2026-10-26)
 
 #### Adicionado

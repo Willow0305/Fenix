@@ -202,7 +202,7 @@ export class ClosingDto extends ClosingPreviewDto {
   @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(2000) notes?: string;
 }
 
-export class ClosingListDto {
+export class ClosingListDto extends PageQueryDto {
   @ApiPropertyOptional() @IsOptional() @IsUUID() accountId?: string;
 }
 

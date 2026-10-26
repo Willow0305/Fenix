@@ -55,6 +55,7 @@ import {
   EndMembershipDto,
   InterestDto,
   InterestedQueryDto,
+  TryoutListQueryDto,
   InterestedStatusDto,
   LinkUserDto,
   MembershipDto,
@@ -381,8 +382,8 @@ export class RecruitmentController {
 
   @Get('tryouts')
   @RequirePermissions(PERMISSIONS.registrationsRead)
-  tryouts(): Promise<TryoutView[]> {
-    return this.recruitment.listTryouts(false);
+  tryouts(@Query() query: TryoutListQueryDto): Promise<Page<TryoutView>> {
+    return this.recruitment.listTryoutsPage(query);
   }
 
   @Get('tryouts/:id')

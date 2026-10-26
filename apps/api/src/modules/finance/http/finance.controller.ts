@@ -459,8 +459,8 @@ export class FinanceController {
 
   @Get('closings')
   @RequirePermissions(PERMISSIONS.financeRead)
-  closingList(@Query() query: ClosingListDto): Promise<ClosingView[]> {
-    return this.closings.list(query.accountId);
+  closingList(@Query() query: ClosingListDto): Promise<Page<ClosingView>> {
+    return this.closings.list(query);
   }
 
   @Get('closings/preview')
@@ -477,7 +477,7 @@ export class FinanceController {
     @Body() body: ClosingDto,
     @IdempotencyKey() key: string,
     @ReqMeta() meta: RequestMeta
-  ): Promise<ClosingView[]> {
+  ): Promise<Page<ClosingView>> {
     const { countedBalance, ...rest } = body;
 
     return this.closings.close(
@@ -499,7 +499,7 @@ export class FinanceController {
     @Param('id', new ParseUUIDPipe()) id: string,
     @Body() body: ReasonBodyDto,
     @ReqMeta() meta: RequestMeta
-  ): Promise<ClosingView[]> {
+  ): Promise<Page<ClosingView>> {
     return this.closings.reopen(actor, id, body.reason, meta);
   }
 }

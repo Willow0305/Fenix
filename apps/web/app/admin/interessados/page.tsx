@@ -29,17 +29,19 @@ import {
 import { useResource } from '../../../lib/use-resource';
 import { useUrlFilters } from '../../../lib/use-url-filters';
 
-const DEFAULTS = { busca: '', status: '' };
+// Abre nos casos em aberto; convertidos e arquivados ficam em "Encerrados".
+const DEFAULTS = { busca: '', status: '', situacao: 'abertos' };
 
 function InterestedList() {
   const { can } = useAuth();
   const filters = useUrlFilters(DEFAULTS);
-  const { busca, status } = filters.values;
+  const { busca, status, situacao } = filters.values;
   const [search, setSearch] = useState(busca);
   const list = useResource<Page<Interested>>('/interested-people', {
     page: filters.page,
     pageSize: 20,
     status,
+    scope: status ? undefined : situacao === 'encerrados' ? 'closed' : 'open',
     search: busca
   });
 
@@ -73,6 +75,16 @@ function InterestedList() {
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Nome, e-mail ou telefone"
           />
+        </label>
+        <label className="field">
+          <span className="label">Situação</span>
+          <select
+            value={situacao}
+            onChange={(e) => filters.set({ situacao: e.target.value, status: '' })}
+          >
+            <option value="abertos">Em aberto</option>
+            <option value="encerrados">Encerrados (convertidos e arquivados)</option>
+          </select>
         </label>
         <label className="field">
           <span className="label">Status</span>

@@ -34,6 +34,8 @@ function monthStart(): string {
 
 function SalesReport({ partnerId }: { readonly partnerId: string }) {
   const [range, setRange] = useState({ from: monthStart(), to: todayCivil() });
+  // Resumo com uma linha por parceiro: paginado aqui mesmo, 20 por página.
+  const [page, setPage] = useState(1);
   const report = useResource<PartnerSalesReport>('/partners/sales-report', {
     ...range,
     partnerId
@@ -51,13 +53,19 @@ function SalesReport({ partnerId }: { readonly partnerId: string }) {
           label="De"
           type="date"
           value={range.from}
-          onChange={(e) => setRange({ ...range, from: e.target.value })}
+          onChange={(e) => {
+            setPage(1);
+            setRange({ ...range, from: e.target.value });
+          }}
         />
         <TextField
           label="Até"
           type="date"
           value={range.to}
-          onChange={(e) => setRange({ ...range, to: e.target.value })}
+          onChange={(e) => {
+            setPage(1);
+            setRange({ ...range, to: e.target.value });
+          }}
         />
       </div>
       {report.error ? <Alert kind="error">{report.error}</Alert> : null}
@@ -91,7 +99,7 @@ function SalesReport({ partnerId }: { readonly partnerId: string }) {
               </tr>
             </thead>
             <tbody>
-              {report.data.lines.map((line) => (
+              {report.data.lines.slice((page - 1) * 20, page * 20).map((line) => (
                 <tr key={line.partner.id}>
                   <td data-label="Parceiro">{line.partner.name}</td>
                   <td data-label="Itens" className="num">
@@ -128,6 +136,9 @@ function SalesReport({ partnerId }: { readonly partnerId: string }) {
             </tfoot>
           </table>
         </div>
+      ) : null}
+      {report.data && report.data.lines.length > 0 ? (
+        <Pagination page={page} pageSize={20} total={report.data.lines.length} onChange={setPage} />
       ) : null}
     </section>
   );

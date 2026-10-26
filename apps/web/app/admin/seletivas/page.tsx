@@ -5,7 +5,8 @@ import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 
 import { TryoutForm } from '../../../components/tryout-form';
-import { Alert, Empty, Loading, PageHeader } from '../../../components/ui';
+import { Alert, Empty, Loading, PageHeader, Pagination } from '../../../components/ui';
+import type { Page } from '../../../lib/api-types';
 import { api } from '../../../lib/api-client';
 import { useAuth } from '../../../lib/auth-context';
 import { formatDateTime } from '../../../lib/format';
@@ -16,7 +17,9 @@ import { Icon } from '../../../components/icon';
 export default function TryoutsAdminPage() {
   const { can } = useAuth();
   const router = useRouter();
-  const tryouts = useResource<Tryout[]>('/tryouts');
+  const [scope, setScope] = useState<'active' | 'finished'>('active');
+  const [page, setPage] = useState(1);
+  const tryouts = useResource<Page<Tryout>>('/tryouts', { scope, page, pageSize: 20 });
   const teams = useResource<Team[]>('/teams');
   const [creating, setCreating] = useState(false);
 
@@ -56,10 +59,35 @@ export default function TryoutsAdminPage() {
           />
         </section>
       ) : null}
+      <div className="row" role="group" aria-label="Situação">
+        {(
+          [
+            ['active', 'Em andamento'],
+            ['finished', 'Encerradas']
+          ] as const
+        ).map(([value, label]) => (
+          <button
+            key={value}
+            type="button"
+            className={`btn btn-sm ${scope === value ? 'btn-primary' : 'btn-secondary'}`}
+            aria-pressed={scope === value}
+            onClick={() => {
+              setScope(value);
+              setPage(1);
+            }}
+          >
+            {label}
+          </button>
+        ))}
+      </div>
       {tryouts.error ? <Alert kind="error">{tryouts.error}</Alert> : null}
       {tryouts.loading && !tryouts.data ? <Loading /> : null}
-      {tryouts.data?.length === 0 ? <Empty>Nenhuma seletiva criada.</Empty> : null}
-      {tryouts.data && tryouts.data.length > 0 ? (
+      {tryouts.data?.data.length === 0 ? (
+        <Empty>
+          {scope === 'active' ? 'Nenhuma seletiva em andamento.' : 'Nenhuma seletiva encerrada.'}
+        </Empty>
+      ) : null}
+      {tryouts.data && tryouts.data.data.length > 0 ? (
         <div className="table-wrap">
           <table className="table table-stack">
             <thead>
@@ -73,7 +101,7 @@ export default function TryoutsAdminPage() {
               </tr>
             </thead>
             <tbody>
-              {tryouts.data.map((t) => (
+              {tryouts.data.data.map((t) => (
                 <tr key={t.id}>
                   <td data-label="Seletiva">
                     <Link href={`/admin/seletivas/${t.id}`}>{t.title}</Link>
@@ -95,6 +123,7 @@ export default function TryoutsAdminPage() {
           </table>
         </div>
       ) : null}
+      {tryouts.data ? <Pagination {...tryouts.data.meta} onChange={setPage} /> : null}
     </>
   );
 }

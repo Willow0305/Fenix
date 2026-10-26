@@ -13,6 +13,7 @@ import {
   IsBoolean,
   IsEmail,
   IsEnum,
+  IsIn,
   IsInt,
   IsISO8601,
   IsOptional,
@@ -217,6 +218,18 @@ export class InterestedQueryDto extends PageQueryDto {
   @IsOptional()
   @IsEnum(InterestedPersonStatus)
   status?: InterestedPersonStatus;
+
+  @ApiPropertyOptional({ enum: ['open', 'closed'], description: 'Em aberto ou encerrados.' })
+  @IsOptional()
+  @IsIn(['open', 'closed'])
+  scope?: 'open' | 'closed';
+}
+
+export class TryoutListQueryDto extends PageQueryDto {
+  @ApiPropertyOptional({ enum: ['active', 'finished'], description: 'Em andamento ou encerradas.' })
+  @IsOptional()
+  @IsIn(['active', 'finished'])
+  scope?: 'active' | 'finished';
 }
 
 export class InterestedStatusDto extends OptionalReasonDto {

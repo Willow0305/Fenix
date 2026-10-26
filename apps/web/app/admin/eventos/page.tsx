@@ -131,7 +131,7 @@ function EventForm({
 }) {
   const [form, setForm] = useState<Form>(initial);
   const teams = useResource<Team[]>('/teams');
-  const tryouts = useResource<Tryout[]>('/tryouts');
+  const tryouts = useResource<Page<Tryout>>('/tryouts', { scope: 'active', pageSize: 100 });
   const isMatch = form.type === 'MATCH' || form.type === 'FRIENDLY';
   const save = useSubmit(async () => {
     const match =
@@ -239,7 +239,7 @@ function EventForm({
           onChange={set('tryoutId')}
           options={[
             { value: '', label: 'Nenhuma' },
-            ...(tryouts.data ?? []).map((t) => ({ value: t.id, label: t.title }))
+            ...(tryouts.data?.data ?? []).map((t) => ({ value: t.id, label: t.title }))
           ]}
         />
       </div>
