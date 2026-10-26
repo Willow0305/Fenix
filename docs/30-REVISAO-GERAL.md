@@ -124,7 +124,7 @@ Em ordem de valor para o time:
 
 1. **PIX com confirmação automática:** cobrança PIX por um intermediário de pagamento com aviso automático (webhook). Hoje a diretoria confere comprovante por comprovante; com a integração, a mensalidade e o pedido são baixados sozinhos e lançados no Caixa.
 2. **Avisos por e-mail e WhatsApp:** lembrete de mensalidade a vencer e vencida, pedido pronto para retirada e resultado de seletiva (depende de R-11).
-3. **Presença em treinos:** chamada por treino e por equipe, com frequência do atleta; útil para convocações e bolsas.
+3. **Presença em treinos:** chamada por treino e por equipe, com frequência do atleta; útil para convocações e bolsas. **Cancelado pelo responsável em 2026-10-26 (`DT-060`).**
 4. **Carteirinha digital do atleta** com QR code, validada na entrada de jogos e eventos.
 5. **Painel financeiro com gráficos:** receita, inadimplência e projeção por mês, com os dados que os relatórios já calculam.
 6. **App instalável (PWA)** para atletas e diretoria: atalho na tela do celular e avisos.

@@ -17,7 +17,7 @@ Este roadmap é incremental. Nenhuma fase é iniciada sem que a anterior cumpra 
 | 6 | Parceiros e profissionais | Implementada (2026-10-19) | Fase 5 |
 | 7 | Comunicação | Implementada (2026-10-19) | Fase 6 |
 | 8 | Relatórios, auditoria e otimizações | Implementada (2026-10-19) | Módulos anteriores |
-| 9 | Evolução: busca, painel financeiro, app instalável, presença, carteirinha e PIX automático | Autorizada (2026-10-25), em andamento | Fase 8 e `docs/30-REVISAO-GERAL.md` |
+| 9 | Evolução: busca, painel financeiro, app instalável, carteirinha e PIX automático | Autorizada (2026-10-25), em andamento | Fase 8 e `docs/30-REVISAO-GERAL.md` |
 
 Produção com dados reais continua condicionada às pendências P0 jurídicas e operacionais (`PEN-010`, `PEN-011`, `PEN-014`, `PEN-041`, `PEN-044`).
 
@@ -257,14 +257,13 @@ Produção com dados reais continua condicionada às pendências P0 jurídicas e
 
 ## Fase 9 — Evolução
 
-**Autorização:** o responsável do projeto aprovou em 2026-10-25 todas as recomendações de `docs/30-REVISAO-GERAL.md` ("aplique tudo, e tem minha total aprovação de tudo que foi indicado"), o que inclui dois itens antes listados como sem fase autorizada: o pagamento automático (gateway) e a presença em treinos.
+**Autorização:** o responsável do projeto aprovou em 2026-10-25 todas as recomendações de `docs/30-REVISAO-GERAL.md` ("aplique tudo, e tem minha total aprovação de tudo que foi indicado"), o que inclui o pagamento automático (gateway), antes listado como sem fase autorizada. A presença em treinos também estava aprovada, mas foi **cancelada pelo responsável em 2026-10-26** antes de ser entregue.
 
 **Entregas:**
 
 - busca global no painel (`DT-057`);
 - painel financeiro com gráficos (`DT-058`);
-- app instalável (PWA);
-- presença em treinos;
+- app instalável (PWA) (`DT-059`);
 - carteirinha digital com QR;
 - PIX com confirmação automática por intermediário de pagamento.
 
@@ -300,7 +299,7 @@ Um módulo só é considerado pronto quando:
 - checkout com cartão e outros meios além do PIX (o PIX automático entrou na Fase 9);
 - produto digital;
 - avaliações de profissionais;
-- scout e estatísticas avançadas de treino (a presença entrou na Fase 9);
+- scout, treino, presença e estatísticas avançadas (presença cancelada em 2026-10-26);
 - prontuário ou qualquer dado de saúde;
 - marketplace aberto;
 - integrações externas não detalhadas.

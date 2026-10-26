@@ -1184,3 +1184,14 @@ O TypeScript 7.0 (compilador nativo) ainda não tem a API em JavaScript que type
 
 - verificado na pilha Docker (modo produção): `/sw.js`, `/offline` e o manifesto servidos e liberados pela CSP. O comportamento no navegador entra nos testes de ponta a ponta;
 - avisos no celular por notificação push ficam para depois: hoje os avisos saem por e-mail e WhatsApp (DT-048).
+
+## DT-060 — Presença em treinos: cancelada
+
+- **Estado:** Cancelada
+- **Data:** 2026-10-26
+- **Aprovador:** responsável do projeto ("cancela treinos e chamada", 2026-10-26)
+
+### Decisão
+
+- a presença em treinos (treinos por equipe e chamada por atleta), recomendada em `docs/30-REVISAO-GERAL.md` §4 item 3, foi cancelada durante a implementação, antes de qualquer entrega. Nada foi commitado; a migração aplicada só no banco de desenvolvimento foi desfeita (tabelas vazias removidas e o registro da migração apagado), e o esquema voltou a coincidir com o banco;
+- o item volta para "itens futuros sem fase autorizada" do roadmap.
