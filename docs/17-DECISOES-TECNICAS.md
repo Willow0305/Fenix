@@ -1110,3 +1110,26 @@ Com a segunda etapa (DT-037), o código do autenticador era pedido em todo login
 
 - nenhuma mudança de comportamento; a mudança de ordem dos ganchos de ciclo de vida do Nest 12 não afetou nada (testes de integração passam);
 - verificado: `npm run check`, 132 testes de integração, API local contra o banco de desenvolvimento (inclusive `/docs/openapi.json`) e a pilha Docker completa.
+
+## DT-056 — TypeScript 7 com o 6 de compatibilidade
+
+- **Estado:** Aceita
+- **Data:** 2026-10-26
+- **Aprovador:** responsável do projeto (aprovação de `docs/30-REVISAO-GERAL.md`, item R-03)
+
+### Contexto
+
+O TypeScript 7.0 (compilador nativo) ainda não tem a API em JavaScript que typescript-eslint, ts-jest, Next.js e o CLI do Nest usam; ela deve chegar na 7.1, hoje só em versões noturnas.
+
+### Decisão
+
+- **arranjo recomendado pela Microsoft:** `@typescript/native` → `typescript@7.0.2` (comando `tsc`) e `typescript` → `@typescript/typescript6@6.0.2` (API do 6.0.3 para as ferramentas, comando `tsc6`);
+- **o TypeScript 7 verifica os tipos** de todo o projeto (`npm run typecheck`) e compila o pacote compartilhado; lint, testes, Next e o build do Nest usam o 6 até as ferramentas suportarem o 7;
+- opções removidas no 7: a biblioteca compartilhada saiu de `CommonJS`/`node10` para `node20`/`nodenext` (continua gerando CommonJS). O backend já estava em `node20` (DT-055);
+- decoradores do Nest (`experimentalDecorators`, `emitDecoratorMetadata`) passam na verificação do 7.
+
+### Consequências
+
+- verificado: `npm run check`, 132 testes de integração e a pilha Docker completa;
+- medido na API: verificação de tipos em cerca de 7 s nas duas versões; o ganho de velocidade anunciado não apareceu neste projeto e nesta máquina;
+- revisar quando o typescript-eslint, o ts-jest, o Next e o Nest suportarem a API do 7.1: aí sai o pacote de compatibilidade.

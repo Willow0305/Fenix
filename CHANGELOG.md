@@ -6,6 +6,12 @@ O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) e o 
 
 ## [Não publicado]
 
+### TypeScript 7 (2026-10-26)
+
+#### Alterado
+
+- verificação de tipos com o TypeScript 7.0.2; as ferramentas que ainda dependem da API antiga usam o pacote de compatibilidade do 6 (DT-056).
+
 ### NestJS 12 (2026-10-26)
 
 #### Alterado
