@@ -8,6 +8,7 @@ import { useAuth } from '../lib/auth-context';
 import styles from './admin-shell.module.scss';
 import { BrandLogo } from './brand-logo';
 import { Icon } from './icon';
+import { GlobalSearch } from './global-search';
 import { NotificationBell } from './notification-bell';
 
 export interface AdminLink {
@@ -69,6 +70,12 @@ export const ADMIN_NAV: readonly AdminGroup[] = [
       },
       { href: '/admin/planos', icon: 'card-list', label: 'Planos', permission: 'fees.read' },
       { href: '/admin/caixa', icon: 'cash-coin', label: 'Caixa Fênix', permission: 'finance.read' },
+      {
+        href: '/admin/caixa/painel',
+        icon: 'bar-chart-line',
+        label: 'Painel financeiro',
+        permission: 'finance.read'
+      },
       {
         href: '/admin/caixa/obrigacoes',
         icon: 'arrow-left-right',
@@ -249,6 +256,7 @@ export function AdminShell({ children }: { readonly children: ReactNode }) {
             <Icon name="list" /> Menu
           </button>
           <span className="spacer" />
+          <GlobalSearch />
           <NotificationBell />
           <Link href="/minha-conta">
             <Icon name="person-circle" /> {profile?.name}

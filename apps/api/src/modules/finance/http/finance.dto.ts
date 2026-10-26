@@ -10,7 +10,7 @@ import {
   MonthlyFeePlanStatus,
   MonthlyFeeStatus
 } from '../../../generated/prisma/client';
-import { Transform } from 'class-transformer';
+import { Transform, Type } from 'class-transformer';
 import {
   ArrayMaxSize,
   ArrayMinSize,
@@ -313,4 +313,14 @@ export class ProofDto {
   @ApiProperty() @Matches(AMOUNT, AMOUNT_MSG) amount!: string;
   @ApiProperty() @Matches(DATE, DATE_MSG) paidOn!: string;
   @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(1000) notes?: string;
+}
+
+export class TrendQueryDto {
+  @ApiPropertyOptional({ minimum: 3, maximum: 24, default: 12 })
+  @IsOptional()
+  @Type(() => Number)
+  @IsInt()
+  @Min(3)
+  @Max(24)
+  months?: number;
 }

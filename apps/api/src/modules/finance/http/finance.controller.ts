@@ -46,7 +46,11 @@ import {
   type BulkAssignResult,
   type PlanMemberView
 } from '../application/fees.service';
-import { FinanceReportsService, type FinanceSummary } from '../application/finance-reports.service';
+import {
+  FinanceReportsService,
+  type FinanceSummary,
+  type FinanceTrend
+} from '../application/finance-reports.service';
 import {
   type AccountView,
   type CategoryView,
@@ -84,6 +88,7 @@ import {
   ReconcileDto,
   SettleDto,
   SummaryQueryDto,
+  TrendQueryDto,
   TransactionQueryDto,
   TransferDto,
   UpdateAccountDto,
@@ -268,6 +273,16 @@ export class FinanceController {
   @RequirePermissions(PERMISSIONS.financeRead)
   summary(@Query() query: SummaryQueryDto): Promise<FinanceSummary> {
     return this.reports.summary(query.from, query.to);
+  }
+
+  /** Série mensal do painel financeiro (DT-058); mensalidades só com `fees.read`. */
+  @Get('trend')
+  @RequirePermissions(PERMISSIONS.financeRead)
+  trend(
+    @CurrentPrincipal() actor: Principal,
+    @Query() query: TrendQueryDto
+  ): Promise<FinanceTrend> {
+    return this.reports.trend(query.months ?? 12, actor.permissions.has(PERMISSIONS.feesRead));
   }
 
   // ----- Lançamentos -----

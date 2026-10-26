@@ -1133,3 +1133,37 @@ O TypeScript 7.0 (compilador nativo) ainda não tem a API em JavaScript que type
 - verificado: `npm run check`, 132 testes de integração e a pilha Docker completa;
 - medido na API: verificação de tipos em cerca de 7 s nas duas versões; o ganho de velocidade anunciado não apareceu neste projeto e nesta máquina;
 - revisar quando o typescript-eslint, o ts-jest, o Next e o Nest suportarem a API do 7.1: aí sai o pacote de compatibilidade.
+
+## DT-057 — Busca global no painel
+
+- **Estado:** Aceita
+- **Data:** 2026-10-26
+- **Aprovador:** responsável do projeto (Fase 9, `docs/30-REVISAO-GERAL.md` §4 item 7)
+
+### Decisão
+
+- `GET /api/v1/search?q=` (mínimo 2, máximo 80 caracteres; `dashboard.read`; 60 por minuto) procura em atletas, pedidos (número e cliente), produtos (nome e SKU), parceiros, usuários (nome e e-mail), interessados, seletivas e notícias, até 5 por grupo;
+- cada grupo só aparece para quem tem a permissão daquele módulo; o resultado traz nome, uma linha de contexto e o link, sem documento, telefone ou e-mail de terceiros;
+- sem diferenciar maiúsculas nem acentos, com a extensão `unaccent` do PostgreSQL (migração `20261026200000_busca_sem_acento`); curingas digitados (`%`, `_`) são tratados como texto;
+- no painel, botão "Buscar" e atalho Ctrl+K (⌘K), resultados enquanto se digita, setas e Enter.
+
+### Consequências
+
+- 3 testes de integração (acentos e link, curingas, tamanho mínimo e permissão).
+
+## DT-058 — Painel financeiro com gráficos
+
+- **Estado:** Aceita
+- **Data:** 2026-10-26
+- **Aprovador:** responsável do projeto (Fase 9, `docs/30-REVISAO-GERAL.md` §4 item 5)
+
+### Decisão
+
+- `GET /api/v1/finance/trend?months=` (3 a 24, padrão 12; `finance.read`): por mês, no fuso do clube, receita e despesa **confirmadas** (transferências entre contas não contam) e resultado. Com `fees.read`, também a inadimplência e o previsto a receber;
+- **inadimplência do mês** = valor ainda em aberto das mensalidades daquele mês de referência que já venceram ÷ valor cobrado delas. Sem mensalidade vencida no mês, não há taxa (o gráfico mostra lacuna, não zero). **Previsto** = mensalidades em aberto que vencem nos próximos 30 dias;
+- tela Caixa → Painel financeiro: números do mês, colunas de receita × despesa e linha de inadimplência, em SVG próprio (sem biblioteca). Cores validadas por ferramenta para daltonismo e contraste; dica ao passar o mouse e no foco do teclado; tabela equivalente; marcas do eixo em passos redondos.
+
+### Consequências
+
+- conferido com uma prévia renderizada: corrigidos rótulos do eixo cortados e marcas quebradas (1,3 mil), e o eixo repetido "R$ 0" num clube sem movimento;
+- 3 testes de unidade da API, 3 de interface e 3 de integração (meses em ordem, só lançamentos confirmados, inadimplência só com permissão).

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
 import {
   Alert,
@@ -46,6 +46,16 @@ export default function UsersPage() {
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState('');
   const [term, setTerm] = useState('');
+
+  // Vindo da busca global (`?busca=`), já abre filtrado (DT-057).
+  useEffect(() => {
+    const initial = new URLSearchParams(window.location.search).get('busca')?.trim();
+
+    if (initial) {
+      setSearch(initial);
+      setTerm(initial);
+    }
+  }, []);
   const users = useResource<Page<AdminUser>>('/users', { page, pageSize: 20, search: term });
   const roles = useResource<Role[]>('/roles');
   const [dialog, setDialog] = useState<Dialog>(null);

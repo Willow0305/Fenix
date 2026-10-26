@@ -43,6 +43,8 @@ O contrato completo e executável fica no OpenAPI (`/docs` fora de produção). 
 | `PUT` / `PATCH` | `/api/v1/store/products/:id/images/order` · `images/:imageId` | `products.manage` (`DT-051`) | 4 |
 | `POST` | `/api/v1/cart/items/change` | público, rate limiting (`DT-051`) | 4 |
 | `GET` | `/api/v1/public/live?topics=store,tryouts` (Server-Sent Events) | público, até 6 por IP (`DT-051`) | 4 |
+| `GET` | `/api/v1/search?q=` | `dashboard.read`; grupos por permissão (`DT-057`) | 9 |
+| `GET` | `/api/v1/finance/trend?months=` | `finance.read`; mensalidades com `fees.read` (`DT-058`) | 9 |
 | `GET` | `/api/v1/dashboard/summary` | `dashboard.read` | 2 |
 | `GET`/`POST`/`PATCH` | `/api/v1/fee-plans` · `athletes/:id/fee-plans` · `:id/fee-plans/:link/end` | `fees.read` / `fees.plans.manage` | 3 |
 | `POST` | `/api/v1/monthly-fees/generate` | `fees.generate` | 3 |

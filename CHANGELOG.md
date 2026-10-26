@@ -6,6 +6,13 @@ O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) e o 
 
 ## [Não publicado]
 
+### Busca global e painel financeiro (2026-10-26)
+
+#### Adicionado
+
+- busca no painel (botão "Buscar" ou Ctrl+K) em atletas, pedidos, produtos, parceiros, usuários, interessados, seletivas e notícias, sem diferenciar acentos (DT-057);
+- Caixa → Painel financeiro: receita, despesa e resultado do mês, inadimplência e previsto a receber, com gráficos dos últimos 6, 12 ou 24 meses e tabela (DT-058).
+
 ### TypeScript 7 (2026-10-26)
 
 #### Alterado

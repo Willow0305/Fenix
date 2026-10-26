@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import type { FinancialDirection, FinancialOrigin } from '../../../generated/prisma/client';
 
-import { civilToDate, todayIn } from '../../../common/domain/civil-date';
+import { addDays, addMonths, civilToDate, todayIn } from '../../../common/domain/civil-date';
 import { money, type MoneyView, moneyView, sum, ZERO } from '../../../common/domain/money';
 import {
   endOfDayExclusive,
@@ -9,6 +9,12 @@ import {
   TEAM_TIME_ZONE
 } from '../../../common/domain/time-zone';
 import { PrismaService } from '../../../common/prisma/prisma.service';
+import {
+  buildTrend,
+  type FeeMonthRow,
+  type MonthAmounts,
+  monthsBack
+} from '../domain/finance-trend';
 import { type AccountBalance, LedgerService } from './ledger.service';
 
 export interface CategoryTotal {
@@ -34,6 +40,21 @@ export interface FinanceSummary {
   readonly openReceivables: MoneyView;
   readonly openPayables: MoneyView;
   readonly openFees: { count: number; remaining: MoneyView; overdue: number };
+}
+
+export interface FinanceTrend {
+  readonly timeZone: string;
+  readonly generatedAt: string;
+  readonly months: {
+    readonly month: string;
+    readonly income: MoneyView;
+    readonly expense: MoneyView;
+    readonly result: MoneyView;
+    /** Mensalidades do mês já vencidas: cobrado, ainda em aberto e taxa (DT-058). */
+    readonly fees: { billedDue: MoneyView; overdue: MoneyView; overdueRate: string | null } | null;
+  }[];
+  /** Mensalidades em aberto que vencem nos próximos 30 dias; nulo sem permissão. */
+  readonly expectedNext30Days: MoneyView | null;
 }
 
 /**
@@ -154,6 +175,81 @@ export class FinanceReportsService {
         remaining: moneyView(remaining),
         overdue: openFees.filter((fee) => fee.dueDate < today).length
       }
+    };
+  }
+
+  /**
+   * Série mensal do painel financeiro (DT-058): receita e despesa confirmadas por mês no
+   * fuso do clube (sem transferências) e, com `includeFees`, a inadimplência por mês de
+   * referência e o previsto a receber nos próximos 30 dias.
+   */
+  async trend(monthCount: number, includeFees: boolean): Promise<FinanceTrend> {
+    const today = todayIn();
+    const months = monthsBack(today, monthCount);
+    const first = `${months[0] ?? today.slice(0, 7)}-01`;
+    const start = startOfDayInZone(first);
+    const end = endOfDayExclusive(addDays(addMonths(`${today.slice(0, 7)}-01`, 1), -1));
+    const totals = await this.prisma.$queryRaw<(MonthAmounts & { direction: string })[]>`
+      SELECT to_char(date_trunc('month', occurred_at AT TIME ZONE ${TEAM_TIME_ZONE}), 'YYYY-MM') AS month,
+        direction::text AS direction, sum(amount)::text AS amount
+      FROM financial_transactions
+      WHERE status = 'CONFIRMED' AND origin <> 'TRANSFER'
+        AND occurred_at >= ${start} AND occurred_at < ${end}
+      GROUP BY 1, 2`;
+    const fees = includeFees
+      ? await this.prisma.$queryRaw<FeeMonthRow[]>`
+          SELECT to_char(f.reference_month, 'YYYY-MM') AS month,
+            sum(f.total_amount)::text AS "billedDue",
+            coalesce(sum(greatest(f.total_amount - coalesce(paid.total, 0), 0)), 0)::text AS overdue
+          FROM monthly_fees f
+          LEFT JOIN (
+            SELECT a.monthly_fee_id, sum(a.allocated_amount) AS total
+            FROM monthly_fee_payments a
+            JOIN payments p ON p.id = a.payment_id AND p.status = 'CONFIRMED'
+            GROUP BY a.monthly_fee_id
+          ) paid ON paid.monthly_fee_id = f.id
+          WHERE f.status <> 'CANCELLED'
+            AND f.due_date < ${today}::date
+            AND f.reference_month >= ${first}::date
+          GROUP BY 1`
+      : [];
+    const expected = includeFees
+      ? await this.prisma.$queryRaw<{ amount: string }[]>`
+          SELECT coalesce(sum(greatest(f.total_amount - coalesce(paid.total, 0), 0)), 0)::text AS amount
+          FROM monthly_fees f
+          LEFT JOIN (
+            SELECT a.monthly_fee_id, sum(a.allocated_amount) AS total
+            FROM monthly_fee_payments a
+            JOIN payments p ON p.id = a.payment_id AND p.status = 'CONFIRMED'
+            GROUP BY a.monthly_fee_id
+          ) paid ON paid.monthly_fee_id = f.id
+          WHERE f.status IN ('OPEN', 'PARTIALLY_PAID')
+            AND f.due_date >= ${today}::date AND f.due_date <= ${addDays(today, 30)}::date`
+      : [];
+    const rows = buildTrend(
+      months,
+      totals.filter((row) => row.direction === 'INCOME'),
+      totals.filter((row) => row.direction === 'EXPENSE'),
+      fees
+    );
+
+    return {
+      timeZone: TEAM_TIME_ZONE,
+      generatedAt: new Date().toISOString(),
+      months: rows.map((row) => ({
+        month: row.month,
+        income: moneyView(row.income),
+        expense: moneyView(row.expense),
+        result: moneyView(row.income.minus(row.expense)),
+        fees: includeFees
+          ? {
+              billedDue: moneyView(row.billedDue),
+              overdue: moneyView(row.overdue),
+              overdueRate: row.overdueRate
+            }
+          : null
+      })),
+      expectedNext30Days: includeFees ? moneyView(money(expected[0]?.amount ?? '0')) : null
     };
   }
 }
