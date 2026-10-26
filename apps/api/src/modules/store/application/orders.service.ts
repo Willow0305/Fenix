@@ -1,5 +1,5 @@
 import { Injectable, type OnModuleInit } from '@nestjs/common';
-import type { OrderStatus, Prisma } from '@prisma/client';
+import type { OrderStatus, Prisma } from '../../../generated/prisma/client';
 
 import { AuditService } from '../../../common/audit/audit.service';
 import { generateOpaqueToken, sha256Hex } from '../../../common/crypto/tokens';

@@ -1,7 +1,11 @@
 import { randomBytes } from 'node:crypto';
 
 import { Injectable } from '@nestjs/common';
-import type { PrivacyRequestStatus, PrivacyRequestType, Prisma } from '@prisma/client';
+import type {
+  PrivacyRequestStatus,
+  PrivacyRequestType,
+  Prisma
+} from '../../../generated/prisma/client';
 
 import { AuditService } from '../../../common/audit/audit.service';
 import { hashPassword } from '../../../common/crypto/password-hasher';

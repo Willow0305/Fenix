@@ -1,4 +1,4 @@
-import type { NotificationCategory } from '@prisma/client';
+import type { NotificationCategory } from '../../../generated/prisma/client';
 
 import { addDays } from '../../../common/domain/civil-date';
 import { startOfDayInZone } from '../../../common/domain/time-zone';

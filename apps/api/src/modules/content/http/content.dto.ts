@@ -6,7 +6,7 @@ import {
   ForumReportStatus,
   ForumVisibility,
   NewsStatus
-} from '@prisma/client';
+} from '../../../generated/prisma/client';
 import { Type } from 'class-transformer';
 import {
   IsBoolean,

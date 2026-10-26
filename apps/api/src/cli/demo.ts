@@ -1,4 +1,5 @@
-import { Prisma, PrismaClient } from '@prisma/client';
+import { Prisma } from '../generated/prisma/client';
+import { createPrismaClient } from '../common/prisma/prisma.service';
 
 /**
  * Dados FICTÍCIOS para demonstração local (`npm run db:demo`). Idempotente por slug/código.
@@ -11,7 +12,7 @@ async function main(): Promise<void> {
     throw new Error('Dados de demonstração não podem ser criados em produção.');
   }
 
-  const prisma = new PrismaClient();
+  const prisma = createPrismaClient();
 
   try {
     const now = new Date();

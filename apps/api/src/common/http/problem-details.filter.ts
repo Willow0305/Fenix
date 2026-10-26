@@ -6,7 +6,7 @@ import {
   Logger
 } from '@nestjs/common';
 import { ThrottlerException } from '@nestjs/throttler';
-import { Prisma } from '@prisma/client';
+import { Prisma } from '../../generated/prisma/client';
 import type { Response } from 'express';
 
 import { APP_ERROR_STATUS, AppError, type FieldError } from '../errors/app-error';

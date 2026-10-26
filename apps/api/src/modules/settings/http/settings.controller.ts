@@ -11,7 +11,7 @@ import {
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { ApiBearerAuth, ApiConsumes, ApiTags } from '@nestjs/swagger';
-import { TeamBrandContext } from '@prisma/client';
+import { TeamBrandContext } from '../../../generated/prisma/client';
 
 import {
   CurrentPrincipal,

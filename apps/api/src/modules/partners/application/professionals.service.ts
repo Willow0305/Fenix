@@ -1,5 +1,10 @@
 import { Injectable } from '@nestjs/common';
-import type { AvailabilityStatus, ProfessionalStatus, Prisma, ServiceStatus } from '@prisma/client';
+import type {
+  AvailabilityStatus,
+  ProfessionalStatus,
+  Prisma,
+  ServiceStatus
+} from '../../../generated/prisma/client';
 
 import { AuditService } from '../../../common/audit/audit.service';
 import { AppConfig } from '../../../common/config/app-config';

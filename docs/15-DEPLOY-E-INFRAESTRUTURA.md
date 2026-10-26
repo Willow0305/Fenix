@@ -318,6 +318,10 @@ Sem credenciais, tudo funciona em modo de teste: e-mails vão para `MAIL_OUTBOX_
    Depois da aprovação do modelo, preencher `WHATSAPP_DRIVER=cloud` e `WHATSAPP_*`. Com o recurso de coexistência da Meta, o número do clube continua respondendo conversas pelo aplicativo WhatsApp Business; sem ele, as respostas das pessoas chegam só pela API (`PEN-064`).
 3. Conferir em Painel → Avisos a situação dos canais e as falhas dos últimos dias.
 
+## Prisma 7 (DT-054)
+
+O cliente do Prisma é gerado em `apps/api/src/generated/prisma` (fora do git) no `npm install`, antes do build, do typecheck e dos testes. Depois de mudar `prisma/schema.prisma`, rode `npm run db:migrate:dev` e `npm run prisma:generate`. O endereço do banco vem de `prisma.config.ts` (variável `DATABASE_URL`).
+
 ## Produção com Docker (DT-053)
 
 1. Copie `.env.example` para `.env.production` (nunca versionado) e preencha: `POSTGRES_*`, `WEB_ORIGIN` (ex.: `https://fenixvolei.com.br`), `SERVER_NAME` (ex.: `fenixvolei.com.br`), `SITE_REVALIDATE_SECRET`, `AUTH_ACCESS_TOKEN_SECRET`, `DATA_ENCRYPTION_KEY`, `S3_*`, `MAIL_*`/`SMTP_*` e, no primeiro deploy, `SEED_ADMIN_*`.

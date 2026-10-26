@@ -18,7 +18,7 @@ export function NotificationBell({ onNavigate }: { readonly onNavigate?: () => v
       className="btn btn-secondary btn-sm notification-bell"
       aria-label={label}
       title={label}
-      onClick={onNavigate}
+      {...(onNavigate ? { onClick: onNavigate } : {})}
     >
       <Icon name={count > 0 ? 'bell-fill' : 'bell'} />
       {count > 0 ? (

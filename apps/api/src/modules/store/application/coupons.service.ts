@@ -1,5 +1,10 @@
 import { Injectable } from '@nestjs/common';
-import type { CouponAudience, CouponDiscountType, CouponScope, Prisma } from '@prisma/client';
+import type {
+  CouponAudience,
+  CouponDiscountType,
+  CouponScope,
+  Prisma
+} from '../../../generated/prisma/client';
 
 import { AuditService } from '../../../common/audit/audit.service';
 import { type Money, moneyView, type MoneyView, sum, ZERO } from '../../../common/domain/money';

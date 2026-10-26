@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import type { EventStatus, EventType, Prisma } from '@prisma/client';
+import type { EventStatus, EventType, Prisma } from '../../../generated/prisma/client';
 
 import { AuditService } from '../../../common/audit/audit.service';
 import { assertTransition } from '../../../common/domain/state-machine';

@@ -13,7 +13,7 @@ import {
   Res
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiProperty, ApiPropertyOptional, ApiTags } from '@nestjs/swagger';
-import { SalesCampaignStatus } from '@prisma/client';
+import { SalesCampaignStatus } from '../../../generated/prisma/client';
 import {
   IsBoolean,
   IsEnum,

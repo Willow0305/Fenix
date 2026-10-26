@@ -5,7 +5,7 @@ import { join } from 'node:path';
 
 import type { INestApplication } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
-import { PrismaClient } from '@prisma/client';
+import type { PrismaClient } from '../src/generated/prisma/client';
 import request from 'supertest';
 
 import { AppModule } from '../src/app.module';
@@ -14,6 +14,7 @@ import { totpCode, totpStep } from '../src/common/crypto/totp';
 import { configureApplication } from '../src/configure-application';
 import { syncAccessCatalog } from '../src/modules/access/application/roles.service';
 import { syncFinanceCatalog } from '../src/modules/finance/application/finance-setup.service';
+import { createPrismaClient } from '../src/common/prisma/prisma.service';
 
 export const PASSWORD = 'senha-de-teste-2026';
 
@@ -37,7 +38,7 @@ export async function createTestContext(): Promise<TestContext> {
   process.env['WEB_ORIGIN'] = 'http://localhost:3000';
   process.env['THROTTLE_DISABLED'] = 'true';
 
-  const prisma = new PrismaClient();
+  const prisma = createPrismaClient();
 
   await prisma.$transaction(async (tx) => {
     await syncAccessCatalog(tx);

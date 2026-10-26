@@ -6,7 +6,7 @@ import {
   TeamType,
   TryoutRegistrationStatus,
   TryoutStatus
-} from '@prisma/client';
+} from '../../../generated/prisma/client';
 import { Transform } from 'class-transformer';
 import {
   Equals,

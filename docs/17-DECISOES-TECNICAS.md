@@ -1069,3 +1069,25 @@ Com a segunda etapa (DT-037), o código do autenticador era pedido em todo login
 - **bug de implantação encontrado e corrigido:** num banco novo, sem o catálogo do seed, o cadastro de qualquer pessoa dava erro 500. A etapa `preparar` resolve;
 - **arquivos fora do lugar no desenvolvimento:** o servidor local, iniciado antes da mudança de `STORAGE_LOCAL_DIR` (DT-038), gravava em `apps/api/var/storage`. Os 2 envios afetados foram copiados para o lugar certo (conferidos pelo hash); a API agora mostra no início onde guarda os arquivos e avisa se for dentro do projeto. Ver `PEN-065`;
 - 3 testes de integração contra S3 real (opcionais, com `S3_TEST_ENDPOINT`) e 4 testes unitários (rede interna, regras do S3, proxy confiável, leitura interna).
+
+## DT-054 — Prisma 7
+
+- **Estado:** Aceita
+- **Data:** 2026-10-26
+- **Aprovador:** responsável do projeto (aprovação de `docs/30-REVISAO-GERAL.md`, item R-01)
+
+### Decisão
+
+- **versão 7.10.1** (CLI, cliente e `@prisma/adapter-pg`), adotada 11 dias após a publicação porque a 7.10.0 trazia no CLI uma dependência (`mysql2`) com falha alta, mesmo critério de `PEN-055`. O projeto só usa PostgreSQL;
+- **gerador `prisma-client`** em CommonJS (`moduleFormat = "cjs"`), com saída em `apps/api/src/generated/prisma` (fora do git; gerado no `npm install`, antes do build, do typecheck e dos testes). As 61 importações de `@prisma/client` passaram a apontar para o cliente gerado;
+- **adaptador do driver** obrigatório: `PrismaService` e `createPrismaClient()` usam `PrismaPg` com o endereço limpo dos parâmetros do Prisma e 5 s para conectar (padrão do Prisma 6; o `pg` esperaria para sempre). Fora de produção, sem `DATABASE_URL`, a aplicação sobe e só a consulta falha; em produção, falta de endereço impede iniciar;
+- **`prisma.config.ts`** na raiz com o caminho do esquema, das migrações e do banco (lido do ambiente; opcional para gerar sem banco, como no Docker). O esquema não tem mais `url`;
+- **`.env`:** o Prisma 7 não carrega mais o `.env` sozinho. Os scripts do projeto já usavam `dotenv`; um teste dependia sem saber do carregamento automático e foi corrigido para declarar o que precisa;
+- **testes:** o motor novo carrega o compilador de consultas (WebAssembly) com `import()` dinâmico; o Jest da API roda com `--experimental-vm-modules`. A preparação do banco de testes usa o `pg` direto;
+- **Docker:** a imagem da API leva o motor novo; a de migrações usa o CLI 7.10.1 e o `prisma.config.ts`.
+
+### Consequências
+
+- nenhuma mudança no esquema nem nas migrações; consultas, transações, travas de linha e `LISTEN/NOTIFY` seguem iguais;
+- verificado: `npm run check` (lint, typecheck, 216 + 56 testes, build), 132 testes de integração, pilha Docker completa (migrações, preparo, cadastro e arquivo no S3) e a API local contra o banco de desenvolvimento;
+- `prisma migrate dev` não gera mais o cliente sozinho: rodar `npm run prisma:generate` depois de mudar o esquema.

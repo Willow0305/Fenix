@@ -6,6 +6,12 @@ O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) e o 
 
 ## [Não publicado]
 
+### Prisma 7 (2026-10-26)
+
+#### Alterado
+
+- Prisma 6.19.3 → 7.10.1, com o novo cliente gerado na API e o adaptador oficial do PostgreSQL (DT-054); sem mudança no banco.
+
 ### Pronto para hospedar: Docker, Nginx e S3 (2026-10-26)
 
 #### Adicionado

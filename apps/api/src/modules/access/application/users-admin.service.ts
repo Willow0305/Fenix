@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import type { Prisma, UserStatus } from '@prisma/client';
+import type { Prisma, UserStatus } from '../../../generated/prisma/client';
 
 import { AuditService } from '../../../common/audit/audit.service';
 import { generateOpaqueToken } from '../../../common/crypto/tokens';

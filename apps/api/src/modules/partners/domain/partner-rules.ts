@@ -5,7 +5,7 @@ import type {
   PartnerStatus,
   Prisma,
   ServiceStatus
-} from '@prisma/client';
+} from '../../../generated/prisma/client';
 
 import { civilToDate } from '../../../common/domain/civil-date';
 import { type Money, money, round2, ZERO } from '../../../common/domain/money';

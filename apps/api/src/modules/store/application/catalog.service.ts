@@ -5,7 +5,7 @@ import type {
   Prisma,
   ProductFulfillmentType,
   ProductStatus
-} from '@prisma/client';
+} from '../../../generated/prisma/client';
 
 import { AuditService } from '../../../common/audit/audit.service';
 import {

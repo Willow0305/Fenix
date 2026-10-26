@@ -1,7 +1,7 @@
 import { randomUUID } from 'node:crypto';
 
 import { Injectable } from '@nestjs/common';
-import type { Prisma } from '@prisma/client';
+import type { Prisma } from '../../../generated/prisma/client';
 
 import { AppError } from '../../../common/errors/app-error';
 import { type Page, pageArgs, type PageQueryDto, toPage } from '../../../common/http/pagination';

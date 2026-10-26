@@ -1,6 +1,8 @@
-import { Prisma, PrismaClient } from '@prisma/client';
+import type { PrismaClient } from '../generated/prisma/client';
+import { Prisma } from '../generated/prisma/client';
 
 import { SETTINGS_KEY } from '../modules/settings/application/settings.service';
+import { createPrismaClient } from '../common/prisma/prisma.service';
 
 /**
  * Limpa do banco de desenvolvimento o que os testes de integração gravaram antes de terem
@@ -221,7 +223,7 @@ async function main(): Promise<void> {
   }
 
   const apply = process.argv.includes('--apply');
-  const prisma = new PrismaClient();
+  const prisma = createPrismaClient();
 
   try {
     const counters = [

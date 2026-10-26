@@ -1,5 +1,9 @@
 import { Injectable } from '@nestjs/common';
-import type { OrderStatus, PartnerSettlementStatus, Prisma } from '@prisma/client';
+import type {
+  OrderStatus,
+  PartnerSettlementStatus,
+  Prisma
+} from '../../../generated/prisma/client';
 
 import { AuditService } from '../../../common/audit/audit.service';
 import { civilToDate, dateToCivil, optionalCivil } from '../../../common/domain/civil-date';

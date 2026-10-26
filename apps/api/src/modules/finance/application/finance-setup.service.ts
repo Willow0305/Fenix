@@ -4,7 +4,7 @@ import type {
   FinancialCategoryNature,
   PaymentMethodType,
   Prisma
-} from '@prisma/client';
+} from '../../../generated/prisma/client';
 
 import { AuditService } from '../../../common/audit/audit.service';
 import { DEFAULT_CURRENCY } from '../../../common/domain/money';

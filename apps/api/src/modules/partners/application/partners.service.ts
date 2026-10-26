@@ -1,5 +1,10 @@
 import { Injectable } from '@nestjs/common';
-import type { CommissionType, PartnerStatus, PartnerType, Prisma } from '@prisma/client';
+import type {
+  CommissionType,
+  PartnerStatus,
+  PartnerType,
+  Prisma
+} from '../../../generated/prisma/client';
 
 import { AuditService } from '../../../common/audit/audit.service';
 import { AppConfig } from '../../../common/config/app-config';

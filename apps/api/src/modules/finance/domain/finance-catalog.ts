@@ -2,7 +2,7 @@ import type {
   FinancialAccountType,
   FinancialCategoryNature,
   PaymentMethodType
-} from '@prisma/client';
+} from '../../../generated/prisma/client';
 
 /**
  * Plano inicial provisório (RF-027, PEN-020). Categorias marcadas como `system` são

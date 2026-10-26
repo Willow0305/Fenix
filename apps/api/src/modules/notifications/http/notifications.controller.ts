@@ -10,7 +10,7 @@ import {
   Query
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiProperty, ApiPropertyOptional, ApiTags } from '@nestjs/swagger';
-import { NotificationCategory } from '@prisma/client';
+import { NotificationCategory } from '../../../generated/prisma/client';
 import { Transform, Type } from 'class-transformer';
 import {
   ArrayMaxSize,

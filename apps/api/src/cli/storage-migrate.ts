@@ -1,10 +1,9 @@
 import { createHash } from 'node:crypto';
 
-import { PrismaClient } from '@prisma/client';
-
 import { AppConfig, loadS3 } from '../common/config/app-config';
 import { LocalObjectStorage, ObjectNotFoundError } from '../common/storage/object-storage';
 import { S3ObjectStorage } from '../common/storage/s3-object-storage';
+import { createPrismaClient } from '../common/prisma/prisma.service';
 
 /**
  * Copia os arquivos do disco (`STORAGE_LOCAL_DIR`) para o S3 (DT-053). Cada arquivo é lido,
@@ -22,7 +21,7 @@ async function main(): Promise<void> {
   const config = new AppConfig();
   const local = new LocalObjectStorage(config);
   const s3 = new S3ObjectStorage(loadS3(process.env, config.values.isProduction));
-  const prisma = new PrismaClient();
+  const prisma = createPrismaClient();
   const totals = { migrated: 0, missing: 0, corrupted: 0, failed: 0 };
 
   try {

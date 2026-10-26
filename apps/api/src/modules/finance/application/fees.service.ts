@@ -1,5 +1,9 @@
 import { Injectable } from '@nestjs/common';
-import type { MonthlyFeePlanStatus, MonthlyFeeStatus, Prisma } from '@prisma/client';
+import type {
+  MonthlyFeePlanStatus,
+  MonthlyFeeStatus,
+  Prisma
+} from '../../../generated/prisma/client';
 
 import { AuditService } from '../../../common/audit/audit.service';
 import {

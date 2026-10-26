@@ -1,10 +1,14 @@
+// Prisma 7 (DT-054): cliente gerado dentro da API, em CommonJS como o restante do backend.
 generator client {
-  provider = "prisma-client-js"
+  provider            = "prisma-client"
+  output              = "../apps/api/src/generated/prisma"
+  moduleFormat        = "cjs"
+  importFileExtension = ""
 }
 
+// O endereço do banco fica em `prisma.config.ts` (lido do ambiente).
 datasource db {
   provider = "postgresql"
-  url      = env("DATABASE_URL")
 }
 
 enum UserStatus {

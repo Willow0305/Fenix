@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import type { Prisma } from '@prisma/client';
+import type { Prisma } from '../../../generated/prisma/client';
 
 import { generateOpaqueToken, sha256Hex } from '../../../common/crypto/tokens';
 import { type MoneyView, moneyView, round2, sum } from '../../../common/domain/money';

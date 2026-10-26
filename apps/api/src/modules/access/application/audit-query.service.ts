@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import type { Prisma } from '@prisma/client';
+import type { Prisma } from '../../../generated/prisma/client';
 
 import { type Page, pageArgs, type PageQueryDto, toPage } from '../../../common/http/pagination';
 import { endOfDayExclusive, startOfDayInZone } from '../../../common/domain/time-zone';

@@ -8,7 +8,7 @@ import {
   OrderStatus,
   ProductFulfillmentType,
   ProductStatus
-} from '@prisma/client';
+} from '../../../generated/prisma/client';
 import { Transform } from 'class-transformer';
 import {
   ArrayMaxSize,

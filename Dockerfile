@@ -47,7 +47,6 @@ RUN npm ci --omit=dev --ignore-scripts --no-audit --no-fund --workspace=@fenix/a
 FROM base AS api
 ENV NODE_ENV=production API_HOST=0.0.0.0 API_PORT=3333
 COPY --from=prod-deps --chown=node:node /app/node_modules ./node_modules
-COPY --from=build --chown=node:node /app/node_modules/.prisma ./node_modules/.prisma
 COPY --from=build --chown=node:node /app/packages/validation/package.json ./packages/validation/package.json
 COPY --from=build --chown=node:node /app/packages/validation/dist ./packages/validation/dist
 COPY --from=build --chown=node:node /app/apps/api/package.json ./apps/api/package.json
@@ -65,8 +64,9 @@ CMD ["node", "apps/api/dist/main.js"]
 # Só o CLI do Prisma (mesma versão do projeto) e as migrações.
 FROM base AS migrate
 COPY prisma ./prisma
+COPY prisma.config.ts ./
 RUN npm init -y >/dev/null \
-  && npm install --no-audit --no-fund --omit=dev prisma@6.19.3 \
+  && npm install --no-audit --no-fund --omit=dev prisma@7.10.1 \
   && npm cache clean --force
 USER node
 CMD ["npx", "prisma", "migrate", "deploy"]

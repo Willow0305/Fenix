@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { Prisma } from '@prisma/client';
+import { Prisma } from '../../generated/prisma/client';
 
 import type { RequestMeta } from '../http/request-context';
 import { PrismaService, type PrismaTx } from '../prisma/prisma.service';

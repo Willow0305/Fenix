@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { isValidCpf, maskCpf } from '@fenix/validation';
-import type { AthleteStatus, Gender, Prisma } from '@prisma/client';
+import type { AthleteStatus, Gender, Prisma } from '../../../generated/prisma/client';
 
 import { AuditService } from '../../../common/audit/audit.service';
 import { AppConfig } from '../../../common/config/app-config';

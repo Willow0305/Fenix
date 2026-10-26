@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import type { InventoryMovementType } from '@prisma/client';
+import type { InventoryMovementType } from '../../../generated/prisma/client';
 
 import { AuditService } from '../../../common/audit/audit.service';
 import { AppError } from '../../../common/errors/app-error';

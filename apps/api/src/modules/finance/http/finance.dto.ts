@@ -9,7 +9,7 @@ import {
   FinancialTransactionStatus,
   MonthlyFeePlanStatus,
   MonthlyFeeStatus
-} from '@prisma/client';
+} from '../../../generated/prisma/client';
 import { Transform } from 'class-transformer';
 import {
   ArrayMaxSize,

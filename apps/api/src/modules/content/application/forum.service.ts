@@ -7,7 +7,7 @@ import type {
   ForumVisibility,
   ModerationActionType,
   Prisma
-} from '@prisma/client';
+} from '../../../generated/prisma/client';
 
 import { AuditService } from '../../../common/audit/audit.service';
 import { AppError } from '../../../common/errors/app-error';

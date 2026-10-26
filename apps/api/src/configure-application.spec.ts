@@ -1,3 +1,6 @@
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
+
 import { type INestApplication } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
 import request from 'supertest';
@@ -46,7 +49,11 @@ describe('configureApplication', () => {
       AUTH_ACCESS_TOKEN_SECRET: 'production-test-secret-with-enough-length-0123',
       DATA_ENCRYPTION_KEY: Buffer.alloc(32, 9).toString('base64'),
       WEB_ORIGIN: 'https://fenix.example',
-      ALLOW_LOCAL_ADAPTERS_IN_PRODUCTION: 'true'
+      ALLOW_LOCAL_ADAPTERS_IN_PRODUCTION: 'true',
+      // Em produção o endereço é obrigatório; aqui nenhuma consulta chega ao banco.
+      DATABASE_URL: process.env['DATABASE_URL'] ?? 'postgresql://teste@127.0.0.1:1/teste',
+      // Produção exige caminho absoluto (antes vinha do .env que o Prisma 6 carregava sozinho).
+      STORAGE_LOCAL_DIR: join(tmpdir(), 'fenix-teste-producao')
     };
     const previous = Object.fromEntries(
       Object.keys(productionEnv).map((key) => [key, process.env[key]])

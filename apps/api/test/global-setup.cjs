@@ -1,7 +1,7 @@
 const { execSync } = require('node:child_process');
 const { resolve } = require('node:path');
 
-const { PrismaClient } = require('@prisma/client');
+const { Client } = require('pg');
 
 const { testDatabaseUrl } = require('./test-database.cjs');
 
@@ -12,14 +12,18 @@ module.exports = async function globalSetup() {
 
   maintenance.pathname = '/postgres';
 
-  const admin = new PrismaClient({ datasources: { db: { url: maintenance.toString() } } });
+  maintenance.search = '';
+
+  const admin = new Client({ connectionString: maintenance.toString() });
+
+  await admin.connect();
 
   try {
     // `name` foi validado por testDatabaseUrl (somente letras, números e "_").
-    await admin.$executeRawUnsafe(`DROP DATABASE IF EXISTS "${name}" WITH (FORCE)`);
-    await admin.$executeRawUnsafe(`CREATE DATABASE "${name}"`);
+    await admin.query(`DROP DATABASE IF EXISTS "${name}" WITH (FORCE)`);
+    await admin.query(`CREATE DATABASE "${name}"`);
   } finally {
-    await admin.$disconnect();
+    await admin.end();
   }
 
   execSync('npx prisma migrate deploy', {

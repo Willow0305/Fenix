@@ -5,7 +5,7 @@ import type {
   OrderStatus,
   ProductFulfillmentType,
   ProductStatus
-} from '@prisma/client';
+} from '../../../generated/prisma/client';
 
 import { type Money, round2, ZERO } from '../../../common/domain/money';
 import type { TransitionTable } from '../../../common/domain/state-machine';

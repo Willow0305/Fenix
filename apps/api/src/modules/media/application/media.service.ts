@@ -1,7 +1,7 @@
 import { createHash, randomUUID } from 'node:crypto';
 
 import { Injectable } from '@nestjs/common';
-import type { DataClassification, MediaKind } from '@prisma/client';
+import type { DataClassification, MediaKind } from '../../../generated/prisma/client';
 
 import { AppError } from '../../../common/errors/app-error';
 import type { Principal } from '../../../common/http/request-context';

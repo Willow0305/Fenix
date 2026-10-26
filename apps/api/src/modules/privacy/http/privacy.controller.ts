@@ -12,7 +12,7 @@ import {
   Res
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiProperty, ApiPropertyOptional, ApiTags } from '@nestjs/swagger';
-import { PrivacyRequestStatus, PrivacyRequestType } from '@prisma/client';
+import { PrivacyRequestStatus, PrivacyRequestType } from '../../../generated/prisma/client';
 import { Throttle } from '@nestjs/throttler';
 import { IsEnum, IsIn, IsOptional, IsString, MaxLength, MinLength } from 'class-validator';
 import type { Response } from 'express';

@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import type { NotificationCategory } from '@prisma/client';
+import type { NotificationCategory } from '../../../generated/prisma/client';
 
 import { AuditService } from '../../../common/audit/audit.service';
 import { AppConfig } from '../../../common/config/app-config';

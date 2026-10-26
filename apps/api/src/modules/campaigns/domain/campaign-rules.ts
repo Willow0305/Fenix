@@ -1,4 +1,4 @@
-import type { SalesCampaignStatus } from '@prisma/client';
+import type { SalesCampaignStatus } from '../../../generated/prisma/client';
 
 import type { TransitionTable } from '../../../common/domain/state-machine';
 

@@ -17,7 +17,7 @@ import {
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { ApiBearerAuth, ApiConsumes, ApiHeader, ApiTags } from '@nestjs/swagger';
-import type { CommissionType } from '@prisma/client';
+import type { CommissionType } from '../../../generated/prisma/client';
 import { Throttle } from '@nestjs/throttler';
 import type { CookieOptions, Response } from 'express';
 

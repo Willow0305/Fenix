@@ -3,7 +3,7 @@ import type {
   FinancialObligationStatus,
   FinancialTransactionStatus,
   MonthlyFeeStatus
-} from '@prisma/client';
+} from '../../../generated/prisma/client';
 
 import { daysInMonth } from '../../../common/domain/civil-date';
 import { type Money, round2, sum, ZERO } from '../../../common/domain/money';

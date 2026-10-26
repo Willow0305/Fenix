@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import type { FinancialDirection, FinancialOrigin } from '@prisma/client';
+import type { FinancialDirection, FinancialOrigin } from '../../../generated/prisma/client';
 
 import { civilToDate, todayIn } from '../../../common/domain/civil-date';
 import { money, type MoneyView, moneyView, sum, ZERO } from '../../../common/domain/money';

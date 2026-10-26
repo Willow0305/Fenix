@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import type { NewsStatus, Prisma } from '@prisma/client';
+import type { NewsStatus, Prisma } from '../../../generated/prisma/client';
 
 import { AuditService } from '../../../common/audit/audit.service';
 import { assertTransition } from '../../../common/domain/state-machine';

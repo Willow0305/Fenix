@@ -5,6 +5,8 @@ node_modules/
 **/.next/
 dist/
 **/dist/
+# Cliente do Prisma gerado (npm run prisma:generate)
+apps/api/src/generated/
 coverage/
 **/coverage/
 *.tsbuildinfo

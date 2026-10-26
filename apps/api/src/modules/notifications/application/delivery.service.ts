@@ -1,5 +1,5 @@
 import { Injectable, Logger, type OnApplicationShutdown, type OnModuleInit } from '@nestjs/common';
-import type { NotificationChannel, Prisma } from '@prisma/client';
+import type { NotificationChannel, Prisma } from '../../../generated/prisma/client';
 
 import { AppConfig } from '../../../common/config/app-config';
 import { TEAM_TIME_ZONE } from '../../../common/domain/time-zone';

@@ -4,7 +4,7 @@ import {
   type FinancialOrigin,
   type FinancialTransactionStatus,
   Prisma
-} from '@prisma/client';
+} from '../../../generated/prisma/client';
 
 import { AuditService } from '../../../common/audit/audit.service';
 import { civilToDate, dateToCivil } from '../../../common/domain/civil-date';

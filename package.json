@@ -40,7 +40,8 @@
     "format:check": "prettier --check .",
     "lint": "eslint . --max-warnings=0",
     "prisma:format": "prisma format",
-    "prisma:generate": "dotenv -e .env.example -- prisma generate",
+    "postinstall": "prisma generate",
+    "prisma:generate": "prisma generate",
     "prisma:validate": "dotenv -e .env.example -- prisma validate",
     "smoke": "node scripts/smoke-runtime.mjs",
     "test": "node --test scripts/startup.spec.cjs apps/api/test/test-database.spec.cjs && npm run test --workspaces --if-present",
@@ -67,7 +68,7 @@
     "globals": "17.7.0",
     "jest": "30.4.2",
     "prettier": "3.9.6",
-    "prisma": "6.19.3",
+    "prisma": "7.10.1",
     "ts-jest": "29.4.12",
     "typescript": "5.9.3",
     "typescript-eslint": "8.65.0"

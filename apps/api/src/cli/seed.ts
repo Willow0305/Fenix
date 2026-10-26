@@ -1,5 +1,3 @@
-import { PrismaClient } from '@prisma/client';
-
 import { hashPassword } from '../common/crypto/password-hasher';
 import { syncAccessCatalog } from '../modules/access/application/roles.service';
 import { syncFinanceCatalog } from '../modules/finance/application/finance-setup.service';
@@ -9,6 +7,7 @@ import {
   defaultSettingsData,
   SETTINGS_KEY
 } from '../modules/settings/application/settings.service';
+import { createPrismaClient } from '../common/prisma/prisma.service';
 
 /**
  * Seed idempotente: sincroniza permissões/papéis, cria a configuração do time e, se não
@@ -16,7 +15,7 @@ import {
  * de negócio; use `npm run db:demo` para isso.
  */
 async function main(): Promise<void> {
-  const prisma = new PrismaClient();
+  const prisma = createPrismaClient();
 
   try {
     await prisma.$transaction(async (tx) => {

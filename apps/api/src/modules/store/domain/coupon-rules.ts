@@ -1,4 +1,8 @@
-import type { CouponAudience, CouponDiscountType, CouponScope } from '@prisma/client';
+import type {
+  CouponAudience,
+  CouponDiscountType,
+  CouponScope
+} from '../../../generated/prisma/client';
 
 import { type Money, round2, sum, ZERO } from '../../../common/domain/money';
 

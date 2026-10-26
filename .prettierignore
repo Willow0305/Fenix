@@ -12,3 +12,5 @@ referencias/
 uploads/
 prisma/
 *.md
+# Cliente do Prisma gerado (DT-054)
+apps/api/src/generated/

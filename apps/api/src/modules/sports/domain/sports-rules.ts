@@ -3,7 +3,7 @@ import type {
   InterestedPersonStatus,
   TryoutRegistrationStatus,
   TryoutStatus
-} from '@prisma/client';
+} from '../../../generated/prisma/client';
 
 import { ageOn } from '../../../common/domain/civil-date';
 import type { TransitionTable } from '../../../common/domain/state-machine';

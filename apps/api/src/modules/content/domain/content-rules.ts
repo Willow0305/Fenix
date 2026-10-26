@@ -1,4 +1,9 @@
-import type { EventStatus, ForumTopicStatus, ForumVisibility, NewsStatus } from '@prisma/client';
+import type {
+  EventStatus,
+  ForumTopicStatus,
+  ForumVisibility,
+  NewsStatus
+} from '../../../generated/prisma/client';
 
 import type { TransitionTable } from '../../../common/domain/state-machine';
 

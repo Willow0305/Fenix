@@ -144,6 +144,7 @@ Aprovado por inteiro pelo responsável do projeto em 2026-10-25.
 
 | Item | Situação |
 |---|---|
+| R-01 Prisma 7 | feito (`DT-054`) |
 | R-04 tarefas e limites com mais de um servidor | feito (`DT-047`) |
 | R-08 cache de dados nas telas | feito (`DT-052`) |
 | R-06 Docker e Nginx | feito e testado numa pilha real (`DT-053`) |

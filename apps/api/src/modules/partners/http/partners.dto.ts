@@ -7,7 +7,7 @@ import {
   PartnerType,
   ProfessionalStatus,
   ServiceStatus
-} from '@prisma/client';
+} from '../../../generated/prisma/client';
 import {
   IsBoolean,
   IsEmail,

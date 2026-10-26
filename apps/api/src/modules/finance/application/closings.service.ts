@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import type { CashClosingStatus } from '@prisma/client';
+import type { CashClosingStatus } from '../../../generated/prisma/client';
 
 import { AuditService } from '../../../common/audit/audit.service';
 import { civilToDate, dateToCivil } from '../../../common/domain/civil-date';
