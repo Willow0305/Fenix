@@ -13,6 +13,7 @@ import {
 
 import { api, parseProblem, setTokenProvider } from './api-client';
 import type { Profile } from './api-types';
+import { getQueryClient } from './query-client';
 import { startRealtime, stopRealtime } from './realtime';
 
 interface TokenResponse {
@@ -103,6 +104,8 @@ export function AuthProvider({ children }: { readonly children: ReactNode }) {
 
     tokenRef.current = null;
     idleLimitSeconds.current = null;
+    // Nada da conta anterior fica no cache deste navegador (DT-052).
+    getQueryClient().clear();
     setProfile(null);
     setStatus('anonymous');
     setSessionExpired(expired);

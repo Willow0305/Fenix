@@ -68,6 +68,21 @@ export interface RequestOptions {
   readonly query?: Record<string, string | number | boolean | undefined | null>;
   readonly headers?: Record<string, string>;
   readonly auth?: boolean;
+  /** Cancela a busca quando a tela não precisa mais dela. */
+  readonly signal?: AbortSignal | undefined;
+}
+
+type MutationListener = () => void;
+
+const mutationListeners = new Set<MutationListener>();
+
+/** Avisado depois de cada alteração bem-sucedida (cache do painel, DT-052). */
+export function onMutationSuccess(listener: MutationListener): () => void {
+  mutationListeners.add(listener);
+
+  return () => {
+    mutationListeners.delete(listener);
+  };
 }
 
 function buildUrl(path: string, query?: RequestOptions['query']): string {
@@ -109,6 +124,7 @@ async function send(
     method: options.method ?? 'GET',
     headers,
     credentials: 'same-origin',
+    ...(options.signal ? { signal: options.signal } : {}),
     body:
       options.body === undefined
         ? null
@@ -133,6 +149,10 @@ export async function api<T>(path: string, options: RequestOptions = {}): Promis
 
   if (!response.ok) {
     throw await parseProblem(response);
+  }
+
+  if ((options.method ?? 'GET') !== 'GET') {
+    mutationListeners.forEach((listener) => listener());
   }
 
   if (response.status === 204) {

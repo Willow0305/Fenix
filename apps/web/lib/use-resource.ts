@@ -1,9 +1,9 @@
 'use client';
 
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { type QueryKey, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useCallback } from 'react';
 
 import { api, errorMessage, type RequestOptions } from './api-client';
-import { onRealtime, scheduleReload, shouldReload } from './realtime';
 
 export interface Resource<T> {
   readonly data: T | null;
@@ -13,70 +13,51 @@ export interface Resource<T> {
   readonly setData: (value: T) => void;
 }
 
-/** Carrega um recurso da API e recarrega quando o caminho ou a query mudam. */
+type Query = NonNullable<RequestOptions['query']>;
+
+/** Chave do cache: caminho e parâmetros (vazios não contam), sempre na mesma ordem. */
+export function resourceKey(path: string, query?: RequestOptions['query']): QueryKey {
+  const params = Object.entries(query ?? {})
+    .filter(([, value]) => value !== undefined && value !== null && value !== '')
+    .sort(([a], [b]) => a.localeCompare(b));
+
+  return [path, Object.fromEntries(params)];
+}
+
+/**
+ * Carrega um recurso da API com cache compartilhado (R-08, DT-052). Telas que pedem o mesmo
+ * recurso dividem uma única busca; voltar a uma tela mostra os dados na hora e atualiza em
+ * seguida. Mudar só a página ou o filtro mantém a lista anterior até a nova chegar.
+ */
 export function useResource<T>(path: string | null, query?: RequestOptions['query']): Resource<T> {
-  const [data, setData] = useState<T | null>(null);
-  const [error, setError] = useState<string | null>(null);
-  const [loading, setLoading] = useState(path !== null);
-  const serializedQuery = JSON.stringify(query ?? {});
-  const sequence = useRef(0);
+  const client = useQueryClient();
+  const key = path === null ? ['__desligado__'] : resourceKey(path, query);
+  const result = useQuery<T>({
+    queryKey: key,
+    enabled: path !== null,
+    queryFn: ({ signal }) => api<T>(path ?? '', { query: (key[1] ?? {}) as Query, signal }),
+    // Outra página ou filtro do mesmo recurso: mantém a lista na tela, sem piscar.
+    placeholderData: (previous, previousQuery) =>
+      previousQuery?.queryKey[0] === path ? previous : undefined
+  });
+  const serializedKey = JSON.stringify(key);
 
   const reload = useCallback(async () => {
-    if (path === null) {
-      return;
+    if (path !== null) {
+      await client.refetchQueries({ queryKey: JSON.parse(serializedKey) as QueryKey, exact: true });
     }
+  }, [client, path, serializedKey]);
 
-    const current = ++sequence.current;
+  const setData = useCallback(
+    (value: T) => client.setQueryData(JSON.parse(serializedKey) as QueryKey, value),
+    [client, serializedKey]
+  );
 
-    setLoading(true);
-    setError(null);
-
-    try {
-      const result = await api<T>(path, {
-        query: JSON.parse(serializedQuery) as NonNullable<RequestOptions['query']>
-      });
-
-      if (current === sequence.current) {
-        setData(result);
-      }
-    } catch (caught) {
-      if (current === sequence.current) {
-        setError(errorMessage(caught));
-      }
-    } finally {
-      if (current === sequence.current) {
-        setLoading(false);
-      }
-    }
-  }, [path, serializedQuery]);
-
-  useEffect(() => {
-    void reload();
-  }, [reload]);
-
-  // Tempo real (DT-049): busca de novo quando algo que a tela mostra pode ter mudado.
-  useEffect(() => {
-    if (path === null) {
-      return undefined;
-    }
-
-    let cancelPending: (() => void) | null = null;
-    const unsubscribe = onRealtime((message) => {
-      if (cancelPending || !shouldReload(path, message)) {
-        return;
-      }
-
-      cancelPending = scheduleReload(() => {
-        cancelPending = null;
-        void reload();
-      });
-    });
-
-    return () => {
-      unsubscribe();
-      cancelPending?.();
-    };
-  }, [path, reload]);
-
-  return { data, error, loading, reload, setData };
+  return {
+    data: result.data ?? null,
+    error: result.error ? errorMessage(result.error) : null,
+    loading: path !== null && result.isFetching,
+    reload,
+    setData
+  };
 }

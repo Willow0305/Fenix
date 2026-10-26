@@ -1025,3 +1025,23 @@ Com a segunda etapa (DT-037), o código do autenticador era pedido em todo login
 
 - correção de passagem: o carrinho fica em `/cart`, e as mexidas nele geravam aviso de mudança à diretoria (DT-049); agora não geram;
 - 8 testes de integração (ordem das fotos e capa no site, ordem inválida, descrição e permissão, opções com estoque e troca, troca sem estoque mantém o item, soma e opção de outro produto, fluxo público com assunto inválido e aviso ao mudar estoque), 6 testes de unidade da API (assuntos públicos e ordem cache → aviso) e 7 de interface (números, quantidade, ordem das fotos, campo de valor e galeria).
+
+## DT-052 — Cache de dados nas telas
+
+- **Estado:** Aceita
+- **Data:** 2026-10-26
+- **Aprovador:** responsável do projeto (aprovação de `docs/30-REVISAO-GERAL.md`, item R-08)
+
+### Decisão
+
+- **TanStack Query** 5.104.2 por trás do `useResource`, com a mesma interface (`data`, `error`, `loading`, `reload`, `setData`): nenhuma das 110 telas precisou mudar;
+- **cache:** chave = caminho + parâmetros não vazios em ordem fixa. Telas que pedem o mesmo recurso dividem uma busca; dados vistos há menos de 30 s aparecem na hora ao voltar para a tela, que busca de novo ao ficar desatualizada ou quando a janela volta ao foco. Mudar só a página ou o filtro mantém a lista anterior até a nova chegar (sem piscar);
+- **invalidação:** depois de qualquer alteração bem-sucedida pela API, todo o cache fica desatualizado (a tela aberta segue o que já fazia; as outras buscam ao abrir). Os avisos em tempo real (DT-049) invalidam num ponto só, com a mesma regra de quem recarrega e a mesma espera por quem está editando;
+- **novas tentativas:** só para falha de rede ou do servidor (5xx), no máximo 2; validação, permissão e "não encontrado" não repetem;
+- **privacidade:** um cache por renderização no servidor e um só no navegador; ao sair da conta, ou quando a sessão expira, o cache é apagado, para a próxima pessoa no mesmo computador não ver dados de quem saiu;
+- buscas canceladas quando a tela não precisa mais delas (`AbortSignal`).
+
+### Consequências
+
+- menos chamadas à API ao navegar no painel e listas compartilhadas (equipes, categorias) buscadas uma vez;
+- 4 testes de interface (chave estável, busca única, troca de página sem piscar, cache apagado).

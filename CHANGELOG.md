@@ -6,6 +6,13 @@ O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) e o 
 
 ## [Não publicado]
 
+### Navegação mais rápida no painel (2026-10-26)
+
+#### Alterado
+
+- telas guardam os dados recentes: voltar a uma tela é instantâneo, listas iguais são buscadas uma vez só e trocar de página não pisca (DT-052);
+- ao sair da conta, os dados guardados no navegador são apagados.
+
 ### Loja profissional e páginas ao vivo (2026-10-26)
 
 #### Adicionado
