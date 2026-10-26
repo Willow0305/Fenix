@@ -9,7 +9,6 @@ module.exports = createJestConfig({
   ...baseConfig,
   displayName: 'web',
   moduleNameMapper: {
-    '^@fenix/ui$': '<rootDir>/../../packages/ui/src/index.ts',
     '^@fenix/validation$': '<rootDir>/../../packages/validation/src/index.ts'
   },
   rootDir: '.',

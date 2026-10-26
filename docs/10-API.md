@@ -220,7 +220,7 @@ As rotas abaixo são agrupamentos de contrato. Nomes finais serão confirmados n
 | equipes/categorias | `/api/v1/teams`, `/api/v1/sport-categories` | estrutura esportiva e vínculos | 2 |
 | interessados | `/api/v1/interested-people` | manifestações de interesse | 2 |
 | seletivas | `/api/v1/tryouts` | agenda, publicação e inscrições | 2 |
-| inscrições | `/api/v1/registrations` | fluxo geral e conversão controlada | 2 |
+| inscrições | `/api/v1/interested-people`, `/api/v1/tryout-registrations` | fluxo geral pelo interessado e conversão controlada (`DT-028`, `DT-046`) | 2 |
 | mensalidades | `/api/v1/monthly-fees` | planos, cobranças, baixas e inadimplência | 3 |
 | Caixa Fênix | `/api/v1/finance` | contas, categorias, centros, movimentos e fechamentos | 3 |
 | arquivos | `/api/v1/media-files` | intenção de upload, metadados e acesso autorizado | 3 |

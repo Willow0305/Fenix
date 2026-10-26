@@ -139,7 +139,7 @@ function sendFile(
   res.send(file.content);
 }
 
-@ApiTags('store')
+@ApiTags('Loja')
 @Controller()
 export class StorefrontController {
   constructor(
@@ -354,7 +354,7 @@ export class StorefrontController {
   }
 }
 
-@ApiTags('store-admin')
+@ApiTags('Loja (painel)')
 @ApiBearerAuth()
 @Controller('store')
 export class StoreAdminController {

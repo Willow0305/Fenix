@@ -38,7 +38,7 @@ import {
 
 const MFA_LIMIT = { default: { limit: 10, ttl: 60_000 } };
 
-@ApiTags('me')
+@ApiTags('Minha conta')
 @ApiBearerAuth()
 @Controller('me')
 export class MeController {

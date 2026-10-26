@@ -15,7 +15,7 @@ export class NotificationQueryDto extends PageQueryDto {
   unread?: boolean;
 }
 
-@ApiTags('notifications')
+@ApiTags('Notificações')
 @ApiBearerAuth()
 @Controller('me/notifications')
 export class NotificationsController {

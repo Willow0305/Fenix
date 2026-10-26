@@ -57,7 +57,6 @@ Tipos e regras transversais:
 | `Gender` | `MALE`, `FEMALE`, `NON_BINARY`, `OTHER`, `NOT_INFORMED` |
 | `TeamType` | `MALE`, `FEMALE`, `MIXED`, `OTHER` |
 | `TeamMembershipStatus` | `ACTIVE`, `INACTIVE` |
-| `RegistrationStatus` | `NEW`, `UNDER_REVIEW`, `APPROVED`, `REJECTED`, `CANCELLED`, `CONVERTED` |
 | `TryoutStatus` | `DRAFT`, `SCHEDULED`, `OPEN`, `CLOSED`, `COMPLETED`, `CANCELLED` |
 | `TryoutRegistrationStatus` | `NEW`, `UNDER_REVIEW`, `APPROVED`, `REJECTED`, `ATTENDED`, `NO_SHOW`, `CANCELLED` |
 | `InterestedPersonStatus` | `NEW`, `CONTACTED`, `QUALIFIED`, `CONVERTED`, `ARCHIVED` |
@@ -116,8 +115,6 @@ Mapeamento completo dos campos enumerados:
 | `Team.type` | `TeamType` |
 | `TeamAthlete.status` | `TeamMembershipStatus` |
 | `InterestedPerson.status` | `InterestedPersonStatus` |
-| `Registration.gender` | `Gender` |
-| `Registration.status` | `RegistrationStatus` |
 | `Tryout.status` | `TryoutStatus` |
 | `TryoutRegistration.gender` | `Gender` |
 | `TryoutRegistration.status` | `TryoutRegistrationStatus` |
@@ -325,14 +322,9 @@ Enums de estados descrevem o vocabulário inicial; transições e responsáveis 
 - Índices/restrições: UK `userId` e `convertedAthleteId` quando preenchidos; IX `(status, createdAt)` e `(email, deletedAt)`. Pelo menos um contato é exigido na borda; base legal/consentimento não é presumida.
 - Exclusão/auditoria: soft delete/anônimo conforme retenção; acesso e conversão em atleta geram auditoria.
 
-### `Registration` — grupo M
+### `Registration` — removida
 
-- Finalidade: inscrição geral para ingresso no time, distinta de seletiva.
-- Campos O: `fullName`, `status`.
-- Campos P: `applicantUserId`, `interestedPersonId`, `resultingAthleteId`, `requestedTeamId`, `birthDate`, `email`, `phone`, `gender`, `desiredPosition`, `experience`, `notes`, `reviewedById`, `reviewedAt`, `reviewReason`, `deletedAt`.
-- FKs: `applicantUserId -> User` (N); `interestedPersonId -> InterestedPerson` (N); `resultingAthleteId -> Athlete` (N); `requestedTeamId -> Team` (N); `reviewedById -> User` (N).
-- Índices/restrições: IX `(status, createdAt)`, `(requestedTeamId, status)` e `(applicantUserId, createdAt)`. Pelo menos um contato; conversão requer estado compatível. Deduplicação permanece pendente.
-- Exclusão/auditoria: soft delete; revisão, conversão e mudança de status registram autor, motivo e `AuditLog`.
+- Tabela `registrations` reservada desde a fase 2 sem endpoint e removida pela migração `20261026042015_remove_registrations` (`DT-046`). A inscrição geral sem seletiva é atendida por `InterestedPerson` (`DT-028`).
 
 ### `Tryout` — grupo M
 

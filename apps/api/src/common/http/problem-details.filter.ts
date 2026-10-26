@@ -62,6 +62,23 @@ function codeForStatus(status: number): string {
   }
 }
 
+/** Textos em inglês gerados pelo NestJS, Express, Multer ou pelo leitor de JSON. */
+const FRAMEWORK_MESSAGE =
+  /^(Cannot [A-Z]+ |Unexpected |Expected |Bad Request|Unauthorized|Forbidden|Not Found|Payload Too Large|File too large|Too many|Unsupported Media|Method Not Allowed|Validation failed|Conflict|Internal server error)|in JSON at position|is not valid JSON/i;
+
+/** Detalhe em pt-BR quando a mensagem original é do framework (padrão do sistema). */
+const DEFAULT_DETAILS: Record<number, string> = {
+  400: 'Requisição inválida. Confira os dados enviados.',
+  401: 'Sessão ausente ou expirada.',
+  403: 'Você não tem permissão para esta ação.',
+  404: 'Endereço não encontrado.',
+  405: 'Operação não permitida neste endereço.',
+  409: 'Conflito com o estado atual do registro.',
+  413: 'O arquivo ou os dados enviados são grandes demais.',
+  415: 'Tipo de conteúdo não suportado.',
+  422: 'Revise os dados enviados.'
+};
+
 /**
  * Converte qualquer erro em `application/problem+json` (DT-011) sem vazar stack, query
  * ou dados internos. Erros inesperados são registrados apenas com nome e requestId.
@@ -118,9 +135,9 @@ export class ProblemDetailsFilter implements ExceptionFilter {
       const detail =
         status >= 500
           ? 'Não foi possível concluir a operação.'
-          : typeof message === 'string'
+          : typeof message === 'string' && !FRAMEWORK_MESSAGE.test(message)
             ? message
-            : 'Requisição inválida.';
+            : (DEFAULT_DETAILS[status] ?? 'Requisição inválida.');
 
       return base(status, codeForStatus(status), detail);
     }

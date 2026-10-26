@@ -241,7 +241,7 @@ describe('Fase 2 — atletas, equipes, interessados e seletivas', () => {
       expect(created.body.phone).toBe('68999991234');
     });
 
-    it('creates an athlete, tracks history and blocks duplicates', async () => {
+    it('cria atleta, registra histórico e barra duplicidade', async () => {
       const name = `Atleta ${Date.now()}`;
       const created = await ctx
         .http()
@@ -281,7 +281,7 @@ describe('Fase 2 — atletas, equipes, interessados e seletivas', () => {
       expect(history?.afterData).toEqual({ position: 'Ponteira' });
     });
 
-    it('requires guardian data for minors and acknowledgement under 12', async () => {
+    it('exige responsável para menor e ciência para menor de 12', async () => {
       const minor = await ctx
         .http()
         .post('/api/v1/athletes')
@@ -310,7 +310,7 @@ describe('Fase 2 — atletas, equipes, interessados e seletivas', () => {
         .expect(201);
     });
 
-    it('enforces status transitions with reason', async () => {
+    it('aplica as transições de status com motivo', async () => {
       const created = await ctx
         .http()
         .post('/api/v1/athletes')
@@ -336,7 +336,7 @@ describe('Fase 2 — atletas, equipes, interessados e seletivas', () => {
       expect(invalid.body.code).toBe('INVALID_TRANSITION');
     });
 
-    it('keeps membership history and prevents overlap', async () => {
+    it('mantém histórico de vínculos e impede sobreposição', async () => {
       const teamId = await createTeam(`Feminino ${Date.now()}`);
       const athlete = await ctx
         .http()
@@ -379,7 +379,7 @@ describe('Fase 2 — atletas, equipes, interessados e seletivas', () => {
       expect(again.body.teams).toHaveLength(1);
     });
 
-    it('lets a linked athlete see only their own record', async () => {
+    it('permite ao atleta vinculado ver só o próprio cadastro', async () => {
       const person = await createUser(ctx.prisma, ['user']);
       const other = await createUser(ctx.prisma, ['user']);
       const athlete = await ctx
@@ -412,7 +412,7 @@ describe('Fase 2 — atletas, equipes, interessados e seletivas', () => {
   });
 
   describe('seletivas e inscrições', () => {
-    it('accepts registrations only while open and within slots', async () => {
+    it('aceita inscrição só com seletiva aberta e com vaga', async () => {
       const draft = await ctx
         .http()
         .post('/api/v1/tryouts')
@@ -438,7 +438,7 @@ describe('Fase 2 — atletas, equipes, interessados e seletivas', () => {
       expect(full.body.code).toBe('TRYOUT_FULL');
     });
 
-    it('validates consent, guardian rules and duplicates on public registration', async () => {
+    it('valida consentimento, responsável e duplicidade na inscrição pública', async () => {
       const tryout = await createOpenTryout();
       const url = `/api/v1/public/tryouts/${tryout.slug}/registrations`;
       const email = uniqueEmail('dup');
@@ -473,7 +473,7 @@ describe('Fase 2 — atletas, equipes, interessados e seletivas', () => {
       expect(row.privacyNoticeVersion).toBe('2026-10');
     });
 
-    it('reviews, notifies the applicant and converts to athlete keeping the origin', async () => {
+    it('analisa, avisa o inscrito e converte em atleta mantendo a origem', async () => {
       const tryout = await createOpenTryout();
       const applicantUser = await createUser(ctx.prisma, ['user']);
       const applicantToken = await login(ctx, applicantUser.email);
@@ -541,7 +541,7 @@ describe('Fase 2 — atletas, equipes, interessados e seletivas', () => {
         .expect(409);
     });
 
-    it('notifies applicants when a tryout is cancelled and requires a reason', async () => {
+    it('avisa os inscritos quando a seletiva é cancelada e exige motivo', async () => {
       const tryout = await createOpenTryout();
       const user = await createUser(ctx.prisma, ['user']);
       const token = await login(ctx, user.email);
@@ -576,7 +576,7 @@ describe('Fase 2 — atletas, equipes, interessados e seletivas', () => {
   });
 
   describe('interessados', () => {
-    it('registers interest publicly without creating access and converts once', async () => {
+    it('registra interesse pelo site sem criar acesso e converte uma única vez', async () => {
       const email = uniqueEmail('interesse');
       const created = await ctx
         .http()
@@ -609,7 +609,7 @@ describe('Fase 2 — atletas, equipes, interessados e seletivas', () => {
         .expect(409);
     });
 
-    it('denies recruitment data to common users', async () => {
+    it('nega dados de captação a usuários comuns', async () => {
       const user = await tokenFor(ctx, ['user']);
 
       await ctx.http().get('/api/v1/interested-people').set(auth(user.token)).expect(403);
@@ -618,7 +618,7 @@ describe('Fase 2 — atletas, equipes, interessados e seletivas', () => {
     });
   });
 
-  it('exposes dashboard indicators with definitions', async () => {
+  it('mostra os indicadores do painel com definição', async () => {
     const summary = await ctx
       .http()
       .get('/api/v1/dashboard/summary')

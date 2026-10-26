@@ -26,7 +26,7 @@ O encerramento formal ainda depende da aprovação da especificação consolidad
 
 - `apps/web`: frontend Next.js/React/TypeScript/SCSS;
 - `apps/api`: backend NestJS/TypeScript, REST, health check e Swagger fora de produção;
-- `packages/config`, `packages/types`, `packages/ui` e `packages/validation`: recursos compartilhados sem acoplamento entre as aplicações;
+- `packages/config`, `packages/types`, `packages/ui` e `packages/validation`: recursos compartilhados sem acoplamento entre as aplicações (`types` e `ui` foram removidos sem uso pela `DT-046`);
 - `prisma/schema.prisma`: modelo lógico inicial com 66 modelos e 53 enums;
 - PostgreSQL 17.10 local, fixado por imagem e digest, publicado somente em `127.0.0.1:5433`;
 - npm workspaces, lockfile, ambiente de exemplo, lint, formatação, testes, build, smoke test e CI.

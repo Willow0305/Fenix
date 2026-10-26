@@ -137,3 +137,15 @@ Em ordem de valor para o time:
 3. **Qualidade contínua:** R-10, R-07 e R-08.
 4. **Funcionalidades:** PIX automático e avisos primeiro.
 5. **Limpeza:** R-13, R-12 e R-09.
+
+## 6. Andamento
+
+Aprovado por inteiro pelo responsável do projeto em 2026-10-25.
+
+| Item | Situação |
+|---|---|
+| R-05 CSP com nonce | feito (`DT-046`) |
+| R-12 sitemap, robots e imagem de compartilhamento | feito (`DT-046`) |
+| R-13 pacotes e tabela sem uso | removidos (`DT-046`) |
+| Padrão pt-BR em mensagens, testes e migrações | feito (`DT-046`) |
+| PWA | manifesto e ícones feitos; service worker pendente |

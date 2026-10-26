@@ -16,8 +16,8 @@ import {
 
 const day = (value: string) => new Date(`${value}T00:00:00Z`);
 
-describe('partner rules', () => {
-  it('publishes only active partners within the contract window', () => {
+describe('regras de parceiros', () => {
+  it('publica só parceiros ativos dentro do contrato', () => {
     const base = {
       status: 'ACTIVE' as const,
       deletedAt: null,
@@ -36,7 +36,7 @@ describe('partner rules', () => {
     ).toBe(true);
   });
 
-  it('keeps ENDED terminal and settlement payment only after approval', () => {
+  it('mantém encerrado como final e só paga repasse aprovado', () => {
     expect(canTransition(PARTNER_TRANSITIONS, 'ENDED', 'ACTIVE')).toBe(false);
     expect(canTransition(PARTNER_TRANSITIONS, 'PENDING', 'ACTIVE')).toBe(true);
     expect(canTransition(SETTLEMENT_TRANSITIONS, 'DRAFT', 'PAID')).toBe(false);
@@ -46,7 +46,7 @@ describe('partner rules', () => {
     expect(canTransition(APPOINTMENT_TRANSITIONS, 'CONFIRMED', 'NO_SHOW')).toBe(true);
   });
 
-  it('lets the product override the partner commission', () => {
+  it('permite que o produto tenha comissão própria', () => {
     const partner = {
       commissionType: 'PERCENTAGE' as const,
       commissionPercentage: money('10'),
@@ -69,7 +69,7 @@ describe('partner rules', () => {
     ).toBe('FIXED');
   });
 
-  it('splits commission with half-up rounding and never above the total', () => {
+  it('divide a comissão arredondando meio para cima e nunca acima do total', () => {
     const pct = { type: 'PERCENTAGE' as const, percentage: money('12.5'), fixedAmount: null };
 
     expect(splitCommission(pct, money('33.33'), 1).commission.toFixed(2)).toBe('4.17');
@@ -86,7 +86,7 @@ describe('partner rules', () => {
     expect(splitCommission(none, money('50'), 1).partnerAmount.toFixed(2)).toBe('50.00');
   });
 
-  it('validates commission rules', () => {
+  it('valida as regras de comissão', () => {
     expect(
       invalidCommission({ type: 'PERCENTAGE', percentage: money('101'), fixedAmount: null })
     ).not.toBeNull();
@@ -99,7 +99,7 @@ describe('partner rules', () => {
     expect(invalidCommission({ type: 'NONE', percentage: null, fixedAmount: null })).toBeNull();
   });
 
-  it('totals settlements with signed adjustments', () => {
+  it('totaliza repasses com ajustes positivos e negativos', () => {
     const totals = settlementTotals(
       [
         { gross: money('100'), commission: money('10') },
@@ -113,7 +113,7 @@ describe('partner rules', () => {
     expect(totals.net.toFixed(2)).toBe('130.45');
   });
 
-  it('detects overlapping and invalid intervals', () => {
+  it('detecta intervalos sobrepostos e inválidos', () => {
     const at = (h: number) => new Date(Date.UTC(2030, 0, 1, h));
     const now = new Date(Date.UTC(2029, 0, 1));
 

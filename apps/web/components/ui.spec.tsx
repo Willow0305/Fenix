@@ -3,8 +3,8 @@ import { render, screen } from '@testing-library/react';
 import { ApiError } from '../lib/api-client';
 import { ErrorSummary, Pagination, TextField } from './ui';
 
-describe('ui', () => {
-  it('associates label, hint and error with the input', () => {
+describe('componentes de interface', () => {
+  it('liga rótulo, dica e erro ao campo', () => {
     render(<TextField label="E-mail" hint="Use seu e-mail" error="Obrigatório" required />);
 
     const input = screen.getByLabelText(/E-mail/);
@@ -14,7 +14,7 @@ describe('ui', () => {
     expect(screen.getByText('Obrigatório')).toBeInTheDocument();
   });
 
-  it('renders problem details with field errors and hides request id for client errors', () => {
+  it('mostra o problema com erros por campo e esconde o código interno em erro do cliente', () => {
     const error = new ApiError({
       status: 422,
       code: 'VALIDATION_ERROR',
@@ -31,7 +31,7 @@ describe('ui', () => {
     expect(screen.queryByText(/Código para suporte/)).not.toBeInTheDocument();
   });
 
-  it('shows pagination only when there is more than one page', () => {
+  it('mostra a paginação só quando há mais de uma página', () => {
     const { rerender } = render(
       <Pagination page={1} pageSize={20} total={5} onChange={() => undefined} />
     );

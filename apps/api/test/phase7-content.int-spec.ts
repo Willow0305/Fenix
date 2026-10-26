@@ -44,7 +44,7 @@ describe('Fase 7 — comunicação', () => {
     return created.body as { id: string; slug: string; content: string; status: string };
   }
 
-  it('publishes news immediately or on schedule, in every channel, and hides it everywhere', async () => {
+  it('publica notícia na hora ou agendada, em todos os canais, e esconde de todos', async () => {
     const news = await draftNews({ showOnForum: true });
 
     expect(news.status).toBe('DRAFT');
@@ -121,7 +121,7 @@ describe('Fase 7 — comunicação', () => {
     await ctx.http().post('/api/v1/news').set(auth(user.token)).send({}).expect(403);
   });
 
-  it('publishes public events and matches with linked news only when visible', async () => {
+  it('publica eventos e partidas com notícia vinculada só quando visível', async () => {
     const event = await ctx
       .http()
       .post('/api/v1/events')
@@ -220,7 +220,7 @@ describe('Fase 7 — comunicação', () => {
     await ctx.http().get(`/api/v1/public/events/${internal.body.slug}`).expect(404);
   });
 
-  describe('forum', () => {
+  describe('fórum', () => {
     let publicSlug: string;
     let membersSlug: string;
     let staffSlug: string;
@@ -247,7 +247,7 @@ describe('Fase 7 — comunicação', () => {
       bob = await tokenFor(ctx, ['user']);
     });
 
-    it('never leaks restricted categories or topics', async () => {
+    it('nunca expõe categorias ou tópicos restritos', async () => {
       await ctx
         .http()
         .post(`/api/v1/forum/categories/${membersSlug}/topics`)
@@ -300,7 +300,7 @@ describe('Fase 7 — comunicação', () => {
         .expect(404);
     });
 
-    it('lets verified users participate with idempotent reactions and reports, under moderation', async () => {
+    it('permite participação de contas verificadas, com reações e denúncias idempotentes, sob moderação', async () => {
       await ctx
         .http()
         .post(`/api/v1/forum/categories/${publicSlug}/topics`)
@@ -422,7 +422,7 @@ describe('Fase 7 — comunicação', () => {
       ).toBe(1);
     });
 
-    it('limits posting bursts', async () => {
+    it('limita publicações em sequência', async () => {
       const spammer = await tokenFor(ctx, ['user']);
       const topic = await ctx
         .http()
@@ -446,7 +446,7 @@ describe('Fase 7 — comunicação', () => {
     });
   });
 
-  it('broadcasts announcements once per idempotency key', async () => {
+  it('envia comunicado uma vez por chave de idempotência', async () => {
     const key = { 'Idempotency-Key': `test-${randomUUID()}` };
     const user = await tokenFor(ctx, ['user']);
 

@@ -1,11 +1,11 @@
 import { csvCell, toCsv } from './csv';
 
 describe('csv', () => {
-  it('escapes separators and quotes', () => {
+  it('escapa separadores e aspas', () => {
     expect(toCsv(['a', 'b'], [['x;y', 'diz "oi"']])).toBe('a;b\n"x;y";"diz ""oi"""');
   });
 
-  it('neutralizes spreadsheet formulas in text but keeps numbers', () => {
+  it('neutraliza fórmulas de planilha em texto, mas mantém números', () => {
     expect(csvCell('=HYPERLINK("http://x")')).toBe('"\'=HYPERLINK(""http://x"")"');
     expect(csvCell('+5511999')).toBe("'+5511999");
     expect(csvCell('-cmd')).toBe("'-cmd");

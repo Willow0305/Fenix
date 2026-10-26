@@ -4,8 +4,8 @@ import { DUMMY_PASSWORD_HASH, hashPassword, verifyPassword } from './password-ha
 
 const SECRET = 'test-secret-with-more-than-thirty-two-characters';
 
-describe('password hasher', () => {
-  it('verifies the correct password and rejects others', async () => {
+describe('hash de senha', () => {
+  it('confere a senha certa e recusa as outras', async () => {
     const hash = await hashPassword('senha-correta-123');
 
     expect(hash.startsWith('scrypt$v1$')).toBe(true);
@@ -13,20 +13,20 @@ describe('password hasher', () => {
     await expect(verifyPassword('senha-errada-123', hash)).resolves.toBe(false);
   });
 
-  it('never matches the dummy hash or malformed values', async () => {
+  it('nunca confere com o hash falso ou valores malformados', async () => {
     await expect(verifyPassword('qualquer', DUMMY_PASSWORD_HASH)).resolves.toBe(false);
     await expect(verifyPassword('qualquer', 'bcrypt$abc')).resolves.toBe(false);
   });
 });
 
-describe('access token', () => {
-  it('round-trips claims', () => {
+describe('token de acesso', () => {
+  it('preserva as informações ao gerar e ler', () => {
     const token = signAccessToken({ sub: 'u1', sid: 's1' }, SECRET, 60, 1000);
 
     expect(verifyAccessToken(token, SECRET, 1010)).toMatchObject({ sub: 'u1', sid: 's1' });
   });
 
-  it('rejects expired, tampered, foreign-secret and alg=none tokens', () => {
+  it('recusa token expirado, adulterado, de outro segredo ou alg=none', () => {
     const token = signAccessToken({ sub: 'u1', sid: 's1' }, SECRET, 60, 1000);
     const [header, body] = token.split('.') as [string, string, string];
     const forged = Buffer.from(
@@ -43,10 +43,10 @@ describe('access token', () => {
   });
 });
 
-describe('data cipher', () => {
+describe('cifra de dados', () => {
   const key = Buffer.alloc(32, 3);
 
-  it('encrypts with random IV and decrypts', () => {
+  it('cifra com IV aleatório e decifra', () => {
     const a = encryptField('chave-pix@exemplo.com', key);
     const b = encryptField('chave-pix@exemplo.com', key);
 
@@ -54,7 +54,7 @@ describe('data cipher', () => {
     expect(decryptField(a, key)).toBe('chave-pix@exemplo.com');
   });
 
-  it('fails with a wrong key', () => {
+  it('falha com chave errada', () => {
     expect(() => decryptField(encryptField('segredo', key), Buffer.alloc(32, 4))).toThrow();
   });
 });

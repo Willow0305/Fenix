@@ -124,7 +124,7 @@ describe('Fase 6 — parceiros e profissionais', () => {
     return created.body.id as string;
   }
 
-  it('publishes and sells only active partners within the contract, with restricted documents', async () => {
+  it('publica e vende só parceiros ativos dentro do contrato, com documentos restritos', async () => {
     const cnpj = randomCnpj();
     const pending = await ctx
       .http()
@@ -251,7 +251,7 @@ describe('Fase 6 — parceiros e profissionais', () => {
     expect(cart.status).toBe(409);
   });
 
-  it('freezes the commission rule on each order item, with product override', async () => {
+  it('congela a regra de comissão em cada item, com exceção por produto', async () => {
     const partnerId = await activePartner();
     const byPartner = await partnerProduct(partnerId, '100.00');
     const overridden = await partnerProduct(partnerId, '40.00', {
@@ -290,7 +290,7 @@ describe('Fase 6 — parceiros e profissionais', () => {
     expect(report.body.lines[0].partnerAmount.amount).toBe('285.00');
   });
 
-  it('settles paid items once and posts a single expense in the cash book', async () => {
+  it('repassa itens pagos uma vez e lança uma única saída no Caixa', async () => {
     const partnerId = await activePartner({ commissionPercentage: '20' });
     const product = await partnerProduct(partnerId, '75.00');
     const orderId = await buyAndPay(product.variantId, 2);
@@ -401,7 +401,7 @@ describe('Fase 6 — parceiros e profissionais', () => {
     expect(report.body.lines[0].pendingAmount.amount).toBe('0.00');
   });
 
-  it('releases items when an unpaid settlement is cancelled', async () => {
+  it('libera os itens quando um repasse não pago é cancelado', async () => {
     const partnerId = await activePartner();
     const product = await partnerProduct(partnerId, '30.00');
 
@@ -454,7 +454,7 @@ describe('Fase 6 — parceiros e profissionais', () => {
     expect(third.body.netPayableAmount.amount).toBe('25.00');
   });
 
-  it('books appointments only on free slots, without schedule conflicts', async () => {
+  it('agenda só em horários livres, sem conflito de agenda', async () => {
     const partnerId = await activePartner({ type: 'PROFESSIONAL', commissionType: 'NONE' });
     const professional = await ctx
       .http()
@@ -592,7 +592,7 @@ describe('Fase 6 — parceiros e profissionais', () => {
     expect(mine.body[0].requester.email).toBeUndefined();
   });
 
-  it('requires an approved partner for professionals and services', async () => {
+  it('exige parceiro aprovado para profissionais e serviços', async () => {
     const pending = await ctx
       .http()
       .post('/api/v1/partners')

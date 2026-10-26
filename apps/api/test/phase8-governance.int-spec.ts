@@ -93,7 +93,7 @@ describe('Fase 8 — relatórios, auditoria e privacidade', () => {
     return order.body.order.id as string;
   }
 
-  it('separates report reading from exporting', async () => {
+  it('separa ler relatório de exportar', async () => {
     const role = await ctx.prisma.role.create({
       data: {
         code: `leitor-${randomUUID().slice(0, 6)}`,
@@ -136,7 +136,7 @@ describe('Fase 8 — relatórios, auditoria e privacidade', () => {
     ]);
   });
 
-  it('reconciles sales and cash totals with the source and exports a safe, audited CSV', async () => {
+  it('confere totais de vendas e Caixa com a origem e exporta CSV seguro e auditado', async () => {
     await sellProduct(`=HYPERLINK("http://x") ${randomUUID().slice(0, 4)}`, '42.50');
 
     const sales = await ctx
@@ -195,7 +195,7 @@ describe('Fase 8 — relatórios, auditoria e privacidade', () => {
     expect(audited?.afterData).toMatchObject({ report: 'sales-products', from: today, to: today });
   });
 
-  it('shows audit details with related actions and filters by civil date', async () => {
+  it('mostra detalhes da auditoria com ações relacionadas e filtra por data civil', async () => {
     const created = await ctx
       .http()
       .post('/api/v1/news-categories')
@@ -234,7 +234,7 @@ describe('Fase 8 — relatórios, auditoria e privacidade', () => {
       .expect(403);
   });
 
-  it('lets the data subject export data and request erasure, fulfilled by anonymization', async () => {
+  it('permite ao titular exportar os dados e pedir exclusão, atendida por anonimização', async () => {
     const subject = await tokenFor(ctx, ['user']);
     const subjectRow = await ctx.prisma.user.findUniqueOrThrow({ where: { id: subject.id } });
     const exported = await ctx

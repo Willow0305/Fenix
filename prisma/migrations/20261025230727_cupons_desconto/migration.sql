@@ -1,17 +1,17 @@
 -- DT-045: cupons de desconto por produto, categoria e público.
--- CreateEnum
+-- Cria enum
 CREATE TYPE "CouponDiscountType" AS ENUM ('PERCENTAGE', 'FIXED');
 
--- CreateEnum
+-- Cria enum
 CREATE TYPE "CouponScope" AS ENUM ('ALL', 'PRODUCTS', 'CATEGORIES');
 
--- CreateEnum
+-- Cria enum
 CREATE TYPE "CouponAudience" AS ENUM ('EVERYONE', 'LOGGED_IN', 'ROLES');
 
--- CreateEnum
+-- Cria enum
 CREATE TYPE "CouponRedemptionStatus" AS ENUM ('ACTIVE', 'RELEASED');
 
--- CreateTable
+-- Cria tabela
 CREATE TABLE "coupons" (
     "id" UUID NOT NULL,
     "code" VARCHAR(40) NOT NULL,
@@ -36,7 +36,7 @@ CREATE TABLE "coupons" (
     CONSTRAINT "coupons_pkey" PRIMARY KEY ("id")
 );
 
--- CreateTable
+-- Cria tabela
 CREATE TABLE "coupon_products" (
     "id" UUID NOT NULL,
     "coupon_id" UUID NOT NULL,
@@ -46,7 +46,7 @@ CREATE TABLE "coupon_products" (
     CONSTRAINT "coupon_products_pkey" PRIMARY KEY ("id")
 );
 
--- CreateTable
+-- Cria tabela
 CREATE TABLE "coupon_categories" (
     "id" UUID NOT NULL,
     "coupon_id" UUID NOT NULL,
@@ -56,7 +56,7 @@ CREATE TABLE "coupon_categories" (
     CONSTRAINT "coupon_categories_pkey" PRIMARY KEY ("id")
 );
 
--- CreateTable
+-- Cria tabela
 CREATE TABLE "coupon_roles" (
     "id" UUID NOT NULL,
     "coupon_id" UUID NOT NULL,
@@ -66,7 +66,7 @@ CREATE TABLE "coupon_roles" (
     CONSTRAINT "coupon_roles_pkey" PRIMARY KEY ("id")
 );
 
--- CreateTable
+-- Cria tabela
 CREATE TABLE "coupon_redemptions" (
     "id" UUID NOT NULL,
     "coupon_id" UUID NOT NULL,
@@ -82,70 +82,70 @@ CREATE TABLE "coupon_redemptions" (
     CONSTRAINT "coupon_redemptions_pkey" PRIMARY KEY ("id")
 );
 
--- CreateIndex
+-- Cria índice
 CREATE UNIQUE INDEX "coupons_code_key" ON "coupons"("code");
 
--- CreateIndex
+-- Cria índice
 CREATE INDEX "coupons_is_active_deleted_at_idx" ON "coupons"("is_active", "deleted_at");
 
--- CreateIndex
+-- Cria índice
 CREATE INDEX "coupon_products_product_id_idx" ON "coupon_products"("product_id");
 
--- CreateIndex
+-- Cria índice
 CREATE UNIQUE INDEX "coupon_products_coupon_id_product_id_key" ON "coupon_products"("coupon_id", "product_id");
 
--- CreateIndex
+-- Cria índice
 CREATE INDEX "coupon_categories_product_category_id_idx" ON "coupon_categories"("product_category_id");
 
--- CreateIndex
+-- Cria índice
 CREATE UNIQUE INDEX "coupon_categories_coupon_id_product_category_id_key" ON "coupon_categories"("coupon_id", "product_category_id");
 
--- CreateIndex
+-- Cria índice
 CREATE INDEX "coupon_roles_role_id_idx" ON "coupon_roles"("role_id");
 
--- CreateIndex
+-- Cria índice
 CREATE UNIQUE INDEX "coupon_roles_coupon_id_role_id_key" ON "coupon_roles"("coupon_id", "role_id");
 
--- CreateIndex
+-- Cria índice
 CREATE UNIQUE INDEX "coupon_redemptions_order_id_key" ON "coupon_redemptions"("order_id");
 
--- CreateIndex
+-- Cria índice
 CREATE INDEX "coupon_redemptions_coupon_id_status_idx" ON "coupon_redemptions"("coupon_id", "status");
 
--- CreateIndex
+-- Cria índice
 CREATE INDEX "coupon_redemptions_coupon_id_user_id_status_idx" ON "coupon_redemptions"("coupon_id", "user_id", "status");
 
--- CreateIndex
+-- Cria índice
 CREATE INDEX "coupon_redemptions_coupon_id_customer_email_status_idx" ON "coupon_redemptions"("coupon_id", "customer_email", "status");
 
--- AddForeignKey
+-- Adiciona chave estrangeira
 ALTER TABLE "coupons" ADD CONSTRAINT "coupons_created_by_id_fkey" FOREIGN KEY ("created_by_id") REFERENCES "users"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
--- AddForeignKey
+-- Adiciona chave estrangeira
 ALTER TABLE "coupon_products" ADD CONSTRAINT "coupon_products_coupon_id_fkey" FOREIGN KEY ("coupon_id") REFERENCES "coupons"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
--- AddForeignKey
+-- Adiciona chave estrangeira
 ALTER TABLE "coupon_products" ADD CONSTRAINT "coupon_products_product_id_fkey" FOREIGN KEY ("product_id") REFERENCES "products"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
--- AddForeignKey
+-- Adiciona chave estrangeira
 ALTER TABLE "coupon_categories" ADD CONSTRAINT "coupon_categories_coupon_id_fkey" FOREIGN KEY ("coupon_id") REFERENCES "coupons"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
--- AddForeignKey
+-- Adiciona chave estrangeira
 ALTER TABLE "coupon_categories" ADD CONSTRAINT "coupon_categories_product_category_id_fkey" FOREIGN KEY ("product_category_id") REFERENCES "product_categories"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
--- AddForeignKey
+-- Adiciona chave estrangeira
 ALTER TABLE "coupon_roles" ADD CONSTRAINT "coupon_roles_coupon_id_fkey" FOREIGN KEY ("coupon_id") REFERENCES "coupons"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
--- AddForeignKey
+-- Adiciona chave estrangeira
 ALTER TABLE "coupon_roles" ADD CONSTRAINT "coupon_roles_role_id_fkey" FOREIGN KEY ("role_id") REFERENCES "roles"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
--- AddForeignKey
+-- Adiciona chave estrangeira
 ALTER TABLE "coupon_redemptions" ADD CONSTRAINT "coupon_redemptions_coupon_id_fkey" FOREIGN KEY ("coupon_id") REFERENCES "coupons"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
--- AddForeignKey
+-- Adiciona chave estrangeira
 ALTER TABLE "coupon_redemptions" ADD CONSTRAINT "coupon_redemptions_order_id_fkey" FOREIGN KEY ("order_id") REFERENCES "orders"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
--- AddForeignKey
+-- Adiciona chave estrangeira
 ALTER TABLE "coupon_redemptions" ADD CONSTRAINT "coupon_redemptions_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "users"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- Percentual e valor coerentes com o tipo, e nunca negativos (DT-045).

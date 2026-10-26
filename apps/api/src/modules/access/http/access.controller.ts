@@ -34,7 +34,7 @@ import {
   UserListQueryDto
 } from './access.dto';
 
-@ApiTags('users')
+@ApiTags('Usuários')
 @ApiBearerAuth()
 @Controller('users')
 export class UsersController {
@@ -122,7 +122,7 @@ export class UsersController {
   }
 }
 
-@ApiTags('roles')
+@ApiTags('Papéis e permissões')
 @ApiBearerAuth()
 @Controller()
 export class RolesController {
@@ -152,7 +152,7 @@ export class RolesController {
   }
 }
 
-@ApiTags('audit')
+@ApiTags('Auditoria')
 @ApiBearerAuth()
 @Controller('audit-logs')
 export class AuditController {

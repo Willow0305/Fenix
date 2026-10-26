@@ -1,7 +1,7 @@
 import { columnTotals, periodLabel, reportDefinition, REPORTS } from './report-catalog';
 
-describe('report catalog', () => {
-  it('describes every report with a unique key', () => {
+describe('catálogo de relatórios', () => {
+  it('descreve cada relatório com chave única', () => {
     const keys = REPORTS.map((r) => r.key);
 
     expect(new Set(keys).size).toBe(keys.length);
@@ -9,7 +9,7 @@ describe('report catalog', () => {
     expect(reportDefinition('nao-existe')).toBeUndefined();
   });
 
-  it('totals numbers and money columns exactly', () => {
+  it('totaliza colunas de números e dinheiro com exatidão', () => {
     const add = (a: string, b: string) => {
       const cents = Math.round(Number(a) * 100) + Math.round(Number(b) * 100);
 
@@ -31,7 +31,7 @@ describe('report catalog', () => {
     expect(totals).toEqual({ qty: 5, amount: '0.30' });
   });
 
-  it('labels the period with time zone', () => {
+  it('identifica o período com o fuso horário', () => {
     expect(periodLabel({ from: '2026-10-01', to: '2026-10-31' }, 'America/Rio_Branco')).toBe(
       '01/10/2026 a 31/10/2026 (America/Rio_Branco)'
     );

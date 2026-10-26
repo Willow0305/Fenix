@@ -118,7 +118,7 @@ export class DashboardService {
   }
 }
 
-@ApiTags('dashboard')
+@ApiTags('Painel')
 @ApiBearerAuth()
 @Controller('dashboard')
 export class DashboardController {

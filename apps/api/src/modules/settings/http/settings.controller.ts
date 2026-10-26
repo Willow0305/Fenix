@@ -36,7 +36,7 @@ import {
 
 export const UPLOAD_LIMITS = { limits: { fileSize: 10 * 1024 * 1024 + 1, files: 1 } };
 
-@ApiTags('settings')
+@ApiTags('Configurações')
 @Controller()
 export class SettingsController {
   constructor(private readonly settings: SettingsService) {}

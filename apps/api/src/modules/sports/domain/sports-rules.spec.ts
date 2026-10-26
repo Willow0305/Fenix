@@ -14,19 +14,19 @@ import {
 
 const TODAY = '2026-10-18';
 
-describe('civil dates', () => {
-  it('validates real calendar dates', () => {
+describe('datas civis', () => {
+  it('valida datas reais do calendário', () => {
     expect(isCivilDate('2026-02-28')).toBe(true);
     expect(isCivilDate('2026-02-30')).toBe(false);
     expect(isCivilDate('18/10/2026')).toBe(false);
   });
 
-  it('computes age considering the birthday', () => {
+  it('calcula a idade considerando o aniversário', () => {
     expect(ageOn('2008-10-18', TODAY)).toBe(18);
     expect(ageOn('2008-10-19', TODAY)).toBe(17);
   });
 
-  it('adds months across years and knows month length', () => {
+  it('soma meses entre anos e conhece o tamanho do mês', () => {
     expect(addMonths('2026-11-15', 2)).toBe('2027-01-01');
     expect(daysInMonth('2028-02-01')).toBe(29);
   });
@@ -38,19 +38,19 @@ describe('validateGuardian', () => {
     ctx: 'admin' | 'public' = 'admin'
   ) => validateGuardian(input, TODAY, ctx).map((e) => e.code);
 
-  it('requires nothing for adults or unknown birth date', () => {
+  it('não exige nada de adulto ou sem data de nascimento', () => {
     expect(codes({ birthDate: '2000-01-01', guardianName: null, guardianPhone: null })).toEqual([]);
     expect(codes({ birthDate: null, guardianName: null, guardianPhone: null })).toEqual([]);
   });
 
-  it('requires guardian name and phone for minors', () => {
+  it('exige nome e telefone do responsável para menor', () => {
     expect(codes({ birthDate: '2012-01-01', guardianName: null, guardianPhone: ' ' })).toEqual([
       'GUARDIAN_REQUIRED',
       'GUARDIAN_REQUIRED'
     ]);
   });
 
-  it('blocks public registration of children under 12 and requires acknowledgement from staff', () => {
+  it('barra inscrição pública de menor de 12 e exige ciência registrada pela diretoria', () => {
     const child = { birthDate: '2016-05-05', guardianName: 'Mãe', guardianPhone: '6899' };
 
     expect(codes(child, 'public')).toEqual(['UNDER_MINIMUM_AGE']);
@@ -58,32 +58,32 @@ describe('validateGuardian', () => {
     expect(codes({ ...child, guardianAcknowledged: true }, 'admin')).toEqual([]);
   });
 
-  it('rejects impossible birth dates', () => {
+  it('recusa data de nascimento impossível', () => {
     expect(codes({ birthDate: '2030-01-01', guardianName: null, guardianPhone: null })).toEqual([
       'INVALID_BIRTH_DATE'
     ]);
   });
 });
 
-describe('state machines', () => {
-  it('athlete status', () => {
+describe('máquinas de estado', () => {
+  it('status do atleta', () => {
     expect(canTransition(ATHLETE_TRANSITIONS, 'PENDING', 'ACTIVE')).toBe(true);
     expect(canTransition(ATHLETE_TRANSITIONS, 'INACTIVE', 'SUSPENDED')).toBe(false);
   });
 
-  it('tryout lifecycle is terminal after completion or cancellation', () => {
+  it('o ciclo da seletiva termina ao concluir ou cancelar', () => {
     expect(canTransition(TRYOUT_TRANSITIONS, 'CLOSED', 'OPEN')).toBe(true);
     expect(canTransition(TRYOUT_TRANSITIONS, 'COMPLETED', 'OPEN')).toBe(false);
     expect(canTransition(TRYOUT_TRANSITIONS, 'CANCELLED', 'DRAFT')).toBe(false);
   });
 
-  it('registration review flow', () => {
+  it('fluxo de análise da inscrição', () => {
     expect(canTransition(TRYOUT_REGISTRATION_TRANSITIONS, 'NEW', 'APPROVED')).toBe(true);
     expect(canTransition(TRYOUT_REGISTRATION_TRANSITIONS, 'APPROVED', 'ATTENDED')).toBe(true);
     expect(canTransition(TRYOUT_REGISTRATION_TRANSITIONS, 'ATTENDED', 'NEW')).toBe(false);
   });
 
-  it('interested people are only converted by the conversion action', () => {
+  it('interessado só vira atleta pela ação de conversão', () => {
     expect(canTransition(INTERESTED_TRANSITIONS, 'QUALIFIED', 'CONVERTED')).toBe(false);
   });
 });
@@ -97,11 +97,11 @@ describe('registrationBlock', () => {
     maxSlots: null
   };
 
-  it('accepts an open tryout', () => {
+  it('aceita seletiva aberta', () => {
     expect(registrationBlock(base, 0, now)).toBeNull();
   });
 
-  it('blocks by status, window and slots', () => {
+  it('barra por status, período e vagas', () => {
     expect(registrationBlock({ ...base, status: 'DRAFT' }, 0, now)).toBe('NOT_OPEN');
     expect(
       registrationBlock({ ...base, registrationStartsAt: new Date('2026-10-19T00:00:00Z') }, 0, now)
@@ -113,8 +113,8 @@ describe('registrationBlock', () => {
   });
 });
 
-describe('helpers', () => {
-  it('detects overlapping membership periods', () => {
+describe('utilitários', () => {
+  it('detecta vínculos com períodos sobrepostos', () => {
     expect(
       periodsOverlap(
         { startsOn: '2026-01-01', endsOn: null },
@@ -129,7 +129,7 @@ describe('helpers', () => {
     ).toBe(false);
   });
 
-  it('slugifies and normalizes documents', () => {
+  it('gera slug e normaliza documentos', () => {
     expect(slugify('Seletiva Sub-17 Feminino 2026!')).toBe('seletiva-sub-17-feminino-2026');
     expect(normalizeDocument('123.456.789-0x')).toBe('1234567890X');
   });

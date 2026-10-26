@@ -33,7 +33,7 @@ O modelo consolida o PDF de requisitos, o briefing técnico, `AGENTS.md` e as de
 |---|---|
 | Identidade e acesso | `User`, `UserSession`, `UserToken`, `Role`, `Permission`, `UserRole`, `RolePermission` |
 | Configurações e arquivos | `TeamSettings`, `TeamBrandAsset`, `MediaFile`, `AuditLog` |
-| Esportivo e inscrições | `Athlete`, `AthleteDocument`, `Category`, `Team`, `TeamAthlete`, `InterestedPerson`, `Registration`, `Tryout`, `TryoutRegistration` |
+| Esportivo e inscrições | `Athlete`, `AthleteDocument`, `Category`, `Team`, `TeamAthlete`, `InterestedPerson`, `Tryout`, `TryoutRegistration` |
 | Mensalidades | `MonthlyFeePlan`, `AthleteMonthlyFeePlan`, `MonthlyFee`, `MonthlyFeePayment` |
 | Caixa Fênix | `FinancialAccount`, `FinancialCategory`, `CostCenter`, `FinancialObligation`, `FinancialTransaction`, `FinancialTransfer`, `FinancialTransactionAttachment`, `CashClosing`, `PaymentMethod` |
 | Loja e estoque | `ProductCategory`, `Product`, `ProductImage`, `ProductVariant`, `InventoryMovement`, `Favorite`, `Cart`, `CartItem`, `Order`, `OrderItem`, `Payment`, `Refund` |
@@ -73,7 +73,7 @@ Senha é representada apenas por hash adaptativo em `User.passwordHash`. Refresh
 
 `Athlete` pode, mas não precisa, estar ligado a `User`; administradores não são atletas e um cadastro esportivo pode existir antes de uma conta. `TeamAthlete` preserva vínculos N:N e períodos históricos. `Category` representa categoria esportiva, enquanto `Team` representa a equipe operacional.
 
-`InterestedPerson` é uma manifestação inicial de interesse. `Registration` é uma inscrição geral no time e `TryoutRegistration` é uma inscrição em seletiva específica. Ambas preservam o retrato cadastral submetido; a conversão opcional para `Athlete` não apaga a origem.
+`InterestedPerson` é uma manifestação inicial de interesse, que também atende a inscrição geral no time, e `TryoutRegistration` é uma inscrição em seletiva específica (`DT-028`; a tabela reservada `Registration` foi removida pela `DT-046`). Ambas preservam o retrato cadastral submetido; a conversão opcional para `Athlete` não apaga a origem.
 
 Campos obrigatórios exatos, deduplicação de candidatos e vínculo de responsável por menor continuam dependentes de decisão de negócio. O schema aceita os dados mínimos explicitamente pedidos sem conceder acesso de responsável.
 

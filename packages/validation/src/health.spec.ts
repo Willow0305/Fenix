@@ -1,7 +1,7 @@
 import { technicalHealthSchema } from './health';
 
 describe('technicalHealthSchema', () => {
-  it('accepts the public technical health contract', () => {
+  it('aceita o contrato público de saúde', () => {
     expect(
       technicalHealthSchema.parse({
         service: 'fenix-api',
@@ -15,7 +15,7 @@ describe('technicalHealthSchema', () => {
     });
   });
 
-  it('rejects configuration details outside the contract', () => {
+  it('recusa detalhes de configuração fora do contrato', () => {
     expect(() =>
       technicalHealthSchema.parse({
         database: 'internal-host',

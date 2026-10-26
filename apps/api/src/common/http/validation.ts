@@ -1,6 +1,7 @@
 import { ValidationPipe, type ValidationError } from '@nestjs/common';
 
 import { AppError, type FieldError } from '../errors/app-error';
+import { translateValidationMessage } from './validation-messages';
 
 function flatten(errors: readonly ValidationError[], prefix = ''): FieldError[] {
   return errors.flatMap((error) => {
@@ -8,7 +9,7 @@ function flatten(errors: readonly ValidationError[], prefix = ''): FieldError[] 
     const own = Object.entries(error.constraints ?? {}).map(([code, message]) => ({
       field,
       code,
-      message
+      message: translateValidationMessage(code, message)
     }));
 
     return [...own, ...flatten(error.children ?? [], field)];

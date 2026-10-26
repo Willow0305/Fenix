@@ -22,7 +22,7 @@ describe('GET /health', () => {
     await app.close();
   });
 
-  it('responds without exposing configuration', async () => {
+  it('responde sem expor a configuração', async () => {
     const response = await request(app.getHttpServer()).get('/health').expect(200);
 
     expect(response.body).toEqual({

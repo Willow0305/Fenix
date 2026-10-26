@@ -26,7 +26,7 @@ describe('Fase 1 — autenticação, permissões e configurações', () => {
   });
 
   describe('cadastro e login', () => {
-    it('registers a common user and never accepts a privileged role from the client', async () => {
+    it('cadastra usuário comum e nunca aceita papel privilegiado vindo do cliente', async () => {
       const email = uniqueEmail('cadastro');
       const response = await ctx
         .http()
@@ -68,7 +68,7 @@ describe('Fase 1 — autenticação, permissões e configurações', () => {
         .expect(422);
     });
 
-    it('validates terms, age declaration, password policy and duplicates', async () => {
+    it('valida termos, declaração de idade, política de senha e duplicidade', async () => {
       const base = {
         name: 'Bia',
         email: uniqueEmail(),
@@ -102,7 +102,7 @@ describe('Fase 1 — autenticação, permissões e configurações', () => {
         .expect(409);
     });
 
-    it('uses the same generic error for unknown e-mail and wrong password', async () => {
+    it('usa o mesmo erro genérico para e-mail desconhecido e senha errada', async () => {
       const user = await createUser(ctx.prisma, ['user']);
       const wrong = await ctx
         .http()
@@ -119,7 +119,7 @@ describe('Fase 1 — autenticação, permissões e configurações', () => {
       expect(wrong.body.code).toBe('INVALID_CREDENTIALS');
     });
 
-    it('blocks inactive accounts', async () => {
+    it('bloqueia contas inativas', async () => {
       const user = await createUser(ctx.prisma, ['user']);
 
       await ctx.prisma.user.update({ where: { id: user.id }, data: { status: 'BLOCKED' } });
@@ -132,7 +132,7 @@ describe('Fase 1 — autenticação, permissões e configurações', () => {
   });
 
   describe('sessões', () => {
-    it('rotates refresh tokens, detects reuse and revokes every session', async () => {
+    it('renova o token, detecta reuso e revoga todas as sessões', async () => {
       const user = await createUser(ctx.prisma, ['user']);
       const first = await ctx
         .http()
@@ -169,7 +169,7 @@ describe('Fase 1 — autenticação, permissões e configurações', () => {
       expect(audit).toBe(1);
     });
 
-    it('rejects refresh from a foreign origin', async () => {
+    it('recusa renovação vinda de outra origem', async () => {
       const user = await createUser(ctx.prisma, ['user']);
       const response = await ctx
         .http()
@@ -184,7 +184,7 @@ describe('Fase 1 — autenticação, permissões e configurações', () => {
         .expect(403);
     });
 
-    it('logout invalidates the session and its access token', async () => {
+    it('sair invalida a sessão e o token de acesso', async () => {
       const user = await createUser(ctx.prisma, ['user']);
       const response = await ctx
         .http()
@@ -201,7 +201,7 @@ describe('Fase 1 — autenticação, permissões e configurações', () => {
         .expect(401);
     });
 
-    it('password change keeps the current session and revokes others', async () => {
+    it('trocar a senha mantém a sessão atual e revoga as outras', async () => {
       const user = await createUser(ctx.prisma, ['user']);
       const current = await login(ctx, user.email);
       const other = await login(ctx, user.email);
@@ -236,7 +236,7 @@ describe('Fase 1 — autenticação, permissões e configurações', () => {
         };
       }
 
-      it('ends an idle administrative session on refresh and audits it', async () => {
+      it('encerra sessão administrativa parada ao renovar e registra na auditoria', async () => {
         const { user, cookie, accessToken, idleTimeoutSeconds } = await openSession(['admin']);
 
         expect(idleTimeoutSeconds).toBe(30 * 60);
@@ -268,7 +268,7 @@ describe('Fase 1 — autenticação, permissões e configurações', () => {
         ).toBe(1);
       });
 
-      it('rejects the access token of an idle session before any refresh', async () => {
+      it('recusa o token de acesso de sessão parada antes de qualquer renovação', async () => {
         const { user, accessToken } = await openSession(['board']);
 
         await ctx.prisma.userSession.updateMany({
@@ -282,7 +282,7 @@ describe('Fase 1 — autenticação, permissões e configurações', () => {
           .expect(401);
       });
 
-      it('keeps a common user signed in for hours but not past 7 idle days', async () => {
+      it('mantém o usuário comum conectado por horas, mas não além de 7 dias parado', async () => {
         const { user, cookie, idleTimeoutSeconds } = await openSession(['user']);
 
         expect(idleTimeoutSeconds).toBe(7 * 24 * 60 * 60);
@@ -307,7 +307,7 @@ describe('Fase 1 — autenticação, permissões e configurações', () => {
           .expect(401);
       });
 
-      it('automatic refreshes do not count as activity; reported activity does', async () => {
+      it('renovação automática não conta como uso; atividade informada conta', async () => {
         const { user, cookie } = await openSession(['admin']);
         const old = ago(10 * 60);
 
@@ -339,7 +339,7 @@ describe('Fase 1 — autenticação, permissões e configurações', () => {
         expect(afterActive.lastActivityAt.getTime()).toBeGreaterThan(Date.now() - 5_000);
       });
 
-      it('authenticated requests record activity', async () => {
+      it('requisições autenticadas registram atividade', async () => {
         const { user, accessToken } = await openSession(['admin']);
 
         await ctx.prisma.userSession.updateMany({
@@ -358,7 +358,7 @@ describe('Fase 1 — autenticação, permissões e configurações', () => {
         expect(session.lastActivityAt.getTime()).toBeGreaterThan(Date.now() - 5_000);
       });
 
-      it('ends an administrative session 12 hours after login despite constant use', async () => {
+      it('encerra sessão administrativa 12 horas depois do login, mesmo com uso constante', async () => {
         const { user, cookie } = await openSession(['admin']);
 
         await ctx.prisma.userSession.updateMany({
@@ -379,7 +379,7 @@ describe('Fase 1 — autenticação, permissões e configurações', () => {
         expect(session.revocationReason).toBe('ABSOLUTE_TIMEOUT');
       });
 
-      it('rotation keeps the original login instant and the absolute deadline', async () => {
+      it('a renovação mantém o instante do login e o prazo máximo', async () => {
         const { user, cookie } = await openSession(['user']);
         const first = await ctx.prisma.userSession.findFirstOrThrow({
           where: { userId: user.id }
@@ -398,7 +398,7 @@ describe('Fase 1 — autenticação, permissões e configurações', () => {
   });
 
   describe('recuperação de senha', () => {
-    it('does not reveal accounts and resets with a single-use token', async () => {
+    it('não revela contas e redefine com token de uso único', async () => {
       const user = await createUser(ctx.prisma, ['user']);
       const unknown = await ctx
         .http()
@@ -434,7 +434,7 @@ describe('Fase 1 — autenticação, permissões e configurações', () => {
   });
 
   describe('autorização administrativa', () => {
-    it('denies users without permission and audits the attempt', async () => {
+    it('nega acesso sem permissão e registra a tentativa', async () => {
       const { token, id } = await tokenFor(ctx, ['user']);
 
       await ctx.http().get('/api/v1/users').set('Authorization', `Bearer ${token}`).expect(403);
@@ -443,7 +443,7 @@ describe('Fase 1 — autenticação, permissões e configurações', () => {
       ).toBe(1);
     });
 
-    it('board cannot manage roles; admin can, with audit and self-protection', async () => {
+    it('diretoria não gerencia papéis; administrador gerencia, com auditoria e proteção da própria conta', async () => {
       const board = await tokenFor(ctx, ['board']);
       const admin = await tokenFor(ctx, ['admin']);
       const target = await createUser(ctx.prisma, ['user']);
@@ -478,7 +478,7 @@ describe('Fase 1 — autenticação, permissões e configurações', () => {
       expect(log?.actorUserId).toBe(admin.id);
     });
 
-    it('disabling a user revokes their sessions immediately', async () => {
+    it('desativar usuário revoga as sessões na hora', async () => {
       const admin = await tokenFor(ctx, ['admin']);
       const target = await tokenFor(ctx, ['user']);
 
@@ -491,7 +491,7 @@ describe('Fase 1 — autenticação, permissões e configurações', () => {
       await ctx.http().get('/api/v1/me').set('Authorization', `Bearer ${target.token}`).expect(401);
     });
 
-    it('lists audit logs only with audit.read', async () => {
+    it('lista a auditoria só com audit.read', async () => {
       const admin = await tokenFor(ctx, ['admin']);
       const board = await tokenFor(ctx, ['board']);
 
@@ -512,7 +512,7 @@ describe('Fase 1 — autenticação, permissões e configurações', () => {
   });
 
   describe('configurações do time', () => {
-    it('updates public data, keeps financial data private and encrypted', async () => {
+    it('atualiza dados públicos e mantém os financeiros privados e cifrados', async () => {
       const admin = await tokenFor(ctx, ['admin']);
       const user = await tokenFor(ctx, ['user']);
 
@@ -557,7 +557,7 @@ describe('Fase 1 — autenticação, permissões e configurações', () => {
       expect(payment.body.pixKey).toBe('pix@fenix.example');
     });
 
-    it('uploads a validated logo and rejects disguised files', async () => {
+    it('envia logo validada e recusa arquivo disfarçado', async () => {
       const board = await tokenFor(ctx, ['board']);
       const uploaded = await ctx
         .http()

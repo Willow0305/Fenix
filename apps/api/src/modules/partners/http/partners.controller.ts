@@ -112,7 +112,7 @@ function commissionFields(body: {
   };
 }
 
-@ApiTags('partners')
+@ApiTags('Parceiros')
 @Controller()
 export class PartnersController {
   constructor(

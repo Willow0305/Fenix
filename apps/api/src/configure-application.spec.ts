@@ -29,7 +29,7 @@ describe('configureApplication', () => {
     process.env['NODE_ENV'] = originalNodeEnv;
   });
 
-  it('exposes the OpenAPI document outside production', async () => {
+  it('expõe a documentação OpenAPI fora de produção', async () => {
     process.env['NODE_ENV'] = 'test';
     const app = await createApplication();
 
@@ -40,7 +40,7 @@ describe('configureApplication', () => {
     }
   });
 
-  it('does not expose Swagger in production', async () => {
+  it('não expõe o Swagger em produção', async () => {
     const productionEnv = {
       NODE_ENV: 'production',
       AUTH_ACCESS_TOKEN_SECRET: 'production-test-secret-with-enough-length-0123',
@@ -74,7 +74,7 @@ describe('configureApplication', () => {
     }
   });
 
-  it('refuses to start in production without required secrets', async () => {
+  it('recusa iniciar em produção sem os segredos obrigatórios', async () => {
     process.env['NODE_ENV'] = 'production';
     const secret = process.env['AUTH_ACCESS_TOKEN_SECRET'];
 
@@ -89,7 +89,7 @@ describe('configureApplication', () => {
     }
   });
 
-  it('answers unknown routes with problem details', async () => {
+  it('responde rotas desconhecidas no formato de problema', async () => {
     process.env['NODE_ENV'] = 'test';
     const app = await createApplication();
 
@@ -104,7 +104,7 @@ describe('configureApplication', () => {
     }
   });
 
-  it('rejects protected routes without a token', async () => {
+  it('recusa rotas protegidas sem token', async () => {
     process.env['NODE_ENV'] = 'test';
     const app = await createApplication();
 

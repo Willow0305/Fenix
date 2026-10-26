@@ -33,7 +33,7 @@ export class ReportQueryDto {
 }
 
 /** Leitura (`reports.read`) e exportação (`reports.export`) são permissões distintas. */
-@ApiTags('reports')
+@ApiTags('Relatórios')
 @ApiBearerAuth()
 @Controller('reports')
 export class ReportsController {

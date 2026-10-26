@@ -1107,3 +1107,11 @@ dialog {
     font-size: 1.3rem;
   }
 }
+
+// Páginas de status (404 e erro).
+.status-page {
+  justify-items: center;
+  text-align: center;
+  padding-block: 4rem;
+  max-width: 40rem;
+}

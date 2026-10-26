@@ -84,7 +84,7 @@ function toApplicant(dto: ApplicantDto): ApplicantInput {
 
 const PUBLIC_FORM_LIMIT = { default: { limit: 5, ttl: 60_000 } };
 
-@ApiTags('public')
+@ApiTags('Site público')
 @Public()
 @Controller('public')
 export class PublicSportsController {
@@ -151,7 +151,7 @@ export class PublicSportsController {
   }
 }
 
-@ApiTags('teams')
+@ApiTags('Equipes e categorias')
 @ApiBearerAuth()
 @Controller()
 export class TeamsController {
@@ -224,7 +224,7 @@ export class TeamsController {
   }
 }
 
-@ApiTags('athletes')
+@ApiTags('Atletas')
 @ApiBearerAuth()
 @Controller('athletes')
 export class AthletesController {
@@ -339,7 +339,7 @@ export class AthletesController {
   }
 }
 
-@ApiTags('recruitment')
+@ApiTags('Captação (interessados e seletivas)')
 @ApiBearerAuth()
 @Controller()
 export class RecruitmentController {
@@ -455,7 +455,7 @@ export class RecruitmentController {
   }
 }
 
-@ApiTags('me')
+@ApiTags('Minha conta')
 @ApiBearerAuth()
 @Controller('me')
 export class MySportsController {

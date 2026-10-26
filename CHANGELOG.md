@@ -6,6 +6,24 @@ O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) e o 
 
 ## [Não publicado]
 
+### Limpeza, segurança e padrão pt-BR (2026-10-25)
+
+#### Adicionado
+
+- `sitemap.xml`, `robots.txt` e imagem padrão de compartilhamento com a logo (DT-046);
+- manifesto de app instalável com ícones gerados da logo;
+- páginas próprias de "Página não encontrada" e de erro no site.
+
+#### Alterado
+
+- a política de segurança de conteúdo passa a usar um código (nonce) novo a cada página; nenhum script embutido roda sem ele;
+- mensagens de validação e de erro da API, títulos de testes, grupos da documentação da API e comentários das migrações em português do Brasil.
+
+#### Removido
+
+- pacotes `packages/types` e `packages/ui`, sem uso;
+- tabela reservada `registrations`, nunca usada; a inscrição geral segue pelo cadastro de interessado (migração `20261026042015_remove_registrations`, que para se houver dados).
+
 ### Revisão geral (2026-10-25)
 
 #### Alterado

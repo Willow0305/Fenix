@@ -263,7 +263,7 @@ describe('Fase 3 — mensalidades e Caixa Fênix', () => {
       ).toBe(1);
     });
 
-    it('generates once per athlete and month, preserving the plan amount or override', async () => {
+    it('gera uma vez por atleta e mês, respeitando o valor do plano ou o individual', async () => {
       const { athleteId, month } = await feeFor('80.00', { override: '50.00' });
       const again = await ctx
         .http()
@@ -281,7 +281,7 @@ describe('Fase 3 — mensalidades e Caixa Fênix', () => {
       expect(fee.dueDate.toISOString().slice(0, 10)).toBe(`${month}-10`);
     });
 
-    it('accepts partial payments, posts exactly one cash entry each and blocks overpayment', async () => {
+    it('aceita pagamento parcial, lança exatamente uma entrada no Caixa por pagamento e barra pagamento a mais', async () => {
       const accountId = await newAccount();
       const { feeId } = await feeFor('100.00');
       const pay = (amount: string) =>
@@ -336,7 +336,7 @@ describe('Fase 3 — mensalidades e Caixa Fênix', () => {
       ).toBe(true);
     });
 
-    it('is idempotent per key and rejects reuse by another user or a missing key', async () => {
+    it('é idempotente por chave e recusa reuso por outra pessoa ou chave ausente', async () => {
       const accountId = await newAccount();
       const { feeId } = await feeFor('70.00');
       const body = {
@@ -381,7 +381,7 @@ describe('Fase 3 — mensalidades e Caixa Fênix', () => {
       expect(await balanceOf(accountId)).toBe('70.00');
     });
 
-    it('serializes concurrent payments so the fee is never overpaid', async () => {
+    it('serializa pagamentos simultâneos para a mensalidade nunca ser paga a mais', async () => {
       const accountId = await newAccount();
       const { feeId } = await feeFor('50.00');
       const method = await methodId();
@@ -398,7 +398,7 @@ describe('Fase 3 — mensalidades e Caixa Fênix', () => {
       expect(await balanceOf(accountId)).toBe('50.00');
     });
 
-    it('reverses a confirmed payment with a linked refund without touching the original entry', async () => {
+    it('estorna pagamento confirmado com reembolso vinculado, sem mexer no lançamento original', async () => {
       const accountId = await newAccount();
       const { feeId } = await feeFor('90.00');
       const paid = await ctx
@@ -452,7 +452,7 @@ describe('Fase 3 — mensalidades e Caixa Fênix', () => {
       expect(reversal.refundId).not.toBeNull();
     });
 
-    it('lets the athlete send a PIX proof and see only their own fees', async () => {
+    it('permite ao atleta enviar comprovante PIX e ver só as próprias mensalidades', async () => {
       const athleteUser = await createUser(ctx.prisma, ['user', 'athlete']);
       const athleteToken = await login(ctx, athleteUser.email);
       const { feeId } = await feeFor('60.00', { userId: athleteUser.id });
@@ -524,7 +524,7 @@ describe('Fase 3 — mensalidades e Caixa Fênix', () => {
       );
     });
 
-    it('adjusts with reason and refuses to cancel fees with payments', async () => {
+    it('ajusta com motivo e recusa cancelar mensalidade com pagamento', async () => {
       const accountId = await newAccount();
       const { feeId } = await feeFor('100.00');
 
@@ -564,7 +564,7 @@ describe('Fase 3 — mensalidades e Caixa Fênix', () => {
   });
 
   describe('Caixa Fênix', () => {
-    it('confirms, refuses to cancel confirmed entries and reverses once with a linked entry', async () => {
+    it('confirma, recusa cancelar lançamento confirmado e estorna uma vez com lançamento vinculado', async () => {
       const accountId = await newAccount();
       const created = await ctx
         .http()
@@ -622,7 +622,7 @@ describe('Fase 3 — mensalidades e Caixa Fênix', () => {
         .expect(409);
     });
 
-    it('rejects categories incompatible with the direction', async () => {
+    it('recusa categoria incompatível com entrada ou saída', async () => {
       const accountId = await newAccount();
 
       await ctx
@@ -655,7 +655,7 @@ describe('Fase 3 — mensalidades e Caixa Fênix', () => {
         .expect(422);
     });
 
-    it('transfers with two linked legs without changing the total balance', async () => {
+    it('transfere com dois lançamentos vinculados sem mudar o saldo total', async () => {
       const a = await newAccount();
       const b = await newAccount();
 
@@ -710,7 +710,7 @@ describe('Fase 3 — mensalidades e Caixa Fênix', () => {
       ).toBeUndefined();
     });
 
-    it('locks closed periods and requires permission and reason to reopen', async () => {
+    it('bloqueia período fechado e exige permissão e motivo para reabrir', async () => {
       const accountId = await newAccount();
       const income = await categoryId('outras-receitas');
 
@@ -836,7 +836,7 @@ describe('Fase 3 — mensalidades e Caixa Fênix', () => {
       expect(audit?.reason).toBe('Recontagem do caixa');
     });
 
-    it('settles obligations into exactly one cash entry', async () => {
+    it('liquida conta a pagar ou receber em exatamente um lançamento', async () => {
       const accountId = await newAccount();
       const obligation = await ctx
         .http()
@@ -876,7 +876,7 @@ describe('Fase 3 — mensalidades e Caixa Fênix', () => {
       expect(await balanceOf(accountId)).toBe('-300.00');
     });
 
-    it('stores receipts privately and denies finance to non-authorized users', async () => {
+    it('guarda comprovantes em privado e nega o financeiro a quem não tem permissão', async () => {
       const accountId = await newAccount();
       const created = await ctx
         .http()

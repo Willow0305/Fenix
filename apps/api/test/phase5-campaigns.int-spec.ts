@@ -139,7 +139,7 @@ describe('Fase 5 — remessas e campanhas', () => {
       .expect(201);
   }
 
-  it('sells only while open, at the campaign price, without stock and up to the maximum', async () => {
+  it('vende só com remessa aberta, no preço da remessa, sem estoque e até o máximo', async () => {
     const c = await openCampaign({ maximum: 3, price: '89.90' });
     const order = await buy(c.variantM, 2);
 
@@ -162,7 +162,7 @@ describe('Fase 5 — remessas e campanhas', () => {
     ).toBe(409);
   });
 
-  it('keeps campaign orders separate from regular products', async () => {
+  it('mantém pedido de remessa separado de produto comum', async () => {
     const c = await openCampaign();
     const regular = await ctx
       .http()
@@ -204,7 +204,7 @@ describe('Fase 5 — remessas e campanhas', () => {
     expect(mixed.body.code).toBe('MIXED_CAMPAIGN_CART');
   });
 
-  it('orders from the supplier only after the paid minimum and consolidates paid items', async () => {
+  it('encomenda ao fornecedor só depois do mínimo pago e consolida os itens pagos', async () => {
     const c = await openCampaign({ minimum: 3 });
     const paidOrder = await buy(c.variantM, 2);
     const unpaidOrder = await buy(c.variantG, 1);
@@ -300,7 +300,7 @@ describe('Fase 5 — remessas e campanhas', () => {
       .expect(409);
   });
 
-  it('notifies only affected buyers once on arrival and tracks pickup', async () => {
+  it('avisa só os compradores afetados, uma vez, na chegada, e registra a retirada', async () => {
     const c = await openCampaign();
     const buyer = await createUser(ctx.prisma, ['user']);
     const token = await login(ctx, buyer.email);
@@ -370,7 +370,7 @@ describe('Fase 5 — remessas e campanhas', () => {
       .expect(409);
   });
 
-  it('cancels with linked refunds for every order and keeps financial history', async () => {
+  it('cancela com reembolso vinculado em cada pedido e mantém o histórico financeiro', async () => {
     const c = await openCampaign();
     const order = await buy(c.variantM, 1);
 
@@ -407,7 +407,7 @@ describe('Fase 5 — remessas e campanhas', () => {
     expect(refunds).toHaveLength(1);
   });
 
-  it('restricts campaign management', async () => {
+  it('restringe a gestão de remessas', async () => {
     const user = await tokenFor(ctx, ['user']);
 
     await ctx.http().get('/api/v1/campaigns').set(auth(user.token)).expect(403);

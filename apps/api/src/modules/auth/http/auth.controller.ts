@@ -32,7 +32,7 @@ export interface AccessTokenResponse {
   readonly idleTimeoutSeconds: number;
 }
 
-@ApiTags('auth')
+@ApiTags('Autenticação')
 @Public()
 @Controller('auth')
 export class AuthController {

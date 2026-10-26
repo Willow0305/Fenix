@@ -108,7 +108,7 @@ export function sendFile(
 
 const IDEMPOTENCY_HEADER = { name: 'Idempotency-Key', required: true };
 
-@ApiTags('finance')
+@ApiTags('Caixa Fênix')
 @ApiBearerAuth()
 @Controller('finance')
 export class FinanceController {
@@ -489,7 +489,7 @@ export class FinanceController {
   }
 }
 
-@ApiTags('monthly-fees')
+@ApiTags('Mensalidades')
 @ApiBearerAuth()
 @Controller()
 export class FeesController {

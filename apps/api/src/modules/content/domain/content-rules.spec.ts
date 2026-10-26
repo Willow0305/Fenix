@@ -13,10 +13,10 @@ import {
   visibleTopicStatuses
 } from './content-rules';
 
-describe('content rules', () => {
+describe('regras de conteúdo', () => {
   const now = new Date('2026-10-19T12:00:00Z');
 
-  it('shows news only when published and the scheduled instant has passed', () => {
+  it('mostra notícia só quando publicada e depois do horário agendado', () => {
     const base = { status: 'PUBLISHED' as const, publishedAt: now, deletedAt: null };
 
     expect(newsIsPublic(base, now)).toBe(true);
@@ -37,7 +37,7 @@ describe('content rules', () => {
     expect(newsIsPublic({ ...base, deletedAt: now }, now)).toBe(false);
   });
 
-  it('schedules publication in the future and publishes immediately otherwise', () => {
+  it('agenda publicação futura e publica na hora nos demais casos', () => {
     const future = new Date('2026-10-25T10:00:00Z');
 
     expect(publicationState(future, now)).toEqual({ status: 'SCHEDULED', publishedAt: future });
@@ -46,7 +46,7 @@ describe('content rules', () => {
     expect(canTransition(NEWS_TRANSITIONS, 'ARCHIVED', 'PUBLISHED')).toBe(false);
   });
 
-  it('enforces forum visibility for each viewer', () => {
+  it('aplica a visibilidade do fórum para cada pessoa', () => {
     const member = { authenticated: true, member: true, staff: false };
     const staff = { authenticated: true, member: false, staff: true };
     const user = { authenticated: true, member: false, staff: false };
@@ -64,14 +64,14 @@ describe('content rules', () => {
     expect(visibleTopicStatuses(staff)).toContain('HIDDEN');
   });
 
-  it('strips markup and control characters from user text', () => {
+  it('remove marcação e caracteres de controle do texto do usuário', () => {
     expect(
       sanitizeText('  Olá <script>alert(1)</script> <b>time</b>\r\n\r\n\r\n\r\nFim\u0007 ')
     ).toBe('Olá alert(1) time\n\nFim');
     expect(sanitizeText('2 < 3 e 5 > 4')).toBe('2 < 3 e 5 > 4');
   });
 
-  it('applies posting limits and the author edit window', () => {
+  it('aplica limites de publicação e o prazo de edição do autor', () => {
     expect(rateExceeded({ recentCount: 5, limit: 6 })).toBe(false);
     expect(rateExceeded({ recentCount: 6, limit: 6 })).toBe(true);
     expect(authorCanEdit(new Date('2026-10-18T13:00:00Z'), now)).toBe(true);

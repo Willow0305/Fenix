@@ -1,7 +1,7 @@
 import { safeInternalPath } from './safe-redirect';
 
 describe('safeInternalPath', () => {
-  it('keeps internal paths with query and hash', () => {
+  it('mantém caminhos internos com parâmetros e âncora', () => {
     expect(safeInternalPath('/admin/caixa?mes=10#topo')).toBe('/admin/caixa?mes=10#topo');
   });
 
@@ -13,7 +13,7 @@ describe('safeInternalPath', () => {
     ['/\\malicioso.example'],
     ['/\t/malicioso.example'],
     ['javascript:alert(1)']
-  ])('falls back for %p', (value) => {
+  ])('volta para Minha conta com %p', (value) => {
     expect(safeInternalPath(value)).toBe('/minha-conta');
   });
 });

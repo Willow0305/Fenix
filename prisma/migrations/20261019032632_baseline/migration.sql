@@ -1,163 +1,163 @@
--- CreateEnum
+-- Cria enum
 CREATE TYPE "UserStatus" AS ENUM ('PENDING', 'ACTIVE', 'INACTIVE', 'BLOCKED');
 
--- CreateEnum
+-- Cria enum
 CREATE TYPE "UserTokenType" AS ENUM ('PASSWORD_RESET', 'EMAIL_VERIFICATION');
 
--- CreateEnum
+-- Cria enum
 CREATE TYPE "MediaKind" AS ENUM ('IMAGE', 'DOCUMENT', 'RECEIPT', 'INVOICE', 'CONTRACT', 'OTHER');
 
--- CreateEnum
+-- Cria enum
 CREATE TYPE "DataClassification" AS ENUM ('PUBLIC', 'INTERNAL', 'CONFIDENTIAL', 'SENSITIVE');
 
--- CreateEnum
+-- Cria enum
 CREATE TYPE "TeamBrandContext" AS ENUM ('OFFICIAL', 'MALE', 'FEMALE', 'BOARD', 'FAVICON', 'COVER', 'OTHER');
 
--- CreateEnum
+-- Cria enum
 CREATE TYPE "AthleteStatus" AS ENUM ('PENDING', 'ACTIVE', 'INACTIVE', 'SUSPENDED');
 
--- CreateEnum
+-- Cria enum
 CREATE TYPE "Gender" AS ENUM ('MALE', 'FEMALE', 'NON_BINARY', 'OTHER', 'NOT_INFORMED');
 
--- CreateEnum
+-- Cria enum
 CREATE TYPE "TeamType" AS ENUM ('MALE', 'FEMALE', 'MIXED', 'OTHER');
 
--- CreateEnum
+-- Cria enum
 CREATE TYPE "TeamMembershipStatus" AS ENUM ('ACTIVE', 'INACTIVE');
 
--- CreateEnum
+-- Cria enum
 CREATE TYPE "RegistrationStatus" AS ENUM ('NEW', 'UNDER_REVIEW', 'APPROVED', 'REJECTED', 'CANCELLED', 'CONVERTED');
 
--- CreateEnum
+-- Cria enum
 CREATE TYPE "TryoutStatus" AS ENUM ('DRAFT', 'SCHEDULED', 'OPEN', 'CLOSED', 'COMPLETED', 'CANCELLED');
 
--- CreateEnum
+-- Cria enum
 CREATE TYPE "TryoutRegistrationStatus" AS ENUM ('NEW', 'UNDER_REVIEW', 'APPROVED', 'REJECTED', 'ATTENDED', 'NO_SHOW', 'CANCELLED');
 
--- CreateEnum
+-- Cria enum
 CREATE TYPE "InterestedPersonStatus" AS ENUM ('NEW', 'CONTACTED', 'QUALIFIED', 'CONVERTED', 'ARCHIVED');
 
--- CreateEnum
+-- Cria enum
 CREATE TYPE "MonthlyFeePlanStatus" AS ENUM ('ACTIVE', 'INACTIVE');
 
--- CreateEnum
+-- Cria enum
 CREATE TYPE "AthletePlanStatus" AS ENUM ('ACTIVE', 'ENDED', 'CANCELLED');
 
--- CreateEnum
+-- Cria enum
 CREATE TYPE "MonthlyFeeStatus" AS ENUM ('OPEN', 'PARTIALLY_PAID', 'PAID', 'OVERDUE', 'CANCELLED');
 
--- CreateEnum
+-- Cria enum
 CREATE TYPE "PaymentMethodType" AS ENUM ('PIX', 'CASH', 'CREDIT_CARD', 'DEBIT_CARD', 'BANK_TRANSFER', 'BOLETO', 'OTHER');
 
--- CreateEnum
+-- Cria enum
 CREATE TYPE "PaymentStatus" AS ENUM ('PENDING', 'PROCESSING', 'CONFIRMED', 'FAILED', 'CANCELLED', 'PARTIALLY_REFUNDED', 'REFUNDED');
 
--- CreateEnum
+-- Cria enum
 CREATE TYPE "RefundStatus" AS ENUM ('REQUESTED', 'APPROVED', 'PROCESSING', 'COMPLETED', 'REJECTED', 'CANCELLED');
 
--- CreateEnum
+-- Cria enum
 CREATE TYPE "FinancialAccountType" AS ENUM ('CASH', 'BANK', 'PIX', 'WALLET', 'CARD_CLEARING', 'OTHER');
 
--- CreateEnum
+-- Cria enum
 CREATE TYPE "FinancialCategoryNature" AS ENUM ('INCOME', 'EXPENSE', 'TRANSFER');
 
--- CreateEnum
+-- Cria enum
 CREATE TYPE "FinancialObligationType" AS ENUM ('PAYABLE', 'RECEIVABLE');
 
--- CreateEnum
+-- Cria enum
 CREATE TYPE "FinancialObligationStatus" AS ENUM ('OPEN', 'SETTLED', 'OVERDUE', 'CANCELLED');
 
--- CreateEnum
+-- Cria enum
 CREATE TYPE "FinancialDirection" AS ENUM ('INCOME', 'EXPENSE');
 
--- CreateEnum
+-- Cria enum
 CREATE TYPE "FinancialOrigin" AS ENUM ('MANUAL', 'MONTHLY_FEE', 'ORDER', 'REFUND', 'PARTNER_SETTLEMENT', 'TRANSFER', 'OPENING_BALANCE', 'ADJUSTMENT');
 
--- CreateEnum
+-- Cria enum
 CREATE TYPE "FinancialTransactionStatus" AS ENUM ('DRAFT', 'PENDING', 'CONFIRMED', 'CANCELLED');
 
--- CreateEnum
+-- Cria enum
 CREATE TYPE "FinancialAttachmentType" AS ENUM ('RECEIPT', 'INVOICE', 'CONTRACT', 'OTHER');
 
--- CreateEnum
+-- Cria enum
 CREATE TYPE "CashClosingStatus" AS ENUM ('DRAFT', 'CLOSED', 'REOPENED');
 
--- CreateEnum
+-- Cria enum
 CREATE TYPE "PartnerType" AS ENUM ('SUPPLIER', 'STORE', 'PROFESSIONAL', 'SPONSOR', 'OTHER');
 
--- CreateEnum
+-- Cria enum
 CREATE TYPE "PartnerStatus" AS ENUM ('PENDING', 'ACTIVE', 'INACTIVE', 'ENDED');
 
--- CreateEnum
+-- Cria enum
 CREATE TYPE "ProfessionalStatus" AS ENUM ('ACTIVE', 'INACTIVE');
 
--- CreateEnum
+-- Cria enum
 CREATE TYPE "CommissionType" AS ENUM ('NONE', 'PERCENTAGE', 'FIXED');
 
--- CreateEnum
+-- Cria enum
 CREATE TYPE "ServiceStatus" AS ENUM ('DRAFT', 'ACTIVE', 'INACTIVE');
 
--- CreateEnum
+-- Cria enum
 CREATE TYPE "AvailabilityStatus" AS ENUM ('AVAILABLE', 'BLOCKED', 'RESERVED');
 
--- CreateEnum
+-- Cria enum
 CREATE TYPE "AppointmentStatus" AS ENUM ('REQUESTED', 'CONFIRMED', 'COMPLETED', 'CANCELLED', 'NO_SHOW');
 
--- CreateEnum
+-- Cria enum
 CREATE TYPE "ProductFulfillmentType" AS ENUM ('STOCK', 'MADE_TO_ORDER', 'CAMPAIGN', 'DIGITAL');
 
--- CreateEnum
+-- Cria enum
 CREATE TYPE "ProductStatus" AS ENUM ('DRAFT', 'ACTIVE', 'INACTIVE', 'SOLD_OUT', 'ARCHIVED');
 
--- CreateEnum
+-- Cria enum
 CREATE TYPE "InventoryMovementType" AS ENUM ('STOCK_IN', 'STOCK_OUT', 'RESERVATION', 'RELEASE', 'ADJUSTMENT', 'RETURN', 'LOSS');
 
--- CreateEnum
+-- Cria enum
 CREATE TYPE "SalesCampaignStatus" AS ENUM ('DRAFT', 'SCHEDULED', 'OPEN', 'CLOSED', 'ORDERED', 'IN_PRODUCTION', 'RECEIVED', 'READY_FOR_PICKUP', 'COMPLETED', 'CANCELLED');
 
--- CreateEnum
+-- Cria enum
 CREATE TYPE "CartStatus" AS ENUM ('ACTIVE', 'CONVERTED', 'ABANDONED', 'EXPIRED');
 
--- CreateEnum
+-- Cria enum
 CREATE TYPE "OrderStatus" AS ENUM ('CREATED', 'AWAITING_PAYMENT', 'PAID', 'PROCESSING', 'READY_FOR_PICKUP', 'DELIVERED', 'CANCELLED', 'REFUNDED');
 
--- CreateEnum
+-- Cria enum
 CREATE TYPE "PartnerSettlementStatus" AS ENUM ('DRAFT', 'PENDING', 'APPROVED', 'PAID', 'CANCELLED');
 
--- CreateEnum
+-- Cria enum
 CREATE TYPE "ForumVisibility" AS ENUM ('PUBLIC', 'MEMBERS', 'STAFF');
 
--- CreateEnum
+-- Cria enum
 CREATE TYPE "ForumTopicStatus" AS ENUM ('DRAFT', 'PUBLISHED', 'CLOSED', 'HIDDEN', 'ARCHIVED');
 
--- CreateEnum
+-- Cria enum
 CREATE TYPE "ForumPostStatus" AS ENUM ('PUBLISHED', 'HIDDEN', 'DELETED');
 
--- CreateEnum
+-- Cria enum
 CREATE TYPE "ForumReactionType" AS ENUM ('LIKE', 'SUPPORT', 'CELEBRATE');
 
--- CreateEnum
+-- Cria enum
 CREATE TYPE "ForumReportStatus" AS ENUM ('OPEN', 'UNDER_REVIEW', 'RESOLVED', 'DISMISSED');
 
--- CreateEnum
+-- Cria enum
 CREATE TYPE "ModerationActionType" AS ENUM ('HIDE', 'RESTORE', 'CLOSE', 'REOPEN', 'DELETE', 'EDIT');
 
--- CreateEnum
+-- Cria enum
 CREATE TYPE "NewsStatus" AS ENUM ('DRAFT', 'SCHEDULED', 'PUBLISHED', 'HIDDEN', 'ARCHIVED');
 
--- CreateEnum
+-- Cria enum
 CREATE TYPE "EventType" AS ENUM ('TRYOUT', 'MATCH', 'FRIENDLY', 'TRAINING', 'COMMUNITY', 'OTHER');
 
--- CreateEnum
+-- Cria enum
 CREATE TYPE "EventStatus" AS ENUM ('DRAFT', 'SCHEDULED', 'CANCELLED', 'COMPLETED');
 
--- CreateEnum
+-- Cria enum
 CREATE TYPE "NotificationChannel" AS ENUM ('IN_APP', 'EMAIL');
 
--- CreateEnum
+-- Cria enum
 CREATE TYPE "NotificationDeliveryStatus" AS ENUM ('PENDING', 'SENT', 'FAILED', 'CANCELLED');
 
--- CreateTable
+-- Cria tabela
 CREATE TABLE "users" (
     "id" UUID NOT NULL,
     "name" VARCHAR(160) NOT NULL,
@@ -174,7 +174,7 @@ CREATE TABLE "users" (
     CONSTRAINT "users_pkey" PRIMARY KEY ("id")
 );
 
--- CreateTable
+-- Cria tabela
 CREATE TABLE "user_sessions" (
     "id" UUID NOT NULL,
     "user_id" UUID NOT NULL,
@@ -191,7 +191,7 @@ CREATE TABLE "user_sessions" (
     CONSTRAINT "user_sessions_pkey" PRIMARY KEY ("id")
 );
 
--- CreateTable
+-- Cria tabela
 CREATE TABLE "user_tokens" (
     "id" UUID NOT NULL,
     "user_id" UUID NOT NULL,
@@ -205,7 +205,7 @@ CREATE TABLE "user_tokens" (
     CONSTRAINT "user_tokens_pkey" PRIMARY KEY ("id")
 );
 
--- CreateTable
+-- Cria tabela
 CREATE TABLE "roles" (
     "id" UUID NOT NULL,
     "code" VARCHAR(100) NOT NULL,
@@ -219,7 +219,7 @@ CREATE TABLE "roles" (
     CONSTRAINT "roles_pkey" PRIMARY KEY ("id")
 );
 
--- CreateTable
+-- Cria tabela
 CREATE TABLE "permissions" (
     "id" UUID NOT NULL,
     "code" VARCHAR(140) NOT NULL,
@@ -233,7 +233,7 @@ CREATE TABLE "permissions" (
     CONSTRAINT "permissions_pkey" PRIMARY KEY ("id")
 );
 
--- CreateTable
+-- Cria tabela
 CREATE TABLE "user_roles" (
     "id" UUID NOT NULL,
     "user_id" UUID NOT NULL,
@@ -245,7 +245,7 @@ CREATE TABLE "user_roles" (
     CONSTRAINT "user_roles_pkey" PRIMARY KEY ("id")
 );
 
--- CreateTable
+-- Cria tabela
 CREATE TABLE "role_permissions" (
     "id" UUID NOT NULL,
     "role_id" UUID NOT NULL,
@@ -256,7 +256,7 @@ CREATE TABLE "role_permissions" (
     CONSTRAINT "role_permissions_pkey" PRIMARY KEY ("id")
 );
 
--- CreateTable
+-- Cria tabela
 CREATE TABLE "team_settings" (
     "id" UUID NOT NULL,
     "singleton_key" VARCHAR(40) NOT NULL,
@@ -293,7 +293,7 @@ CREATE TABLE "team_settings" (
     CONSTRAINT "team_settings_pkey" PRIMARY KEY ("id")
 );
 
--- CreateTable
+-- Cria tabela
 CREATE TABLE "team_brand_assets" (
     "id" UUID NOT NULL,
     "team_settings_id" UUID NOT NULL,
@@ -306,7 +306,7 @@ CREATE TABLE "team_brand_assets" (
     CONSTRAINT "team_brand_assets_pkey" PRIMARY KEY ("id")
 );
 
--- CreateTable
+-- Cria tabela
 CREATE TABLE "media_files" (
     "id" UUID NOT NULL,
     "storage_provider" VARCHAR(80) NOT NULL,
@@ -329,7 +329,7 @@ CREATE TABLE "media_files" (
     CONSTRAINT "media_files_pkey" PRIMARY KEY ("id")
 );
 
--- CreateTable
+-- Cria tabela
 CREATE TABLE "audit_logs" (
     "id" UUID NOT NULL,
     "actor_user_id" UUID,
@@ -349,7 +349,7 @@ CREATE TABLE "audit_logs" (
     CONSTRAINT "audit_logs_pkey" PRIMARY KEY ("id")
 );
 
--- CreateTable
+-- Cria tabela
 CREATE TABLE "athletes" (
     "id" UUID NOT NULL,
     "user_id" UUID,
@@ -375,7 +375,7 @@ CREATE TABLE "athletes" (
     CONSTRAINT "athletes_pkey" PRIMARY KEY ("id")
 );
 
--- CreateTable
+-- Cria tabela
 CREATE TABLE "athlete_documents" (
     "id" UUID NOT NULL,
     "athlete_id" UUID NOT NULL,
@@ -392,7 +392,7 @@ CREATE TABLE "athlete_documents" (
     CONSTRAINT "athlete_documents_pkey" PRIMARY KEY ("id")
 );
 
--- CreateTable
+-- Cria tabela
 CREATE TABLE "categories" (
     "id" UUID NOT NULL,
     "name" VARCHAR(120) NOT NULL,
@@ -408,7 +408,7 @@ CREATE TABLE "categories" (
     CONSTRAINT "categories_pkey" PRIMARY KEY ("id")
 );
 
--- CreateTable
+-- Cria tabela
 CREATE TABLE "teams" (
     "id" UUID NOT NULL,
     "category_id" UUID,
@@ -424,7 +424,7 @@ CREATE TABLE "teams" (
     CONSTRAINT "teams_pkey" PRIMARY KEY ("id")
 );
 
--- CreateTable
+-- Cria tabela
 CREATE TABLE "team_athletes" (
     "id" UUID NOT NULL,
     "athlete_id" UUID NOT NULL,
@@ -439,7 +439,7 @@ CREATE TABLE "team_athletes" (
     CONSTRAINT "team_athletes_pkey" PRIMARY KEY ("id")
 );
 
--- CreateTable
+-- Cria tabela
 CREATE TABLE "interested_people" (
     "id" UUID NOT NULL,
     "user_id" UUID,
@@ -461,7 +461,7 @@ CREATE TABLE "interested_people" (
     CONSTRAINT "interested_people_pkey" PRIMARY KEY ("id")
 );
 
--- CreateTable
+-- Cria tabela
 CREATE TABLE "registrations" (
     "id" UUID NOT NULL,
     "applicant_user_id" UUID,
@@ -487,7 +487,7 @@ CREATE TABLE "registrations" (
     CONSTRAINT "registrations_pkey" PRIMARY KEY ("id")
 );
 
--- CreateTable
+-- Cria tabela
 CREATE TABLE "tryouts" (
     "id" UUID NOT NULL,
     "team_id" UUID,
@@ -509,7 +509,7 @@ CREATE TABLE "tryouts" (
     CONSTRAINT "tryouts_pkey" PRIMARY KEY ("id")
 );
 
--- CreateTable
+-- Cria tabela
 CREATE TABLE "tryout_registrations" (
     "id" UUID NOT NULL,
     "tryout_id" UUID NOT NULL,
@@ -534,7 +534,7 @@ CREATE TABLE "tryout_registrations" (
     CONSTRAINT "tryout_registrations_pkey" PRIMARY KEY ("id")
 );
 
--- CreateTable
+-- Cria tabela
 CREATE TABLE "monthly_fee_plans" (
     "id" UUID NOT NULL,
     "name" VARCHAR(120) NOT NULL,
@@ -552,7 +552,7 @@ CREATE TABLE "monthly_fee_plans" (
     CONSTRAINT "monthly_fee_plans_pkey" PRIMARY KEY ("id")
 );
 
--- CreateTable
+-- Cria tabela
 CREATE TABLE "athlete_monthly_fee_plans" (
     "id" UUID NOT NULL,
     "athlete_id" UUID NOT NULL,
@@ -568,7 +568,7 @@ CREATE TABLE "athlete_monthly_fee_plans" (
     CONSTRAINT "athlete_monthly_fee_plans_pkey" PRIMARY KEY ("id")
 );
 
--- CreateTable
+-- Cria tabela
 CREATE TABLE "monthly_fees" (
     "id" UUID NOT NULL,
     "athlete_id" UUID NOT NULL,
@@ -593,7 +593,7 @@ CREATE TABLE "monthly_fees" (
     CONSTRAINT "monthly_fees_pkey" PRIMARY KEY ("id")
 );
 
--- CreateTable
+-- Cria tabela
 CREATE TABLE "monthly_fee_payments" (
     "id" UUID NOT NULL,
     "monthly_fee_id" UUID NOT NULL,
@@ -606,7 +606,7 @@ CREATE TABLE "monthly_fee_payments" (
     CONSTRAINT "monthly_fee_payments_pkey" PRIMARY KEY ("id")
 );
 
--- CreateTable
+-- Cria tabela
 CREATE TABLE "payment_methods" (
     "id" UUID NOT NULL,
     "code" VARCHAR(80) NOT NULL,
@@ -621,7 +621,7 @@ CREATE TABLE "payment_methods" (
     CONSTRAINT "payment_methods_pkey" PRIMARY KEY ("id")
 );
 
--- CreateTable
+-- Cria tabela
 CREATE TABLE "payments" (
     "id" UUID NOT NULL,
     "order_id" UUID,
@@ -643,7 +643,7 @@ CREATE TABLE "payments" (
     CONSTRAINT "payments_pkey" PRIMARY KEY ("id")
 );
 
--- CreateTable
+-- Cria tabela
 CREATE TABLE "refunds" (
     "id" UUID NOT NULL,
     "payment_id" UUID NOT NULL,
@@ -665,7 +665,7 @@ CREATE TABLE "refunds" (
     CONSTRAINT "refunds_pkey" PRIMARY KEY ("id")
 );
 
--- CreateTable
+-- Cria tabela
 CREATE TABLE "financial_accounts" (
     "id" UUID NOT NULL,
     "code" VARCHAR(80) NOT NULL,
@@ -684,7 +684,7 @@ CREATE TABLE "financial_accounts" (
     CONSTRAINT "financial_accounts_pkey" PRIMARY KEY ("id")
 );
 
--- CreateTable
+-- Cria tabela
 CREATE TABLE "financial_categories" (
     "id" UUID NOT NULL,
     "parent_id" UUID,
@@ -700,7 +700,7 @@ CREATE TABLE "financial_categories" (
     CONSTRAINT "financial_categories_pkey" PRIMARY KEY ("id")
 );
 
--- CreateTable
+-- Cria tabela
 CREATE TABLE "cost_centers" (
     "id" UUID NOT NULL,
     "parent_id" UUID,
@@ -715,7 +715,7 @@ CREATE TABLE "cost_centers" (
     CONSTRAINT "cost_centers_pkey" PRIMARY KEY ("id")
 );
 
--- CreateTable
+-- Cria tabela
 CREATE TABLE "financial_obligations" (
     "id" UUID NOT NULL,
     "type" "FinancialObligationType" NOT NULL,
@@ -744,7 +744,7 @@ CREATE TABLE "financial_obligations" (
     CONSTRAINT "financial_obligations_pkey" PRIMARY KEY ("id")
 );
 
--- CreateTable
+-- Cria tabela
 CREATE TABLE "financial_transactions" (
     "id" UUID NOT NULL,
     "account_id" UUID NOT NULL,
@@ -782,7 +782,7 @@ CREATE TABLE "financial_transactions" (
     CONSTRAINT "financial_transactions_pkey" PRIMARY KEY ("id")
 );
 
--- CreateTable
+-- Cria tabela
 CREATE TABLE "financial_transfers" (
     "id" UUID NOT NULL,
     "source_account_id" UUID NOT NULL,
@@ -800,7 +800,7 @@ CREATE TABLE "financial_transfers" (
     CONSTRAINT "financial_transfers_pkey" PRIMARY KEY ("id")
 );
 
--- CreateTable
+-- Cria tabela
 CREATE TABLE "financial_transaction_attachments" (
     "id" UUID NOT NULL,
     "financial_transaction_id" UUID,
@@ -815,7 +815,7 @@ CREATE TABLE "financial_transaction_attachments" (
     CONSTRAINT "financial_transaction_attachments_pkey" PRIMARY KEY ("id")
 );
 
--- CreateTable
+-- Cria tabela
 CREATE TABLE "cash_closings" (
     "id" UUID NOT NULL,
     "financial_account_id" UUID NOT NULL,
@@ -839,7 +839,7 @@ CREATE TABLE "cash_closings" (
     CONSTRAINT "cash_closings_pkey" PRIMARY KEY ("id")
 );
 
--- CreateTable
+-- Cria tabela
 CREATE TABLE "product_categories" (
     "id" UUID NOT NULL,
     "parent_id" UUID,
@@ -854,7 +854,7 @@ CREATE TABLE "product_categories" (
     CONSTRAINT "product_categories_pkey" PRIMARY KEY ("id")
 );
 
--- CreateTable
+-- Cria tabela
 CREATE TABLE "products" (
     "id" UUID NOT NULL,
     "product_category_id" UUID NOT NULL,
@@ -885,7 +885,7 @@ CREATE TABLE "products" (
     CONSTRAINT "products_pkey" PRIMARY KEY ("id")
 );
 
--- CreateTable
+-- Cria tabela
 CREATE TABLE "product_images" (
     "id" UUID NOT NULL,
     "product_id" UUID NOT NULL,
@@ -900,7 +900,7 @@ CREATE TABLE "product_images" (
     CONSTRAINT "product_images_pkey" PRIMARY KEY ("id")
 );
 
--- CreateTable
+-- Cria tabela
 CREATE TABLE "product_variants" (
     "id" UUID NOT NULL,
     "product_id" UUID NOT NULL,
@@ -922,7 +922,7 @@ CREATE TABLE "product_variants" (
     CONSTRAINT "product_variants_pkey" PRIMARY KEY ("id")
 );
 
--- CreateTable
+-- Cria tabela
 CREATE TABLE "inventory_movements" (
     "id" UUID NOT NULL,
     "product_variant_id" UUID NOT NULL,
@@ -937,7 +937,7 @@ CREATE TABLE "inventory_movements" (
     CONSTRAINT "inventory_movements_pkey" PRIMARY KEY ("id")
 );
 
--- CreateTable
+-- Cria tabela
 CREATE TABLE "sales_campaigns" (
     "id" UUID NOT NULL,
     "supplier_partner_id" UUID,
@@ -966,7 +966,7 @@ CREATE TABLE "sales_campaigns" (
     CONSTRAINT "sales_campaigns_pkey" PRIMARY KEY ("id")
 );
 
--- CreateTable
+-- Cria tabela
 CREATE TABLE "sales_campaign_products" (
     "id" UUID NOT NULL,
     "sales_campaign_id" UUID NOT NULL,
@@ -982,7 +982,7 @@ CREATE TABLE "sales_campaign_products" (
     CONSTRAINT "sales_campaign_products_pkey" PRIMARY KEY ("id")
 );
 
--- CreateTable
+-- Cria tabela
 CREATE TABLE "favorites" (
     "id" UUID NOT NULL,
     "user_id" UUID NOT NULL,
@@ -992,7 +992,7 @@ CREATE TABLE "favorites" (
     CONSTRAINT "favorites_pkey" PRIMARY KEY ("id")
 );
 
--- CreateTable
+-- Cria tabela
 CREATE TABLE "carts" (
     "id" UUID NOT NULL,
     "user_id" UUID,
@@ -1006,7 +1006,7 @@ CREATE TABLE "carts" (
     CONSTRAINT "carts_pkey" PRIMARY KEY ("id")
 );
 
--- CreateTable
+-- Cria tabela
 CREATE TABLE "cart_items" (
     "id" UUID NOT NULL,
     "cart_id" UUID NOT NULL,
@@ -1019,7 +1019,7 @@ CREATE TABLE "cart_items" (
     CONSTRAINT "cart_items_pkey" PRIMARY KEY ("id")
 );
 
--- CreateTable
+-- Cria tabela
 CREATE TABLE "orders" (
     "id" UUID NOT NULL,
     "customer_user_id" UUID,
@@ -1044,7 +1044,7 @@ CREATE TABLE "orders" (
     CONSTRAINT "orders_pkey" PRIMARY KEY ("id")
 );
 
--- CreateTable
+-- Cria tabela
 CREATE TABLE "order_items" (
     "id" UUID NOT NULL,
     "order_id" UUID NOT NULL,
@@ -1072,7 +1072,7 @@ CREATE TABLE "order_items" (
     CONSTRAINT "order_items_pkey" PRIMARY KEY ("id")
 );
 
--- CreateTable
+-- Cria tabela
 CREATE TABLE "partners" (
     "id" UUID NOT NULL,
     "legal_name" VARCHAR(180) NOT NULL,
@@ -1100,7 +1100,7 @@ CREATE TABLE "partners" (
     CONSTRAINT "partners_pkey" PRIMARY KEY ("id")
 );
 
--- CreateTable
+-- Cria tabela
 CREATE TABLE "partner_documents" (
     "id" UUID NOT NULL,
     "partner_id" UUID NOT NULL,
@@ -1115,7 +1115,7 @@ CREATE TABLE "partner_documents" (
     CONSTRAINT "partner_documents_pkey" PRIMARY KEY ("id")
 );
 
--- CreateTable
+-- Cria tabela
 CREATE TABLE "partner_professionals" (
     "id" UUID NOT NULL,
     "partner_id" UUID NOT NULL,
@@ -1135,7 +1135,7 @@ CREATE TABLE "partner_professionals" (
     CONSTRAINT "partner_professionals_pkey" PRIMARY KEY ("id")
 );
 
--- CreateTable
+-- Cria tabela
 CREATE TABLE "partner_services" (
     "id" UUID NOT NULL,
     "partner_id" UUID NOT NULL,
@@ -1153,7 +1153,7 @@ CREATE TABLE "partner_services" (
     CONSTRAINT "partner_services_pkey" PRIMARY KEY ("id")
 );
 
--- CreateTable
+-- Cria tabela
 CREATE TABLE "professional_availabilities" (
     "id" UUID NOT NULL,
     "professional_id" UUID NOT NULL,
@@ -1168,7 +1168,7 @@ CREATE TABLE "professional_availabilities" (
     CONSTRAINT "professional_availabilities_pkey" PRIMARY KEY ("id")
 );
 
--- CreateTable
+-- Cria tabela
 CREATE TABLE "appointments" (
     "id" UUID NOT NULL,
     "partner_service_id" UUID NOT NULL,
@@ -1193,7 +1193,7 @@ CREATE TABLE "appointments" (
     CONSTRAINT "appointments_pkey" PRIMARY KEY ("id")
 );
 
--- CreateTable
+-- Cria tabela
 CREATE TABLE "partner_settlements" (
     "id" UUID NOT NULL,
     "partner_id" UUID NOT NULL,
@@ -1220,7 +1220,7 @@ CREATE TABLE "partner_settlements" (
     CONSTRAINT "partner_settlements_pkey" PRIMARY KEY ("id")
 );
 
--- CreateTable
+-- Cria tabela
 CREATE TABLE "partner_settlement_items" (
     "id" UUID NOT NULL,
     "partner_settlement_id" UUID NOT NULL,
@@ -1234,7 +1234,7 @@ CREATE TABLE "partner_settlement_items" (
     CONSTRAINT "partner_settlement_items_pkey" PRIMARY KEY ("id")
 );
 
--- CreateTable
+-- Cria tabela
 CREATE TABLE "news_categories" (
     "id" UUID NOT NULL,
     "name" VARCHAR(120) NOT NULL,
@@ -1248,7 +1248,7 @@ CREATE TABLE "news_categories" (
     CONSTRAINT "news_categories_pkey" PRIMARY KEY ("id")
 );
 
--- CreateTable
+-- Cria tabela
 CREATE TABLE "events" (
     "id" UUID NOT NULL,
     "title" VARCHAR(180) NOT NULL,
@@ -1269,7 +1269,7 @@ CREATE TABLE "events" (
     CONSTRAINT "events_pkey" PRIMARY KEY ("id")
 );
 
--- CreateTable
+-- Cria tabela
 CREATE TABLE "matches" (
     "id" UUID NOT NULL,
     "event_id" UUID NOT NULL,
@@ -1286,7 +1286,7 @@ CREATE TABLE "matches" (
     CONSTRAINT "matches_pkey" PRIMARY KEY ("id")
 );
 
--- CreateTable
+-- Cria tabela
 CREATE TABLE "forum_categories" (
     "id" UUID NOT NULL,
     "name" VARCHAR(120) NOT NULL,
@@ -1301,7 +1301,7 @@ CREATE TABLE "forum_categories" (
     CONSTRAINT "forum_categories_pkey" PRIMARY KEY ("id")
 );
 
--- CreateTable
+-- Cria tabela
 CREATE TABLE "forum_topics" (
     "id" UUID NOT NULL,
     "category_id" UUID NOT NULL,
@@ -1319,7 +1319,7 @@ CREATE TABLE "forum_topics" (
     CONSTRAINT "forum_topics_pkey" PRIMARY KEY ("id")
 );
 
--- CreateTable
+-- Cria tabela
 CREATE TABLE "forum_posts" (
     "id" UUID NOT NULL,
     "topic_id" UUID NOT NULL,
@@ -1335,7 +1335,7 @@ CREATE TABLE "forum_posts" (
     CONSTRAINT "forum_posts_pkey" PRIMARY KEY ("id")
 );
 
--- CreateTable
+-- Cria tabela
 CREATE TABLE "forum_reactions" (
     "id" UUID NOT NULL,
     "post_id" UUID NOT NULL,
@@ -1346,7 +1346,7 @@ CREATE TABLE "forum_reactions" (
     CONSTRAINT "forum_reactions_pkey" PRIMARY KEY ("id")
 );
 
--- CreateTable
+-- Cria tabela
 CREATE TABLE "forum_reports" (
     "id" UUID NOT NULL,
     "topic_id" UUID,
@@ -1364,7 +1364,7 @@ CREATE TABLE "forum_reports" (
     CONSTRAINT "forum_reports_pkey" PRIMARY KEY ("id")
 );
 
--- CreateTable
+-- Cria tabela
 CREATE TABLE "forum_moderation_actions" (
     "id" UUID NOT NULL,
     "topic_id" UUID,
@@ -1379,7 +1379,7 @@ CREATE TABLE "forum_moderation_actions" (
     CONSTRAINT "forum_moderation_actions_pkey" PRIMARY KEY ("id")
 );
 
--- CreateTable
+-- Cria tabela
 CREATE TABLE "news" (
     "id" UUID NOT NULL,
     "category_id" UUID NOT NULL,
@@ -1404,7 +1404,7 @@ CREATE TABLE "news" (
     CONSTRAINT "news_pkey" PRIMARY KEY ("id")
 );
 
--- CreateTable
+-- Cria tabela
 CREATE TABLE "notifications" (
     "id" UUID NOT NULL,
     "user_id" UUID NOT NULL,
@@ -1426,1061 +1426,1061 @@ CREATE TABLE "notifications" (
     CONSTRAINT "notifications_pkey" PRIMARY KEY ("id")
 );
 
--- CreateIndex
+-- Cria índice
 CREATE UNIQUE INDEX "users_email_key" ON "users"("email");
 
--- CreateIndex
+-- Cria índice
 CREATE INDEX "users_status_deleted_at_idx" ON "users"("status", "deleted_at");
 
--- CreateIndex
+-- Cria índice
 CREATE UNIQUE INDEX "user_sessions_refresh_token_hash_key" ON "user_sessions"("refresh_token_hash");
 
--- CreateIndex
+-- Cria índice
 CREATE INDEX "user_sessions_user_id_revoked_at_expires_at_idx" ON "user_sessions"("user_id", "revoked_at", "expires_at");
 
--- CreateIndex
+-- Cria índice
 CREATE UNIQUE INDEX "user_tokens_token_hash_key" ON "user_tokens"("token_hash");
 
--- CreateIndex
+-- Cria índice
 CREATE INDEX "user_tokens_user_id_type_expires_at_idx" ON "user_tokens"("user_id", "type", "expires_at");
 
--- CreateIndex
+-- Cria índice
 CREATE UNIQUE INDEX "roles_code_key" ON "roles"("code");
 
--- CreateIndex
+-- Cria índice
 CREATE INDEX "roles_deleted_at_name_idx" ON "roles"("deleted_at", "name");
 
--- CreateIndex
+-- Cria índice
 CREATE UNIQUE INDEX "permissions_code_key" ON "permissions"("code");
 
--- CreateIndex
+-- Cria índice
 CREATE INDEX "permissions_deleted_at_name_idx" ON "permissions"("deleted_at", "name");
 
--- CreateIndex
+-- Cria índice
 CREATE INDEX "user_roles_role_id_expires_at_idx" ON "user_roles"("role_id", "expires_at");
 
--- CreateIndex
+-- Cria índice
 CREATE UNIQUE INDEX "user_roles_user_id_role_id_key" ON "user_roles"("user_id", "role_id");
 
--- CreateIndex
+-- Cria índice
 CREATE INDEX "role_permissions_permission_id_idx" ON "role_permissions"("permission_id");
 
--- CreateIndex
+-- Cria índice
 CREATE UNIQUE INDEX "role_permissions_role_id_permission_id_key" ON "role_permissions"("role_id", "permission_id");
 
--- CreateIndex
+-- Cria índice
 CREATE UNIQUE INDEX "team_settings_singleton_key_key" ON "team_settings"("singleton_key");
 
--- CreateIndex
+-- Cria índice
 CREATE INDEX "team_brand_assets_media_file_id_idx" ON "team_brand_assets"("media_file_id");
 
--- CreateIndex
+-- Cria índice
 CREATE UNIQUE INDEX "team_brand_assets_team_settings_id_context_key" ON "team_brand_assets"("team_settings_id", "context");
 
--- CreateIndex
+-- Cria índice
 CREATE INDEX "media_files_classification_kind_deleted_at_idx" ON "media_files"("classification", "kind", "deleted_at");
 
--- CreateIndex
+-- Cria índice
 CREATE INDEX "media_files_checksum_sha256_idx" ON "media_files"("checksum_sha256");
 
--- CreateIndex
+-- Cria índice
 CREATE UNIQUE INDEX "media_files_storage_provider_bucket_object_key_key" ON "media_files"("storage_provider", "bucket", "object_key");
 
--- CreateIndex
+-- Cria índice
 CREATE INDEX "audit_logs_entity_type_entity_id_occurred_at_idx" ON "audit_logs"("entity_type", "entity_id", "occurred_at");
 
--- CreateIndex
+-- Cria índice
 CREATE INDEX "audit_logs_actor_user_id_occurred_at_idx" ON "audit_logs"("actor_user_id", "occurred_at");
 
--- CreateIndex
+-- Cria índice
 CREATE INDEX "audit_logs_request_id_idx" ON "audit_logs"("request_id");
 
--- CreateIndex
+-- Cria índice
 CREATE UNIQUE INDEX "athletes_user_id_key" ON "athletes"("user_id");
 
--- CreateIndex
+-- Cria índice
 CREATE UNIQUE INDEX "athletes_document_number_hash_key" ON "athletes"("document_number_hash");
 
--- CreateIndex
+-- Cria índice
 CREATE INDEX "athletes_status_deleted_at_idx" ON "athletes"("status", "deleted_at");
 
--- CreateIndex
+-- Cria índice
 CREATE INDEX "athletes_full_name_deleted_at_idx" ON "athletes"("full_name", "deleted_at");
 
--- CreateIndex
+-- Cria índice
 CREATE INDEX "athlete_documents_athlete_id_document_type_deleted_at_idx" ON "athlete_documents"("athlete_id", "document_type", "deleted_at");
 
--- CreateIndex
+-- Cria índice
 CREATE INDEX "athlete_documents_expires_on_idx" ON "athlete_documents"("expires_on");
 
--- CreateIndex
+-- Cria índice
 CREATE UNIQUE INDEX "athlete_documents_athlete_id_media_file_id_key" ON "athlete_documents"("athlete_id", "media_file_id");
 
--- CreateIndex
+-- Cria índice
 CREATE UNIQUE INDEX "categories_slug_key" ON "categories"("slug");
 
--- CreateIndex
+-- Cria índice
 CREATE INDEX "categories_is_active_deleted_at_idx" ON "categories"("is_active", "deleted_at");
 
--- CreateIndex
+-- Cria índice
 CREATE UNIQUE INDEX "teams_slug_key" ON "teams"("slug");
 
--- CreateIndex
+-- Cria índice
 CREATE INDEX "teams_category_id_is_active_deleted_at_idx" ON "teams"("category_id", "is_active", "deleted_at");
 
--- CreateIndex
+-- Cria índice
 CREATE INDEX "team_athletes_team_id_status_starts_on_idx" ON "team_athletes"("team_id", "status", "starts_on");
 
--- CreateIndex
+-- Cria índice
 CREATE INDEX "team_athletes_athlete_id_status_idx" ON "team_athletes"("athlete_id", "status");
 
--- CreateIndex
+-- Cria índice
 CREATE UNIQUE INDEX "team_athletes_athlete_id_team_id_starts_on_key" ON "team_athletes"("athlete_id", "team_id", "starts_on");
 
--- CreateIndex
+-- Cria índice
 CREATE UNIQUE INDEX "interested_people_user_id_key" ON "interested_people"("user_id");
 
--- CreateIndex
+-- Cria índice
 CREATE UNIQUE INDEX "interested_people_converted_athlete_id_key" ON "interested_people"("converted_athlete_id");
 
--- CreateIndex
+-- Cria índice
 CREATE INDEX "interested_people_status_created_at_idx" ON "interested_people"("status", "created_at");
 
--- CreateIndex
+-- Cria índice
 CREATE INDEX "interested_people_email_deleted_at_idx" ON "interested_people"("email", "deleted_at");
 
--- CreateIndex
+-- Cria índice
 CREATE INDEX "registrations_status_created_at_idx" ON "registrations"("status", "created_at");
 
--- CreateIndex
+-- Cria índice
 CREATE INDEX "registrations_requested_team_id_status_idx" ON "registrations"("requested_team_id", "status");
 
--- CreateIndex
+-- Cria índice
 CREATE INDEX "registrations_applicant_user_id_created_at_idx" ON "registrations"("applicant_user_id", "created_at");
 
--- CreateIndex
+-- Cria índice
 CREATE UNIQUE INDEX "tryouts_event_id_key" ON "tryouts"("event_id");
 
--- CreateIndex
+-- Cria índice
 CREATE UNIQUE INDEX "tryouts_slug_key" ON "tryouts"("slug");
 
--- CreateIndex
+-- Cria índice
 CREATE INDEX "tryouts_status_registration_starts_at_registration_ends_at_idx" ON "tryouts"("status", "registration_starts_at", "registration_ends_at");
 
--- CreateIndex
+-- Cria índice
 CREATE INDEX "tryouts_team_id_starts_at_idx" ON "tryouts"("team_id", "starts_at");
 
--- CreateIndex
+-- Cria índice
 CREATE INDEX "tryout_registrations_tryout_id_status_created_at_idx" ON "tryout_registrations"("tryout_id", "status", "created_at");
 
--- CreateIndex
+-- Cria índice
 CREATE INDEX "tryout_registrations_athlete_id_created_at_idx" ON "tryout_registrations"("athlete_id", "created_at");
 
--- CreateIndex
+-- Cria índice
 CREATE INDEX "tryout_registrations_applicant_user_id_created_at_idx" ON "tryout_registrations"("applicant_user_id", "created_at");
 
--- CreateIndex
+-- Cria índice
 CREATE INDEX "monthly_fee_plans_status_deleted_at_idx" ON "monthly_fee_plans"("status", "deleted_at");
 
--- CreateIndex
+-- Cria índice
 CREATE INDEX "monthly_fee_plans_valid_from_valid_until_idx" ON "monthly_fee_plans"("valid_from", "valid_until");
 
--- CreateIndex
+-- Cria índice
 CREATE INDEX "athlete_monthly_fee_plans_athlete_id_status_starts_on_idx" ON "athlete_monthly_fee_plans"("athlete_id", "status", "starts_on");
 
--- CreateIndex
+-- Cria índice
 CREATE UNIQUE INDEX "athlete_monthly_fee_plans_athlete_id_monthly_fee_plan_id_st_key" ON "athlete_monthly_fee_plans"("athlete_id", "monthly_fee_plan_id", "starts_on");
 
--- CreateIndex
+-- Cria índice
 CREATE INDEX "monthly_fees_status_due_date_idx" ON "monthly_fees"("status", "due_date");
 
--- CreateIndex
+-- Cria índice
 CREATE INDEX "monthly_fees_athlete_id_status_idx" ON "monthly_fees"("athlete_id", "status");
 
--- CreateIndex
+-- Cria índice
 CREATE INDEX "monthly_fees_reference_month_status_idx" ON "monthly_fees"("reference_month", "status");
 
--- CreateIndex
+-- Cria índice
 CREATE UNIQUE INDEX "monthly_fees_athlete_id_reference_month_key" ON "monthly_fees"("athlete_id", "reference_month");
 
--- CreateIndex
+-- Cria índice
 CREATE INDEX "monthly_fee_payments_payment_id_idx" ON "monthly_fee_payments"("payment_id");
 
--- CreateIndex
+-- Cria índice
 CREATE UNIQUE INDEX "monthly_fee_payments_monthly_fee_id_payment_id_key" ON "monthly_fee_payments"("monthly_fee_id", "payment_id");
 
--- CreateIndex
+-- Cria índice
 CREATE UNIQUE INDEX "payment_methods_code_key" ON "payment_methods"("code");
 
--- CreateIndex
+-- Cria índice
 CREATE INDEX "payment_methods_is_active_deleted_at_idx" ON "payment_methods"("is_active", "deleted_at");
 
--- CreateIndex
+-- Cria índice
 CREATE UNIQUE INDEX "payments_idempotency_key_key" ON "payments"("idempotency_key");
 
--- CreateIndex
+-- Cria índice
 CREATE INDEX "payments_status_created_at_idx" ON "payments"("status", "created_at");
 
--- CreateIndex
+-- Cria índice
 CREATE INDEX "payments_order_id_status_idx" ON "payments"("order_id", "status");
 
--- CreateIndex
+-- Cria índice
 CREATE INDEX "payments_payer_user_id_created_at_idx" ON "payments"("payer_user_id", "created_at");
 
--- CreateIndex
+-- Cria índice
 CREATE UNIQUE INDEX "payments_provider_external_reference_key" ON "payments"("provider", "external_reference");
 
--- CreateIndex
+-- Cria índice
 CREATE UNIQUE INDEX "refunds_idempotency_key_key" ON "refunds"("idempotency_key");
 
--- CreateIndex
+-- Cria índice
 CREATE INDEX "refunds_payment_id_status_idx" ON "refunds"("payment_id", "status");
 
--- CreateIndex
+-- Cria índice
 CREATE INDEX "refunds_status_created_at_idx" ON "refunds"("status", "created_at");
 
--- CreateIndex
+-- Cria índice
 CREATE UNIQUE INDEX "financial_accounts_code_key" ON "financial_accounts"("code");
 
--- CreateIndex
+-- Cria índice
 CREATE INDEX "financial_accounts_is_active_type_deleted_at_idx" ON "financial_accounts"("is_active", "type", "deleted_at");
 
--- CreateIndex
+-- Cria índice
 CREATE UNIQUE INDEX "financial_categories_code_key" ON "financial_categories"("code");
 
--- CreateIndex
+-- Cria índice
 CREATE INDEX "financial_categories_nature_is_active_deleted_at_idx" ON "financial_categories"("nature", "is_active", "deleted_at");
 
--- CreateIndex
+-- Cria índice
 CREATE INDEX "financial_categories_parent_id_idx" ON "financial_categories"("parent_id");
 
--- CreateIndex
+-- Cria índice
 CREATE UNIQUE INDEX "cost_centers_code_key" ON "cost_centers"("code");
 
--- CreateIndex
+-- Cria índice
 CREATE INDEX "cost_centers_is_active_deleted_at_idx" ON "cost_centers"("is_active", "deleted_at");
 
--- CreateIndex
+-- Cria índice
 CREATE INDEX "cost_centers_parent_id_idx" ON "cost_centers"("parent_id");
 
--- CreateIndex
+-- Cria índice
 CREATE UNIQUE INDEX "financial_obligations_settlement_transaction_id_key" ON "financial_obligations"("settlement_transaction_id");
 
--- CreateIndex
+-- Cria índice
 CREATE UNIQUE INDEX "financial_obligations_idempotency_key_key" ON "financial_obligations"("idempotency_key");
 
--- CreateIndex
+-- Cria índice
 CREATE INDEX "financial_obligations_type_status_due_date_idx" ON "financial_obligations"("type", "status", "due_date");
 
--- CreateIndex
+-- Cria índice
 CREATE INDEX "financial_obligations_partner_id_status_idx" ON "financial_obligations"("partner_id", "status");
 
--- CreateIndex
+-- Cria índice
 CREATE INDEX "financial_obligations_planned_payment_method_id_due_date_idx" ON "financial_obligations"("planned_payment_method_id", "due_date");
 
--- CreateIndex
+-- Cria índice
 CREATE INDEX "financial_obligations_category_id_competence_date_idx" ON "financial_obligations"("category_id", "competence_date");
 
--- CreateIndex
+-- Cria índice
 CREATE UNIQUE INDEX "financial_transactions_payment_id_key" ON "financial_transactions"("payment_id");
 
--- CreateIndex
+-- Cria índice
 CREATE UNIQUE INDEX "financial_transactions_refund_id_key" ON "financial_transactions"("refund_id");
 
--- CreateIndex
+-- Cria índice
 CREATE UNIQUE INDEX "financial_transactions_partner_settlement_id_key" ON "financial_transactions"("partner_settlement_id");
 
--- CreateIndex
+-- Cria índice
 CREATE UNIQUE INDEX "financial_transactions_idempotency_key_key" ON "financial_transactions"("idempotency_key");
 
--- CreateIndex
+-- Cria índice
 CREATE INDEX "financial_transactions_account_id_status_occurred_at_idx" ON "financial_transactions"("account_id", "status", "occurred_at");
 
--- CreateIndex
+-- Cria índice
 CREATE INDEX "financial_transactions_category_id_competence_date_idx" ON "financial_transactions"("category_id", "competence_date");
 
--- CreateIndex
+-- Cria índice
 CREATE INDEX "financial_transactions_cost_center_id_competence_date_idx" ON "financial_transactions"("cost_center_id", "competence_date");
 
--- CreateIndex
+-- Cria índice
 CREATE INDEX "financial_transactions_payment_method_id_occurred_at_idx" ON "financial_transactions"("payment_method_id", "occurred_at");
 
--- CreateIndex
+-- Cria índice
 CREATE INDEX "financial_transactions_origin_status_idx" ON "financial_transactions"("origin", "status");
 
--- CreateIndex
+-- Cria índice
 CREATE INDEX "financial_transactions_reverses_transaction_id_idx" ON "financial_transactions"("reverses_transaction_id");
 
--- CreateIndex
+-- Cria índice
 CREATE UNIQUE INDEX "financial_transfers_debit_transaction_id_key" ON "financial_transfers"("debit_transaction_id");
 
--- CreateIndex
+-- Cria índice
 CREATE UNIQUE INDEX "financial_transfers_credit_transaction_id_key" ON "financial_transfers"("credit_transaction_id");
 
--- CreateIndex
+-- Cria índice
 CREATE UNIQUE INDEX "financial_transfers_idempotency_key_key" ON "financial_transfers"("idempotency_key");
 
--- CreateIndex
+-- Cria índice
 CREATE INDEX "financial_transfers_source_account_id_transferred_at_idx" ON "financial_transfers"("source_account_id", "transferred_at");
 
--- CreateIndex
+-- Cria índice
 CREATE INDEX "financial_transfers_destination_account_id_transferred_at_idx" ON "financial_transfers"("destination_account_id", "transferred_at");
 
--- CreateIndex
+-- Cria índice
 CREATE INDEX "financial_transaction_attachments_financial_transaction_id__idx" ON "financial_transaction_attachments"("financial_transaction_id", "type", "deleted_at");
 
--- CreateIndex
+-- Cria índice
 CREATE INDEX "financial_transaction_attachments_payment_id_type_deleted_a_idx" ON "financial_transaction_attachments"("payment_id", "type", "deleted_at");
 
--- CreateIndex
+-- Cria índice
 CREATE UNIQUE INDEX "financial_transaction_attachments_financial_transaction_id__key" ON "financial_transaction_attachments"("financial_transaction_id", "media_file_id");
 
--- CreateIndex
+-- Cria índice
 CREATE UNIQUE INDEX "financial_transaction_attachments_payment_id_media_file_id_key" ON "financial_transaction_attachments"("payment_id", "media_file_id");
 
--- CreateIndex
+-- Cria índice
 CREATE UNIQUE INDEX "cash_closings_idempotency_key_key" ON "cash_closings"("idempotency_key");
 
--- CreateIndex
+-- Cria índice
 CREATE INDEX "cash_closings_financial_account_id_status_period_end_idx" ON "cash_closings"("financial_account_id", "status", "period_end");
 
--- CreateIndex
+-- Cria índice
 CREATE UNIQUE INDEX "cash_closings_financial_account_id_period_start_period_end_key" ON "cash_closings"("financial_account_id", "period_start", "period_end");
 
--- CreateIndex
+-- Cria índice
 CREATE UNIQUE INDEX "product_categories_slug_key" ON "product_categories"("slug");
 
--- CreateIndex
+-- Cria índice
 CREATE INDEX "product_categories_is_active_deleted_at_idx" ON "product_categories"("is_active", "deleted_at");
 
--- CreateIndex
+-- Cria índice
 CREATE INDEX "product_categories_parent_id_idx" ON "product_categories"("parent_id");
 
--- CreateIndex
+-- Cria índice
 CREATE UNIQUE INDEX "products_slug_key" ON "products"("slug");
 
--- CreateIndex
+-- Cria índice
 CREATE INDEX "products_product_category_id_status_deleted_at_idx" ON "products"("product_category_id", "status", "deleted_at");
 
--- CreateIndex
+-- Cria índice
 CREATE INDEX "products_partner_id_status_idx" ON "products"("partner_id", "status");
 
--- CreateIndex
+-- Cria índice
 CREATE INDEX "products_fulfillment_type_status_available_from_available_u_idx" ON "products"("fulfillment_type", "status", "available_from", "available_until");
 
--- CreateIndex
+-- Cria índice
 CREATE INDEX "product_images_product_id_sort_order_deleted_at_idx" ON "product_images"("product_id", "sort_order", "deleted_at");
 
--- CreateIndex
+-- Cria índice
 CREATE UNIQUE INDEX "product_images_product_id_media_file_id_key" ON "product_images"("product_id", "media_file_id");
 
--- CreateIndex
+-- Cria índice
 CREATE UNIQUE INDEX "product_variants_sku_key" ON "product_variants"("sku");
 
--- CreateIndex
+-- Cria índice
 CREATE INDEX "product_variants_product_id_is_active_deleted_at_idx" ON "product_variants"("product_id", "is_active", "deleted_at");
 
--- CreateIndex
+-- Cria índice
 CREATE INDEX "product_variants_minimum_stock_is_active_idx" ON "product_variants"("minimum_stock", "is_active");
 
--- CreateIndex
+-- Cria índice
 CREATE INDEX "inventory_movements_product_variant_id_occurred_at_idx" ON "inventory_movements"("product_variant_id", "occurred_at");
 
--- CreateIndex
+-- Cria índice
 CREATE INDEX "inventory_movements_order_item_id_type_idx" ON "inventory_movements"("order_item_id", "type");
 
--- CreateIndex
+-- Cria índice
 CREATE INDEX "inventory_movements_type_occurred_at_idx" ON "inventory_movements"("type", "occurred_at");
 
--- CreateIndex
+-- Cria índice
 CREATE UNIQUE INDEX "sales_campaigns_slug_key" ON "sales_campaigns"("slug");
 
--- CreateIndex
+-- Cria índice
 CREATE INDEX "sales_campaigns_status_sales_start_at_sales_end_at_idx" ON "sales_campaigns"("status", "sales_start_at", "sales_end_at");
 
--- CreateIndex
+-- Cria índice
 CREATE INDEX "sales_campaigns_supplier_partner_id_status_idx" ON "sales_campaigns"("supplier_partner_id", "status");
 
--- CreateIndex
+-- Cria índice
 CREATE INDEX "sales_campaign_products_product_id_is_active_deleted_at_idx" ON "sales_campaign_products"("product_id", "is_active", "deleted_at");
 
--- CreateIndex
+-- Cria índice
 CREATE UNIQUE INDEX "sales_campaign_products_sales_campaign_id_product_id_key" ON "sales_campaign_products"("sales_campaign_id", "product_id");
 
--- CreateIndex
+-- Cria índice
 CREATE INDEX "favorites_product_id_idx" ON "favorites"("product_id");
 
--- CreateIndex
+-- Cria índice
 CREATE UNIQUE INDEX "favorites_user_id_product_id_key" ON "favorites"("user_id", "product_id");
 
--- CreateIndex
+-- Cria índice
 CREATE UNIQUE INDEX "carts_converted_order_id_key" ON "carts"("converted_order_id");
 
--- CreateIndex
+-- Cria índice
 CREATE INDEX "carts_user_id_status_expires_at_idx" ON "carts"("user_id", "status", "expires_at");
 
--- CreateIndex
+-- Cria índice
 CREATE INDEX "carts_guest_key_hash_status_idx" ON "carts"("guest_key_hash", "status");
 
--- CreateIndex
+-- Cria índice
 CREATE INDEX "cart_items_cart_id_product_variant_id_idx" ON "cart_items"("cart_id", "product_variant_id");
 
--- CreateIndex
+-- Cria índice
 CREATE INDEX "cart_items_sales_campaign_product_id_idx" ON "cart_items"("sales_campaign_product_id");
 
--- CreateIndex
+-- Cria índice
 CREATE UNIQUE INDEX "orders_order_number_key" ON "orders"("order_number");
 
--- CreateIndex
+-- Cria índice
 CREATE INDEX "orders_status_created_at_idx" ON "orders"("status", "created_at");
 
--- CreateIndex
+-- Cria índice
 CREATE INDEX "orders_customer_user_id_created_at_idx" ON "orders"("customer_user_id", "created_at");
 
--- CreateIndex
+-- Cria índice
 CREATE INDEX "orders_customer_email_created_at_idx" ON "orders"("customer_email", "created_at");
 
--- CreateIndex
+-- Cria índice
 CREATE INDEX "order_items_order_id_idx" ON "order_items"("order_id");
 
--- CreateIndex
+-- Cria índice
 CREATE INDEX "order_items_product_variant_id_created_at_idx" ON "order_items"("product_variant_id", "created_at");
 
--- CreateIndex
+-- Cria índice
 CREATE INDEX "order_items_sales_campaign_product_id_created_at_idx" ON "order_items"("sales_campaign_product_id", "created_at");
 
--- CreateIndex
+-- Cria índice
 CREATE INDEX "order_items_partner_id_created_at_idx" ON "order_items"("partner_id", "created_at");
 
--- CreateIndex
+-- Cria índice
 CREATE UNIQUE INDEX "partners_document_number_hash_key" ON "partners"("document_number_hash");
 
--- CreateIndex
+-- Cria índice
 CREATE INDEX "partners_status_type_deleted_at_idx" ON "partners"("status", "type", "deleted_at");
 
--- CreateIndex
+-- Cria índice
 CREATE INDEX "partners_display_name_idx" ON "partners"("display_name");
 
--- CreateIndex
+-- Cria índice
 CREATE INDEX "partner_documents_partner_id_document_type_deleted_at_idx" ON "partner_documents"("partner_id", "document_type", "deleted_at");
 
--- CreateIndex
+-- Cria índice
 CREATE INDEX "partner_documents_expires_on_idx" ON "partner_documents"("expires_on");
 
--- CreateIndex
+-- Cria índice
 CREATE UNIQUE INDEX "partner_documents_partner_id_media_file_id_key" ON "partner_documents"("partner_id", "media_file_id");
 
--- CreateIndex
+-- Cria índice
 CREATE UNIQUE INDEX "partner_professionals_user_id_key" ON "partner_professionals"("user_id");
 
--- CreateIndex
+-- Cria índice
 CREATE INDEX "partner_professionals_partner_id_status_deleted_at_idx" ON "partner_professionals"("partner_id", "status", "deleted_at");
 
--- CreateIndex
+-- Cria índice
 CREATE INDEX "partner_professionals_profession_idx" ON "partner_professionals"("profession");
 
--- CreateIndex
+-- Cria índice
 CREATE UNIQUE INDEX "partner_professionals_partner_id_license_number_hash_key" ON "partner_professionals"("partner_id", "license_number_hash");
 
--- CreateIndex
+-- Cria índice
 CREATE INDEX "partner_services_partner_id_status_deleted_at_idx" ON "partner_services"("partner_id", "status", "deleted_at");
 
--- CreateIndex
+-- Cria índice
 CREATE INDEX "partner_services_professional_id_status_idx" ON "partner_services"("professional_id", "status");
 
--- CreateIndex
+-- Cria índice
 CREATE INDEX "professional_availabilities_professional_id_starts_at_ends__idx" ON "professional_availabilities"("professional_id", "starts_at", "ends_at", "status");
 
--- CreateIndex
+-- Cria índice
 CREATE INDEX "professional_availabilities_partner_service_id_starts_at_idx" ON "professional_availabilities"("partner_service_id", "starts_at");
 
--- CreateIndex
+-- Cria índice
 CREATE UNIQUE INDEX "appointments_availability_id_key" ON "appointments"("availability_id");
 
--- CreateIndex
+-- Cria índice
 CREATE INDEX "appointments_requester_user_id_status_created_at_idx" ON "appointments"("requester_user_id", "status", "created_at");
 
--- CreateIndex
+-- Cria índice
 CREATE INDEX "appointments_professional_id_scheduled_starts_at_idx" ON "appointments"("professional_id", "scheduled_starts_at");
 
--- CreateIndex
+-- Cria índice
 CREATE INDEX "appointments_partner_service_id_status_idx" ON "appointments"("partner_service_id", "status");
 
--- CreateIndex
+-- Cria índice
 CREATE UNIQUE INDEX "partner_settlements_idempotency_key_key" ON "partner_settlements"("idempotency_key");
 
--- CreateIndex
+-- Cria índice
 CREATE INDEX "partner_settlements_partner_id_status_period_end_idx" ON "partner_settlements"("partner_id", "status", "period_end");
 
--- CreateIndex
+-- Cria índice
 CREATE INDEX "partner_settlements_status_due_date_idx" ON "partner_settlements"("status", "due_date");
 
--- CreateIndex
+-- Cria índice
 CREATE UNIQUE INDEX "partner_settlement_items_order_item_id_key" ON "partner_settlement_items"("order_item_id");
 
--- CreateIndex
+-- Cria índice
 CREATE INDEX "partner_settlement_items_partner_settlement_id_idx" ON "partner_settlement_items"("partner_settlement_id");
 
--- CreateIndex
+-- Cria índice
 CREATE UNIQUE INDEX "news_categories_slug_key" ON "news_categories"("slug");
 
--- CreateIndex
+-- Cria índice
 CREATE INDEX "news_categories_is_active_deleted_at_idx" ON "news_categories"("is_active", "deleted_at");
 
--- CreateIndex
+-- Cria índice
 CREATE UNIQUE INDEX "events_slug_key" ON "events"("slug");
 
--- CreateIndex
+-- Cria índice
 CREATE INDEX "events_status_starts_at_idx" ON "events"("status", "starts_at");
 
--- CreateIndex
+-- Cria índice
 CREATE INDEX "events_type_starts_at_idx" ON "events"("type", "starts_at");
 
--- CreateIndex
+-- Cria índice
 CREATE INDEX "events_is_public_published_at_idx" ON "events"("is_public", "published_at");
 
--- CreateIndex
+-- Cria índice
 CREATE UNIQUE INDEX "matches_event_id_key" ON "matches"("event_id");
 
--- CreateIndex
+-- Cria índice
 CREATE INDEX "matches_team_id_event_id_idx" ON "matches"("team_id", "event_id");
 
--- CreateIndex
+-- Cria índice
 CREATE INDEX "matches_opponent_name_idx" ON "matches"("opponent_name");
 
--- CreateIndex
+-- Cria índice
 CREATE UNIQUE INDEX "forum_categories_slug_key" ON "forum_categories"("slug");
 
--- CreateIndex
+-- Cria índice
 CREATE INDEX "forum_categories_visibility_is_active_deleted_at_idx" ON "forum_categories"("visibility", "is_active", "deleted_at");
 
--- CreateIndex
+-- Cria índice
 CREATE INDEX "forum_topics_category_id_status_is_pinned_created_at_idx" ON "forum_topics"("category_id", "status", "is_pinned", "created_at");
 
--- CreateIndex
+-- Cria índice
 CREATE INDEX "forum_topics_author_user_id_created_at_idx" ON "forum_topics"("author_user_id", "created_at");
 
--- CreateIndex
+-- Cria índice
 CREATE INDEX "forum_topics_visibility_status_idx" ON "forum_topics"("visibility", "status");
 
--- CreateIndex
+-- Cria índice
 CREATE INDEX "forum_posts_topic_id_status_created_at_idx" ON "forum_posts"("topic_id", "status", "created_at");
 
--- CreateIndex
+-- Cria índice
 CREATE INDEX "forum_posts_author_user_id_created_at_idx" ON "forum_posts"("author_user_id", "created_at");
 
--- CreateIndex
+-- Cria índice
 CREATE INDEX "forum_posts_parent_post_id_idx" ON "forum_posts"("parent_post_id");
 
--- CreateIndex
+-- Cria índice
 CREATE INDEX "forum_reactions_post_id_type_idx" ON "forum_reactions"("post_id", "type");
 
--- CreateIndex
+-- Cria índice
 CREATE UNIQUE INDEX "forum_reactions_post_id_user_id_key" ON "forum_reactions"("post_id", "user_id");
 
--- CreateIndex
+-- Cria índice
 CREATE INDEX "forum_reports_status_created_at_idx" ON "forum_reports"("status", "created_at");
 
--- CreateIndex
+-- Cria índice
 CREATE INDEX "forum_reports_topic_id_idx" ON "forum_reports"("topic_id");
 
--- CreateIndex
+-- Cria índice
 CREATE INDEX "forum_reports_post_id_idx" ON "forum_reports"("post_id");
 
--- CreateIndex
+-- Cria índice
 CREATE INDEX "forum_reports_reporter_user_id_created_at_idx" ON "forum_reports"("reporter_user_id", "created_at");
 
--- CreateIndex
+-- Cria índice
 CREATE INDEX "forum_moderation_actions_topic_id_created_at_idx" ON "forum_moderation_actions"("topic_id", "created_at");
 
--- CreateIndex
+-- Cria índice
 CREATE INDEX "forum_moderation_actions_post_id_created_at_idx" ON "forum_moderation_actions"("post_id", "created_at");
 
--- CreateIndex
+-- Cria índice
 CREATE INDEX "forum_moderation_actions_moderator_user_id_created_at_idx" ON "forum_moderation_actions"("moderator_user_id", "created_at");
 
--- CreateIndex
+-- Cria índice
 CREATE UNIQUE INDEX "news_forum_topic_id_key" ON "news"("forum_topic_id");
 
--- CreateIndex
+-- Cria índice
 CREATE UNIQUE INDEX "news_slug_key" ON "news"("slug");
 
--- CreateIndex
+-- Cria índice
 CREATE INDEX "news_status_scheduled_at_published_at_idx" ON "news"("status", "scheduled_at", "published_at");
 
--- CreateIndex
+-- Cria índice
 CREATE INDEX "news_show_on_home_status_published_at_idx" ON "news"("show_on_home", "status", "published_at");
 
--- CreateIndex
+-- Cria índice
 CREATE INDEX "news_show_on_forum_status_published_at_idx" ON "news"("show_on_forum", "status", "published_at");
 
--- CreateIndex
+-- Cria índice
 CREATE INDEX "news_event_id_idx" ON "news"("event_id");
 
--- CreateIndex
+-- Cria índice
 CREATE INDEX "notifications_user_id_read_at_created_at_idx" ON "notifications"("user_id", "read_at", "created_at");
 
--- CreateIndex
+-- Cria índice
 CREATE INDEX "notifications_delivery_status_scheduled_at_idx" ON "notifications"("delivery_status", "scheduled_at");
 
--- CreateIndex
+-- Cria índice
 CREATE INDEX "notifications_type_created_at_idx" ON "notifications"("type", "created_at");
 
--- CreateIndex
+-- Cria índice
 CREATE UNIQUE INDEX "notifications_user_id_deduplication_key_key" ON "notifications"("user_id", "deduplication_key");
 
--- AddForeignKey
+-- Adiciona chave estrangeira
 ALTER TABLE "user_sessions" ADD CONSTRAINT "user_sessions_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
--- AddForeignKey
+-- Adiciona chave estrangeira
 ALTER TABLE "user_sessions" ADD CONSTRAINT "user_sessions_rotated_from_session_id_fkey" FOREIGN KEY ("rotated_from_session_id") REFERENCES "user_sessions"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
--- AddForeignKey
+-- Adiciona chave estrangeira
 ALTER TABLE "user_tokens" ADD CONSTRAINT "user_tokens_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
--- AddForeignKey
+-- Adiciona chave estrangeira
 ALTER TABLE "user_roles" ADD CONSTRAINT "user_roles_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "users"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
--- AddForeignKey
+-- Adiciona chave estrangeira
 ALTER TABLE "user_roles" ADD CONSTRAINT "user_roles_role_id_fkey" FOREIGN KEY ("role_id") REFERENCES "roles"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
--- AddForeignKey
+-- Adiciona chave estrangeira
 ALTER TABLE "user_roles" ADD CONSTRAINT "user_roles_granted_by_id_fkey" FOREIGN KEY ("granted_by_id") REFERENCES "users"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
--- AddForeignKey
+-- Adiciona chave estrangeira
 ALTER TABLE "role_permissions" ADD CONSTRAINT "role_permissions_role_id_fkey" FOREIGN KEY ("role_id") REFERENCES "roles"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
--- AddForeignKey
+-- Adiciona chave estrangeira
 ALTER TABLE "role_permissions" ADD CONSTRAINT "role_permissions_permission_id_fkey" FOREIGN KEY ("permission_id") REFERENCES "permissions"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
--- AddForeignKey
+-- Adiciona chave estrangeira
 ALTER TABLE "role_permissions" ADD CONSTRAINT "role_permissions_granted_by_id_fkey" FOREIGN KEY ("granted_by_id") REFERENCES "users"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
--- AddForeignKey
+-- Adiciona chave estrangeira
 ALTER TABLE "team_settings" ADD CONSTRAINT "team_settings_updated_by_id_fkey" FOREIGN KEY ("updated_by_id") REFERENCES "users"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
--- AddForeignKey
+-- Adiciona chave estrangeira
 ALTER TABLE "team_brand_assets" ADD CONSTRAINT "team_brand_assets_team_settings_id_fkey" FOREIGN KEY ("team_settings_id") REFERENCES "team_settings"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
--- AddForeignKey
+-- Adiciona chave estrangeira
 ALTER TABLE "team_brand_assets" ADD CONSTRAINT "team_brand_assets_media_file_id_fkey" FOREIGN KEY ("media_file_id") REFERENCES "media_files"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
--- AddForeignKey
+-- Adiciona chave estrangeira
 ALTER TABLE "media_files" ADD CONSTRAINT "media_files_uploaded_by_id_fkey" FOREIGN KEY ("uploaded_by_id") REFERENCES "users"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
--- AddForeignKey
+-- Adiciona chave estrangeira
 ALTER TABLE "audit_logs" ADD CONSTRAINT "audit_logs_actor_user_id_fkey" FOREIGN KEY ("actor_user_id") REFERENCES "users"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
--- AddForeignKey
+-- Adiciona chave estrangeira
 ALTER TABLE "athletes" ADD CONSTRAINT "athletes_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "users"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
--- AddForeignKey
+-- Adiciona chave estrangeira
 ALTER TABLE "athlete_documents" ADD CONSTRAINT "athlete_documents_athlete_id_fkey" FOREIGN KEY ("athlete_id") REFERENCES "athletes"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
--- AddForeignKey
+-- Adiciona chave estrangeira
 ALTER TABLE "athlete_documents" ADD CONSTRAINT "athlete_documents_media_file_id_fkey" FOREIGN KEY ("media_file_id") REFERENCES "media_files"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
--- AddForeignKey
+-- Adiciona chave estrangeira
 ALTER TABLE "teams" ADD CONSTRAINT "teams_category_id_fkey" FOREIGN KEY ("category_id") REFERENCES "categories"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
--- AddForeignKey
+-- Adiciona chave estrangeira
 ALTER TABLE "team_athletes" ADD CONSTRAINT "team_athletes_athlete_id_fkey" FOREIGN KEY ("athlete_id") REFERENCES "athletes"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
--- AddForeignKey
+-- Adiciona chave estrangeira
 ALTER TABLE "team_athletes" ADD CONSTRAINT "team_athletes_team_id_fkey" FOREIGN KEY ("team_id") REFERENCES "teams"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
--- AddForeignKey
+-- Adiciona chave estrangeira
 ALTER TABLE "interested_people" ADD CONSTRAINT "interested_people_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "users"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
--- AddForeignKey
+-- Adiciona chave estrangeira
 ALTER TABLE "interested_people" ADD CONSTRAINT "interested_people_converted_athlete_id_fkey" FOREIGN KEY ("converted_athlete_id") REFERENCES "athletes"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
--- AddForeignKey
+-- Adiciona chave estrangeira
 ALTER TABLE "registrations" ADD CONSTRAINT "registrations_applicant_user_id_fkey" FOREIGN KEY ("applicant_user_id") REFERENCES "users"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
--- AddForeignKey
+-- Adiciona chave estrangeira
 ALTER TABLE "registrations" ADD CONSTRAINT "registrations_interested_person_id_fkey" FOREIGN KEY ("interested_person_id") REFERENCES "interested_people"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
--- AddForeignKey
+-- Adiciona chave estrangeira
 ALTER TABLE "registrations" ADD CONSTRAINT "registrations_resulting_athlete_id_fkey" FOREIGN KEY ("resulting_athlete_id") REFERENCES "athletes"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
--- AddForeignKey
+-- Adiciona chave estrangeira
 ALTER TABLE "registrations" ADD CONSTRAINT "registrations_requested_team_id_fkey" FOREIGN KEY ("requested_team_id") REFERENCES "teams"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
--- AddForeignKey
+-- Adiciona chave estrangeira
 ALTER TABLE "registrations" ADD CONSTRAINT "registrations_reviewed_by_id_fkey" FOREIGN KEY ("reviewed_by_id") REFERENCES "users"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
--- AddForeignKey
+-- Adiciona chave estrangeira
 ALTER TABLE "tryouts" ADD CONSTRAINT "tryouts_team_id_fkey" FOREIGN KEY ("team_id") REFERENCES "teams"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
--- AddForeignKey
+-- Adiciona chave estrangeira
 ALTER TABLE "tryouts" ADD CONSTRAINT "tryouts_event_id_fkey" FOREIGN KEY ("event_id") REFERENCES "events"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
--- AddForeignKey
+-- Adiciona chave estrangeira
 ALTER TABLE "tryout_registrations" ADD CONSTRAINT "tryout_registrations_tryout_id_fkey" FOREIGN KEY ("tryout_id") REFERENCES "tryouts"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
--- AddForeignKey
+-- Adiciona chave estrangeira
 ALTER TABLE "tryout_registrations" ADD CONSTRAINT "tryout_registrations_applicant_user_id_fkey" FOREIGN KEY ("applicant_user_id") REFERENCES "users"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
--- AddForeignKey
+-- Adiciona chave estrangeira
 ALTER TABLE "tryout_registrations" ADD CONSTRAINT "tryout_registrations_athlete_id_fkey" FOREIGN KEY ("athlete_id") REFERENCES "athletes"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
--- AddForeignKey
+-- Adiciona chave estrangeira
 ALTER TABLE "tryout_registrations" ADD CONSTRAINT "tryout_registrations_interested_person_id_fkey" FOREIGN KEY ("interested_person_id") REFERENCES "interested_people"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
--- AddForeignKey
+-- Adiciona chave estrangeira
 ALTER TABLE "tryout_registrations" ADD CONSTRAINT "tryout_registrations_reviewed_by_id_fkey" FOREIGN KEY ("reviewed_by_id") REFERENCES "users"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
--- AddForeignKey
+-- Adiciona chave estrangeira
 ALTER TABLE "athlete_monthly_fee_plans" ADD CONSTRAINT "athlete_monthly_fee_plans_athlete_id_fkey" FOREIGN KEY ("athlete_id") REFERENCES "athletes"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
--- AddForeignKey
+-- Adiciona chave estrangeira
 ALTER TABLE "athlete_monthly_fee_plans" ADD CONSTRAINT "athlete_monthly_fee_plans_monthly_fee_plan_id_fkey" FOREIGN KEY ("monthly_fee_plan_id") REFERENCES "monthly_fee_plans"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
--- AddForeignKey
+-- Adiciona chave estrangeira
 ALTER TABLE "monthly_fees" ADD CONSTRAINT "monthly_fees_athlete_id_fkey" FOREIGN KEY ("athlete_id") REFERENCES "athletes"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
--- AddForeignKey
+-- Adiciona chave estrangeira
 ALTER TABLE "monthly_fees" ADD CONSTRAINT "monthly_fees_monthly_fee_plan_id_fkey" FOREIGN KEY ("monthly_fee_plan_id") REFERENCES "monthly_fee_plans"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
--- AddForeignKey
+-- Adiciona chave estrangeira
 ALTER TABLE "monthly_fees" ADD CONSTRAINT "monthly_fees_athlete_monthly_fee_plan_id_fkey" FOREIGN KEY ("athlete_monthly_fee_plan_id") REFERENCES "athlete_monthly_fee_plans"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
--- AddForeignKey
+-- Adiciona chave estrangeira
 ALTER TABLE "monthly_fees" ADD CONSTRAINT "monthly_fees_created_by_id_fkey" FOREIGN KEY ("created_by_id") REFERENCES "users"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
--- AddForeignKey
+-- Adiciona chave estrangeira
 ALTER TABLE "monthly_fees" ADD CONSTRAINT "monthly_fees_cancelled_by_id_fkey" FOREIGN KEY ("cancelled_by_id") REFERENCES "users"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
--- AddForeignKey
+-- Adiciona chave estrangeira
 ALTER TABLE "monthly_fee_payments" ADD CONSTRAINT "monthly_fee_payments_monthly_fee_id_fkey" FOREIGN KEY ("monthly_fee_id") REFERENCES "monthly_fees"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
--- AddForeignKey
+-- Adiciona chave estrangeira
 ALTER TABLE "monthly_fee_payments" ADD CONSTRAINT "monthly_fee_payments_payment_id_fkey" FOREIGN KEY ("payment_id") REFERENCES "payments"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
--- AddForeignKey
+-- Adiciona chave estrangeira
 ALTER TABLE "monthly_fee_payments" ADD CONSTRAINT "monthly_fee_payments_created_by_id_fkey" FOREIGN KEY ("created_by_id") REFERENCES "users"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
--- AddForeignKey
+-- Adiciona chave estrangeira
 ALTER TABLE "payments" ADD CONSTRAINT "payments_order_id_fkey" FOREIGN KEY ("order_id") REFERENCES "orders"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
--- AddForeignKey
+-- Adiciona chave estrangeira
 ALTER TABLE "payments" ADD CONSTRAINT "payments_payment_method_id_fkey" FOREIGN KEY ("payment_method_id") REFERENCES "payment_methods"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
--- AddForeignKey
+-- Adiciona chave estrangeira
 ALTER TABLE "payments" ADD CONSTRAINT "payments_payer_user_id_fkey" FOREIGN KEY ("payer_user_id") REFERENCES "users"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
--- AddForeignKey
+-- Adiciona chave estrangeira
 ALTER TABLE "payments" ADD CONSTRAINT "payments_created_by_id_fkey" FOREIGN KEY ("created_by_id") REFERENCES "users"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
--- AddForeignKey
+-- Adiciona chave estrangeira
 ALTER TABLE "refunds" ADD CONSTRAINT "refunds_payment_id_fkey" FOREIGN KEY ("payment_id") REFERENCES "payments"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
--- AddForeignKey
+-- Adiciona chave estrangeira
 ALTER TABLE "refunds" ADD CONSTRAINT "refunds_order_id_fkey" FOREIGN KEY ("order_id") REFERENCES "orders"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
--- AddForeignKey
+-- Adiciona chave estrangeira
 ALTER TABLE "refunds" ADD CONSTRAINT "refunds_requested_by_id_fkey" FOREIGN KEY ("requested_by_id") REFERENCES "users"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
--- AddForeignKey
+-- Adiciona chave estrangeira
 ALTER TABLE "refunds" ADD CONSTRAINT "refunds_approved_by_id_fkey" FOREIGN KEY ("approved_by_id") REFERENCES "users"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
--- AddForeignKey
+-- Adiciona chave estrangeira
 ALTER TABLE "financial_categories" ADD CONSTRAINT "financial_categories_parent_id_fkey" FOREIGN KEY ("parent_id") REFERENCES "financial_categories"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
--- AddForeignKey
+-- Adiciona chave estrangeira
 ALTER TABLE "cost_centers" ADD CONSTRAINT "cost_centers_parent_id_fkey" FOREIGN KEY ("parent_id") REFERENCES "cost_centers"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
--- AddForeignKey
+-- Adiciona chave estrangeira
 ALTER TABLE "financial_obligations" ADD CONSTRAINT "financial_obligations_category_id_fkey" FOREIGN KEY ("category_id") REFERENCES "financial_categories"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
--- AddForeignKey
+-- Adiciona chave estrangeira
 ALTER TABLE "financial_obligations" ADD CONSTRAINT "financial_obligations_cost_center_id_fkey" FOREIGN KEY ("cost_center_id") REFERENCES "cost_centers"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
--- AddForeignKey
+-- Adiciona chave estrangeira
 ALTER TABLE "financial_obligations" ADD CONSTRAINT "financial_obligations_partner_id_fkey" FOREIGN KEY ("partner_id") REFERENCES "partners"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
--- AddForeignKey
+-- Adiciona chave estrangeira
 ALTER TABLE "financial_obligations" ADD CONSTRAINT "financial_obligations_planned_payment_method_id_fkey" FOREIGN KEY ("planned_payment_method_id") REFERENCES "payment_methods"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
--- AddForeignKey
+-- Adiciona chave estrangeira
 ALTER TABLE "financial_obligations" ADD CONSTRAINT "financial_obligations_settlement_transaction_id_fkey" FOREIGN KEY ("settlement_transaction_id") REFERENCES "financial_transactions"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
--- AddForeignKey
+-- Adiciona chave estrangeira
 ALTER TABLE "financial_obligations" ADD CONSTRAINT "financial_obligations_created_by_id_fkey" FOREIGN KEY ("created_by_id") REFERENCES "users"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
--- AddForeignKey
+-- Adiciona chave estrangeira
 ALTER TABLE "financial_obligations" ADD CONSTRAINT "financial_obligations_cancelled_by_id_fkey" FOREIGN KEY ("cancelled_by_id") REFERENCES "users"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
--- AddForeignKey
+-- Adiciona chave estrangeira
 ALTER TABLE "financial_transactions" ADD CONSTRAINT "financial_transactions_account_id_fkey" FOREIGN KEY ("account_id") REFERENCES "financial_accounts"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
--- AddForeignKey
+-- Adiciona chave estrangeira
 ALTER TABLE "financial_transactions" ADD CONSTRAINT "financial_transactions_category_id_fkey" FOREIGN KEY ("category_id") REFERENCES "financial_categories"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
--- AddForeignKey
+-- Adiciona chave estrangeira
 ALTER TABLE "financial_transactions" ADD CONSTRAINT "financial_transactions_cost_center_id_fkey" FOREIGN KEY ("cost_center_id") REFERENCES "cost_centers"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
--- AddForeignKey
+-- Adiciona chave estrangeira
 ALTER TABLE "financial_transactions" ADD CONSTRAINT "financial_transactions_payment_method_id_fkey" FOREIGN KEY ("payment_method_id") REFERENCES "payment_methods"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
--- AddForeignKey
+-- Adiciona chave estrangeira
 ALTER TABLE "financial_transactions" ADD CONSTRAINT "financial_transactions_payment_id_fkey" FOREIGN KEY ("payment_id") REFERENCES "payments"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
--- AddForeignKey
+-- Adiciona chave estrangeira
 ALTER TABLE "financial_transactions" ADD CONSTRAINT "financial_transactions_refund_id_fkey" FOREIGN KEY ("refund_id") REFERENCES "refunds"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
--- AddForeignKey
+-- Adiciona chave estrangeira
 ALTER TABLE "financial_transactions" ADD CONSTRAINT "financial_transactions_partner_settlement_id_fkey" FOREIGN KEY ("partner_settlement_id") REFERENCES "partner_settlements"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
--- AddForeignKey
+-- Adiciona chave estrangeira
 ALTER TABLE "financial_transactions" ADD CONSTRAINT "financial_transactions_reverses_transaction_id_fkey" FOREIGN KEY ("reverses_transaction_id") REFERENCES "financial_transactions"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
--- AddForeignKey
+-- Adiciona chave estrangeira
 ALTER TABLE "financial_transactions" ADD CONSTRAINT "financial_transactions_cash_closing_id_fkey" FOREIGN KEY ("cash_closing_id") REFERENCES "cash_closings"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
--- AddForeignKey
+-- Adiciona chave estrangeira
 ALTER TABLE "financial_transactions" ADD CONSTRAINT "financial_transactions_created_by_id_fkey" FOREIGN KEY ("created_by_id") REFERENCES "users"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
--- AddForeignKey
+-- Adiciona chave estrangeira
 ALTER TABLE "financial_transactions" ADD CONSTRAINT "financial_transactions_confirmed_by_id_fkey" FOREIGN KEY ("confirmed_by_id") REFERENCES "users"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
--- AddForeignKey
+-- Adiciona chave estrangeira
 ALTER TABLE "financial_transactions" ADD CONSTRAINT "financial_transactions_cancelled_by_id_fkey" FOREIGN KEY ("cancelled_by_id") REFERENCES "users"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
--- AddForeignKey
+-- Adiciona chave estrangeira
 ALTER TABLE "financial_transactions" ADD CONSTRAINT "financial_transactions_reconciled_by_id_fkey" FOREIGN KEY ("reconciled_by_id") REFERENCES "users"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
--- AddForeignKey
+-- Adiciona chave estrangeira
 ALTER TABLE "financial_transfers" ADD CONSTRAINT "financial_transfers_source_account_id_fkey" FOREIGN KEY ("source_account_id") REFERENCES "financial_accounts"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
--- AddForeignKey
+-- Adiciona chave estrangeira
 ALTER TABLE "financial_transfers" ADD CONSTRAINT "financial_transfers_destination_account_id_fkey" FOREIGN KEY ("destination_account_id") REFERENCES "financial_accounts"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
--- AddForeignKey
+-- Adiciona chave estrangeira
 ALTER TABLE "financial_transfers" ADD CONSTRAINT "financial_transfers_debit_transaction_id_fkey" FOREIGN KEY ("debit_transaction_id") REFERENCES "financial_transactions"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
--- AddForeignKey
+-- Adiciona chave estrangeira
 ALTER TABLE "financial_transfers" ADD CONSTRAINT "financial_transfers_credit_transaction_id_fkey" FOREIGN KEY ("credit_transaction_id") REFERENCES "financial_transactions"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
--- AddForeignKey
+-- Adiciona chave estrangeira
 ALTER TABLE "financial_transfers" ADD CONSTRAINT "financial_transfers_created_by_id_fkey" FOREIGN KEY ("created_by_id") REFERENCES "users"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
--- AddForeignKey
+-- Adiciona chave estrangeira
 ALTER TABLE "financial_transaction_attachments" ADD CONSTRAINT "financial_transaction_attachments_financial_transaction_id_fkey" FOREIGN KEY ("financial_transaction_id") REFERENCES "financial_transactions"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
--- AddForeignKey
+-- Adiciona chave estrangeira
 ALTER TABLE "financial_transaction_attachments" ADD CONSTRAINT "financial_transaction_attachments_payment_id_fkey" FOREIGN KEY ("payment_id") REFERENCES "payments"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
--- AddForeignKey
+-- Adiciona chave estrangeira
 ALTER TABLE "financial_transaction_attachments" ADD CONSTRAINT "financial_transaction_attachments_media_file_id_fkey" FOREIGN KEY ("media_file_id") REFERENCES "media_files"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
--- AddForeignKey
+-- Adiciona chave estrangeira
 ALTER TABLE "cash_closings" ADD CONSTRAINT "cash_closings_financial_account_id_fkey" FOREIGN KEY ("financial_account_id") REFERENCES "financial_accounts"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
--- AddForeignKey
+-- Adiciona chave estrangeira
 ALTER TABLE "cash_closings" ADD CONSTRAINT "cash_closings_closed_by_id_fkey" FOREIGN KEY ("closed_by_id") REFERENCES "users"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
--- AddForeignKey
+-- Adiciona chave estrangeira
 ALTER TABLE "cash_closings" ADD CONSTRAINT "cash_closings_reopened_by_id_fkey" FOREIGN KEY ("reopened_by_id") REFERENCES "users"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
--- AddForeignKey
+-- Adiciona chave estrangeira
 ALTER TABLE "product_categories" ADD CONSTRAINT "product_categories_parent_id_fkey" FOREIGN KEY ("parent_id") REFERENCES "product_categories"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
--- AddForeignKey
+-- Adiciona chave estrangeira
 ALTER TABLE "products" ADD CONSTRAINT "products_product_category_id_fkey" FOREIGN KEY ("product_category_id") REFERENCES "product_categories"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
--- AddForeignKey
+-- Adiciona chave estrangeira
 ALTER TABLE "products" ADD CONSTRAINT "products_partner_id_fkey" FOREIGN KEY ("partner_id") REFERENCES "partners"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
--- AddForeignKey
+-- Adiciona chave estrangeira
 ALTER TABLE "product_images" ADD CONSTRAINT "product_images_product_id_fkey" FOREIGN KEY ("product_id") REFERENCES "products"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
--- AddForeignKey
+-- Adiciona chave estrangeira
 ALTER TABLE "product_images" ADD CONSTRAINT "product_images_media_file_id_fkey" FOREIGN KEY ("media_file_id") REFERENCES "media_files"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
--- AddForeignKey
+-- Adiciona chave estrangeira
 ALTER TABLE "product_variants" ADD CONSTRAINT "product_variants_product_id_fkey" FOREIGN KEY ("product_id") REFERENCES "products"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
--- AddForeignKey
+-- Adiciona chave estrangeira
 ALTER TABLE "inventory_movements" ADD CONSTRAINT "inventory_movements_product_variant_id_fkey" FOREIGN KEY ("product_variant_id") REFERENCES "product_variants"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
--- AddForeignKey
+-- Adiciona chave estrangeira
 ALTER TABLE "inventory_movements" ADD CONSTRAINT "inventory_movements_order_item_id_fkey" FOREIGN KEY ("order_item_id") REFERENCES "order_items"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
--- AddForeignKey
+-- Adiciona chave estrangeira
 ALTER TABLE "inventory_movements" ADD CONSTRAINT "inventory_movements_created_by_id_fkey" FOREIGN KEY ("created_by_id") REFERENCES "users"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
--- AddForeignKey
+-- Adiciona chave estrangeira
 ALTER TABLE "sales_campaigns" ADD CONSTRAINT "sales_campaigns_supplier_partner_id_fkey" FOREIGN KEY ("supplier_partner_id") REFERENCES "partners"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
--- AddForeignKey
+-- Adiciona chave estrangeira
 ALTER TABLE "sales_campaigns" ADD CONSTRAINT "sales_campaigns_created_by_id_fkey" FOREIGN KEY ("created_by_id") REFERENCES "users"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
--- AddForeignKey
+-- Adiciona chave estrangeira
 ALTER TABLE "sales_campaign_products" ADD CONSTRAINT "sales_campaign_products_sales_campaign_id_fkey" FOREIGN KEY ("sales_campaign_id") REFERENCES "sales_campaigns"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
--- AddForeignKey
+-- Adiciona chave estrangeira
 ALTER TABLE "sales_campaign_products" ADD CONSTRAINT "sales_campaign_products_product_id_fkey" FOREIGN KEY ("product_id") REFERENCES "products"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
--- AddForeignKey
+-- Adiciona chave estrangeira
 ALTER TABLE "favorites" ADD CONSTRAINT "favorites_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
--- AddForeignKey
+-- Adiciona chave estrangeira
 ALTER TABLE "favorites" ADD CONSTRAINT "favorites_product_id_fkey" FOREIGN KEY ("product_id") REFERENCES "products"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
--- AddForeignKey
+-- Adiciona chave estrangeira
 ALTER TABLE "carts" ADD CONSTRAINT "carts_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
--- AddForeignKey
+-- Adiciona chave estrangeira
 ALTER TABLE "carts" ADD CONSTRAINT "carts_converted_order_id_fkey" FOREIGN KEY ("converted_order_id") REFERENCES "orders"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
--- AddForeignKey
+-- Adiciona chave estrangeira
 ALTER TABLE "cart_items" ADD CONSTRAINT "cart_items_cart_id_fkey" FOREIGN KEY ("cart_id") REFERENCES "carts"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
--- AddForeignKey
+-- Adiciona chave estrangeira
 ALTER TABLE "cart_items" ADD CONSTRAINT "cart_items_product_variant_id_fkey" FOREIGN KEY ("product_variant_id") REFERENCES "product_variants"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
--- AddForeignKey
+-- Adiciona chave estrangeira
 ALTER TABLE "cart_items" ADD CONSTRAINT "cart_items_sales_campaign_product_id_fkey" FOREIGN KEY ("sales_campaign_product_id") REFERENCES "sales_campaign_products"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
--- AddForeignKey
+-- Adiciona chave estrangeira
 ALTER TABLE "orders" ADD CONSTRAINT "orders_customer_user_id_fkey" FOREIGN KEY ("customer_user_id") REFERENCES "users"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
--- AddForeignKey
+-- Adiciona chave estrangeira
 ALTER TABLE "order_items" ADD CONSTRAINT "order_items_order_id_fkey" FOREIGN KEY ("order_id") REFERENCES "orders"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
--- AddForeignKey
+-- Adiciona chave estrangeira
 ALTER TABLE "order_items" ADD CONSTRAINT "order_items_product_id_fkey" FOREIGN KEY ("product_id") REFERENCES "products"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
--- AddForeignKey
+-- Adiciona chave estrangeira
 ALTER TABLE "order_items" ADD CONSTRAINT "order_items_product_variant_id_fkey" FOREIGN KEY ("product_variant_id") REFERENCES "product_variants"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
--- AddForeignKey
+-- Adiciona chave estrangeira
 ALTER TABLE "order_items" ADD CONSTRAINT "order_items_sales_campaign_product_id_fkey" FOREIGN KEY ("sales_campaign_product_id") REFERENCES "sales_campaign_products"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
--- AddForeignKey
+-- Adiciona chave estrangeira
 ALTER TABLE "order_items" ADD CONSTRAINT "order_items_partner_id_fkey" FOREIGN KEY ("partner_id") REFERENCES "partners"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
--- AddForeignKey
+-- Adiciona chave estrangeira
 ALTER TABLE "partners" ADD CONSTRAINT "partners_logo_media_file_id_fkey" FOREIGN KEY ("logo_media_file_id") REFERENCES "media_files"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
--- AddForeignKey
+-- Adiciona chave estrangeira
 ALTER TABLE "partner_documents" ADD CONSTRAINT "partner_documents_partner_id_fkey" FOREIGN KEY ("partner_id") REFERENCES "partners"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
--- AddForeignKey
+-- Adiciona chave estrangeira
 ALTER TABLE "partner_documents" ADD CONSTRAINT "partner_documents_media_file_id_fkey" FOREIGN KEY ("media_file_id") REFERENCES "media_files"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
--- AddForeignKey
+-- Adiciona chave estrangeira
 ALTER TABLE "partner_professionals" ADD CONSTRAINT "partner_professionals_partner_id_fkey" FOREIGN KEY ("partner_id") REFERENCES "partners"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
--- AddForeignKey
+-- Adiciona chave estrangeira
 ALTER TABLE "partner_professionals" ADD CONSTRAINT "partner_professionals_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "users"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
--- AddForeignKey
+-- Adiciona chave estrangeira
 ALTER TABLE "partner_services" ADD CONSTRAINT "partner_services_partner_id_fkey" FOREIGN KEY ("partner_id") REFERENCES "partners"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
--- AddForeignKey
+-- Adiciona chave estrangeira
 ALTER TABLE "partner_services" ADD CONSTRAINT "partner_services_professional_id_fkey" FOREIGN KEY ("professional_id") REFERENCES "partner_professionals"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
--- AddForeignKey
+-- Adiciona chave estrangeira
 ALTER TABLE "professional_availabilities" ADD CONSTRAINT "professional_availabilities_professional_id_fkey" FOREIGN KEY ("professional_id") REFERENCES "partner_professionals"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
--- AddForeignKey
+-- Adiciona chave estrangeira
 ALTER TABLE "professional_availabilities" ADD CONSTRAINT "professional_availabilities_partner_service_id_fkey" FOREIGN KEY ("partner_service_id") REFERENCES "partner_services"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
--- AddForeignKey
+-- Adiciona chave estrangeira
 ALTER TABLE "appointments" ADD CONSTRAINT "appointments_partner_service_id_fkey" FOREIGN KEY ("partner_service_id") REFERENCES "partner_services"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
--- AddForeignKey
+-- Adiciona chave estrangeira
 ALTER TABLE "appointments" ADD CONSTRAINT "appointments_professional_id_fkey" FOREIGN KEY ("professional_id") REFERENCES "partner_professionals"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
--- AddForeignKey
+-- Adiciona chave estrangeira
 ALTER TABLE "appointments" ADD CONSTRAINT "appointments_availability_id_fkey" FOREIGN KEY ("availability_id") REFERENCES "professional_availabilities"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
--- AddForeignKey
+-- Adiciona chave estrangeira
 ALTER TABLE "appointments" ADD CONSTRAINT "appointments_requester_user_id_fkey" FOREIGN KEY ("requester_user_id") REFERENCES "users"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
--- AddForeignKey
+-- Adiciona chave estrangeira
 ALTER TABLE "appointments" ADD CONSTRAINT "appointments_athlete_id_fkey" FOREIGN KEY ("athlete_id") REFERENCES "athletes"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
--- AddForeignKey
+-- Adiciona chave estrangeira
 ALTER TABLE "partner_settlements" ADD CONSTRAINT "partner_settlements_partner_id_fkey" FOREIGN KEY ("partner_id") REFERENCES "partners"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
--- AddForeignKey
+-- Adiciona chave estrangeira
 ALTER TABLE "partner_settlements" ADD CONSTRAINT "partner_settlements_created_by_id_fkey" FOREIGN KEY ("created_by_id") REFERENCES "users"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
--- AddForeignKey
+-- Adiciona chave estrangeira
 ALTER TABLE "partner_settlements" ADD CONSTRAINT "partner_settlements_approved_by_id_fkey" FOREIGN KEY ("approved_by_id") REFERENCES "users"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
--- AddForeignKey
+-- Adiciona chave estrangeira
 ALTER TABLE "partner_settlement_items" ADD CONSTRAINT "partner_settlement_items_partner_settlement_id_fkey" FOREIGN KEY ("partner_settlement_id") REFERENCES "partner_settlements"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
--- AddForeignKey
+-- Adiciona chave estrangeira
 ALTER TABLE "partner_settlement_items" ADD CONSTRAINT "partner_settlement_items_order_item_id_fkey" FOREIGN KEY ("order_item_id") REFERENCES "order_items"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
--- AddForeignKey
+-- Adiciona chave estrangeira
 ALTER TABLE "matches" ADD CONSTRAINT "matches_event_id_fkey" FOREIGN KEY ("event_id") REFERENCES "events"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
--- AddForeignKey
+-- Adiciona chave estrangeira
 ALTER TABLE "matches" ADD CONSTRAINT "matches_team_id_fkey" FOREIGN KEY ("team_id") REFERENCES "teams"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
--- AddForeignKey
+-- Adiciona chave estrangeira
 ALTER TABLE "forum_topics" ADD CONSTRAINT "forum_topics_category_id_fkey" FOREIGN KEY ("category_id") REFERENCES "forum_categories"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
--- AddForeignKey
+-- Adiciona chave estrangeira
 ALTER TABLE "forum_topics" ADD CONSTRAINT "forum_topics_author_user_id_fkey" FOREIGN KEY ("author_user_id") REFERENCES "users"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
--- AddForeignKey
+-- Adiciona chave estrangeira
 ALTER TABLE "forum_posts" ADD CONSTRAINT "forum_posts_topic_id_fkey" FOREIGN KEY ("topic_id") REFERENCES "forum_topics"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
--- AddForeignKey
+-- Adiciona chave estrangeira
 ALTER TABLE "forum_posts" ADD CONSTRAINT "forum_posts_author_user_id_fkey" FOREIGN KEY ("author_user_id") REFERENCES "users"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
--- AddForeignKey
+-- Adiciona chave estrangeira
 ALTER TABLE "forum_posts" ADD CONSTRAINT "forum_posts_parent_post_id_fkey" FOREIGN KEY ("parent_post_id") REFERENCES "forum_posts"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
--- AddForeignKey
+-- Adiciona chave estrangeira
 ALTER TABLE "forum_reactions" ADD CONSTRAINT "forum_reactions_post_id_fkey" FOREIGN KEY ("post_id") REFERENCES "forum_posts"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
--- AddForeignKey
+-- Adiciona chave estrangeira
 ALTER TABLE "forum_reactions" ADD CONSTRAINT "forum_reactions_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
--- AddForeignKey
+-- Adiciona chave estrangeira
 ALTER TABLE "forum_reports" ADD CONSTRAINT "forum_reports_topic_id_fkey" FOREIGN KEY ("topic_id") REFERENCES "forum_topics"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
--- AddForeignKey
+-- Adiciona chave estrangeira
 ALTER TABLE "forum_reports" ADD CONSTRAINT "forum_reports_post_id_fkey" FOREIGN KEY ("post_id") REFERENCES "forum_posts"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
--- AddForeignKey
+-- Adiciona chave estrangeira
 ALTER TABLE "forum_reports" ADD CONSTRAINT "forum_reports_reporter_user_id_fkey" FOREIGN KEY ("reporter_user_id") REFERENCES "users"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
--- AddForeignKey
+-- Adiciona chave estrangeira
 ALTER TABLE "forum_reports" ADD CONSTRAINT "forum_reports_reviewed_by_id_fkey" FOREIGN KEY ("reviewed_by_id") REFERENCES "users"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
--- AddForeignKey
+-- Adiciona chave estrangeira
 ALTER TABLE "forum_moderation_actions" ADD CONSTRAINT "forum_moderation_actions_topic_id_fkey" FOREIGN KEY ("topic_id") REFERENCES "forum_topics"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
--- AddForeignKey
+-- Adiciona chave estrangeira
 ALTER TABLE "forum_moderation_actions" ADD CONSTRAINT "forum_moderation_actions_post_id_fkey" FOREIGN KEY ("post_id") REFERENCES "forum_posts"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
--- AddForeignKey
+-- Adiciona chave estrangeira
 ALTER TABLE "forum_moderation_actions" ADD CONSTRAINT "forum_moderation_actions_moderator_user_id_fkey" FOREIGN KEY ("moderator_user_id") REFERENCES "users"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
--- AddForeignKey
+-- Adiciona chave estrangeira
 ALTER TABLE "news" ADD CONSTRAINT "news_category_id_fkey" FOREIGN KEY ("category_id") REFERENCES "news_categories"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
--- AddForeignKey
+-- Adiciona chave estrangeira
 ALTER TABLE "news" ADD CONSTRAINT "news_author_user_id_fkey" FOREIGN KEY ("author_user_id") REFERENCES "users"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
--- AddForeignKey
+-- Adiciona chave estrangeira
 ALTER TABLE "news" ADD CONSTRAINT "news_cover_media_file_id_fkey" FOREIGN KEY ("cover_media_file_id") REFERENCES "media_files"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
--- AddForeignKey
+-- Adiciona chave estrangeira
 ALTER TABLE "news" ADD CONSTRAINT "news_event_id_fkey" FOREIGN KEY ("event_id") REFERENCES "events"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
--- AddForeignKey
+-- Adiciona chave estrangeira
 ALTER TABLE "news" ADD CONSTRAINT "news_forum_topic_id_fkey" FOREIGN KEY ("forum_topic_id") REFERENCES "forum_topics"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
--- AddForeignKey
+-- Adiciona chave estrangeira
 ALTER TABLE "notifications" ADD CONSTRAINT "notifications_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE;

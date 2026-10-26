@@ -6,7 +6,7 @@ import { OptionalPrincipal, type Principal } from '../../../common/http/request-
 import { Public } from '../../auth/http/auth.decorators';
 import { MediaService } from '../application/media.service';
 
-@ApiTags('media')
+@ApiTags('Arquivos')
 @Controller('media')
 export class MediaController {
   constructor(private readonly media: MediaService) {}

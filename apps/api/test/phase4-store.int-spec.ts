@@ -225,7 +225,7 @@ describe('Fase 4 — loja, estoque, carrinho e pedidos', () => {
     await ctx.http().get('/api/v1/store/coupons').set(auth(common.token)).expect(403);
   });
 
-  it('shows only active products publicly and hides cost', async () => {
+  it('mostra só produtos ativos no site e esconde o custo', async () => {
     const draft = await ctx
       .http()
       .post('/api/v1/store/products')
@@ -255,7 +255,7 @@ describe('Fase 4 — loja, estoque, carrinho e pedidos', () => {
       .expect(403);
   });
 
-  it('guest checkout reserves stock, freezes price and allows lookup only with the code', async () => {
+  it('compra sem conta reserva estoque, congela o preço e só permite consulta com o código', async () => {
     const p = await product({ price: '50.00', stock: 5 });
     const agent = guest();
 
@@ -307,7 +307,7 @@ describe('Fase 4 — loja, estoque, carrinho e pedidos', () => {
     expect(emptyCart.body.lines).toHaveLength(0);
   });
 
-  it('never oversells under concurrent checkouts', async () => {
+  it('nunca vende além do estoque em compras simultâneas', async () => {
     const p = await product({ stock: 1 });
     const agents = [guest(), guest(), guest()];
 
@@ -327,7 +327,7 @@ describe('Fase 4 — loja, estoque, carrinho e pedidos', () => {
     expect(await stockOf(p.variantId)).toBe(0);
   });
 
-  it('confirms payment once, converts the reservation and posts the sale to the cash', async () => {
+  it('confirma o pagamento uma vez, converte a reserva e lança a venda no Caixa', async () => {
     const p = await product({ price: '30.00', stock: 4 });
     const buyer = await createUser(ctx.prisma, ['user']);
     const token = await login(ctx, buyer.email);
@@ -399,7 +399,7 @@ describe('Fase 4 — loja, estoque, carrinho e pedidos', () => {
     );
   });
 
-  it('cancels a paid order with a linked refund and returns stock', async () => {
+  it('cancela pedido pago com reembolso vinculado e devolve o estoque', async () => {
     const p = await product({ price: '40.00', stock: 2 });
     const account = await accountId();
     const agent = guest();
@@ -456,7 +456,7 @@ describe('Fase 4 — loja, estoque, carrinho e pedidos', () => {
       .expect(409);
   });
 
-  it('enforces buyer limits across orders and expires unpaid reservations', async () => {
+  it('aplica o limite por comprador entre pedidos e expira reservas não pagas', async () => {
     const p = await product({ stock: 10, buyerLimit: 2 });
     const buyer = await createUser(ctx.prisma, ['user']);
     const token = await login(ctx, buyer.email);
@@ -517,7 +517,7 @@ describe('Fase 4 — loja, estoque, carrinho e pedidos', () => {
     expect(await stockOf(p.variantId)).toBe(10);
   });
 
-  it('audits manual stock adjustments and refuses negative stock', async () => {
+  it('audita ajuste manual de estoque e recusa estoque negativo', async () => {
     const p = await product({ stock: 2 });
 
     await ctx
@@ -542,7 +542,7 @@ describe('Fase 4 — loja, estoque, carrinho e pedidos', () => {
     expect(log?.afterData).toMatchObject({ available: 1 });
   });
 
-  it('keeps favorites private and idempotent and merges guest carts on login', async () => {
+  it('mantém favoritos privados e idempotentes e junta o carrinho de visitante ao entrar', async () => {
     const p = await product({ stock: 5 });
     const user = await createUser(ctx.prisma, ['user']);
     const token = await login(ctx, user.email);
@@ -563,7 +563,7 @@ describe('Fase 4 — loja, estoque, carrinho e pedidos', () => {
     expect(merged.body.itemCount).toBe(2);
   });
 
-  it('archives (deletes) products only with a reason', async () => {
+  it('arquiva (exclui) produto só com motivo', async () => {
     const p = await product();
 
     await ctx

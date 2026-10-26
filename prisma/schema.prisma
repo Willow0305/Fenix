@@ -73,15 +73,6 @@ enum TeamMembershipStatus {
   INACTIVE
 }
 
-enum RegistrationStatus {
-  NEW
-  UNDER_REVIEW
-  APPROVED
-  REJECTED
-  CANCELLED
-  CONVERTED
-}
-
 enum TryoutStatus {
   DRAFT
   SCHEDULED
@@ -458,8 +449,6 @@ model User {
   createdCoupons                  Coupon[]
   avatarMediaFile                 MediaFile?              @relation("UserAvatar", fields: [avatarMediaFileId], references: [id], onDelete: SetNull, onUpdate: Cascade)
   updatedTeamSettings             TeamSettings[]          @relation("TeamSettingsUpdater")
-  registrationApplications        Registration[]          @relation("RegistrationApplicant")
-  registrationsReviewed           Registration[]          @relation("RegistrationReviewer")
   tryoutApplications              TryoutRegistration[]    @relation("TryoutApplicant")
   tryoutRegistrationsReviewed     TryoutRegistration[]    @relation("TryoutReviewer")
   monthlyFeesCreated              MonthlyFee[]            @relation("MonthlyFeeCreator")
@@ -776,7 +765,6 @@ model Athlete {
   user                      User?                   @relation(fields: [userId], references: [id], onDelete: SetNull, onUpdate: Cascade)
   documents                 AthleteDocument[]
   teamMemberships           TeamAthlete[]
-  resultingRegistrations    Registration[]          @relation("RegistrationResultAthlete")
   tryoutRegistrations       TryoutRegistration[]
   convertedInterestedPeople InterestedPerson[]      @relation("InterestedPersonConversion")
   monthlyFeePlans           AthleteMonthlyFeePlan[]
@@ -840,11 +828,10 @@ model Team {
   updatedAt   DateTime  @updatedAt @map("updated_at") @db.Timestamptz(6)
   deletedAt   DateTime? @map("deleted_at") @db.Timestamptz(6)
 
-  category      Category?      @relation(fields: [categoryId], references: [id], onDelete: SetNull, onUpdate: Cascade)
-  memberships   TeamAthlete[]
-  registrations Registration[]
-  tryouts       Tryout[]
-  matches       Match[]
+  category    Category?     @relation(fields: [categoryId], references: [id], onDelete: SetNull, onUpdate: Cascade)
+  memberships TeamAthlete[]
+  tryouts     Tryout[]
+  matches     Match[]
 
   @@index([categoryId, isActive, deletedAt])
   @@map("teams")
@@ -892,46 +879,11 @@ model InterestedPerson {
 
   user                User?                @relation(fields: [userId], references: [id], onDelete: SetNull, onUpdate: Cascade)
   convertedAthlete    Athlete?             @relation("InterestedPersonConversion", fields: [convertedAthleteId], references: [id], onDelete: SetNull, onUpdate: Cascade)
-  registrations       Registration[]
   tryoutRegistrations TryoutRegistration[]
 
   @@index([status, createdAt])
   @@index([email, deletedAt])
   @@map("interested_people")
-}
-
-model Registration {
-  id                 String             @id @default(uuid()) @db.Uuid
-  applicantUserId    String?            @map("applicant_user_id") @db.Uuid
-  interestedPersonId String?            @map("interested_person_id") @db.Uuid
-  resultingAthleteId String?            @map("resulting_athlete_id") @db.Uuid
-  requestedTeamId    String?            @map("requested_team_id") @db.Uuid
-  fullName           String             @map("full_name") @db.VarChar(160)
-  birthDate          DateTime?          @map("birth_date") @db.Date
-  email              String?            @db.VarChar(180)
-  phone              String?            @db.VarChar(30)
-  gender             Gender?
-  desiredPosition    String?            @map("desired_position") @db.VarChar(80)
-  experience         String?            @db.Text
-  notes              String?            @db.Text
-  status             RegistrationStatus @default(NEW)
-  reviewedById       String?            @map("reviewed_by_id") @db.Uuid
-  reviewedAt         DateTime?          @map("reviewed_at") @db.Timestamptz(6)
-  reviewReason       String?            @map("review_reason") @db.Text
-  createdAt          DateTime           @default(now()) @map("created_at") @db.Timestamptz(6)
-  updatedAt          DateTime           @updatedAt @map("updated_at") @db.Timestamptz(6)
-  deletedAt          DateTime?          @map("deleted_at") @db.Timestamptz(6)
-
-  applicantUser    User?             @relation("RegistrationApplicant", fields: [applicantUserId], references: [id], onDelete: SetNull, onUpdate: Cascade)
-  interestedPerson InterestedPerson? @relation(fields: [interestedPersonId], references: [id], onDelete: SetNull, onUpdate: Cascade)
-  resultingAthlete Athlete?          @relation("RegistrationResultAthlete", fields: [resultingAthleteId], references: [id], onDelete: SetNull, onUpdate: Cascade)
-  requestedTeam    Team?             @relation(fields: [requestedTeamId], references: [id], onDelete: SetNull, onUpdate: Cascade)
-  reviewedBy       User?             @relation("RegistrationReviewer", fields: [reviewedById], references: [id], onDelete: SetNull, onUpdate: Cascade)
-
-  @@index([status, createdAt])
-  @@index([requestedTeamId, status])
-  @@index([applicantUserId, createdAt])
-  @@map("registrations")
 }
 
 model Tryout {

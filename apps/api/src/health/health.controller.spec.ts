@@ -1,7 +1,7 @@
 import { HealthController } from './health.controller';
 
 describe('HealthController', () => {
-  it('returns a minimal technical health response', () => {
+  it('devolve uma resposta técnica mínima de saúde', () => {
     const response = new HealthController().getHealth();
 
     expect(response).toMatchObject({

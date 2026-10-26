@@ -84,7 +84,7 @@ import { DeleteReasonDto } from '../../../common/http/delete-reason.dto';
 
 const IDEMPOTENCY_HEADER = { name: 'Idempotency-Key', required: true };
 
-@ApiTags('content')
+@ApiTags('Conteúdo (notícias, eventos e fórum)')
 @Controller()
 export class ContentController {
   constructor(

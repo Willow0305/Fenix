@@ -29,7 +29,7 @@ describe('Segunda etapa (MFA/TOTP)', () => {
 
   const auth = (token: string) => ({ Authorization: `Bearer ${token}` });
 
-  it('blocks the admin panel until the second factor is enabled', async () => {
+  it('bloqueia o painel até ativar a segunda etapa', async () => {
     const admin = await createUser(ctx.prisma, ['admin']);
     const token = (await passwordLogin(admin.email)).body.accessToken as string;
     const me = await ctx.http().get('/api/v1/me').set(auth(token)).expect(200);
@@ -42,7 +42,7 @@ describe('Segunda etapa (MFA/TOTP)', () => {
     expect(denied.body.code).toBe('MFA_REQUIRED');
   });
 
-  it('enables with password + valid code, unlocks the current session and ends others', async () => {
+  it('ativa com senha e código válido, libera a sessão atual e encerra as outras', async () => {
     const admin = await createUser(ctx.prisma, ['admin']);
     const current = (await passwordLogin(admin.email)).body.accessToken as string;
     const other = (await passwordLogin(admin.email)).body.accessToken as string;
@@ -86,7 +86,7 @@ describe('Segunda etapa (MFA/TOTP)', () => {
     expect(user.mfaPendingSecretEncrypted).toBeNull();
   });
 
-  it('requires the code after the password and refuses a reused code', async () => {
+  it('pede o código depois da senha e recusa código reutilizado', async () => {
     const admin = await createUser(ctx.prisma, ['admin']);
     const first = (await passwordLogin(admin.email)).body.accessToken as string;
     const { secret } = await enrollMfa(ctx, admin.email, first);
@@ -126,7 +126,7 @@ describe('Segunda etapa (MFA/TOTP)', () => {
       .expect(401);
   });
 
-  it('locks the challenge after 5 wrong codes', async () => {
+  it('bloqueia o desafio depois de 5 códigos errados', async () => {
     const admin = await createUser(ctx.prisma, ['board']);
     const { secret } = await enrollMfa(
       ctx,
@@ -156,7 +156,7 @@ describe('Segunda etapa (MFA/TOTP)', () => {
     ).toBe(5);
   });
 
-  it('accepts each recovery code only once', async () => {
+  it('aceita cada código de recuperação uma única vez', async () => {
     const admin = await createUser(ctx.prisma, ['admin']);
     const { recoveryCodes } = await enrollMfa(
       ctx,
@@ -187,7 +187,7 @@ describe('Segunda etapa (MFA/TOTP)', () => {
     expect(status.body.recoveryCodesRemaining).toBe(9);
   });
 
-  it('keeps the second factor mandatory for privileged accounts', async () => {
+  it('mantém a segunda etapa obrigatória para perfis privilegiados', async () => {
     const admin = await createUser(ctx.prisma, ['admin']);
     const token = await login(ctx, admin.email);
     const denied = await ctx
@@ -200,7 +200,7 @@ describe('Segunda etapa (MFA/TOTP)', () => {
     expect(denied.body.code).toBe('MFA_MANDATORY');
   });
 
-  it('lets a common user enable and disable it', async () => {
+  it('permite que um usuário comum ative e desative', async () => {
     const user = await createUser(ctx.prisma, ['user']);
     const token = (await passwordLogin(user.email)).body.accessToken as string;
     const { secret } = await enrollMfa(ctx, user.email, token);
@@ -218,7 +218,7 @@ describe('Segunda etapa (MFA/TOTP)', () => {
     expect(after.body.accessToken).toBeDefined();
   });
 
-  it('only an admin with verified MFA resets someone else, ending their sessions', async () => {
+  it('só administrador com segunda etapa comprovada redefine a de outra pessoa, encerrando as sessões dela', async () => {
     const target = await createUser(ctx.prisma, ['board']);
     const targetToken = await login(ctx, target.email);
     const admin = await createUser(ctx.prisma, ['admin']);
@@ -254,7 +254,7 @@ describe('Segunda etapa (MFA/TOTP)', () => {
     ).toBe(1);
   });
 
-  it('keeps the verified state across token rotation', async () => {
+  it('mantém a verificação ao renovar o token', async () => {
     const admin = await createUser(ctx.prisma, ['admin']);
     const { secret } = await enrollMfa(
       ctx,

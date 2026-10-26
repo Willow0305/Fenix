@@ -117,7 +117,7 @@ export class CsvQueryDto {
     'supplier' | 'pickup';
 }
 
-@ApiTags('campaigns')
+@ApiTags('Remessas')
 @Controller()
 export class CampaignsController {
   constructor(private readonly campaigns: CampaignsService) {}

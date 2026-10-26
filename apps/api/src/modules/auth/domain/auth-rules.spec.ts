@@ -12,12 +12,12 @@ import {
   validatePassword
 } from './auth-rules';
 
-describe('auth rules', () => {
-  it('normalizes e-mail', () => {
+describe('regras de autenticação', () => {
+  it('normaliza o e-mail', () => {
     expect(normalizeEmail('  Maria@Exemplo.COM ')).toBe('maria@exemplo.com');
   });
 
-  it('accepts a strong password', () => {
+  it('aceita senha forte', () => {
     expect(validatePassword('volei-forte-2026')).toEqual([]);
   });
 
@@ -29,7 +29,7 @@ describe('auth rules', () => {
     expect(validatePassword(password).map((error) => error.code)).toContain(code);
   });
 
-  it('rejects passwords containing the name or e-mail user', () => {
+  it('recusa senha que contém o nome ou o usuário do e-mail', () => {
     expect(
       validatePassword('mariana2026xyz', { name: 'Mariana Souza' }).map((e) => e.code)
     ).toContain('PASSWORD_PERSONAL');
@@ -42,13 +42,13 @@ describe('auth rules', () => {
     const now = new Date('2026-10-18T12:00:00Z');
     const future = new Date('2026-11-18T12:00:00Z');
 
-    it('detects an active session', () => {
+    it('detecta sessão ativa', () => {
       expect(
         classifyRefreshSession({ expiresAt: future, revokedAt: null, revocationReason: null }, now)
       ).toBe('ACTIVE');
     });
 
-    it('detects an expired session', () => {
+    it('detecta sessão expirada', () => {
       expect(
         classifyRefreshSession(
           { expiresAt: new Date('2026-10-18T11:59:59Z'), revokedAt: null, revocationReason: null },
@@ -57,7 +57,7 @@ describe('auth rules', () => {
       ).toBe('EXPIRED');
     });
 
-    it('tolerates concurrent refresh inside the grace window', () => {
+    it('tolera renovação simultânea dentro da margem', () => {
       expect(
         classifyRefreshSession(
           {
@@ -70,7 +70,7 @@ describe('auth rules', () => {
       ).toBe('ROTATED_RECENTLY');
     });
 
-    it('flags reuse of an old rotated token', () => {
+    it('acusa reuso de token antigo já renovado', () => {
       expect(
         classifyRefreshSession(
           {
@@ -83,7 +83,7 @@ describe('auth rules', () => {
       ).toBe('REUSED');
     });
 
-    it('treats logout as plain revocation', () => {
+    it('trata sair como revogação simples', () => {
       expect(
         classifyRefreshSession(
           { expiresAt: future, revokedAt: now, revocationReason: REVOCATION.logout },
@@ -93,23 +93,23 @@ describe('auth rules', () => {
     });
   });
 
-  describe('session lifetime (DT-036)', () => {
+  describe('duração da sessão (DT-036)', () => {
     const login = new Date('2026-10-20T06:00:00Z');
     const minutes = (n: number): Date => new Date(login.getTime() + n * 60_000);
     const days = (n: number): Date => minutes(n * 24 * 60);
 
-    it('treats accounts without administrative permissions as standard', () => {
+    it('trata conta sem permissão administrativa como comum', () => {
       expect(sessionLimitsFor([])).toBe(SESSION_POLICY.standard);
       expect(sessionLimitsFor(['forum.members.access'])).toBe(SESSION_POLICY.standard);
     });
 
-    it('treats any administrative permission as privileged', () => {
+    it('trata qualquer permissão administrativa como privilegiada', () => {
       expect(sessionLimitsFor(['forum.members.access', 'fees.read'])).toBe(
         SESSION_POLICY.privileged
       );
     });
 
-    it('expires a privileged session after 30 minutes without use', () => {
+    it('expira sessão privilegiada depois de 30 minutos sem uso', () => {
       const timeline = { authenticatedAt: login, lastActivityAt: login };
 
       expect(evaluateSessionLifetime(timeline, SESSION_POLICY.privileged, minutes(29))).toBe(
@@ -120,7 +120,7 @@ describe('auth rules', () => {
       );
     });
 
-    it('ends a privileged session after 12 hours even with continuous use', () => {
+    it('encerra sessão privilegiada depois de 12 horas, mesmo com uso contínuo', () => {
       const busy = { authenticatedAt: login, lastActivityAt: minutes(12 * 60 - 1) };
 
       expect(evaluateSessionLifetime(busy, SESSION_POLICY.privileged, minutes(12 * 60))).toBe(
@@ -128,7 +128,7 @@ describe('auth rules', () => {
       );
     });
 
-    it('keeps a standard session for 7 idle days and 30 days in total', () => {
+    it('mantém sessão comum por 7 dias parada e 30 dias no total', () => {
       const idle = { authenticatedAt: login, lastActivityAt: login };
       const busy = { authenticatedAt: login, lastActivityAt: days(29) };
 
@@ -139,7 +139,7 @@ describe('auth rules', () => {
       );
     });
 
-    it('reproduces the reported case: five idle days end an administrative session', () => {
+    it('reproduz o caso relatado: cinco dias parada encerram a sessão administrativa', () => {
       const timeline = { authenticatedAt: login, lastActivityAt: minutes(14) };
 
       expect(evaluateSessionLifetime(timeline, SESSION_POLICY.privileged, days(5))).not.toBe(
@@ -147,26 +147,26 @@ describe('auth rules', () => {
       );
     });
 
-    it('computes the absolute deadline from the password login', () => {
+    it('calcula o prazo máximo a partir do login com senha', () => {
       expect(absoluteDeadline(login, SESSION_POLICY.privileged)).toEqual(minutes(12 * 60));
     });
   });
 
-  describe('second factor (DT-037)', () => {
+  describe('segunda etapa (DT-037)', () => {
     const board = new Set(['forum.members.access', 'finance.read', 'fees.read']);
 
-    it('strips administrative permissions until the second factor is verified', () => {
+    it('retira as permissões administrativas até a segunda etapa ser comprovada', () => {
       expect([...effectivePermissions(board, false)]).toEqual(['forum.members.access']);
       expect(effectivePermissions(board, true)).toBe(board);
     });
 
-    it('leaves common accounts untouched', () => {
+    it('não mexe em contas comuns', () => {
       const athlete = new Set(['forum.members.access']);
 
       expect(effectivePermissions(athlete, false)).toBe(athlete);
     });
 
-    it('recognizes and normalizes recovery codes', () => {
+    it('reconhece e normaliza códigos de recuperação', () => {
       expect(RECOVERY_CODE_PATTERN.test('ABCD-EF23-4567')).toBe(true);
       expect(RECOVERY_CODE_PATTERN.test('123456')).toBe(false);
       expect(normalizeRecoveryCode(' abcd-ef23-4567 ')).toBe('ABCDEF234567');

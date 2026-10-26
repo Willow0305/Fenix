@@ -697,7 +697,7 @@ Pela `DT-022`, cada renovação emitia um refresh token com mais 30 dias. Com o 
 
 #### Endurecimento aplicado na mesma revisão
 
-- **CSP e HSTS no site:** política sem nonces, só `'self'` (o site não usa recursos de terceiros), `frame-ancestors 'none'`, `object-src 'none'`, `form-action 'self'`, `Cross-Origin-Opener-Policy: same-origin`; HSTS de 2 anos apenas em produção;
+- **CSP e HSTS no site** (a parte de scripts foi substituída pela CSP com nonce da `DT-046`): política sem nonces, só `'self'` (o site não usa recursos de terceiros), `frame-ancestors 'none'`, `object-src 'none'`, `form-action 'self'`, `Cross-Origin-Opener-Policy: same-origin`; HSTS de 2 anos apenas em produção;
 - **redirecionamento aberto:** o parâmetro `next` do login aceitava `/\dominio-externo`, que o navegador normaliza para `//dominio-externo`. Agora só são aceitos caminhos do próprio site (`lib/safe-redirect.ts`);
 - **API somente em loopback por padrão** (`API_HOST=127.0.0.1`); `0.0.0.0` só por configuração explícita em contêiner;
 - **dependências:** `multer` 2.5.0, `body-parser` 2.4.0 e `zod` 4.6.7 corrigem negação de serviço com severidade alta; `fast-uri` 3.1.9 corrige falhas moderadas. `npm audit` sem vulnerabilidades.
@@ -887,3 +887,28 @@ A logo oficial e as configurações do time "sumiam". A auditoria mostrou a caus
 
 - desconto aparece no resumo do pedido para cliente e diretoria; o lançamento no Caixa continua pelo total pago (receita líquida);
 - 15 testes unitários das regras e um teste de integração do fluxo real (público, prévia, desconto por produto, limite por pessoa, liberação ao cancelar, inativação e permissão).
+
+## DT-046 — Limpeza, CSP com nonce, SEO e padrão pt-BR
+
+- **Estado:** Aceita
+- **Data:** 2026-10-25
+- **Aprovador:** responsável do projeto ("aplique tudo, e tem minha total aprovação de tudo que foi indicado", sobre `docs/30-REVISAO-GERAL.md`; "o padrão definitivo de todo o sistema é o português brasileiro", 2026-10-25)
+
+### Decisão
+
+- **remoções (R-13):** `packages/types` e `packages/ui`, que nenhuma aplicação importava, e a tabela reservada `registrations` com o tipo `RegistrationStatus` (migração `20261026042015_remove_registrations`). A migração para sem apagar nada se a tabela tiver qualquer linha. Nenhum requisito sai: a inscrição geral sem seletiva já é atendida pelo interessado (`DT-028`);
+- **CSP com nonce (R-05):** substitui a política fixa da revisão de segurança (`script-src 'self' 'unsafe-inline'`). `proxy.ts` (o antigo `middleware` do Next 16) gera 16 bytes aleatórios por requisição e envia a política no pedido, para o Next marcar os próprios scripts, e na resposta. `script-src 'self' 'nonce-…' 'strict-dynamic'`; `unsafe-eval` e `ws:` só em desenvolvimento. Estilos continuam com `'unsafe-inline'` enquanto houver atributos `style` (R-09). O layout raiz lê os cabeçalhos, então todas as páginas são renderizadas por requisição; sitemap, robots e manifesto continuam estáticos;
+- **SEO e compartilhamento (R-12):** `sitemap.xml` (páginas fixas, notícias, produtos, seletivas e parceiros publicados, revalidado a cada hora), `robots.txt` (bloqueia painel, Minha conta, API, carrinho e pedido) e `openGraph`/`twitter` com a logo como imagem padrão e `metadataBase` a partir de `WEB_ORIGIN`;
+- **app instalável:** `manifest.webmanifest` com ícones de 192 e 512 px e versão `maskable`, gerados da logo. O service worker fica para a etapa de funcionalidades;
+- **pt-BR em todo o sistema:**
+  - mensagens padrão do class-validator traduzidas na borda (`validation-messages.ts`), preservando os números da regra; mensagens próprias passam sem mudança;
+  - erros do framework (rota inexistente, JSON malformado, corpo grande demais) trocados por textos em português no `ProblemDetailsFilter`;
+  - páginas próprias de "não encontrada" e de erro no site;
+  - títulos dos testes, grupos da documentação da API (`@ApiTags`) e comentários gerados pelo Prisma nas migrações. Identificadores de código seguem em inglês.
+- **checksums das migrações:** traduzir comentários muda o conteúdo dos arquivos já aplicados. O `checksum` de cada migração foi recalculado (sha256 do arquivo) no banco de desenvolvimento, e `prisma migrate status` confirma o histórico. O banco de testes é recriado a cada execução. Em outro ambiente com as migrações já aplicadas, rodar o mesmo `UPDATE _prisma_migrations SET checksum = …` antes do próximo `migrate deploy`. Hoje não existe esse ambiente.
+
+### Consequências
+
+- nenhum script embutido roda sem o nonce da página; testes unitários conferem a política de produção e de desenvolvimento;
+- 11 testes unitários das mensagens de validação; 404 e JSON inválido conferidos na API em execução;
+- `npm run check` e os 94 testes de integração passam.

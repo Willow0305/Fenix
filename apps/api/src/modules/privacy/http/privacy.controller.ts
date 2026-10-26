@@ -61,7 +61,7 @@ export class AnonymizeDto {
   reason!: string;
 }
 
-@ApiTags('privacy')
+@ApiTags('Privacidade (LGPD)')
 @ApiBearerAuth()
 @Controller()
 export class PrivacyController {

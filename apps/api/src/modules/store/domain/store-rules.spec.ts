@@ -13,11 +13,11 @@ import {
   signedDelta
 } from './store-rules';
 
-describe('store rules', () => {
+describe('regras da loja', () => {
   const product = { basePrice: money('100'), promotionalPrice: null };
   const variant = { priceOverride: null, promotionalPriceOverride: null };
 
-  it('chooses the effective price', () => {
+  it('escolhe o preço efetivo', () => {
     expect(effectiveUnitPrice(product, variant).toFixed(2)).toBe('100.00');
     expect(
       effectiveUnitPrice({ ...product, promotionalPrice: money('80') }, variant).toFixed(2)
@@ -39,7 +39,7 @@ describe('store rules', () => {
     ).toBe('100.00');
   });
 
-  it('tracks available and reserved stock through the order lifecycle', () => {
+  it('acompanha estoque disponível e reservado em todo o ciclo do pedido', () => {
     const movements = [
       { type: 'STOCK_IN' as const, quantityDelta: signedDelta('STOCK_IN', 10) },
       { type: 'RESERVATION' as const, quantityDelta: signedDelta('RESERVATION', 3) },
@@ -66,13 +66,13 @@ describe('store rules', () => {
     expect(reservedStock(cancelled)).toBe(0);
   });
 
-  it('keeps adjustments signed as informed', () => {
+  it('mantém o sinal do ajuste como informado', () => {
     expect(signedDelta('ADJUSTMENT', -4)).toBe(-4);
     expect(signedDelta('LOSS', 4)).toBe(-4);
     expect(signedDelta('RETURN', 2)).toBe(2);
   });
 
-  it('only sells active, physical, in-window products', () => {
+  it('só vende produto ativo, físico e dentro do período', () => {
     const base = {
       status: 'ACTIVE' as const,
       fulfillmentType: 'STOCK' as const,
@@ -89,7 +89,7 @@ describe('store rules', () => {
     );
   });
 
-  it('computes totals with decimals', () => {
+  it('calcula totais com decimais', () => {
     expect(lineTotal({ unitPrice: money('19.99'), quantity: 3 }).toFixed(2)).toBe('59.97');
     expect(
       orderTotal([
@@ -99,13 +99,13 @@ describe('store rules', () => {
     ).toBe('0.50');
   });
 
-  it('only reaches PAID through payment confirmation', () => {
+  it('só chega a pago pela confirmação do pagamento', () => {
     expect(canTransition(ORDER_TRANSITIONS, 'AWAITING_PAYMENT', 'PAID')).toBe(false);
     expect(canTransition(ORDER_TRANSITIONS, 'PAID', 'READY_FOR_PICKUP')).toBe(true);
     expect(canTransition(ORDER_TRANSITIONS, 'CANCELLED', 'PAID')).toBe(false);
   });
 
-  it('generates non-sequential order numbers and checks buyer limits', () => {
+  it('gera números de pedido não sequenciais e confere o limite por comprador', () => {
     expect(generateOrderNumber(new Date('2026-10-18T00:00:00Z'))).toMatch(
       /^FNX-261018-[A-HJ-NP-Z2-9]{6}$/
     );
