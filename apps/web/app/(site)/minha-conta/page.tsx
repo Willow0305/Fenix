@@ -50,6 +50,7 @@ export default function AccountOverviewPage() {
           </span>
         ))}
       </div>
+      <ProfilePhotoSection profile={profile} />
       <form className="form card" onSubmit={(event) => void action.submit(event)}>
         <h2>Meus dados</h2>
         {action.message ? <Alert kind="success">{action.message}</Alert> : null}
@@ -75,7 +76,6 @@ export default function AccountOverviewPage() {
           </button>
         </div>
       </form>
-      <ProfilePhotoSection profile={profile} />
     </>
   );
 }

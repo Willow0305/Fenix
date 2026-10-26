@@ -221,4 +221,26 @@ export class NotificationsService {
 
     return result.count;
   }
+
+  /** Apaga (exclusão lógica) uma notificação da própria pessoa; envio pendente é cancelado. */
+  async remove(userId: string, id: string): Promise<void> {
+    const result = await this.prisma.notification.updateMany({
+      where: { id, userId, deletedAt: null },
+      data: { deletedAt: new Date(), readAt: new Date() }
+    });
+
+    if (result.count === 0) {
+      throw AppError.notFound('Notificação não encontrada.');
+    }
+  }
+
+  /** Apaga as já lidas, para limpar a lista sem perder as novas. */
+  async removeRead(userId: string): Promise<number> {
+    const result = await this.prisma.notification.updateMany({
+      where: { userId, readAt: { not: null }, deletedAt: null },
+      data: { deletedAt: new Date() }
+    });
+
+    return result.count;
+  }
 }

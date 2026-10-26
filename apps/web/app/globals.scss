@@ -1742,3 +1742,16 @@ input.stepper-input {
   opacity: 0.6;
   transition: opacity 0.15s;
 }
+
+// Bloco recolhível (ex.: preferências de aviso), fechado por padrão.
+details.collapsible {
+  > summary {
+    cursor: pointer;
+    font-weight: 600;
+    list-style-position: inside;
+  }
+
+  &:not([open]) {
+    gap: 0;
+  }
+}

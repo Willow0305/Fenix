@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { useState } from 'react';
 
+import { Icon } from '../../../../components/icon';
 import { NotificationPreferencesSection } from '../../../../components/notification-preferences';
 import { Alert, Empty, Loading, PageHeader, Pagination } from '../../../../components/ui';
 import { api } from '../../../../lib/api-client';
@@ -26,18 +27,39 @@ export default function NotificationsPage() {
     refreshOwnResources();
   }
 
+  async function remove(id: string) {
+    await api(`/me/notifications/${id}`, { method: 'DELETE' });
+    refreshOwnResources();
+  }
+
+  async function removeRead() {
+    await api('/me/notifications/read', { method: 'DELETE' });
+    refreshOwnResources();
+  }
+
   return (
     <>
       <PageHeader
         title="Notificações"
         actions={
-          <button type="button" className="btn btn-secondary btn-sm" onClick={() => void markAll()}>
-            Marcar todas como lidas
-          </button>
+          <>
+            <button
+              type="button"
+              className="btn btn-secondary btn-sm"
+              onClick={() => void markAll()}
+            >
+              <Icon name="check2-all" /> Marcar todas como lidas
+            </button>
+            <button
+              type="button"
+              className="btn btn-secondary btn-sm"
+              onClick={() => void removeRead()}
+            >
+              <Icon name="trash3" /> Apagar as lidas
+            </button>
+          </>
         }
       />
-      <NotificationPreferencesSection />
-      <h2 className="h-small">Recebidas</h2>
       {list.error ? <Alert kind="error">{list.error}</Alert> : null}
       {list.loading && !list.data ? <Loading /> : null}
       {list.data?.data.length === 0 ? <Empty>Você não tem notificações.</Empty> : null}
@@ -64,10 +86,20 @@ export default function NotificationsPage() {
                 Marcar como lida
               </button>
             )}
+            <span className="spacer" />
+            <button
+              type="button"
+              className="btn btn-link"
+              aria-label={`Apagar a notificação ${item.title}`}
+              onClick={() => void remove(item.id)}
+            >
+              <Icon name="trash3" /> Apagar
+            </button>
           </div>
         </article>
       ))}
       {list.data ? <Pagination {...list.data.meta} onChange={setPage} /> : null}
+      <NotificationPreferencesSection />
     </>
   );
 }

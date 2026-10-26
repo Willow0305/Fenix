@@ -97,10 +97,10 @@ export function NotificationPreferencesSection() {
   const whatsappOn = whatsapp.available && whatsapp.consentedAt !== null;
 
   return (
-    <section className="card stack" aria-labelledby="canais">
-      <h2 id="canais">
-        <Icon name="bell" className="icon-lead" /> Como receber os avisos
-      </h2>
+    <details className="card stack collapsible">
+      <summary>
+        <Icon name="gear" className="icon-lead" /> Como receber os avisos (e-mail e WhatsApp)
+      </summary>
       <p className="muted m-0">
         Todo aviso aparece aqui em Notificações. Você também pode receber por e-mail (
         <span className="text-break">{prefs.data.email}</span>) ou por WhatsApp. Avisos por WhatsApp
@@ -202,6 +202,6 @@ export function NotificationPreferencesSection() {
           </tbody>
         </table>
       </div>
-    </section>
+    </details>
   );
 }

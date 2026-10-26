@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
   HttpCode,
   Param,
@@ -123,6 +124,21 @@ export class NotificationsController {
   @HttpCode(200)
   async readAll(@CurrentPrincipal() principal: Principal): Promise<{ updated: number }> {
     return { updated: await this.notifications.markAllRead(principal.userId) };
+  }
+
+  @Delete('read')
+  @HttpCode(200)
+  async removeRead(@CurrentPrincipal() principal: Principal): Promise<{ removed: number }> {
+    return { removed: await this.notifications.removeRead(principal.userId) };
+  }
+
+  @Delete(':id')
+  @HttpCode(204)
+  async remove(
+    @CurrentPrincipal() principal: Principal,
+    @Param('id', new ParseUUIDPipe()) id: string
+  ): Promise<void> {
+    await this.notifications.remove(principal.userId, id);
   }
 
   @Post(':id/read')
