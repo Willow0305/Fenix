@@ -2,6 +2,7 @@ import { Logger } from '@nestjs/common';
 import type { NextFunction, Request, Response } from 'express';
 
 import { getRequestContext } from '../http/request-context';
+import { useJsonLogs } from './json-logger';
 import { metrics } from './metrics';
 
 const logger = new Logger('Acesso');
@@ -15,9 +16,11 @@ export function routeOf(req: Request): string {
 
 /**
  * Registro de acesso e métricas por requisição (R-07): método, modelo da rota, situação,
- * duração e requestId. Nunca o endereço completo (ids, busca) nem dados de quem chamou.
+ * duração e requestId (`ACCESS_LOG=on|off`). Nunca o endereço completo (ids, busca) nem dados de quem chamou.
  */
 export function accessLogMiddleware(req: Request, res: Response, next: NextFunction): void {
+  // Ligado com logs em JSON (produção); no terminal de desenvolvimento só com ACCESS_LOG=on.
+  const enabled = (process.env['ACCESS_LOG'] ?? (useJsonLogs() ? 'on' : 'off')) === 'on';
   const started = process.hrtime.bigint();
 
   res.on('finish', () => {
@@ -26,7 +29,7 @@ export function accessLogMiddleware(req: Request, res: Response, next: NextFunct
 
     metrics.observe(req.method, route, res.statusCode, seconds);
 
-    if (process.env['ACCESS_LOG'] !== 'off') {
+    if (enabled) {
       logger.log({
         msg: 'requisição',
         requestId: getRequestContext(req as never).requestId,

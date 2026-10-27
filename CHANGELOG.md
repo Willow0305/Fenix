@@ -16,7 +16,8 @@ O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) e o 
 
 #### Corrigido
 
-- barra superior do painel no celular: botões viram só ícone e a página não rola mais para o lado.
+- barra superior do painel no celular: botões viram só ícone e a página não rola mais para o lado;
+- "Você não tem permissão" na aba Afiliação: permissões novas agora são liberadas sozinhas quando a API inicia (DT-073).
 
 ### PIX automático (2026-10-27)
 

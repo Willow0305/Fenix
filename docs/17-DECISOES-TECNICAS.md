@@ -1425,3 +1425,19 @@ Mesmo padrão da inativação de atleta (COR-018):
 - produto de afiliação nasce com uma única variação "Afiliação";
 - testes: integração (criação, permissões, visão geral por plano, filtros e período de venda) e E2E da aba em 390 px e 1280 px.
 
+## DT-073 — Permissões novas sincronizadas ao iniciar a API
+
+- **Estado:** Aceita
+- **Data:** 2026-10-27
+- **Motivo:** as permissões da carteirinha (`cards.read`, `cards.manage`, `benefits.manage`) existiam no código, mas só chegavam ao banco com `npm run db:seed`; a diretoria recebia "Você não tem permissão para esta ação" na aba Afiliação.
+
+### Decisão
+
+- ao subir, a API roda a mesma sincronização do seed (`syncAccessCatalog`): cria permissões novas do catálogo e as concede aos papéis de sistema conforme o padrão (administrador: todas; diretoria: todas menos governança);
+- permissões que a administração removeu de um papel continuam removidas (só se concede o que o banco ainda não conhecia);
+- falha na sincronização (ex.: duas instâncias ao mesmo tempo) só gera aviso e não impede a API de subir.
+
+### Consequências
+
+- nenhuma versão nova depende de lembrar o seed para liberar telas; `npm run db:seed` continua servindo para o primeiro administrador.
+
