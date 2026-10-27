@@ -48,6 +48,13 @@ test('aba Afiliação: abas, endereço antigo e novo plano', async ({ page, requ
   await expect(page.getByText(`Ótica ${info.project.name}`)).toBeVisible();
   await expectNoHorizontalScroll(page);
   if (process.env['SHOTS_DIR']) {
+    await page.goto('/admin/afiliacao');
+    await expect(page.getByRole('heading', { name: 'Tipos de carteirinha' })).toBeVisible();
+    await page.screenshot({
+      path: `${process.env['SHOTS_DIR']}/${info.project.name}-visao.png`,
+      fullPage: true
+    });
+    await page.goto('/admin/afiliacao/beneficios?publico=AFFILIATES');
     await page.screenshot({
       path: `${process.env['SHOTS_DIR']}/${info.project.name}-beneficios.png`,
       fullPage: true

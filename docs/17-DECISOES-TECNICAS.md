@@ -1417,6 +1417,7 @@ Mesmo padrão da inativação de atleta (COR-018):
 - plano novo pela aba: nome, preço (por carteirinha), validade em meses e descrição; nasce como rascunho na categoria "Afiliação" da loja, criada na primeira vez; edição com preço promocional, período de venda opcional (de/até, que pode ser limpo), limite por comprador, destaque, fotos, publicar, pausar venda, excluir (com motivo) e aviso "afiliações abertas";
 - validade alterada vale para as próximas vendas; carteirinhas já emitidas mantêm a data (estender é ação da carteirinha);
 - visão geral: afiliados válidos, vencendo em 15 dias, suspensas e vencidas, atletas com carteirinha, benefícios valendo, planos com carteirinhas ativas/emitidas e benefícios valendo hoje;
+- "Tipos de carteirinha" fixos na visão geral (confirmados pelo responsável em 2026-10-27): **atleta**, gratuita e automática para todo atleta com cadastro ativo, que deixa de valer só quando o atleta é inativado (escolha "Só quando inativado"; sair de uma equipe não basta); **afiliado**, paga, comprada por qualquer pessoa num plano, podendo ter descontos maiores ou benefícios a mais. Cada tipo mostra os benefícios valendo para ele e leva à lista filtrada (`?publico=ATHLETES|AFFILIATES`), que já vem com o público preenchido no novo benefício. A diretoria suspende ou cancela qualquer uma a qualquer momento;
 - carteirinhas filtráveis por plano; Produtos lista só mercadorias e não oferece mais o tipo afiliação; endereços antigos (`/admin/carteirinhas`) redirecionam.
 
 ### Consequências

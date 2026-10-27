@@ -322,6 +322,9 @@ describe('Afiliação vendida pela loja (DT-068)', () => {
     expect(sold.issuedCards).toBeGreaterThanOrEqual(sold.activeCards);
     expect(fresh).toMatchObject({ activeCards: 0, issuedCards: 0, membershipMonths: 6 });
     expect(overview.body.affiliates.valid).toBeGreaterThan(0);
+    expect(overview.body.benefits).toEqual(
+      expect.objectContaining({ athlete: expect.any(Number), affiliate: expect.any(Number) })
+    );
 
     const ofPlan = await ctx
       .http()

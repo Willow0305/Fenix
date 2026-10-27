@@ -66,6 +66,58 @@ export default function AffiliationOverviewPage() {
             </div>
           </dl>
 
+          <section className="stack" aria-labelledby="tipos">
+            <h2 id="tipos" className="m-0">
+              Tipos de carteirinha
+            </h2>
+            <div className="card-grid">
+              <article className="card stack">
+                <div className="row">
+                  <Icon name="person-badge" />
+                  <strong>Atleta</strong>
+                  <span className="badge badge-success">Gratuita</span>
+                </div>
+                <p className="muted m-0">
+                  Criada automaticamente para todo atleta com cadastro ativo. Deixa de valer se o
+                  atleta for inativado.
+                </p>
+                <p className="m-0">
+                  {o.athletes.valid} válida(s) · {o.benefits.athlete} benefício(s) valendo
+                </p>
+                <div className="row">
+                  <Link href="/admin/afiliacao/beneficios?publico=ATHLETES">
+                    Configurar benefícios
+                  </Link>
+                  <Link href="/admin/afiliacao/carteirinhas?tipo=ATHLETE">Ver carteirinhas</Link>
+                </div>
+              </article>
+              <article className="card stack">
+                <div className="row">
+                  <Icon name="person-vcard" />
+                  <strong>Afiliado</strong>
+                  <span className="badge badge-warning">Paga</span>
+                </div>
+                <p className="muted m-0">
+                  Qualquer pessoa compra pela loja, num dos planos abaixo. Pode ter descontos
+                  maiores ou benefícios a mais que os de atleta.
+                </p>
+                <p className="m-0">
+                  {o.affiliates.valid} válida(s) · {o.benefits.affiliate} benefício(s) valendo
+                </p>
+                <div className="row">
+                  <Link href="/admin/afiliacao/beneficios?publico=AFFILIATES">
+                    Configurar benefícios
+                  </Link>
+                  <Link href="/admin/afiliacao/carteirinhas?tipo=AFFILIATE">Ver carteirinhas</Link>
+                </div>
+              </article>
+            </div>
+            <p className="muted m-0">
+              A diretoria pode suspender (temporário) ou cancelar (definitivo) qualquer carteirinha,
+              a qualquer momento, em Carteirinhas.
+            </p>
+          </section>
+
           <section className="card stack" aria-labelledby="planos">
             <div className="row">
               <h2 id="planos" className="m-0">

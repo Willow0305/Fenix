@@ -124,6 +124,20 @@ export class BenefitsService {
     return this.prisma.partnerBenefit.count({ where: inEffectWhere(today) });
   }
 
+  /** Benefícios valendo para cada tipo de carteirinha (inclui os de "ambos"). */
+  async countInEffectByType(today: string): Promise<{ athlete: number; affiliate: number }> {
+    const [athlete, affiliate] = await this.prisma.$transaction([
+      this.prisma.partnerBenefit.count({
+        where: { ...inEffectWhere(today), audience: { in: ['BOTH', 'ATHLETES'] } }
+      }),
+      this.prisma.partnerBenefit.count({
+        where: { ...inEffectWhere(today), audience: { in: ['BOTH', 'AFFILIATES'] } }
+      })
+    ]);
+
+    return { athlete, affiliate };
+  }
+
   /** Todos os benefícios valendo hoje (site: página de benefícios e dos parceiros). */
   async publicList(partnerId?: string): Promise<BenefitView[]> {
     const rows = await this.prisma.partnerBenefit.findMany({

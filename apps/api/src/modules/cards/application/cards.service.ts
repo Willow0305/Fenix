@@ -140,7 +140,13 @@ export interface CardsOverview {
     readonly expiringSoon: number;
     readonly expired: number;
   };
-  readonly benefits: { readonly inEffect: number; readonly total: number };
+  readonly benefits: {
+    readonly inEffect: number;
+    readonly total: number;
+    /** Valendo hoje para cada tipo de carteirinha. */
+    readonly athlete: number;
+    readonly affiliate: number;
+  };
   readonly plans: readonly MembershipPlanRow[];
 }
 
@@ -1000,6 +1006,7 @@ export class CardsService implements OnModuleInit {
         })
       ]);
     const benefitsInEffect = await this.benefits.countInEffect(today);
+    const byType = await this.benefits.countInEffectByType(today);
     const plans = await Promise.all(
       products.map(async (product) => {
         const ofPlan = { ...affiliate, orderItem: { productId: product.id } };
@@ -1030,7 +1037,7 @@ export class CardsService implements OnModuleInit {
     return {
       athletes: { valid: athletes },
       affiliates: { valid: affiliates, suspended, expiringSoon, expired },
-      benefits: { inEffect: benefitsInEffect, total: benefitsTotal },
+      benefits: { inEffect: benefitsInEffect, total: benefitsTotal, ...byType },
       plans
     };
   }

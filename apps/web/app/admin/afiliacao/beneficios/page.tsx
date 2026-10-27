@@ -1,6 +1,7 @@
 'use client';
 
-import { useState } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { Suspense, useState } from 'react';
 
 import { AffiliationNav } from '../../../../components/affiliation-nav';
 import { Icon } from '../../../../components/icon';
@@ -74,9 +75,16 @@ function formOf(b: BenefitAdmin): FormState {
   };
 }
 
-/** Benefícios de parceiros para quem tem carteirinha (DT-068 D). */
-export default function BenefitsAdminPage() {
+function BenefitsAdmin() {
+  const params = useSearchParams();
+  const router = useRouter();
+  // Filtro por tipo de carteirinha: "ATHLETES" mostra os de atleta e os de ambos.
+  const publico = params.get('publico');
+  const audience = publico === 'ATHLETES' || publico === 'AFFILIATES' ? publico : null;
   const benefits = useResource<BenefitAdmin[]>('/partner-benefits');
+  const shown = (benefits.data ?? []).filter(
+    (b) => audience === null || b.audience === 'BOTH' || b.audience === audience
+  );
   const partners = useResource<Page<PartnerOption>>('/partners', { pageSize: 100 });
   const [editing, setEditing] = useState<BenefitAdmin | 'new' | null>(null);
   const [form, setForm] = useState<FormState>(EMPTY);
@@ -143,7 +151,7 @@ export default function BenefitsAdminPage() {
                 type="button"
                 className="btn btn-primary"
                 onClick={() => {
-                  setForm(EMPTY);
+                  setForm({ ...EMPTY, audience: audience ?? 'BOTH' });
                   setEditing('new');
                 }}
               >
@@ -277,8 +285,33 @@ export default function BenefitsAdminPage() {
 
       {benefits.error ? <Alert kind="error">{benefits.error}</Alert> : null}
       {benefits.loading && !benefits.data ? <Skeleton lines={4} /> : null}
-      {benefits.data?.length === 0 ? <Empty>Nenhum benefício cadastrado.</Empty> : null}
-      {benefits.data && benefits.data.length > 0 ? (
+      <div className="row" role="group" aria-label="Tipo de carteirinha">
+        {(
+          [
+            [null, 'Todos'],
+            ['ATHLETES', 'Carteirinha de atleta'],
+            ['AFFILIATES', 'Carteirinha de afiliado']
+          ] as const
+        ).map(([value, label]) => (
+          <button
+            key={label}
+            type="button"
+            className={`btn btn-sm ${audience === value ? 'btn-primary' : 'btn-secondary'}`}
+            aria-pressed={audience === value}
+            onClick={() =>
+              router.replace(
+                value
+                  ? `/admin/afiliacao/beneficios?publico=${value}`
+                  : '/admin/afiliacao/beneficios'
+              )
+            }
+          >
+            {label}
+          </button>
+        ))}
+      </div>
+      {benefits.data && shown.length === 0 ? <Empty>Nenhum benefício cadastrado.</Empty> : null}
+      {shown.length > 0 ? (
         <div className="table-wrap">
           <table className="table table-stack">
             <thead>
@@ -295,7 +328,7 @@ export default function BenefitsAdminPage() {
               </tr>
             </thead>
             <tbody>
-              {benefits.data.map((b) => (
+              {shown.map((b) => (
                 <tr key={b.id}>
                   <td data-label="Parceiro">
                     {b.partner.name}
@@ -380,5 +413,14 @@ export default function BenefitsAdminPage() {
         }}
       />
     </>
+  );
+}
+
+/** Benefícios de parceiros para quem tem carteirinha (DT-068 D). */
+export default function BenefitsAdminPage() {
+  return (
+    <Suspense fallback={<Skeleton lines={4} />}>
+      <BenefitsAdmin />
+    </Suspense>
   );
 }

@@ -192,6 +192,30 @@ describe('Carteirinha digital e benefícios (DT-068)', () => {
       .expect(422);
   });
 
+  it('visão geral conta os benefícios valendo por tipo de carteirinha', async () => {
+    const counts = async () =>
+      (await ctx.http().get('/api/v1/cards/overview').set(auth(board.token)).expect(200)).body
+        .benefits as { athlete: number; affiliate: number };
+    const before = await counts();
+
+    await ctx
+      .http()
+      .post('/api/v1/partner-benefits')
+      .set(auth(board.token))
+      .send({
+        partnerName: 'Academia Só Afiliados',
+        title: 'Mensalidade com desconto',
+        discountPercent: '25',
+        audience: 'AFFILIATES'
+      })
+      .expect(201);
+
+    await expect(counts()).resolves.toMatchObject({
+      athlete: before.athlete,
+      affiliate: before.affiliate + 1
+    });
+  });
+
   it('parceiro confere sem login: nome curto, foto conforme a regra e benefícios', async () => {
     const card = await ctx.prisma.memberCard.findUniqueOrThrow({ where: { athleteId } });
     const ok = await publicCheck(signLiveToken(key, card.id, card.version, new Date()));

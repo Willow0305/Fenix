@@ -15,6 +15,7 @@ O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) e o 
 - carteirinhas filtradas por plano e números da afiliação na visão geral.
 - benefício de loja sem cadastro no site (combinado no boca a boca): só nome e, se quiser, onde fica ou contato (DT-074);
 - descrição no cadastro de produto novo e em destaque, com título, na página do produto.
+- visão geral da Afiliação mostra os dois tipos de carteirinha (atleta gratuita e afiliado paga) com os benefícios de cada um e atalho para configurá-los.
 
 #### Corrigido
 

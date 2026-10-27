@@ -129,7 +129,7 @@ export interface MembershipPlanRow {
 export interface CardsOverview {
   athletes: { valid: number };
   affiliates: { valid: number; suspended: number; expiringSoon: number; expired: number };
-  benefits: { inEffect: number; total: number };
+  benefits: { inEffect: number; total: number; athlete: number; affiliate: number };
   plans: MembershipPlanRow[];
 }
 
