@@ -2,6 +2,21 @@ import type { MoneyView, Payment } from './finance-types';
 
 export type Fulfillment = 'STOCK' | 'MADE_TO_ORDER' | 'CAMPAIGN' | 'DIGITAL' | 'MEMBERSHIP';
 
+/** Campo de personalização (DT-069). */
+export interface PersonalizationField {
+  id: string;
+  label: string;
+  kind: 'TEXT' | 'NUMBER';
+  required: boolean;
+  maxLength: number | null;
+  minValue: number | null;
+  maxValue: number | null;
+  uppercase: boolean;
+  extraPrice: MoneyView;
+  sortOrder: number;
+  isActive: boolean;
+}
+
 /** Beneficiário de afiliação (DT-068). */
 export interface Beneficiary {
   name: string;
@@ -33,6 +48,7 @@ export interface Variant {
   name: string;
   size: string | null;
   color: string | null;
+  model: string | null;
   gender: string | null;
   price: MoneyView;
   listPrice: MoneyView;
@@ -67,6 +83,9 @@ export interface ProductDetail extends ProductSummary {
   productionLeadDays: number | null;
   membershipMonths: number | null;
   membershipAnnouncedAt: string | null;
+  sizeGuide: string | null;
+  personalizationFields: PersonalizationField[];
+  isPersonalized: boolean;
   pickupInstructions: string | null;
   availableFrom: string | null;
   availableUntil: string | null;
@@ -99,6 +118,20 @@ export interface CartLine {
   fulfillmentType: Fulfillment;
   membershipMonths: number | null;
   beneficiaries: Beneficiary[] | null;
+  personalizationValues: Record<string, string>;
+  personalization: { fieldId: string; label: string; value: string; extraPrice: string }[];
+  isPersonalized: boolean;
+  personalizationFields: {
+    id: string;
+    label: string;
+    kind: 'TEXT' | 'NUMBER';
+    required: boolean;
+    maxLength: number | null;
+    minValue: number | null;
+    maxValue: number | null;
+    uppercase: boolean;
+    extraPrice: string;
+  }[];
   available: number | null;
   /** Outras opções do mesmo produto, para trocar no carrinho (DT-051). */
   options: { variantId: string; name: string; available: number | null }[];
@@ -127,6 +160,10 @@ export interface OrderItem {
   partnerId: string | null;
   pickedUpAt: string | null;
   arrivalNotifiedAt: string | null;
+  /** Personalização travada na compra (DT-069). */
+  personalization: { label: string; value: string }[];
+  /** Afiliação: beneficiários (DT-068). */
+  beneficiaries: string[];
 }
 
 export interface Order {

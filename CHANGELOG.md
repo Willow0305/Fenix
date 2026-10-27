@@ -6,6 +6,16 @@ O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) e o 
 
 ## [Não publicado]
 
+### Produtos personalizados (2026-10-27)
+
+#### Adicionado
+
+- campos de personalização por produto (ex.: nome na camisa, número), obrigatórios ou opcionais, com acréscimo de preço, cadastrados na tela do produto (DT-069);
+- página do produto com seletores de tamanho, modelo e cor, guia de medidas e campos de personalização; o preço já mostra o acréscimo;
+- no carrinho, cada personalização é uma linha própria e pode ser editada até fechar o pedido; item personalizado exige ciência de que não há troca por arrependimento;
+- a personalização fica travada no pedido e aparece no painel e em Meus pedidos;
+- remessa: planilha da malharia com tamanho, modelo e cor, e planilha de produção peça a peça com nome e número.
+
 ### Afiliação vendida pela loja (2026-10-27)
 
 #### Adicionado

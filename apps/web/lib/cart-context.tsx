@@ -9,12 +9,17 @@ import type { Cart } from './store-types';
 interface CartState {
   readonly cart: Cart | null;
   readonly reload: () => Promise<void>;
-  readonly setQuantity: (variantId: string, quantity: number) => Promise<Cart>;
+  readonly setQuantity: (
+    variantId: string,
+    quantity: number,
+    personalization?: Record<string, string>
+  ) => Promise<Cart>;
   /** Troca a opção (tamanho, cor) de um item, mantendo a quantidade (DT-051). */
   readonly changeOption: (
     fromVariantId: string,
     toVariantId: string,
-    quantity: number
+    quantity: number,
+    personalization?: Record<string, string>
   ) => Promise<Cart>;
 }
 
@@ -39,22 +44,35 @@ export function CartProvider({ children }: { readonly children: ReactNode }) {
     }
   }, [status, reload]);
 
-  const setQuantity = useCallback(async (variantId: string, quantity: number) => {
-    const updated = await api<Cart>('/cart/items', {
-      method: 'PUT',
-      body: { variantId, quantity }
-    });
+  const setQuantity = useCallback(
+    async (variantId: string, quantity: number, personalization?: Record<string, string>) => {
+      const updated = await api<Cart>('/cart/items', {
+        method: 'PUT',
+        body: { variantId, quantity, ...(personalization ? { personalization } : {}) }
+      });
 
-    setCart(updated);
+      setCart(updated);
 
-    return updated;
-  }, []);
+      return updated;
+    },
+    []
+  );
 
   const changeOption = useCallback(
-    async (fromVariantId: string, toVariantId: string, quantity: number) => {
+    async (
+      fromVariantId: string,
+      toVariantId: string,
+      quantity: number,
+      personalization?: Record<string, string>
+    ) => {
       const updated = await api<Cart>('/cart/items/change', {
         method: 'POST',
-        body: { fromVariantId, toVariantId, quantity }
+        body: {
+          fromVariantId,
+          toVariantId,
+          quantity,
+          ...(personalization ? { personalization } : {})
+        }
       });
 
       setCart(updated);

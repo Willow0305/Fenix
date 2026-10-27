@@ -11,6 +11,15 @@ export interface Beneficiary {
 
 export interface CartItemDetails {
   readonly beneficiaries?: readonly Beneficiary[];
+  /** Valores por campo de personalização (DT-069). */
+  readonly personalization?: Readonly<Record<string, string>>;
+  /** No pedido: cópia legível travada (rótulo, valor e acréscimo). */
+  readonly personalizationSnapshot?: readonly {
+    fieldId: string;
+    label: string;
+    value: string;
+    extraPrice: string;
+  }[];
 }
 
 export interface BeneficiaryProblem {

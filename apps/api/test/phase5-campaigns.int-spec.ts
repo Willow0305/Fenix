@@ -290,7 +290,7 @@ describe('Fase 5 — remessas e campanhas', () => {
       .expect(200);
 
     expect(csv.headers['content-type']).toContain('text/csv');
-    expect(csv.text).toContain('Produto;Variação;SKU;Quantidade');
+    expect(csv.text).toContain('Produto;Variação;Tamanho;Modelo;Cor;SKU;Quantidade');
 
     await ctx
       .http()

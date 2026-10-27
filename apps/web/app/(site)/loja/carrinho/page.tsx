@@ -26,6 +26,7 @@ import { useCart } from '../../../../lib/cart-context';
 import { formatMoney, formatPhoneDisplay } from '../../../../lib/format';
 import type { CouponPreview, Order } from '../../../../lib/store-types';
 import { BeneficiariesEditor } from '../../../../components/beneficiaries-editor';
+import { CartPersonalization } from '../../../../components/cart-personalization';
 import { CouponBox } from '../../../../components/coupon-box';
 
 export default function CartPage() {
@@ -39,6 +40,7 @@ export default function CartPage() {
     notes: ''
   });
   const [accept, setAccept] = useState(false);
+  const [acceptPersonalized, setAcceptPersonalized] = useState(false);
   const [coupon, setCoupon] = useState<CouponPreview | null>(null);
   const [result, setResult] = useState<{ order: Order; guestAccessCode: string | null } | null>(
     null
@@ -51,6 +53,7 @@ export default function CartPage() {
         method: 'POST',
         body: {
           acceptTerms: accept,
+          ...(acceptPersonalized ? { acceptPersonalized: true } : {}),
           ...(authenticated
             ? {}
             : { customerName: form.customerName, customerEmail: form.customerEmail }),
@@ -76,8 +79,18 @@ export default function CartPage() {
     }
   }
 
-  const change = (variantId: string, quantity: number) =>
-    run(() => setQuantity(variantId, quantity));
+  // Linha personalizada é identificada também pela personalização (DT-069).
+  const change = (
+    line: { variantId: string; personalizationValues: Record<string, string> },
+    quantity: number
+  ) =>
+    run(() =>
+      setQuantity(
+        line.variantId,
+        quantity,
+        Object.keys(line.personalizationValues).length > 0 ? line.personalizationValues : undefined
+      )
+    );
 
   if (result) {
     const { order, guestAccessCode } = result;
@@ -161,7 +174,12 @@ export default function CartPage() {
                           aria-label={`Opção de ${line.productName}`}
                           onChange={(event) =>
                             void run(() =>
-                              changeOption(line.variantId, event.target.value, line.quantity)
+                              changeOption(
+                                line.variantId,
+                                event.target.value,
+                                line.quantity,
+                                line.isPersonalized ? line.personalizationValues : undefined
+                              )
                             )
                           }
                         >
@@ -183,6 +201,9 @@ export default function CartPage() {
                         Informe o nome completo de cada beneficiário e salve.
                       </span>
                     ) : null}
+                    {line.isPersonalized ? (
+                      <CartPersonalization line={line} onSaved={() => void reload()} />
+                    ) : null}
                     {line.fulfillmentType === 'MEMBERSHIP' ? (
                       <BeneficiariesEditor line={line} onSaved={() => void reload()} />
                     ) : null}
@@ -196,12 +217,12 @@ export default function CartPage() {
                         label={`Quantidade de ${line.productName}`}
                         value={line.quantity}
                         max={Math.min(50, line.available ?? 50) || line.quantity}
-                        onChange={(value) => void change(line.variantId, value)}
+                        onChange={(value) => void change(line, value)}
                       />
                       <button
                         type="button"
                         className="btn btn-link"
-                        onClick={() => void change(line.variantId, 0)}
+                        onClick={() => void change(line, 0)}
                       >
                         <Icon name="trash3" /> Remover
                       </button>
@@ -285,6 +306,20 @@ export default function CartPage() {
               value={form.notes}
               onChange={(e) => setForm({ ...form, notes: e.target.value })}
             />
+            {cart.lines.some((line) => line.isPersonalized) ? (
+              <label className="checkbox">
+                <input
+                  type="checkbox"
+                  checked={acceptPersonalized}
+                  onChange={(e) => setAcceptPersonalized(e.target.checked)}
+                  required
+                />
+                <span>
+                  Estou ciente: item personalizado não tem troca ou devolução por arrependimento
+                  (continua com garantia contra defeito).
+                </span>
+              </label>
+            ) : null}
             <label className="checkbox">
               <input
                 type="checkbox"

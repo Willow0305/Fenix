@@ -59,6 +59,7 @@ export interface VariantView {
   readonly name: string;
   readonly size: string | null;
   readonly color: string | null;
+  readonly model: string | null;
   readonly gender: Gender | null;
   readonly price: MoneyView;
   readonly listPrice: MoneyView;
@@ -68,6 +69,33 @@ export interface VariantView {
   readonly inStock: boolean;
   /** Restam poucas unidades (sem revelar quantas). */
   readonly lowStock: boolean;
+}
+
+export interface PersonalizationFieldView {
+  readonly id: string;
+  readonly label: string;
+  readonly kind: 'TEXT' | 'NUMBER';
+  readonly required: boolean;
+  readonly maxLength: number | null;
+  readonly minValue: number | null;
+  readonly maxValue: number | null;
+  readonly uppercase: boolean;
+  readonly extraPrice: MoneyView;
+  readonly sortOrder: number;
+  readonly isActive: boolean;
+}
+
+export interface PersonalizationFieldInput {
+  readonly label: string;
+  readonly kind: 'TEXT' | 'NUMBER';
+  readonly required?: boolean;
+  readonly maxLength?: number | null;
+  readonly minValue?: number | null;
+  readonly maxValue?: number | null;
+  readonly uppercase?: boolean;
+  readonly extraPrice?: Money;
+  readonly sortOrder?: number;
+  readonly isActive?: boolean;
 }
 
 export interface ProductSummary {
@@ -97,6 +125,11 @@ export interface ProductDetail extends ProductSummary {
   /** Quando o aviso "afiliações abertas" foi enviado (só uma vez). */
   readonly membershipAnnouncedAt: string | null;
   readonly pickupInstructions: string | null;
+  /** Guia de medidas (DT-069). */
+  readonly sizeGuide: string | null;
+  /** Campos de personalização ativos (na visão do painel, todos). */
+  readonly personalizationFields: PersonalizationFieldView[];
+  readonly isPersonalized: boolean;
   readonly availableFrom: string | null;
   readonly availableUntil: string | null;
   readonly images: { id: string; url: string; altText: string | null; isPrimary: boolean }[];
@@ -127,6 +160,7 @@ export interface ProductInput {
   readonly availableUntil?: string | null;
   readonly productionLeadDays?: number | null;
   readonly membershipMonths?: number | null;
+  readonly sizeGuide?: string | null;
   readonly pickupInstructions?: string | null;
   readonly partnerId?: string | null;
   readonly commissionTypeOverride?: CommissionType | null;
@@ -139,6 +173,7 @@ export interface VariantInput {
   readonly sku?: string;
   readonly size?: string | null;
   readonly color?: string | null;
+  readonly model?: string | null;
   readonly gender?: Gender | null;
   readonly priceOverride?: Money | null;
   readonly promotionalPriceOverride?: Money | null;
@@ -165,6 +200,10 @@ const PRODUCT_INCLUDE = {
     select: { id: true, mediaFileId: true, altText: true, isPrimary: true }
   },
   variants: { where: { deletedAt: null }, orderBy: { createdAt: 'asc' } },
+  personalizationFields: {
+    where: { deletedAt: null },
+    orderBy: [{ sortOrder: 'asc' }, { createdAt: 'asc' }]
+  },
   campaignProducts: {
     where: { isActive: true, deletedAt: null, salesCampaign: { status: 'OPEN', deletedAt: null } },
     select: {
@@ -190,6 +229,144 @@ export class CatalogService {
     private readonly media: MediaService,
     private readonly inventory: InventoryService
   ) {}
+
+  // ---------- Personalização (DT-069) ----------
+
+  private async assertProduct(productId: string): Promise<void> {
+    const exists = await this.prisma.product.count({ where: { id: productId, deletedAt: null } });
+
+    if (exists === 0) {
+      throw AppError.notFound('Produto não encontrado.');
+    }
+  }
+
+  private validateField(input: Partial<PersonalizationFieldInput>): void {
+    if (
+      input.minValue !== undefined &&
+      input.maxValue !== undefined &&
+      input.minValue !== null &&
+      input.maxValue !== null &&
+      input.minValue > input.maxValue
+    ) {
+      throw AppError.validation('INVALID_RANGE', 'O mínimo não pode ser maior que o máximo.');
+    }
+  }
+
+  async createField(
+    actor: Principal,
+    productId: string,
+    input: PersonalizationFieldInput,
+    meta: RequestMeta
+  ): Promise<ProductDetail> {
+    await this.assertProduct(productId);
+    this.validateField(input);
+
+    const field = await this.prisma.productPersonalizationField.create({
+      data: {
+        productId,
+        label: input.label.trim(),
+        kind: input.kind,
+        required: input.required ?? false,
+        maxLength: input.kind === 'TEXT' ? (input.maxLength ?? 12) : null,
+        minValue: input.kind === 'NUMBER' ? (input.minValue ?? 0) : null,
+        maxValue: input.kind === 'NUMBER' ? (input.maxValue ?? 99) : null,
+        uppercase: input.kind === 'TEXT' ? (input.uppercase ?? true) : false,
+        extraPrice: input.extraPrice ?? 0,
+        sortOrder: input.sortOrder ?? 0
+      }
+    });
+
+    await this.audit.record({
+      actorUserId: actor.userId,
+      action: 'product.personalization.created',
+      entityType: 'Product',
+      entityId: productId,
+      after: { fieldId: field.id, label: field.label, kind: field.kind },
+      meta
+    });
+
+    return this.adminDetail(productId);
+  }
+
+  async updateField(
+    actor: Principal,
+    fieldId: string,
+    input: Partial<PersonalizationFieldInput>,
+    meta: RequestMeta
+  ): Promise<ProductDetail> {
+    const before = await this.prisma.productPersonalizationField.findFirst({
+      where: { id: fieldId, deletedAt: null }
+    });
+
+    if (before === null) {
+      throw AppError.notFound('Campo de personalização não encontrado.');
+    }
+
+    this.validateField({
+      minValue: input.minValue === undefined ? before.minValue : input.minValue,
+      maxValue: input.maxValue === undefined ? before.maxValue : input.maxValue
+    });
+    await this.prisma.productPersonalizationField.update({
+      where: { id: fieldId },
+      data: {
+        ...(input.label === undefined ? {} : { label: input.label.trim() }),
+        ...(input.required === undefined ? {} : { required: input.required }),
+        ...(input.maxLength === undefined ? {} : { maxLength: input.maxLength }),
+        ...(input.minValue === undefined ? {} : { minValue: input.minValue }),
+        ...(input.maxValue === undefined ? {} : { maxValue: input.maxValue }),
+        ...(input.uppercase === undefined ? {} : { uppercase: input.uppercase }),
+        ...(input.extraPrice === undefined ? {} : { extraPrice: input.extraPrice }),
+        ...(input.sortOrder === undefined ? {} : { sortOrder: input.sortOrder }),
+        ...(input.isActive === undefined ? {} : { isActive: input.isActive })
+      }
+    });
+    await this.audit.record({
+      actorUserId: actor.userId,
+      action: 'product.personalization.updated',
+      entityType: 'Product',
+      entityId: before.productId,
+      before: { fieldId, label: before.label, extraPrice: before.extraPrice.toFixed(2) },
+      after: {
+        ...input,
+        ...(input.extraPrice ? { extraPrice: input.extraPrice.toFixed(2) } : {})
+      },
+      meta
+    });
+
+    return this.adminDetail(before.productId);
+  }
+
+  /** Exclusão lógica: pedidos já feitos guardam a própria cópia da personalização. */
+  async deleteField(
+    actor: Principal,
+    fieldId: string,
+    reason: string,
+    meta: RequestMeta
+  ): Promise<ProductDetail> {
+    const before = await this.prisma.productPersonalizationField.findFirst({
+      where: { id: fieldId, deletedAt: null }
+    });
+
+    if (before === null) {
+      throw AppError.notFound('Campo de personalização não encontrado.');
+    }
+
+    await this.prisma.productPersonalizationField.update({
+      where: { id: fieldId },
+      data: { deletedAt: new Date(), isActive: false }
+    });
+    await this.audit.record({
+      actorUserId: actor.userId,
+      action: 'product.personalization.deleted',
+      entityType: 'Product',
+      entityId: before.productId,
+      reason,
+      before: { fieldId, label: before.label },
+      meta
+    });
+
+    return this.adminDetail(before.productId);
+  }
 
   // ---------- Categorias ----------
 
@@ -310,6 +487,7 @@ export class CatalogService {
         name: variant.name,
         size: variant.size,
         color: variant.color,
+        model: variant.model,
         gender: variant.gender,
         price: moneyView(price, row.currency),
         listPrice: moneyView(listPrice(row, variant), row.currency),
@@ -332,6 +510,21 @@ export class CatalogService {
         ? listPrices.reduce((min, p) => (money(p).lessThan(money(min)) ? p : min))
         : row.basePrice.toFixed(2);
     const primary = row.images[0];
+    const fields: PersonalizationFieldView[] = row.personalizationFields
+      .filter((field) => options.admin || field.isActive)
+      .map((field) => ({
+        id: field.id,
+        label: field.label,
+        kind: field.kind,
+        required: field.required,
+        maxLength: field.maxLength,
+        minValue: field.minValue,
+        maxValue: field.maxValue,
+        uppercase: field.uppercase,
+        extraPrice: moneyView(field.extraPrice, row.currency),
+        sortOrder: field.sortOrder,
+        isActive: field.isActive
+      }));
     const partnerVisible =
       row.partner && (options.admin || partnerOperational(row.partner, civilDateOf(options.now)));
 
@@ -372,6 +565,9 @@ export class CatalogService {
       membershipMonths: row.membershipMonths,
       membershipAnnouncedAt: row.membershipAnnouncedAt?.toISOString() ?? null,
       pickupInstructions: row.pickupInstructions,
+      sizeGuide: row.sizeGuide,
+      personalizationFields: fields,
+      isPersonalized: fields.some((field) => field.isActive),
       availableFrom: row.availableFrom?.toISOString() ?? null,
       availableUntil: row.availableUntil?.toISOString() ?? null,
       images: row.images.map((image) => ({
@@ -658,6 +854,7 @@ export class CatalogService {
         availableFrom: iso(input.availableFrom),
         availableUntil: iso(input.availableUntil),
         productionLeadDays: input.productionLeadDays ?? null,
+        sizeGuide: input.sizeGuide?.trim() || null,
         membershipMonths:
           input.fulfillmentType === 'MEMBERSHIP' ? (input.membershipMonths ?? null) : null,
         pickupInstructions: input.pickupInstructions ?? null,
@@ -741,6 +938,7 @@ export class CatalogService {
         ...(input.membershipMonths === undefined
           ? {}
           : { membershipMonths: input.membershipMonths }),
+        ...(input.sizeGuide === undefined ? {} : { sizeGuide: input.sizeGuide?.trim() || null }),
         ...(input.pickupInstructions === undefined
           ? {}
           : { pickupInstructions: input.pickupInstructions }),
@@ -837,6 +1035,7 @@ export class CatalogService {
         name: input.name.trim(),
         size: input.size ?? null,
         color: input.color ?? null,
+        model: input.model?.trim() || null,
         gender: input.gender ?? null,
         priceOverride: input.priceOverride ?? null,
         promotionalPriceOverride: input.promotionalPriceOverride ?? null,
@@ -879,6 +1078,7 @@ export class CatalogService {
         ...(input.sku === undefined ? {} : { sku: input.sku.trim().toUpperCase() }),
         ...(input.size === undefined ? {} : { size: input.size }),
         ...(input.color === undefined ? {} : { color: input.color }),
+        ...(input.model === undefined ? {} : { model: input.model?.trim() || null }),
         ...(input.gender === undefined ? {} : { gender: input.gender }),
         ...(input.priceOverride === undefined ? {} : { priceOverride: input.priceOverride }),
         ...(input.promotionalPriceOverride === undefined

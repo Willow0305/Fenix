@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import type { Prisma } from '../../../generated/prisma/client';
 
 import { generateOpaqueToken, sha256Hex } from '../../../common/crypto/tokens';
-import { type MoneyView, moneyView, round2, sum } from '../../../common/domain/money';
+import { money, type MoneyView, moneyView, round2, sum } from '../../../common/domain/money';
 import { civilDateOf } from '../../../common/domain/time-zone';
 import { AppError } from '../../../common/errors/app-error';
 import type { Principal } from '../../../common/http/request-context';
@@ -24,6 +24,14 @@ import {
   cleanBeneficiary,
   resizeBeneficiaries
 } from '../domain/cart-details';
+import {
+  normalizePersonalization,
+  type PersonalizationEntry,
+  type PersonalizationField,
+  personalizationKey,
+  personalizationSnapshot,
+  personalizationValuesOf
+} from '../domain/personalization';
 import { InventoryService } from './inventory.service';
 
 export const CART_TTL_DAYS = 30;
@@ -51,6 +59,12 @@ export interface CartLine {
   /** Afiliação: validade em meses e um beneficiário por unidade (DT-068). */
   readonly membershipMonths: number | null;
   readonly beneficiaries: Beneficiary[] | null;
+  /** Personalização escolhida (DT-069): valores por campo e cópia legível. */
+  readonly personalizationValues: Record<string, string>;
+  readonly personalization: PersonalizationEntry[];
+  readonly isPersonalized: boolean;
+  /** Campos do produto, para editar a personalização no carrinho. */
+  readonly personalizationFields: PersonalizationField[];
   readonly available: number | null;
   /** Opções do mesmo produto, para trocar no carrinho (DT-051). */
   readonly options: CartOption[];
@@ -89,6 +103,10 @@ const CART_INCLUDE = {
                 orderBy: { createdAt: 'asc' },
                 select: { id: true, name: true }
               },
+              personalizationFields: {
+                where: { deletedAt: null, isActive: true },
+                orderBy: [{ sortOrder: 'asc' }, { createdAt: 'asc' }]
+              },
               partner: {
                 select: {
                   status: true,
@@ -112,13 +130,44 @@ const CART_INCLUDE = {
 export type CartRow = Prisma.CartGetPayload<{ include: typeof CART_INCLUDE }>;
 export type CartItemRow = CartRow['items'][number];
 
-/** Preço vigente de um item (campanha aberta tem precedência). */
+/** Campos de personalização ativos do produto, no formato das regras (DT-069). */
+export function fieldsOf(product: {
+  personalizationFields: readonly {
+    id: string;
+    label: string;
+    kind: 'TEXT' | 'NUMBER';
+    required: boolean;
+    maxLength: number | null;
+    minValue: number | null;
+    maxValue: number | null;
+    uppercase: boolean;
+    extraPrice: { toFixed(digits: number): string };
+  }[];
+}): PersonalizationField[] {
+  return product.personalizationFields.map((field) => ({
+    id: field.id,
+    label: field.label,
+    kind: field.kind,
+    required: field.required,
+    maxLength: field.maxLength,
+    minValue: field.minValue,
+    maxValue: field.maxValue,
+    uppercase: field.uppercase,
+    extraPrice: field.extraPrice.toFixed(2)
+  }));
+}
+
+/**
+ * Preço vigente de um item (campanha aberta tem precedência), mais os acréscimos da
+ * personalização escolhida (DT-069).
+ */
 export function cartItemPrice(item: CartItemRow) {
   const product = item.productVariant.product;
+  const base =
+    item.salesCampaignProduct?.campaignPrice ?? effectiveUnitPrice(product, item.productVariant);
+  const extras = personalizationSnapshot(fieldsOf(product), personalizationValuesOf(item.details));
 
-  return round2(
-    item.salesCampaignProduct?.campaignPrice ?? effectiveUnitPrice(product, item.productVariant)
-  );
+  return round2(sum([money(base), ...extras.map((entry) => money(entry.extraPrice))]));
 }
 
 /** O item continua vendável? Campanha precisa estar aberta e dentro da janela. */
@@ -256,11 +305,18 @@ export class CartService {
 
     for (const item of guest.items) {
       const own = await this.findActive({ principal });
-      const existing = own?.items.find((i) => i.productVariantId === item.productVariantId);
+      const existing = own?.items.find(
+        (i) => i.productVariantId === item.productVariantId && i.detailsKey === item.detailsKey
+      );
       const quantity = Math.min(MAX_ITEM_QUANTITY, (existing?.quantity ?? 0) + item.quantity);
 
       try {
-        await this.setItem({ principal }, item.productVariantId, quantity);
+        await this.setItem(
+          { principal },
+          item.productVariantId,
+          quantity,
+          personalizationValuesOf(item.details)
+        );
       } catch {
         // Itens indisponíveis não impedem a mesclagem dos demais.
       }
@@ -329,6 +385,13 @@ export class CartService {
         fulfillmentType: product.fulfillmentType,
         membershipMonths: product.membershipMonths,
         beneficiaries,
+        personalizationValues: personalizationValuesOf(item.details),
+        personalization: personalizationSnapshot(
+          fieldsOf(product),
+          personalizationValuesOf(item.details)
+        ),
+        isPersonalized: product.personalizationFields.length > 0,
+        personalizationFields: fieldsOf(product),
         available,
         options: product.variants.map((variant) => ({
           variantId: variant.id,
@@ -356,6 +419,60 @@ export class CartService {
       ),
       hasWarnings: lines.some((line) => line.warning !== null)
     };
+  }
+
+  /**
+   * Muda a personalização de uma linha antes de fechar o pedido (DT-069). Se já houver uma
+   * linha igual, as quantidades se somam.
+   */
+  async setPersonalization(
+    owner: CartOwner,
+    lineId: string,
+    input: Readonly<Record<string, string>>
+  ): Promise<CartView> {
+    const cart = await this.findActive(owner);
+    const line = cart?.items.find((item) => item.id === lineId);
+
+    if (!cart || !line) {
+      throw AppError.notFound('Item não está no carrinho.');
+    }
+
+    const fields = fieldsOf(line.productVariant.product);
+
+    if (fields.length === 0) {
+      throw AppError.validation('NOT_PERSONALIZED', 'Este produto não tem personalização.');
+    }
+
+    const { values, problems } = normalizePersonalization(fields, input);
+
+    if (problems.length > 0) {
+      throw AppError.validation('PERSONALIZATION_INVALID', problems.join(' '));
+    }
+
+    const key = personalizationKey(values);
+    const twin = cart.items.find(
+      (item) =>
+        item.id !== line.id &&
+        item.productVariantId === line.productVariantId &&
+        item.detailsKey === key
+    );
+
+    if (twin) {
+      await this.prisma.$transaction([
+        this.prisma.cartItem.update({
+          where: { id: twin.id },
+          data: { quantity: Math.min(MAX_ITEM_QUANTITY, twin.quantity + line.quantity) }
+        }),
+        this.prisma.cartItem.delete({ where: { id: line.id } })
+      ]);
+    } else {
+      await this.prisma.cartItem.update({
+        where: { id: line.id },
+        data: { detailsKey: key, details: detailsJson({ personalization: values }) }
+      });
+    }
+
+    return this.toView(await this.findActive(owner));
   }
 
   /** Quem compra é o beneficiário 1 de uma afiliação nova (DT-068). */
@@ -414,17 +531,21 @@ export class CartService {
     owner: CartOwner,
     fromVariantId: string,
     toVariantId: string,
-    quantity: number
+    quantity: number,
+    personalization: Readonly<Record<string, string>> = {}
   ): Promise<{ view: CartView; newGuestToken: string | null }> {
     const cart = await this.findActive(owner);
-    const current = cart?.items.find((item) => item.productVariantId === fromVariantId);
+    const key = personalizationKey(personalization);
+    const current = cart?.items.find(
+      (item) => item.productVariantId === fromVariantId && item.detailsKey === key
+    );
 
     if (!cart || !current) {
       throw AppError.notFound('Item não está no carrinho.');
     }
 
     if (fromVariantId === toVariantId) {
-      return this.setItem(owner, toVariantId, quantity);
+      return this.setItem(owner, toVariantId, quantity, personalization);
     }
 
     const target = await this.prisma.productVariant.findFirst({
@@ -436,12 +557,14 @@ export class CartService {
       throw AppError.validation('INVALID_OPTION', 'Escolha uma opção deste mesmo produto.');
     }
 
-    const existing = cart.items.find((item) => item.productVariantId === toVariantId);
+    const existing = cart.items.find(
+      (item) => item.productVariantId === toVariantId && item.detailsKey === key
+    );
     const merged = Math.min(MAX_ITEM_QUANTITY, (existing?.quantity ?? 0) + quantity);
-    const result = await this.setItem(owner, toVariantId, merged);
+    const result = await this.setItem(owner, toVariantId, merged, personalization);
 
     return {
-      ...(await this.setItem(owner, fromVariantId, 0)),
+      ...(await this.setItem(owner, fromVariantId, 0, personalization)),
       newGuestToken: result.newGuestToken
     };
   }
@@ -453,7 +576,8 @@ export class CartService {
   async setItem(
     owner: CartOwner,
     variantId: string,
-    quantity: number
+    quantity: number,
+    personalization: Readonly<Record<string, string>> = {}
   ): Promise<{ view: CartView; newGuestToken: string | null }> {
     if (!Number.isInteger(quantity) || quantity < 0 || quantity > MAX_ITEM_QUANTITY) {
       throw AppError.validation(
@@ -489,6 +613,10 @@ export class CartService {
               },
               select: { id: true },
               take: 1
+            },
+            personalizationFields: {
+              where: { deletedAt: null, isActive: true },
+              orderBy: [{ sortOrder: 'asc' }, { createdAt: 'asc' }]
             }
           }
         }
@@ -572,7 +700,27 @@ export class CartService {
       throw new Error('Carrinho não pôde ser criado.');
     }
 
-    const existing = cart.items.find((item) => item.productVariantId === variantId);
+    // Cada personalização diferente é uma linha própria (DT-069).
+    const fields = fieldsOf(product);
+    const personalized =
+      fields.length > 0 ? normalizePersonalization(fields, personalization) : null;
+
+    if (personalized && quantity > 0 && personalized.problems.length > 0) {
+      throw AppError.validation(
+        'PERSONALIZATION_INVALID',
+        personalized.problems.join(' '),
+        personalized.problems.map((message) => ({
+          field: 'personalization',
+          code: 'INVALID',
+          message
+        }))
+      );
+    }
+
+    const key = personalized ? personalizationKey(personalized.values) : '';
+    const existing = cart.items.find(
+      (item) => item.productVariantId === variantId && item.detailsKey === key
+    );
     const details =
       membership && quantity > 0 && owner.principal
         ? {
@@ -582,7 +730,9 @@ export class CartService {
               await this.buyerBeneficiary(owner.principal.userId)
             )
           }
-        : undefined;
+        : personalized
+          ? { personalization: personalized.values }
+          : undefined;
 
     if (quantity === 0) {
       if (existing) {
@@ -604,6 +754,7 @@ export class CartService {
           productVariantId: variantId,
           quantity,
           salesCampaignProductId: campaignLinkId,
+          detailsKey: key,
           ...(details ? { details: detailsJson(details) } : {})
         }
       });

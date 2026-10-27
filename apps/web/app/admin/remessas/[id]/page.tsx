@@ -411,6 +411,17 @@ export default function CampaignDetailPage() {
           >
             Lista de retirada
           </button>
+          <button
+            type="button"
+            className="btn btn-secondary btn-sm"
+            onClick={() =>
+              void downloadProtectedFile(`/campaigns/${id}/report.csv`, `${c.slug}-producao.csv`, {
+                kind: 'production'
+              })
+            }
+          >
+            Produção (tamanho, nome e número)
+          </button>
         </div>
         {report.data ? (
           <>

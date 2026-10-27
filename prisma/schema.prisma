@@ -1457,6 +1457,8 @@ model Product {
   membershipMonths             Int?                   @map("membership_months")
   /// Aviso "afiliações abertas" já enviado a todos (uma vez por produto).
   membershipAnnouncedAt        DateTime?              @map("membership_announced_at") @db.Timestamptz(6)
+  /// Guia de medidas mostrado na página do produto (DT-069).
+  sizeGuide                    String?                @map("size_guide") @db.Text
   pickupInstructions           String?                @map("pickup_instructions") @db.Text
   commissionTypeOverride       CommissionType?        @map("commission_type_override")
   commissionPercentageOverride Decimal?               @map("commission_percentage_override") @db.Decimal(7, 4)
@@ -1465,14 +1467,15 @@ model Product {
   updatedAt                    DateTime               @updatedAt @map("updated_at") @db.Timestamptz(6)
   deletedAt                    DateTime?              @map("deleted_at") @db.Timestamptz(6)
 
-  category         ProductCategory        @relation(fields: [productCategoryId], references: [id], onDelete: Restrict, onUpdate: Cascade)
-  partner          Partner?               @relation(fields: [partnerId], references: [id], onDelete: Restrict, onUpdate: Cascade)
-  images           ProductImage[]
-  variants         ProductVariant[]
-  favorites        Favorite[]
-  campaignProducts SalesCampaignProduct[]
-  orderItems       OrderItem[]
-  couponProducts   CouponProduct[]
+  category              ProductCategory               @relation(fields: [productCategoryId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+  partner               Partner?                      @relation(fields: [partnerId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+  images                ProductImage[]
+  variants              ProductVariant[]
+  favorites             Favorite[]
+  personalizationFields ProductPersonalizationField[]
+  campaignProducts      SalesCampaignProduct[]
+  orderItems            OrderItem[]
+  couponProducts        CouponProduct[]
 
   @@index([productCategoryId, status, deletedAt])
   @@index([partnerId, status])
@@ -1506,6 +1509,8 @@ model ProductVariant {
   name                     String    @db.VarChar(140)
   size                     String?   @db.VarChar(40)
   color                    String?   @db.VarChar(80)
+  /// Modelo da peça (ex.: tradicional, baby look), seletor na loja (DT-069).
+  model                    String?   @db.VarChar(80)
   gender                   Gender?
   attributes               Json?     @db.JsonB
   priceOverride            Decimal?  @map("price_override") @db.Decimal(19, 4)
@@ -2573,4 +2578,35 @@ model PartnerBenefit {
 
   @@index([partnerId, isActive, deletedAt])
   @@map("partner_benefits")
+}
+
+enum PersonalizationKind {
+  TEXT
+  NUMBER
+}
+
+/// Campo de personalização do produto, ex.: nome e número na camisa (DT-069).
+model ProductPersonalizationField {
+  id         String              @id @default(uuid()) @db.Uuid
+  productId  String              @map("product_id") @db.Uuid
+  label      String              @db.VarChar(60)
+  kind       PersonalizationKind
+  required   Boolean             @default(false)
+  /// Texto: limite de caracteres.
+  maxLength  Int?                @map("max_length")
+  /// Número: faixa permitida.
+  minValue   Int?                @map("min_value")
+  maxValue   Int?                @map("max_value")
+  uppercase  Boolean             @default(true)
+  extraPrice Decimal             @default(0) @map("extra_price") @db.Decimal(19, 4)
+  sortOrder  Int                 @default(0) @map("sort_order")
+  isActive   Boolean             @default(true) @map("is_active")
+  createdAt  DateTime            @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt  DateTime            @updatedAt @map("updated_at") @db.Timestamptz(6)
+  deletedAt  DateTime?           @map("deleted_at") @db.Timestamptz(6)
+
+  product Product @relation(fields: [productId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+
+  @@index([productId, isActive, deletedAt])
+  @@map("product_personalization_fields")
 }

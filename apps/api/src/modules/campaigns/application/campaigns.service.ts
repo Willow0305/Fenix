@@ -22,7 +22,7 @@ import { lockRow } from '../../finance/application/ledger.service';
 import { mediaUrl } from '../../media/application/media.service';
 import { NotificationsService } from '../../notifications/application/notifications.service';
 import { slugify } from '../../sports/domain/sports-rules';
-import { OrdersService } from '../../store/application/orders.service';
+import { OrdersService, personalizationOfItem } from '../../store/application/orders.service';
 import {
   assertWindow,
   CAMPAIGN_STATUS_LABELS,
@@ -96,6 +96,17 @@ export interface CampaignReport {
     status: OrderStatus;
     items: string;
     pickedUp: boolean;
+  }[];
+  /** Produção peça a peça (DT-069): tamanho, modelo, cor e personalização. */
+  readonly pieces: {
+    orderNumber: string;
+    customerName: string;
+    productName: string;
+    size: string | null;
+    model: string | null;
+    color: string | null;
+    personalization: { label: string; value: string }[];
+    quantity: number;
   }[];
 }
 
@@ -836,7 +847,7 @@ export class CampaignsService implements OnModuleInit {
         order: { status: { in: PAID_ORDER } }
       },
       include: {
-        productVariant: { select: { name: true } },
+        productVariant: { select: { name: true, size: true, model: true, color: true } },
         order: {
           select: { orderNumber: true, customerName: true, customerPhone: true, status: true }
         }
@@ -849,7 +860,10 @@ export class CampaignsService implements OnModuleInit {
         productName: item.productName,
         variantName: item.productVariant.name,
         sku: item.sku,
-        quantity: item.quantity
+        quantity: item.quantity,
+        size: item.productVariant.size,
+        model: item.productVariant.model,
+        color: item.productVariant.color
       }))
     );
     const byOrder = new Map<string, CampaignReport['orders'][number]>();
@@ -874,13 +888,23 @@ export class CampaignsService implements OnModuleInit {
       generatedAt: new Date().toISOString(),
       lines,
       totalQuantity: lines.reduce((total, line) => total + line.quantity, 0),
-      orders: [...byOrder.values()]
+      orders: [...byOrder.values()],
+      pieces: items.map((item) => ({
+        orderNumber: item.order.orderNumber,
+        customerName: item.order.customerName,
+        productName: item.productName,
+        size: item.productVariant.size,
+        model: item.productVariant.model,
+        color: item.productVariant.color,
+        personalization: personalizationOfItem(item.details),
+        quantity: item.quantity
+      }))
     };
   }
 
   async reportCsv(
     id: string,
-    kind: 'supplier' | 'pickup'
+    kind: 'supplier' | 'pickup' | 'production'
   ): Promise<{ fileName: string; content: string }> {
     const report = await this.report(id);
     const safeName = slugify(report.campaign.name) || 'remessa';
@@ -889,8 +913,42 @@ export class CampaignsService implements OnModuleInit {
       return {
         fileName: `${safeName}-malharia.csv`,
         content: toCsv(
-          ['Produto', 'Variação', 'SKU', 'Quantidade'],
-          report.lines.map((l) => [l.productName, l.variantName, l.sku, l.quantity])
+          ['Produto', 'Variação', 'Tamanho', 'Modelo', 'Cor', 'SKU', 'Quantidade'],
+          report.lines.map((l) => [
+            l.productName,
+            l.variantName,
+            l.size ?? '',
+            l.model ?? '',
+            l.color ?? '',
+            l.sku,
+            l.quantity
+          ])
+        )
+      };
+    }
+
+    // Peça a peça para a malharia: tamanho, modelo, cor e cada campo personalizado (DT-069).
+    if (kind === 'production') {
+      const labels = [
+        ...new Set(report.pieces.flatMap((piece) => piece.personalization.map((p) => p.label)))
+      ];
+
+      return {
+        fileName: `${safeName}-producao.csv`,
+        content: toCsv(
+          ['Pedido', 'Cliente', 'Produto', 'Tamanho', 'Modelo', 'Cor', ...labels, 'Quantidade'],
+          report.pieces.map((piece) => [
+            piece.orderNumber,
+            piece.customerName,
+            piece.productName,
+            piece.size ?? '',
+            piece.model ?? '',
+            piece.color ?? '',
+            ...labels.map(
+              (label) => piece.personalization.find((p) => p.label === label)?.value ?? ''
+            ),
+            piece.quantity
+          ])
         )
       };
     }

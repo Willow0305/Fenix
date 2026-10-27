@@ -33,6 +33,7 @@ import type { Page } from '../../../../lib/api-types';
 import { COMMISSION_TYPE, type Partner } from '../../../../lib/partner-types';
 import { Icon } from '../../../../components/icon';
 import { ProductImagesManager } from '../../../../components/product-images-manager';
+import { PersonalizationFieldsManager } from '../../../../components/personalization-fields-manager';
 
 interface Movement {
   id: string;
@@ -141,6 +142,7 @@ export default function ProductAdminPage() {
     name: '',
     size: '',
     color: '',
+    model: '',
     priceOverride: '',
     sku: ''
   });
@@ -161,6 +163,7 @@ export default function ProductAdminPage() {
         buyerLimit: p.buyerLimit ? String(p.buyerLimit) : '',
         productionLeadDays: p.productionLeadDays ? String(p.productionLeadDays) : '',
         membershipMonths: p.membershipMonths ? String(p.membershipMonths) : '',
+        sizeGuide: p.sizeGuide ?? '',
         pickupInstructions: p.pickupInstructions ?? '',
         isFeatured: p.isFeatured ? 'true' : 'false',
         partnerId: p.partner?.id ?? '',
@@ -191,6 +194,7 @@ export default function ProductAdminPage() {
             ? { productionLeadDays: Number(form['productionLeadDays']) }
             : {}),
           pickupInstructions: form['pickupInstructions'] ?? '',
+          sizeGuide: form['sizeGuide'] ?? '',
           ...(form['fulfillmentType'] === 'MEMBERSHIP' && form['membershipMonths']
             ? { membershipMonths: Number(form['membershipMonths']) }
             : {}),
@@ -220,6 +224,7 @@ export default function ProductAdminPage() {
           name: variant.name,
           ...(variant.size ? { size: variant.size } : {}),
           ...(variant.color ? { color: variant.color } : {}),
+          ...(variant.model ? { model: variant.model } : {}),
           ...(variant.sku ? { sku: variant.sku } : {}),
           ...(variant.priceOverride
             ? { priceOverride: normalizeAmount(variant.priceOverride) }
@@ -227,7 +232,7 @@ export default function ProductAdminPage() {
         }
       })
     );
-    setVariant({ name: '', size: '', color: '', priceOverride: '', sku: '' });
+    setVariant({ name: '', size: '', color: '', model: '', priceOverride: '', sku: '' });
   });
   async function setStatus(status: ProductStatus, reason?: string) {
     product.setData(
@@ -499,6 +504,13 @@ export default function ProductAdminPage() {
           value={form['pickupInstructions'] ?? ''}
           onChange={set('pickupInstructions')}
         />
+        <TextArea
+          label="Guia de medidas (opcional)"
+          maxLength={4000}
+          value={form['sizeGuide'] ?? ''}
+          onChange={set('sizeGuide')}
+          hint="Aparece na página do produto. Ex.: P: 50 cm de largura × 70 cm de altura."
+        />
         <div className="form-actions">
           <button type="submit" className="btn btn-primary" disabled={save.pending}>
             Salvar
@@ -558,6 +570,13 @@ export default function ProductAdminPage() {
             onChange={(e) => setVariant({ ...variant, color: e.target.value })}
           />
           <TextField
+            label="Modelo"
+            maxLength={80}
+            placeholder="Tradicional, baby look"
+            value={variant.model}
+            onChange={(e) => setVariant({ ...variant, model: e.target.value })}
+          />
+          <TextField
             label="Preço próprio"
             maxLength={16}
             numeric="decimal"
@@ -576,6 +595,8 @@ export default function ProductAdminPage() {
           <ErrorSummary error={addVariant.error} />
         </form>
       </section>
+
+      <PersonalizationFieldsManager product={p} onChange={(detail) => product.setData(detail)} />
 
       <ProductImagesManager
         productId={id}

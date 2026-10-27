@@ -64,6 +64,10 @@ export interface ConsolidationLine {
   readonly productName: string;
   readonly variantName: string;
   readonly sku: string;
+  /** Atributos da variação para a malharia (DT-069). */
+  readonly size?: string | null;
+  readonly model?: string | null;
+  readonly color?: string | null;
   readonly quantity: number;
 }
 

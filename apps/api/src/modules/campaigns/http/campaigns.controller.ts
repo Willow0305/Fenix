@@ -115,8 +115,9 @@ export class PickupDto {
 }
 
 export class CsvQueryDto {
-  @ApiProperty({ enum: ['supplier', 'pickup'] }) @IsIn(['supplier', 'pickup']) kind!:
-    'supplier' | 'pickup';
+  @ApiProperty({ enum: ['supplier', 'pickup', 'production'] })
+  @IsIn(['supplier', 'pickup', 'production'])
+  kind!: 'supplier' | 'pickup' | 'production';
 }
 
 @ApiTags('Remessas')

@@ -40,6 +40,16 @@ export function OrderSummary({ order }: { readonly order: Order }) {
                     {item.campaign ? ` · remessa ${item.campaign.name}` : ''}
                     {item.pickedUpAt ? ` · retirado em ${formatDateTime(item.pickedUpAt)}` : ''}
                   </div>
+                  {item.personalization.length > 0 ? (
+                    <div style={{ fontSize: '0.85rem' }}>
+                      {item.personalization.map((p) => `${p.label}: ${p.value}`).join(' · ')}
+                    </div>
+                  ) : null}
+                  {item.beneficiaries.length > 0 ? (
+                    <div style={{ fontSize: '0.85rem' }}>
+                      Beneficiários: {item.beneficiaries.join(', ')}
+                    </div>
+                  ) : null}
                 </td>
                 <td data-label="Qtd." className="num">
                   {item.quantity}

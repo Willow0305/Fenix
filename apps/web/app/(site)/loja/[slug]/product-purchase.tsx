@@ -5,6 +5,11 @@ import { useState } from 'react';
 
 import { Icon } from '../../../../components/icon';
 import { QuantityStepper } from '../../../../components/quantity-stepper';
+import {
+  AttributePicker,
+  hasAttributes,
+  PersonalizationInputs
+} from '../../../../components/variant-attributes';
 import { Alert, ErrorSummary, useSubmit } from '../../../../components/ui';
 import { api } from '../../../../lib/api-client';
 import { useAuth } from '../../../../lib/auth-context';
@@ -28,9 +33,26 @@ export function ProductPurchase({ product }: { readonly product: ProductDetail }
   );
   const isFavorite = favorites.data?.some((f) => f.productId === product.id) ?? false;
   const variant = active.find((v) => v.id === variantId);
-  const inCart = cart?.lines.find((line) => line.variantId === variantId)?.quantity ?? 0;
+  const fields = product.personalizationFields;
+  const [values, setValues] = useState<Record<string, string>>({});
+  // Personalização: cada combinação é uma linha; compara como o servidor guarda (DT-069).
+  const normalized = (input: Record<string, string>) =>
+    JSON.stringify(
+      fields
+        .map((f) => [f.id, (input[f.id] ?? '').trim().replace(/\s+/g, ' ').toUpperCase()])
+        .filter(([, v]) => v !== '')
+    );
+  const inCart =
+    cart?.lines.find(
+      (line) =>
+        line.variantId === variantId &&
+        (fields.length === 0 || normalized(line.personalizationValues) === normalized(values))
+    )?.quantity ?? 0;
+  const extras = fields
+    .filter((f) => (values[f.id] ?? '').trim() !== '')
+    .reduce((total, f) => total + Number(f.extraPrice.amount), 0);
   const add = useSubmit(async () => {
-    await setQuantity(variantId, inCart + quantity);
+    await setQuantity(variantId, inCart + quantity, fields.length > 0 ? values : undefined);
     setAdded(true);
   });
 
@@ -43,13 +65,25 @@ export function ProductPurchase({ product }: { readonly product: ProductDetail }
     <div className="card stack">
       <div className="row">
         <strong style={{ fontSize: '1.6rem', color: 'var(--color-primary-dark)' }}>
-          {formatMoney(variant?.price.amount ?? product.priceFrom.amount)}
+          {formatMoney(
+            (Number(variant?.price.amount ?? product.priceFrom.amount) + extras).toFixed(2)
+          )}
         </strong>
         {variant && variant.price.amount !== variant.listPrice.amount ? (
           <s className="muted">{formatMoney(variant.listPrice.amount)}</s>
         ) : null}
       </div>
-      {active.length > 1 ? (
+      {hasAttributes(active) ? (
+        <AttributePicker
+          variants={active}
+          value={variantId}
+          onChange={(id) => {
+            setVariantId(id);
+            setAdded(false);
+            setQty(1);
+          }}
+        />
+      ) : active.length > 1 ? (
         <fieldset style={{ border: 0, padding: 0, margin: 0 }}>
           <legend style={{ fontWeight: 600, marginBottom: '0.4rem' }}>Opção</legend>
           <div className="row">
@@ -82,6 +116,23 @@ export function ProductPurchase({ product }: { readonly product: ProductDetail }
         <span className="badge badge-warning">
           <Icon name="hourglass-split" /> Últimas unidades
         </span>
+      ) : null}
+      {product.sizeGuide ? (
+        <details className="collapsible">
+          <summary>Guia de medidas</summary>
+          <p className="prose" style={{ margin: 0 }}>
+            {product.sizeGuide}
+          </p>
+        </details>
+      ) : null}
+      {fields.length > 0 ? (
+        <>
+          <PersonalizationInputs fields={fields} values={values} onChange={setValues} />
+          <small className="muted">
+            Item personalizado: não tem troca ou devolução por arrependimento, mas tem garantia
+            contra defeito.
+          </small>
+        </>
       ) : null}
       {product.fulfillmentType === 'MEMBERSHIP' && status === 'anonymous' ? (
         <Alert kind="info">

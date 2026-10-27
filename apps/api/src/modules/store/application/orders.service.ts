@@ -43,8 +43,14 @@ import {
   type CartOwner,
   CartService,
   checkRenewals,
-  detailsJson
+  detailsJson,
+  fieldsOf
 } from './cart.service';
+import {
+  normalizePersonalization,
+  personalizationSnapshot,
+  personalizationValuesOf
+} from '../domain/personalization';
 import { type AppliedCoupon, CouponsService } from './coupons.service';
 import { InventoryService } from './inventory.service';
 import { StaffAlertsService } from '../../notifications/application/staff-alerts.service';
@@ -66,6 +72,10 @@ export interface OrderItemView {
   readonly partnerId: string | null;
   readonly pickedUpAt: string | null;
   readonly arrivalNotifiedAt: string | null;
+  /** Personalização travada na compra (DT-069): rótulo e valor. */
+  readonly personalization: { label: string; value: string }[];
+  /** Afiliação: nomes dos beneficiários (DT-068). */
+  readonly beneficiaries: string[];
 }
 
 export interface OrderView {
@@ -103,6 +113,8 @@ export interface CheckoutInput {
   readonly customerPhone?: string;
   readonly notes?: string;
   readonly couponCode?: string;
+  /** Ciência de que item personalizado não tem troca por arrependimento (DT-069). */
+  readonly acceptPersonalized?: boolean;
 }
 
 export interface OrderFilters extends PageQueryDto {
@@ -124,6 +136,21 @@ const ORDER_INCLUDE = {
   payments: { select: { id: true, status: true, amount: true } },
   couponRedemption: { select: { status: true, coupon: { select: { code: true } } } }
 } satisfies Prisma.OrderInclude;
+
+/** Personalização travada no item do pedido, para telas e planilhas (DT-069). */
+export function personalizationOfItem(details: unknown): { label: string; value: string }[] {
+  const snapshot = (details as { personalizationSnapshot?: unknown } | null)
+    ?.personalizationSnapshot;
+
+  return Array.isArray(snapshot)
+    ? snapshot
+        .filter(
+          (entry): entry is { label: string; value: string } =>
+            typeof entry?.label === 'string' && typeof entry?.value === 'string'
+        )
+        .map((entry) => ({ label: entry.label, value: entry.value }))
+    : [];
+}
 
 type OrderRow = Prisma.OrderGetPayload<{ include: typeof ORDER_INCLUDE }>;
 
@@ -211,7 +238,9 @@ export class OrdersService implements OnModuleInit {
         campaign: item.salesCampaignProduct?.salesCampaign ?? null,
         partnerId: item.partnerId,
         pickedUpAt: item.pickedUpAt?.toISOString() ?? null,
-        arrivalNotifiedAt: item.arrivalNotifiedAt?.toISOString() ?? null
+        arrivalNotifiedAt: item.arrivalNotifiedAt?.toISOString() ?? null,
+        personalization: personalizationOfItem(item.details),
+        beneficiaries: beneficiariesOf(item.details).map((b) => b.name)
       })),
       payments,
       createdAt: row.createdAt.toISOString(),
@@ -442,6 +471,35 @@ export class OrdersService implements OnModuleInit {
 
           details = detailsJson({
             beneficiaries: await checkRenewals(tx, principal.userId, beneficiaries)
+          });
+        }
+
+        // Personalização (DT-069): conferida de novo e copiada travada para o pedido.
+        const fields = fieldsOf(product);
+
+        if (fields.length > 0) {
+          const { values, problems } = normalizePersonalization(
+            fields,
+            personalizationValuesOf(item.details)
+          );
+
+          if (problems.length > 0) {
+            throw AppError.validation(
+              'PERSONALIZATION_INVALID',
+              `"${product.name}": ${problems.join(' ')}`
+            );
+          }
+
+          if (!input.acceptPersonalized) {
+            throw AppError.validation(
+              'PERSONALIZED_ACK_REQUIRED',
+              'Confirme que está ciente: item personalizado não tem troca ou devolução por arrependimento.'
+            );
+          }
+
+          details = detailsJson({
+            personalization: values,
+            personalizationSnapshot: personalizationSnapshot(fields, values)
           });
         }
 

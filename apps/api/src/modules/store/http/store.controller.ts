@@ -72,6 +72,9 @@ import {
   CartChangeDto,
   BeneficiariesDto,
   CartItemDto,
+  PersonalizationDto,
+  PersonalizationFieldDto,
+  UpdatePersonalizationFieldDto,
   CheckoutDto,
   GuestLookupDto,
   GuestProofDto,
@@ -141,6 +144,18 @@ function sendFile(
     `attachment; filename*=UTF-8''${encodeURIComponent(file.fileName)}`
   );
   res.send(file.content);
+}
+
+/** Só valores de texto curtos: o que vier diferente é descartado (as regras conferem o resto). */
+function stringValues(input: Record<string, unknown> | undefined): Record<string, string> {
+  return Object.fromEntries(
+    Object.entries(input ?? {})
+      .filter((entry): entry is [string, string | number] =>
+        ['string', 'number'].includes(typeof entry[1])
+      )
+      .slice(0, 20)
+      .map(([key, value]) => [key.slice(0, 60), String(value).slice(0, 60)])
+  );
 }
 
 @ApiTags('Loja')
@@ -222,7 +237,8 @@ export class StorefrontController {
     const result = await this.carts.setItem(
       this.owner(req, principal),
       body.variantId,
-      body.quantity
+      body.quantity,
+      stringValues(body.personalization)
     );
 
     if (result.newGuestToken) {
@@ -230,6 +246,23 @@ export class StorefrontController {
     }
 
     return result.view;
+  }
+
+  /** Personalização de uma linha, editável até fechar o pedido (DT-069). */
+  @Put('cart/items/:lineId/personalization')
+  @Public()
+  @Throttle({ default: { limit: 60, ttl: 60_000 } })
+  setPersonalization(
+    @Req() req: ContextRequest,
+    @OptionalPrincipal() principal: Principal | undefined,
+    @Param('lineId', new ParseUUIDPipe()) lineId: string,
+    @Body() body: PersonalizationDto
+  ): Promise<CartView> {
+    return this.carts.setPersonalization(
+      this.owner(req, principal),
+      lineId,
+      stringValues(body.values)
+    );
   }
 
   /** Beneficiários de uma afiliação, um por unidade (DT-068). Exige conta. */
@@ -258,7 +291,8 @@ export class StorefrontController {
       this.owner(req, principal),
       body.fromVariantId,
       body.toVariantId,
-      body.quantity
+      body.quantity,
+      stringValues(body.personalization)
     );
 
     if (result.newGuestToken) {
@@ -641,6 +675,53 @@ export class StoreAdminController {
     @ReqMeta() meta: RequestMeta
   ): Promise<ProductDetail> {
     return this.catalog.setStatus(actor, id, body.status, body.reason ?? null, meta);
+  }
+
+  @Post('products/:id/personalization-fields')
+  @RequirePermissions(PERMISSIONS.productsManage)
+  addField(
+    @CurrentPrincipal() actor: Principal,
+    @Param('id', new ParseUUIDPipe()) id: string,
+    @Body() body: PersonalizationFieldDto,
+    @ReqMeta() meta: RequestMeta
+  ): Promise<ProductDetail> {
+    const { extraPrice, ...rest } = defined(body);
+
+    return this.catalog.createField(
+      actor,
+      id,
+      { ...rest, ...(extraPrice === undefined ? {} : { extraPrice: parseMoney(extraPrice) }) },
+      meta
+    );
+  }
+
+  @Patch('personalization-fields/:id')
+  @RequirePermissions(PERMISSIONS.productsManage)
+  updateField(
+    @CurrentPrincipal() actor: Principal,
+    @Param('id', new ParseUUIDPipe()) id: string,
+    @Body() body: UpdatePersonalizationFieldDto,
+    @ReqMeta() meta: RequestMeta
+  ): Promise<ProductDetail> {
+    const { extraPrice, ...rest } = defined(body);
+
+    return this.catalog.updateField(
+      actor,
+      id,
+      { ...rest, ...(extraPrice === undefined ? {} : { extraPrice: parseMoney(extraPrice) }) },
+      meta
+    );
+  }
+
+  @Delete('personalization-fields/:id')
+  @RequirePermissions(PERMISSIONS.productsManage)
+  deleteField(
+    @CurrentPrincipal() actor: Principal,
+    @Param('id', new ParseUUIDPipe()) id: string,
+    @Body() body: DeleteReasonDto,
+    @ReqMeta() meta: RequestMeta
+  ): Promise<ProductDetail> {
+    return this.catalog.deleteField(actor, id, body.reason, meta);
   }
 
   @Post('products/:id/variants')

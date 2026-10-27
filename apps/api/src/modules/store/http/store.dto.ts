@@ -20,6 +20,7 @@ import {
   IsIn,
   IsInt,
   IsISO8601,
+  IsObject,
   IsOptional,
   IsString,
   IsUUID,
@@ -92,6 +93,11 @@ export class ProductDto extends ProductCommissionFields {
   @Max(60)
   membershipMonths?: number;
   @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(2000) pickupInstructions?: string;
+  @ApiPropertyOptional({ description: 'Guia de medidas (DT-069).' })
+  @IsOptional()
+  @IsString()
+  @MaxLength(4000)
+  sizeGuide?: string;
   @ApiPropertyOptional() @IsOptional() @IsUUID() partnerId?: string;
 }
 
@@ -125,6 +131,11 @@ export class UpdateProductDto extends ProductCommissionFields {
   @Max(60)
   membershipMonths?: number;
   @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(2000) pickupInstructions?: string;
+  @ApiPropertyOptional({ description: 'Guia de medidas (DT-069).' })
+  @IsOptional()
+  @IsString()
+  @MaxLength(4000)
+  sizeGuide?: string;
   @ApiPropertyOptional({ description: 'String vazia remove o vínculo com o parceiro.' })
   @IsOptional()
   @ValidateIf((_, value) => value !== '')
@@ -145,6 +156,11 @@ export class VariantDto {
   sku?: string;
   @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(40) size?: string;
   @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(80) color?: string;
+  @ApiPropertyOptional({ description: 'Modelo (ex.: tradicional, baby look).' })
+  @IsOptional()
+  @IsString()
+  @MaxLength(80)
+  model?: string;
   @ApiPropertyOptional({ enum: Gender }) @IsOptional() @IsEnum(Gender) gender?: Gender;
   @ApiPropertyOptional() @IsOptional() @Matches(AMOUNT, AMOUNT_MSG) priceOverride?: string;
   @ApiPropertyOptional()
@@ -163,6 +179,11 @@ export class UpdateVariantDto {
   sku?: string;
   @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(40) size?: string;
   @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(80) color?: string;
+  @ApiPropertyOptional({ description: 'Modelo (ex.: tradicional, baby look).' })
+  @IsOptional()
+  @IsString()
+  @MaxLength(80)
+  model?: string;
   @ApiPropertyOptional({ enum: Gender }) @IsOptional() @IsEnum(Gender) gender?: Gender;
   @ApiPropertyOptional()
   @IsOptional()
@@ -252,12 +273,23 @@ export class BeneficiariesDto {
 export class CartItemDto {
   @ApiProperty() @IsUUID() variantId!: string;
   @ApiProperty({ minimum: 0, maximum: 50 }) @IsInt() @Min(0) @Max(50) quantity!: number;
+  @ApiPropertyOptional({ description: 'Personalização: valor por campo (DT-069).' })
+  @IsOptional()
+  @IsObject()
+  personalization?: Record<string, string>;
+}
+
+export class PersonalizationDto {
+  @ApiProperty({ description: 'Valor por campo de personalização (DT-069).' })
+  @IsObject()
+  values!: Record<string, string>;
 }
 
 export class CartChangeDto {
   @ApiProperty() @IsUUID() fromVariantId!: string;
   @ApiProperty() @IsUUID() toVariantId!: string;
   @ApiProperty({ minimum: 1, maximum: 50 }) @IsInt() @Min(1) @Max(50) quantity!: number;
+  @ApiPropertyOptional() @IsOptional() @IsObject() personalization?: Record<string, string>;
 }
 
 export class CheckoutDto {
@@ -282,6 +314,12 @@ export class CheckoutDto {
   @IsBoolean()
   @IsIn([true], { message: 'É necessário aceitar as regras da loja.' })
   acceptTerms!: boolean;
+  @ApiPropertyOptional({
+    description: 'Ciência de que item personalizado não tem troca por arrependimento (DT-069).'
+  })
+  @IsOptional()
+  @IsBoolean()
+  acceptPersonalized?: boolean;
 }
 
 export class GuestLookupDto {
@@ -385,4 +423,32 @@ export class CouponActiveDto {
 
 export class CouponPreviewDto {
   @ApiProperty() @IsString() @MinLength(1) @MaxLength(40) code!: string;
+}
+
+/** Campo de personalização (DT-069). */
+export class PersonalizationFieldDto {
+  @ApiProperty() @IsString() @MinLength(2) @MaxLength(60) label!: string;
+  @ApiProperty({ enum: ['TEXT', 'NUMBER'] }) @IsIn(['TEXT', 'NUMBER']) kind!: 'TEXT' | 'NUMBER';
+  @ApiPropertyOptional() @IsOptional() @IsBoolean() required?: boolean;
+  @ApiPropertyOptional() @IsOptional() @IsInt() @Min(1) @Max(30) maxLength?: number;
+  @ApiPropertyOptional() @IsOptional() @IsInt() @Min(0) @Max(999999) minValue?: number;
+  @ApiPropertyOptional() @IsOptional() @IsInt() @Min(0) @Max(999999) maxValue?: number;
+  @ApiPropertyOptional() @IsOptional() @IsBoolean() uppercase?: boolean;
+  @ApiPropertyOptional({ example: '15.00' })
+  @IsOptional()
+  @Matches(AMOUNT, AMOUNT_MSG)
+  extraPrice?: string;
+  @ApiPropertyOptional() @IsOptional() @IsInt() @Min(0) @Max(100) sortOrder?: number;
+}
+
+export class UpdatePersonalizationFieldDto {
+  @ApiPropertyOptional() @IsOptional() @IsString() @MinLength(2) @MaxLength(60) label?: string;
+  @ApiPropertyOptional() @IsOptional() @IsBoolean() required?: boolean;
+  @ApiPropertyOptional() @IsOptional() @IsInt() @Min(1) @Max(30) maxLength?: number;
+  @ApiPropertyOptional() @IsOptional() @IsInt() @Min(0) @Max(999999) minValue?: number;
+  @ApiPropertyOptional() @IsOptional() @IsInt() @Min(0) @Max(999999) maxValue?: number;
+  @ApiPropertyOptional() @IsOptional() @IsBoolean() uppercase?: boolean;
+  @ApiPropertyOptional() @IsOptional() @Matches(AMOUNT, AMOUNT_MSG) extraPrice?: string;
+  @ApiPropertyOptional() @IsOptional() @IsInt() @Min(0) @Max(100) sortOrder?: number;
+  @ApiPropertyOptional() @IsOptional() @IsBoolean() isActive?: boolean;
 }
