@@ -7,6 +7,7 @@ declare const styles: {
   readonly groupLabel: string;
   readonly main: string;
   readonly topbar: string;
+  readonly profile: string;
   readonly menu: string;
   readonly content: string;
 };

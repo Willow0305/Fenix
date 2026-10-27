@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { useParams } from 'next/navigation';
+import { useParams, useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 
 import {
@@ -129,6 +129,7 @@ function StockPanel({
 
 export default function ProductAdminPage() {
   const { id } = useParams<{ id: string }>();
+  const router = useRouter();
   const product = useResource<ProductDetail>(`/store/products/${id}`);
   const categories = useResource<StoreCategory[]>('/store/categories');
   const { can } = useAuth();
@@ -150,6 +151,13 @@ export default function ProductAdminPage() {
   useEffect(() => {
     const p = product.data;
 
+    // Plano de afiliação se edita na aba Afiliação (DT-072).
+    if (p?.fulfillmentType === 'MEMBERSHIP') {
+      router.replace(`/admin/afiliacao/planos/${p.id}`);
+
+      return;
+    }
+
     if (p) {
       setForm({
         name: p.name,
@@ -162,7 +170,6 @@ export default function ProductAdminPage() {
         description: p.description ?? '',
         buyerLimit: p.buyerLimit ? String(p.buyerLimit) : '',
         productionLeadDays: p.productionLeadDays ? String(p.productionLeadDays) : '',
-        membershipMonths: p.membershipMonths ? String(p.membershipMonths) : '',
         sizeGuide: p.sizeGuide ?? '',
         pickupInstructions: p.pickupInstructions ?? '',
         isFeatured: p.isFeatured ? 'true' : 'false',
@@ -172,7 +179,7 @@ export default function ProductAdminPage() {
         commissionFixedOverride: p.commissionOverride?.fixedAmount?.amount ?? ''
       });
     }
-  }, [product.data]);
+  }, [product.data, router]);
 
   const save = useSubmit(async () => {
     product.setData(
@@ -195,9 +202,6 @@ export default function ProductAdminPage() {
             : {}),
           pickupInstructions: form['pickupInstructions'] ?? '',
           sizeGuide: form['sizeGuide'] ?? '',
-          ...(form['fulfillmentType'] === 'MEMBERSHIP' && form['membershipMonths']
-            ? { membershipMonths: Number(form['membershipMonths']) }
-            : {}),
           isFeatured: form['isFeatured'] === 'true',
           partnerId: form['partnerId'] ?? '',
           commissionTypeOverride: form['partnerId'] ? (form['commissionTypeOverride'] ?? '') : '',
@@ -280,37 +284,6 @@ export default function ProductAdminPage() {
         }
       />
       {notice ? <Alert kind="success">{notice}</Alert> : null}
-      {p.fulfillmentType === 'MEMBERSHIP' && p.status === 'ACTIVE' && can('notifications.send') ? (
-        <section className="card row">
-          <Icon name="megaphone" />
-          {p.membershipAnnouncedAt ? (
-            <span className="muted">
-              Aviso &quot;afiliações abertas&quot; enviado a todas as contas em{' '}
-              {new Date(p.membershipAnnouncedAt).toLocaleString('pt-BR')}.
-            </span>
-          ) : (
-            <>
-              <span>Avise todas as contas que as afiliações estão abertas (uma vez só).</span>
-              <span className="spacer" />
-              <button
-                type="button"
-                className="btn btn-primary btn-sm"
-                onClick={() =>
-                  void api<{ notified: number }>(`/store/products/${id}/announce-membership`, {
-                    method: 'POST',
-                    body: {}
-                  }).then(async (res) => {
-                    setNotice(`Aviso enviado para ${res.notified} conta(s).`);
-                    await product.reload();
-                  })
-                }
-              >
-                Avisar todos
-              </button>
-            </>
-          )}
-        </section>
-      ) : null}
       <section className="card row">
         <span className={`badge ${PRODUCT_STATUS[p.status].badge}`}>
           {PRODUCT_STATUS[p.status].label}
@@ -375,20 +348,11 @@ export default function ProductAdminPage() {
             label="Modo de venda"
             value={form['fulfillmentType'] ?? 'STOCK'}
             onChange={set('fulfillmentType')}
-            options={(['STOCK', 'MADE_TO_ORDER', 'CAMPAIGN', 'MEMBERSHIP'] as Fulfillment[]).map(
-              (value) => ({ value, label: FULFILLMENT[value] })
-            )}
+            options={(['STOCK', 'MADE_TO_ORDER', 'CAMPAIGN'] as Fulfillment[]).map((value) => ({
+              value,
+              label: FULFILLMENT[value]
+            }))}
           />
-          {form['fulfillmentType'] === 'MEMBERSHIP' ? (
-            <TextField
-              label="Validade (meses)"
-              numeric="integer"
-              maxLength={2}
-              required
-              value={form['membershipMonths'] ?? ''}
-              onChange={set('membershipMonths')}
-            />
-          ) : null}
           <TextField
             label="Preço (R$)"
             maxLength={16}

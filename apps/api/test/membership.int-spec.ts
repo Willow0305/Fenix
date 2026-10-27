@@ -253,4 +253,109 @@ describe('Afiliação vendida pela loja (DT-068)', () => {
       .set(auth(board.token))
       .expect(409);
   });
+
+  it('aba Afiliação: plano criado à parte, visão geral por plano e filtro de carteirinhas', async () => {
+    await ctx
+      .http()
+      .post('/api/v1/store/memberships')
+      .set(auth(buyer.token))
+      .send({ name: 'Sem permissão', basePrice: '10.00', membershipMonths: 6 })
+      .expect(403);
+
+    const created = await ctx
+      .http()
+      .post('/api/v1/store/memberships')
+      .set(auth(board.token))
+      .send({
+        name: `Afiliação semestral ${randomUUID().slice(0, 4)}`,
+        basePrice: '70.00',
+        membershipMonths: 6
+      })
+      .expect(201);
+
+    expect(created.body).toMatchObject({
+      fulfillmentType: 'MEMBERSHIP',
+      membershipMonths: 6,
+      status: 'DRAFT',
+      category: { name: 'Afiliação' }
+    });
+    expect(created.body.variants).toHaveLength(1);
+
+    // O segundo plano reaproveita a mesma categoria.
+    const again = await ctx
+      .http()
+      .post('/api/v1/store/memberships')
+      .set(auth(board.token))
+      .send({
+        name: `Afiliação trimestral ${randomUUID().slice(0, 4)}`,
+        basePrice: '40.00',
+        membershipMonths: 3
+      })
+      .expect(201);
+
+    expect(again.body.category.id).toBe(created.body.category.id);
+
+    const goods = await ctx
+      .http()
+      .get('/api/v1/store/products?kind=goods&pageSize=100')
+      .set(auth(board.token))
+      .expect(200);
+    const plans = await ctx
+      .http()
+      .get('/api/v1/store/products?kind=membership&pageSize=100')
+      .set(auth(board.token))
+      .expect(200);
+    const ids = (body: { data: { id: string }[] }) => body.data.map((p) => p.id);
+
+    expect(ids(goods.body)).not.toContain(created.body.id);
+    expect(ids(plans.body)).toEqual(expect.arrayContaining([created.body.id, productId]));
+
+    const overview = await ctx
+      .http()
+      .get('/api/v1/cards/overview')
+      .set(auth(board.token))
+      .expect(200);
+    const sold = overview.body.plans.find((p: { id: string }) => p.id === productId);
+    const fresh = overview.body.plans.find((p: { id: string }) => p.id === created.body.id);
+
+    expect(sold.activeCards).toBeGreaterThan(0);
+    expect(sold.issuedCards).toBeGreaterThanOrEqual(sold.activeCards);
+    expect(fresh).toMatchObject({ activeCards: 0, issuedCards: 0, membershipMonths: 6 });
+    expect(overview.body.affiliates.valid).toBeGreaterThan(0);
+
+    const ofPlan = await ctx
+      .http()
+      .get(`/api/v1/cards?planId=${productId}&pageSize=100`)
+      .set(auth(board.token))
+      .expect(200);
+
+    expect(ofPlan.body.data.length).toBe(sold.issuedCards);
+    expect(ofPlan.body.data.every((c: { plan: string }) => c.plan === sold.name)).toBe(true);
+    await ctx
+      .http()
+      .get(`/api/v1/cards?planId=${created.body.id}`)
+      .set(auth(board.token))
+      .expect(200)
+      .expect((res) => expect(res.body.data).toHaveLength(0));
+    await ctx.http().get('/api/v1/cards/overview').set(auth(buyer.token)).expect(403);
+
+    // Período de venda: define e limpa (string vazia).
+    const windowed = await ctx
+      .http()
+      .patch(`/api/v1/store/products/${created.body.id}`)
+      .set(auth(board.token))
+      .send({ availableUntil: '2030-01-01T03:00:00.000Z' })
+      .expect(200);
+
+    expect(windowed.body.availableUntil).toBe('2030-01-01T03:00:00.000Z');
+
+    const cleared = await ctx
+      .http()
+      .patch(`/api/v1/store/products/${created.body.id}`)
+      .set(auth(board.token))
+      .send({ availableUntil: '' })
+      .expect(200);
+
+    expect(cleared.body.availableUntil).toBeNull();
+  });
 });

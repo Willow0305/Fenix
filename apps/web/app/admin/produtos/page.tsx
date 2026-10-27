@@ -40,7 +40,8 @@ export default function ProductsAdminPage() {
     page,
     pageSize: 25,
     status,
-    search: term
+    search: term,
+    kind: 'goods'
   });
   const categories = useResource<StoreCategory[]>('/store/categories');
   const [creating, setCreating] = useState(false);
@@ -49,8 +50,7 @@ export default function ProductsAdminPage() {
     name: '',
     categoryId: '',
     fulfillmentType: 'STOCK' as Fulfillment,
-    basePrice: '',
-    membershipMonths: '12'
+    basePrice: ''
   });
   const create = useSubmit(async () => {
     const created = await api<ProductDetail>('/store/products', {
@@ -59,10 +59,7 @@ export default function ProductsAdminPage() {
         name: form.name,
         categoryId: form.categoryId,
         fulfillmentType: form.fulfillmentType,
-        basePrice: normalizeAmount(form.basePrice),
-        ...(form.fulfillmentType === 'MEMBERSHIP'
-          ? { membershipMonths: Number(form.membershipMonths) }
-          : {})
+        basePrice: normalizeAmount(form.basePrice)
       }
     });
 
@@ -78,7 +75,7 @@ export default function ProductsAdminPage() {
     <>
       <PageHeader
         title="Produtos"
-        description="Catálogo, variações, estoque e imagens."
+        description="Catálogo, variações, estoque e imagens. Planos de afiliação ficam na aba Afiliação."
         actions={
           <button type="button" className="btn btn-primary" onClick={() => setCreating((v) => !v)}>
             {creating ? 'Fechar' : 'Novo produto'}
@@ -116,21 +113,12 @@ export default function ProductsAdminPage() {
                 onChange={(e) =>
                   setForm({ ...form, fulfillmentType: e.target.value as Fulfillment })
                 }
-                options={(
-                  ['STOCK', 'MADE_TO_ORDER', 'CAMPAIGN', 'MEMBERSHIP'] as Fulfillment[]
-                ).map((value) => ({ value, label: FULFILLMENT[value] }))}
+                options={(['STOCK', 'MADE_TO_ORDER', 'CAMPAIGN'] as Fulfillment[]).map((value) => ({
+                  value,
+                  label: FULFILLMENT[value]
+                }))}
+                hint="Afiliação (carteirinha) tem aba própria: Afiliação → Planos."
               />
-              {form.fulfillmentType === 'MEMBERSHIP' ? (
-                <TextField
-                  label="Validade (meses)"
-                  numeric="integer"
-                  maxLength={2}
-                  required
-                  value={form.membershipMonths}
-                  onChange={(e) => setForm({ ...form, membershipMonths: e.target.value })}
-                  hint="Cada beneficiário recebe uma carteirinha de afiliado por esse período."
-                />
-              ) : null}
               <TextField
                 label="Preço (R$)"
                 maxLength={16}

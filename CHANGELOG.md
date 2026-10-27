@@ -6,6 +6,18 @@ O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) e o 
 
 ## [Não publicado]
 
+### Aba Afiliação no painel (2026-10-27)
+
+#### Adicionado
+
+- Painel → Afiliação, com Visão geral, Planos de afiliação, Benefícios, Carteirinhas e Visual da carteirinha num lugar só (DT-072);
+- planos criados e editados à parte dos produtos: preço, validade, período de venda, fotos, publicar, pausar e avisar;
+- carteirinhas filtradas por plano e números da afiliação na visão geral.
+
+#### Corrigido
+
+- barra superior do painel no celular: botões viram só ícone e a página não rola mais para o lado.
+
 ### PIX automático (2026-10-27)
 
 #### Adicionado

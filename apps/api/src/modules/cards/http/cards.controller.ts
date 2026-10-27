@@ -47,6 +47,7 @@ import {
 import {
   type CardAdminDetail,
   type CardAdminRow,
+  type CardsOverview,
   type CardDesign,
   type CardQr,
   CardsService,
@@ -77,6 +78,11 @@ class CardListQueryDto extends PageQueryDto {
   @IsOptional()
   @IsIn(['valid', 'suspended', 'expired', 'cancelled'])
   situation?: 'valid' | 'suspended' | 'expired' | 'cancelled';
+
+  @ApiPropertyOptional({ description: 'Só as carteirinhas vendidas por este plano.' })
+  @IsOptional()
+  @IsUUID()
+  planId?: string;
 }
 
 class CardExtendDto extends DeleteReasonDto {
@@ -213,6 +219,12 @@ export class CardsController {
     @ReqMeta() meta: RequestMeta
   ): Promise<CardDesign> {
     return this.cards.setDesign(actor, body, meta);
+  }
+
+  @Get('overview')
+  @RequirePermissions(PERMISSIONS.cardsRead)
+  overview(): Promise<CardsOverview> {
+    return this.cards.overview();
   }
 
   @Get()

@@ -131,21 +131,39 @@ export const ADMIN_NAV: readonly AdminGroup[] = [
     ]
   },
   {
-    label: 'Parceiros',
+    label: 'Afiliação',
     links: [
-      { href: '/admin/parceiros', icon: 'shop', label: 'Parceiros', permission: 'partners.manage' },
+      { href: '/admin/afiliacao', icon: 'grid', label: 'Visão geral', permission: 'cards.read' },
       {
-        href: '/admin/carteirinhas',
+        href: '/admin/afiliacao/planos',
+        icon: 'tags',
+        label: 'Planos de afiliação',
+        permission: 'products.manage'
+      },
+      {
+        href: '/admin/afiliacao/beneficios',
+        icon: 'percent',
+        label: 'Benefícios',
+        permission: 'benefits.manage'
+      },
+      {
+        href: '/admin/afiliacao/carteirinhas',
         icon: 'person-vcard',
         label: 'Carteirinhas',
         permission: 'cards.read'
       },
       {
-        href: '/admin/carteirinhas/beneficios',
-        icon: 'percent',
-        label: 'Benefícios',
-        permission: 'benefits.manage'
-      },
+        href: '/admin/afiliacao/visual',
+        icon: 'palette',
+        label: 'Visual da carteirinha',
+        permission: 'cards.read'
+      }
+    ]
+  },
+  {
+    label: 'Parceiros',
+    links: [
+      { href: '/admin/parceiros', icon: 'shop', label: 'Parceiros', permission: 'partners.manage' },
       {
         href: '/admin/servicos',
         icon: 'briefcase',
@@ -296,7 +314,7 @@ export function AdminShell({ children }: { readonly children: ReactNode }) {
             aria-expanded={open}
             onClick={() => setOpen((value) => !value)}
           >
-            <Icon name="list" /> Menu
+            <Icon name="list" /> <span className="label-sm-hidden">Menu</span>
             {total > 0 ? (
               <span className="nav-badge" aria-label={`${total} aguardando ação`}>
                 {total > 99 ? '99+' : total}
@@ -306,11 +324,11 @@ export function AdminShell({ children }: { readonly children: ReactNode }) {
           <span className="spacer" />
           <GlobalSearch />
           <NotificationBell />
-          <Link href="/minha-conta">
-            <Icon name="person-circle" /> {profile?.name}
+          <Link href="/minha-conta" className={styles.profile}>
+            <Icon name="person-circle" /> <span className="label-sm-hidden">{profile?.name}</span>
           </Link>
           <button type="button" className="btn btn-secondary btn-sm" onClick={() => void logout()}>
-            <Icon name="box-arrow-right" /> Sair
+            <Icon name="box-arrow-right" /> <span className="label-sm-hidden">Sair</span>
           </button>
         </header>
         <main id="conteudo" className={styles.content}>

@@ -5,6 +5,7 @@ import QRCode from 'qrcode';
 import { AuditService } from '../../../common/audit/audit.service';
 import { AppConfig } from '../../../common/config/app-config';
 import { ageOn, civilToDate, optionalCivil, todayIn } from '../../../common/domain/civil-date';
+import { type MoneyView, moneyView } from '../../../common/domain/money';
 import { AppError } from '../../../common/errors/app-error';
 import { type Page, pageArgs, type PageQueryDto, toPage } from '../../../common/http/pagination';
 import type { Principal, RequestMeta } from '../../../common/http/request-context';
@@ -109,6 +110,38 @@ export interface CardAdminRow {
   readonly endsOn: string | null;
   readonly version: number;
   readonly statusReason: string | null;
+  /** Plano de afiliação comprado (nome no pedido); nulo na de atleta. */
+  readonly plan: string | null;
+}
+
+/** Plano de afiliação na aba Afiliação: produto MEMBERSHIP da loja e quantos vendeu. */
+export interface MembershipPlanRow {
+  readonly id: string;
+  readonly name: string;
+  readonly slug: string;
+  readonly status: string;
+  readonly price: MoneyView;
+  readonly promotionalPrice: MoneyView | null;
+  readonly membershipMonths: number | null;
+  readonly availableFrom: string | null;
+  readonly availableUntil: string | null;
+  readonly announcedAt: string | null;
+  /** Carteirinhas deste plano valendo hoje. */
+  readonly activeCards: number;
+  /** Carteirinhas já emitidas por este plano (inclui vencidas e canceladas). */
+  readonly issuedCards: number;
+}
+
+export interface CardsOverview {
+  readonly athletes: { readonly valid: number };
+  readonly affiliates: {
+    readonly valid: number;
+    readonly suspended: number;
+    readonly expiringSoon: number;
+    readonly expired: number;
+  };
+  readonly benefits: { readonly inEffect: number; readonly total: number };
+  readonly plans: readonly MembershipPlanRow[];
 }
 
 export interface CardAdminDetail extends CardAdminRow {
@@ -135,7 +168,8 @@ const CARD_INCLUDE = {
       }
     }
   },
-  holderUser: { select: { avatarMediaFileId: true } }
+  holderUser: { select: { avatarMediaFileId: true } },
+  orderItem: { select: { productName: true } }
 } satisfies Prisma.MemberCardInclude;
 
 type CardRow = Prisma.MemberCardGetPayload<{ include: typeof CARD_INCLUDE }>;
@@ -910,7 +944,94 @@ export class CardsService implements OnModuleInit {
       startsOn: optionalCivil(row.startsOn),
       endsOn: optionalCivil(row.endsOn),
       version: row.version,
-      statusReason: row.statusReason
+      statusReason: row.statusReason,
+      plan: row.orderItem?.productName ?? null
+    };
+  }
+
+  /** Visão geral da aba Afiliação: números, planos e benefícios (DT-072). */
+  async overview(): Promise<CardsOverview> {
+    await this.ensureAthleteCards();
+
+    const today = todayIn();
+    const todayDate = civilToDate(today);
+    const in15 = new Date(todayDate.getTime() + 15 * 86_400_000);
+    const valid: Prisma.MemberCardWhereInput = {
+      status: 'ACTIVE',
+      deletedAt: null,
+      OR: [{ endsOn: null }, { endsOn: { gte: todayDate } }]
+    };
+    const affiliate = { type: 'AFFILIATE' as const };
+    const [athletes, affiliates, suspended, expiringSoon, expired, benefitsTotal, products] =
+      await this.prisma.$transaction([
+        this.prisma.memberCard.count({ where: { ...valid, type: 'ATHLETE' } }),
+        this.prisma.memberCard.count({ where: { ...valid, ...affiliate } }),
+        this.prisma.memberCard.count({
+          where: { ...affiliate, status: 'SUSPENDED', deletedAt: null }
+        }),
+        this.prisma.memberCard.count({
+          where: {
+            ...affiliate,
+            status: 'ACTIVE',
+            deletedAt: null,
+            endsOn: { gte: todayDate, lte: in15 }
+          }
+        }),
+        this.prisma.memberCard.count({
+          where: { ...affiliate, status: 'ACTIVE', deletedAt: null, endsOn: { lt: todayDate } }
+        }),
+        this.prisma.partnerBenefit.count({ where: { deletedAt: null } }),
+        this.prisma.product.findMany({
+          where: { fulfillmentType: 'MEMBERSHIP', deletedAt: null, status: { not: 'ARCHIVED' } },
+          orderBy: [{ status: 'asc' }, { name: 'asc' }],
+          select: {
+            id: true,
+            name: true,
+            slug: true,
+            status: true,
+            basePrice: true,
+            promotionalPrice: true,
+            currency: true,
+            membershipMonths: true,
+            availableFrom: true,
+            availableUntil: true,
+            membershipAnnouncedAt: true
+          }
+        })
+      ]);
+    const benefitsInEffect = await this.benefits.countInEffect(today);
+    const plans = await Promise.all(
+      products.map(async (product) => {
+        const ofPlan = { ...affiliate, orderItem: { productId: product.id } };
+        const [activeCards, issuedCards] = await this.prisma.$transaction([
+          this.prisma.memberCard.count({ where: { ...valid, ...ofPlan } }),
+          this.prisma.memberCard.count({ where: ofPlan })
+        ]);
+
+        return {
+          id: product.id,
+          name: product.name,
+          slug: product.slug,
+          status: product.status,
+          price: moneyView(product.basePrice, product.currency),
+          promotionalPrice: product.promotionalPrice
+            ? moneyView(product.promotionalPrice, product.currency)
+            : null,
+          membershipMonths: product.membershipMonths,
+          availableFrom: product.availableFrom?.toISOString() ?? null,
+          availableUntil: product.availableUntil?.toISOString() ?? null,
+          announcedAt: product.membershipAnnouncedAt?.toISOString() ?? null,
+          activeCards,
+          issuedCards
+        };
+      })
+    );
+
+    return {
+      athletes: { valid: athletes },
+      affiliates: { valid: affiliates, suspended, expiringSoon, expired },
+      benefits: { inEffect: benefitsInEffect, total: benefitsTotal },
+      plans
     };
   }
 
@@ -918,6 +1039,7 @@ export class CardsService implements OnModuleInit {
     query: PageQueryDto & {
       type?: 'ATHLETE' | 'AFFILIATE';
       situation?: 'valid' | 'suspended' | 'expired' | 'cancelled';
+      planId?: string;
     }
   ): Promise<Page<CardAdminRow>> {
     await this.ensureAthleteCards();
@@ -942,6 +1064,7 @@ export class CardsService implements OnModuleInit {
     const where: Prisma.MemberCardWhereInput = {
       ...situation,
       ...(query.type ? { type: query.type } : {}),
+      ...(query.planId ? { orderItem: { productId: query.planId } } : {}),
       ...(search
         ? {
             AND: [

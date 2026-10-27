@@ -96,6 +96,11 @@ export class BenefitsService {
     return rows.map((row) => this.view(row));
   }
 
+  /** Quantos benefícios estão valendo no dia (visão geral da aba Afiliação). */
+  countInEffect(today: string): Promise<number> {
+    return this.prisma.partnerBenefit.count({ where: inEffectWhere(today) });
+  }
+
   /** Todos os benefícios valendo hoje (site: página de benefícios e dos parceiros). */
   async publicList(partnerId?: string): Promise<BenefitView[]> {
     const rows = await this.prisma.partnerBenefit.findMany({

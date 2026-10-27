@@ -109,7 +109,8 @@ export function GlobalSearch() {
         onClick={open}
         aria-keyshortcuts="Control+K"
       >
-        <Icon name="search" /> Buscar <kbd className="kbd">Ctrl K</kbd>
+        <Icon name="search" /> <span className="label-sm-hidden">Buscar</span>{' '}
+        <kbd className="kbd label-sm-hidden">Ctrl K</kbd>
       </button>
       <dialog
         ref={dialog}

@@ -1403,3 +1403,25 @@ Mesmo padrão da inativação de atleta (COR-018):
 
 - tabelas `pix_charges` e `pix_webhook_events`; `team_settings.pix_account_id`; confirmação de pagamento aceita ator nulo (sistema);
 - testes: assinatura, CRC do BR Code e conector do Mercado Pago (unidade, com a API simulada); pedido, mensalidade, revisão e visitante (integração, modo de teste). O conector real só é exercitado com credenciais do clube (passo a passo em `docs/COMO-EXECUTAR.md`).
+
+## DT-072 — Aba Afiliação no painel
+
+- **Estado:** Aceita
+- **Data:** 2026-10-27
+- **Aprovador:** responsável do projeto ("assim como existe uma aba para remessas eu gostaria de uma aba para a afiliação")
+
+### Decisão
+
+- área própria no painel, **Afiliação**, com abas: Visão geral, Planos de afiliação, Benefícios, Carteirinhas e Visual da carteirinha; sai de Loja → Produtos e de Parceiros;
+- o plano de afiliação **continua sendo um produto da loja** (tipo afiliação) por baixo, para manter carrinho, beneficiários, pagamento, PIX, desistência e estorno iguais aos da DT-068/DT-070. Nenhuma regra de negócio mudou;
+- plano novo pela aba: nome, preço (por carteirinha), validade em meses e descrição; nasce como rascunho na categoria "Afiliação" da loja, criada na primeira vez; edição com preço promocional, período de venda opcional (de/até, que pode ser limpo), limite por comprador, destaque, fotos, publicar, pausar venda, excluir (com motivo) e aviso "afiliações abertas";
+- validade alterada vale para as próximas vendas; carteirinhas já emitidas mantêm a data (estender é ação da carteirinha);
+- visão geral: afiliados válidos, vencendo em 15 dias, suspensas e vencidas, atletas com carteirinha, benefícios valendo, planos com carteirinhas ativas/emitidas e benefícios valendo hoje;
+- carteirinhas filtráveis por plano; Produtos lista só mercadorias e não oferece mais o tipo afiliação; endereços antigos (`/admin/carteirinhas`) redirecionam.
+
+### Consequências
+
+- rotas `POST /store/memberships`, `GET /cards/overview`, filtros `kind` (produtos) e `planId` (carteirinhas); `availableFrom/Until` aceitam string vazia para limpar;
+- produto de afiliação nasce com uma única variação "Afiliação";
+- testes: integração (criação, permissões, visão geral por plano, filtros e período de venda) e E2E da aba em 390 px e 1280 px.
+

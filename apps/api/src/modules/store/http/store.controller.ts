@@ -97,7 +97,8 @@ import {
   UpdateProductDto,
   UpdateStoreCategoryDto,
   UpdateVariantDto,
-  VariantDto
+  VariantDto,
+  MembershipPlanDto
 } from './store.dto';
 import { DeleteReasonDto } from '../../../common/http/delete-reason.dto';
 import { CardsService } from '../../cards/application/cards.service';
@@ -716,6 +717,22 @@ export class StoreAdminController {
           ? {}
           : { costPrice: parseMoney(costPrice, 'costPrice', { allowZero: true }) })
       },
+      meta
+    );
+  }
+
+  @Post('memberships')
+  @RequirePermissions(PERMISSIONS.productsManage)
+  createMembership(
+    @CurrentPrincipal() actor: Principal,
+    @Body() body: MembershipPlanDto,
+    @ReqMeta() meta: RequestMeta
+  ): Promise<ProductDetail> {
+    const { basePrice, ...rest } = body;
+
+    return this.catalog.createMembership(
+      actor,
+      { ...defined(rest), basePrice: parseMoney(basePrice, 'basePrice') },
       meta
     );
   }

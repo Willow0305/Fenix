@@ -121,8 +121,16 @@ export class UpdateProductDto extends ProductCommissionFields {
   @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(8000) description?: string;
   @ApiPropertyOptional() @IsOptional() @IsInt() @Min(0) @Max(1000) buyerLimit?: number;
   @ApiPropertyOptional() @IsOptional() @IsBoolean() isFeatured?: boolean;
-  @ApiPropertyOptional() @IsOptional() @IsISO8601() availableFrom?: string;
-  @ApiPropertyOptional() @IsOptional() @IsISO8601() availableUntil?: string;
+  @ApiPropertyOptional({ description: 'String vazia remove o início do período de venda.' })
+  @IsOptional()
+  @ValidateIf((dto: UpdateProductDto) => dto.availableFrom !== '')
+  @IsISO8601()
+  availableFrom?: string;
+  @ApiPropertyOptional({ description: 'String vazia remove o fim do período de venda.' })
+  @IsOptional()
+  @ValidateIf((dto: UpdateProductDto) => dto.availableUntil !== '')
+  @IsISO8601()
+  availableUntil?: string;
   @ApiPropertyOptional() @IsOptional() @IsInt() @Min(0) @Max(365) productionLeadDays?: number;
   @ApiPropertyOptional({ description: 'Afiliação: validade em meses (DT-068).' })
   @IsOptional()
@@ -231,6 +239,25 @@ export class AdminProductQueryDto extends PageQueryDto {
   @IsEnum(ProductStatus)
   status?: ProductStatus;
   @ApiPropertyOptional() @IsOptional() @IsUUID() categoryId?: string;
+  @ApiPropertyOptional({
+    enum: ['membership', 'goods'],
+    description: 'Planos de afiliação ou só mercadorias.'
+  })
+  @IsOptional()
+  @IsIn(['membership', 'goods'])
+  kind?: 'membership' | 'goods';
+}
+
+/** Novo plano de afiliação (aba Afiliação). */
+export class MembershipPlanDto {
+  @ApiProperty() @IsString() @MinLength(2) @MaxLength(160) name!: string;
+  @ApiProperty() @Matches(AMOUNT, AMOUNT_MSG) basePrice!: string;
+  @ApiProperty({ description: 'Validade da carteirinha em meses (DT-068).' })
+  @IsInt()
+  @Min(1)
+  @Max(60)
+  membershipMonths!: number;
+  @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(8000) description?: string;
 }
 
 export class PublicProductQueryDto extends PageQueryDto {

@@ -77,6 +77,14 @@
   padding: 0.6rem 1.5rem;
   background: var(--color-surface);
   border-bottom: 1px solid var(--color-border);
+  white-space: nowrap;
+}
+
+// Nome longo não empurra os botões para fora da tela.
+.profile {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .menu {

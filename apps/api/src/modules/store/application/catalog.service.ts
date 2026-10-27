@@ -98,6 +98,8 @@ export interface PersonalizationFieldInput {
   readonly isActive?: boolean;
 }
 
+const MEMBERSHIP_CATEGORY = 'Afiliação';
+
 export interface ProductSummary {
   readonly id: string;
   readonly name: string;
@@ -691,7 +693,11 @@ export class CatalogService {
   }
 
   async adminList(
-    query: PageQueryDto & { status?: ProductStatus; categoryId?: string }
+    query: PageQueryDto & {
+      status?: ProductStatus;
+      categoryId?: string;
+      kind?: 'membership' | 'goods';
+    }
   ): Promise<Page<ProductSummary>> {
     const { skip, take, page, pageSize } = pageArgs(query);
     const search = query.search?.trim();
@@ -699,6 +705,12 @@ export class CatalogService {
       deletedAt: null,
       ...(query.status ? { status: query.status } : { status: { not: 'ARCHIVED' } }),
       ...(query.categoryId ? { productCategoryId: query.categoryId } : {}),
+      // Planos de afiliação ficam na aba Afiliação; a lista de produtos mostra só mercadorias.
+      ...(query.kind === 'membership'
+        ? { fulfillmentType: 'MEMBERSHIP' as const }
+        : query.kind === 'goods'
+          ? { fulfillmentType: { not: 'MEMBERSHIP' as const } }
+          : {}),
       ...(search
         ? {
             OR: [
@@ -833,6 +845,36 @@ export class CatalogService {
     };
   }
 
+  /**
+   * Novo plano de afiliação pela aba Afiliação: é um produto da loja (carrinho, pagamento e
+   * estorno iguais), na categoria "Afiliação", criada na primeira vez se não existir.
+   */
+  async createMembership(
+    actor: Principal,
+    input: Omit<ProductInput, 'categoryId' | 'fulfillmentType'>,
+    meta: RequestMeta
+  ): Promise<ProductDetail> {
+    const existing = await this.prisma.productCategory.findFirst({
+      where: { name: MEMBERSHIP_CATEGORY, deletedAt: null },
+      select: { id: true }
+    });
+    const category =
+      existing ??
+      (await this.prisma.productCategory.create({
+        data: {
+          name: MEMBERSHIP_CATEGORY,
+          slug: await this.uniqueSlug('category', MEMBERSHIP_CATEGORY)
+        },
+        select: { id: true }
+      }));
+
+    return this.create(
+      actor,
+      { ...input, categoryId: category.id, fulfillmentType: 'MEMBERSHIP' },
+      meta
+    );
+  }
+
   async create(actor: Principal, input: ProductInput, meta: RequestMeta): Promise<ProductDetail> {
     await this.assertRefs(input);
     const slug = await this.uniqueSlug('product', input.name);
@@ -860,19 +902,15 @@ export class CatalogService {
         pickupInstructions: input.pickupInstructions ?? null,
         ...this.commissionOverrideData(input),
         status: 'DRAFT',
-        variants: { create: { sku: `${slug.slice(0, 60).toUpperCase()}-UN`, name: 'Único' } }
+        // Afiliação tem uma variação só, "Afiliação" (DT-068); os demais começam com "Único".
+        variants: {
+          create:
+            input.fulfillmentType === 'MEMBERSHIP'
+              ? { sku: `AFIL-${slug.toUpperCase()}`.slice(0, 100), name: 'Afiliação' }
+              : { sku: `${slug.slice(0, 60).toUpperCase()}-UN`, name: 'Único' }
+        }
       }
     });
-
-    if (row.fulfillmentType === 'MEMBERSHIP') {
-      await this.prisma.productVariant.create({
-        data: {
-          productId: row.id,
-          name: 'Afiliação',
-          sku: `AFIL-${slug.toUpperCase()}`.slice(0, 100)
-        }
-      });
-    }
 
     await this.audit.record({
       actorUserId: actor.userId,

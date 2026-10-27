@@ -1,3 +1,6 @@
+import type { MoneyView } from './finance-types';
+import type { ProductStatus } from './store-types';
+
 /** Carteirinha digital (DT-068). */
 export type CardType = 'ATHLETE' | 'AFFILIATE';
 export type CardTemplate = 'CLASSIC' | 'LIGHT' | 'STRIPE';
@@ -102,6 +105,31 @@ export interface CardAdminRow {
   endsOn: string | null;
   version: number;
   statusReason: string | null;
+  /** Plano de afiliação comprado; nulo na de atleta. */
+  plan: string | null;
+}
+
+/** Plano de afiliação (produto da loja do tipo afiliação) na aba Afiliação (DT-072). */
+export interface MembershipPlanRow {
+  id: string;
+  name: string;
+  slug: string;
+  status: ProductStatus;
+  price: MoneyView;
+  promotionalPrice: MoneyView | null;
+  membershipMonths: number | null;
+  availableFrom: string | null;
+  availableUntil: string | null;
+  announcedAt: string | null;
+  activeCards: number;
+  issuedCards: number;
+}
+
+export interface CardsOverview {
+  athletes: { valid: number };
+  affiliates: { valid: number; suspended: number; expiringSoon: number; expired: number };
+  benefits: { inEffect: number; total: number };
+  plans: MembershipPlanRow[];
 }
 
 export interface CardAdminDetail extends CardAdminRow {
