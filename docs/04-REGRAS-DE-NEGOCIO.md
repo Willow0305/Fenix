@@ -73,6 +73,13 @@
 | RN-LOJ-008 | Favoritos pertencem a usuário autenticado, são privados e aparecem apenas no contexto da loja. | Definida | RF-038 |
 | RN-LOJ-009 | Carrinho e favorito não devem dominar a navegação fora da loja; carrinho pode ser indicado globalmente quando contiver itens, conforme UX aprovada. | Definida | Briefing §9 |
 | RN-LOJ-010 | Pedido pago gera/vincula entrada no Caixa; reembolso gera saída vinculada. | Definida | RF-029, RCF-005 |
+| RN-ENT-001 | O comprador escolhe, por pedido, retirar com o Fênix (grátis) ou receber em casa. Pedido só de afiliação não tem entrega. O pedido sai de uma vez, quando todos os itens estiverem prontos. | Aprovada, a implementar | DT-075, PEN-028 |
+| RN-ENT-002 | Entrega só em Rio Branco, feita pelo clube. A taxa é por região (bairros, valor e prazo em dias úteis definidos pela diretoria); bairro fora da lista só retira. Frete grátis opcional acima de um valor mínimo dos produtos já com desconto. | Aprovada, a implementar | DT-075 |
+| RN-ENT-003 | A taxa é fixada no pedido, entra no total e no PIX, não recebe cupom e vai ao Caixa como receita "Entregas". Desistência devolve tudo, inclusive a entrega; defeito troca sem nova taxa; cancelado antes do envio devolve tudo. | Aprovada, a implementar | DT-075, DT-070 |
+| RN-ENT-004 | Endereço: CEP, número, complemento, bairro atendido, referência e telefone; pode ficar salvo na conta, e o pedido guarda cópia própria. Visível só a quem cuida de pedidos. | Aprovada, a implementar | DT-075, LGPD |
+| RN-ENT-005 | Ao sair para entrega a diretoria pode registrar (tudo opcional) tipo de entregador, nome ou entregador cadastrado, telefone, veículo, placa e observação. O comprador vê só primeiro nome, veículo e placa. | Aprovada, a implementar | DT-075 |
+| RN-ENT-006 | Prova de entrega: código de 4 dígitos do comprador (opcional; registrado pelo link do entregador ou pela diretoria) e "Recebi" do comprador são fortes; foto com nome de quem recebeu é média; só "Entregue" é fraca e abre 3 dias para "Não recebi", que gera ocorrência (nova entrega ou estorno). Sem reclamação, a entrega fica confirmada. Prazos de desistência e defeito contam da entrega comprovada. | Aprovada, a implementar | DT-075, DT-070 |
+| RN-ENT-007 | Motoboy de fora não tem conta: recebe um link único da entrega (sem login), que mostra só primeiro nome do cliente, endereço, referência e telefone, aceita código, foto e "quem recebeu", tem poucas tentativas de código e expira na confirmação, em 24 horas, na troca de entregador ou no cancelamento. | Aprovada, a implementar | DT-075 |
 
 ## Campanhas e remessas
 

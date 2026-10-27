@@ -1460,3 +1460,26 @@ Mesmo padrão da inativação de atleta (COR-018):
 - `partner_benefits.partner_id` opcional, colunas `partner_name` e `partner_details` (migração `20261027080000_beneficio_sem_parceiro_cadastrado`);
 - teste de integração cobre criação, os dois ao mesmo tempo (recusado), edição e listagem pública; E2E cria pelo formulário.
 
+## DT-075 — Entrega em casa com comprovante de entrega
+
+- **Estado:** Aprovada, a implementar (o responsável autoriza a implementação ao dizer "continue")
+- **Data:** 2026-10-27
+- **Aprovador:** responsável do projeto (taxa "por bairro/região"; área "só Rio Branco"; frete grátis "acima de um valor"; código "sim, opcional"; entregador visível "primeiro nome, veículo e placa"; "não recebi" em "3 dias"; link do motoboy "sim, com as opções B e C também")
+- **Substitui:** a recomendação da `PEN-028` de deixar frete para depois.
+
+### Decisão
+
+Regras `RN-ENT-001` a `RN-ENT-007` em `docs/04`. Em resumo:
+
+- **checkout:** retirada grátis ou entrega em casa por pedido; endereço com CEP e bairro da lista atendida; taxa por região de Rio Branco; frete grátis opcional acima de um valor; resumo "Produtos + Entrega − Desconto = Total";
+- **valores:** taxa fixada no pedido, fora do cupom, no total e no PIX; receita "Entregas" no Caixa; devolução integral na desistência (CDC art. 49);
+- **andamento:** Pago → Em separação → Saiu para entrega → Entregue; tentativa sem sucesso permite nova entrega ou troca para retirada; avisos "Saiu para entrega" e "Entregue";
+- **entregador:** dados opcionais (tipo, nome ou cadastro de entregadores, telefone, veículo, placa, observação); comprador vê primeiro nome, veículo e placa;
+- **comprovação:** código de 4 dígitos enviado ao comprador (guardado só como hash; nunca exibido no painel), link único sem login para entregador de fora, digitação do código pela diretoria, foto anexada depois, "Recebi" do comprador; entrega só marcada abre 3 dias para "Não recebi";
+- **LGPD:** endereço e dados do entregador restritos a quem cuida de pedidos, fora de logs; fotos como os comprovantes atuais.
+
+### Implementação prevista
+
+1. Entrega no pedido: configuração (regiões, bairros, valores, prazos, frete grátis, liga/desliga), escolha no checkout (com conta e visitante), endereços salvos, taxa no total/PIX/Caixa, estorno com a taxa.
+2. Comprovante de entrega: cadastro de entregadores, saída para entrega, código, link do entregador, provas, "Não recebi" com ocorrência e avisos.
+

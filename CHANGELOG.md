@@ -6,6 +6,13 @@ O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) e o 
 
 ## [Não publicado]
 
+### Entrega em casa — regra aprovada, a implementar (2026-10-27)
+
+#### Decidido
+
+- retirada grátis ou entrega em Rio Branco com taxa por região e frete grátis opcional (DT-075, RN-ENT-001 a 007);
+- comprovante de entrega: dados opcionais do entregador, código de 4 dígitos, link sem login para motoboy de fora, foto, "Recebi" e "Não recebi" em 3 dias.
+
 ### Aba Afiliação no painel (2026-10-27)
 
 #### Adicionado
