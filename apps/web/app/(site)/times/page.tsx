@@ -4,9 +4,15 @@ import Link from 'next/link';
 import { Avatar } from '../../../components/avatar';
 import { BrandLogo } from '../../../components/brand-logo';
 import { Icon } from '../../../components/icon';
+import { JoinTeamCta } from '../../../components/join-team-cta';
 import { firstTeamLogo } from '../../../lib/brand';
 import { getPublicTeam, serverGet } from '../../../lib/server-api';
-import { type RosterCategory, TEAM_TYPE, type TeamType } from '../../../lib/sports-types';
+import {
+  type RosterCategory,
+  TEAM_TYPE,
+  type TeamType,
+  type Tryout
+} from '../../../lib/sports-types';
 
 export const metadata: Metadata = { title: 'Times' };
 
@@ -30,12 +36,17 @@ export default async function TeamsPage({
 }) {
   const { tipo } = await searchParams;
   const type = FILTERS.some((f) => f.value === tipo && f.value) ? (tipo as TeamType) : undefined;
-  const [roster, club] = await Promise.all([
+  const [roster, club, tryouts] = await Promise.all([
     serverGet<RosterCategory[]>(`/public/teams-roster${type ? `?type=${type}` : ''}`).then(
       (rows) => rows ?? []
     ),
-    getPublicTeam()
+    getPublicTeam(),
+    serverGet<Tryout[]>('/public/tryouts', 30).then((rows) => rows ?? [])
   ]);
+  // Com filtro, conta só as seletivas desse tipo de time (ou sem time definido).
+  const openTryouts = tryouts.filter(
+    (tryout) => !type || !tryout.team || tryout.team.type === type
+  ).length;
   const official = club.brandAssets.OFFICIAL;
   const teams = roster.flatMap((group) => group.teams);
   const headingLogo = (type ? firstTeamLogo(teams, type) : undefined) ?? official?.url;
@@ -65,6 +76,8 @@ export default async function TeamsPage({
           </Link>
         ))}
       </nav>
+
+      <JoinTeamCta openTryouts={openTryouts} />
 
       {teamCount === 0 ? (
         <p className="card empty">
@@ -121,11 +134,6 @@ export default async function TeamsPage({
           </section>
         ))
       )}
-      <p>
-        <Icon name="megaphone" /> Quer jogar com a gente?{' '}
-        <Link href="/seletivas">Veja as seletivas</Link> ou{' '}
-        <Link href="/interesse">deixe seu contato</Link>.
-      </p>
     </div>
   );
 }

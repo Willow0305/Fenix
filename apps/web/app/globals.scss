@@ -1079,6 +1079,55 @@ dialog {
   }
 }
 
+/* Convite "Quer jogar com a gente?" na página Times, no tom do destaque do Início. */
+.join-cta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 1rem 1.5rem;
+  padding: 1.5rem;
+  border-radius: var(--radius-md);
+  color: #fff;
+  background:
+    radial-gradient(circle at 90% 20%, rgb(205 21 29 / 45%), transparent 60%), var(--color-ink);
+  box-shadow: var(--shadow-card);
+
+  h2 {
+    margin: 0 0 0.25rem;
+    color: #fff;
+  }
+
+  p {
+    margin: 0;
+    color: #e4e1ea;
+  }
+}
+
+.join-cta-icon {
+  font-size: 2.25rem;
+  color: #ffb4b7;
+}
+
+.join-cta-text {
+  flex: 1 1 18rem;
+}
+
+.join-cta-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.join-cta-ghost {
+  border-color: rgb(255 255 255 / 45%);
+  color: #fff;
+  background: transparent;
+
+  &:hover {
+    background: rgb(255 255 255 / 10%);
+  }
+}
+
 .about-cover {
   width: 100%;
   max-height: 22rem;

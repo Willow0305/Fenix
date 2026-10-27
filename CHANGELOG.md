@@ -6,6 +6,12 @@ O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) e o 
 
 ## [Não publicado]
 
+### Convite para jogar em destaque (2026-10-26)
+
+#### Alterado
+
+- em Times, "Quer jogar com a gente?" virou um bloco em destaque logo abaixo dos filtros, com quantas seletivas estão abertas (do tipo filtrado) e os botões "Ver seletivas abertas" e "Deixar meu contato"; sem seletiva aberta, o convite é deixar o contato.
+
 ### Exemplos de conteúdo e ajustes visuais (2026-10-26)
 
 #### Adicionado
