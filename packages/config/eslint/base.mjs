@@ -9,6 +9,7 @@ export default tseslint.config(
       '**/.next/**',
       '**/coverage/**',
       '**/dist/**',
+      '**/dist-dev/**',
       'apps/api/src/generated/**',
       '**/node_modules/**',
       '**/*.tsbuildinfo',

@@ -16,6 +16,7 @@ O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) e o 
 
 - logo quebrada quando a imagem falhava antes de a página terminar de carregar (ex.: página "não encontrada"): agora cai para o símbolo da fênix;
 - notícia sem capa não mostra mais um bloco escuro vazio acima do texto.
+- rodar `npm run check` (ou `npm run db:demo`) com `npm run dev` aberto derrubava a API de desenvolvimento, porque os dois usavam a pasta `dist`; o modo dev agora compila em `apps/api/dist-dev`.
 
 ### Logos dos times no site (2026-10-26)
 

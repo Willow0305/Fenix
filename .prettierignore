@@ -4,6 +4,8 @@ node_modules/
 **/.next/
 dist/
 **/dist/
+dist-dev/
+**/dist-dev/
 coverage/
 **/coverage/
 **/next-env.d.ts
