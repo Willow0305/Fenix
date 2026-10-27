@@ -7,6 +7,7 @@ import helmet from 'helmet';
 import { AppConfig } from './common/config/app-config';
 import { ProblemDetailsFilter } from './common/http/problem-details.filter';
 import { requestIdMiddleware } from './common/http/request-context';
+import { accessLogMiddleware } from './common/observability/access-log';
 import { createValidationPipe } from './common/http/validation';
 
 const SWAGGER_PATH = 'docs';
@@ -22,6 +23,7 @@ export function configureApplication(app: INestApplication): void {
   express.disable('x-powered-by');
 
   app.use(requestIdMiddleware);
+  app.use(accessLogMiddleware);
   app.use(
     helmet({ contentSecurityPolicy: false, crossOriginResourcePolicy: { policy: 'same-site' } })
   );

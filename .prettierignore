@@ -6,6 +6,9 @@ dist/
 **/dist/
 dist-dev/
 **/dist-dev/
+**/.next-e2e/
+test-results/
+playwright-report/
 coverage/
 **/coverage/
 **/next-env.d.ts

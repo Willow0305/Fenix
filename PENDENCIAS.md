@@ -503,6 +503,17 @@ Prioridades:
 - **Recomendação:** não migrar esses registros para o S3; se quiser limpar, rodar a limpeza de dados de teste ou apagá-los do banco de desenvolvimento. Em produção a situação não existe.
 - **Impacto:** nenhum para o site; a migração para o S3 informa e pula esses registros.
 
+### PEN-066 — Etapa 9 interrompida (E2E, logs e métricas, estilos inline)
+
+- **Prioridade:** P1
+- **Bloqueia:** conclusão da Etapa 9 (`docs/16`)
+- **Questão:** a etapa foi pausada a pedido do responsável em 27/10/2026. Estado deixado:
+  - **E2E (R-10):** estrutura pronta em `e2e/` (`npm run e2e` recria o banco `<dev>_e2e`, compila o site e roda no Edge em 390 px e 1280 px). Última execução: 46 de 50 testes passando. Falhas: (1) `/admin` no celular rola para o lado — **defeito real do painel** a corrigir; (2) `account.spec` procura "Notícias do clube", que aparece duas vezes na tela de notificações (ajustar o seletor no teste); (3) `shop.spec` "visitante compra" não viu "Adicionado ao carrinho" no celular (investigar se o aviso some rápido ou se a adição falhou).
+  - **Logs e métricas (R-07):** ligados no código, mas sem testes nem documentação: registro de acesso por requisição (`ACCESS_LOG=off` desliga), logs em JSON (`LOG_FORMAT`, padrão JSON em produção), contagem de erros 5xx e rota `/api/v1/metrics` em formato Prometheus, só com `METRICS_TOKEN` (sem ele responde 404). Faltam testes unitários de `Metrics` e `JsonLogger`, teste de integração da rota, `METRICS_TOKEN`/`LOG_FORMAT`/`ACCESS_LOG` no `.env.example` e decisão técnica.
+  - **Estilos inline (R-09):** não iniciado.
+- **Recomendação:** retomar pelo defeito de rolagem do `/admin` no celular, fechar os três testes, completar R-07 (testes e documentação) e depois o R-09; registrar a decisão técnica de E2E e observabilidade e atualizar `README`/`docs/COMO-EXECUTAR.md`.
+- **Impacto:** `docs/16` (Etapa 9), `docs/17`, `CHANGELOG.md`, `.env.example`.
+
 ## 11. Critério de resolução
 
 Ao resolver uma pendência:

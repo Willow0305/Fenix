@@ -3,6 +3,7 @@ import { NestFactory } from '@nestjs/core';
 import { ExpressAdapter, type NestExpressApplication } from '@nestjs/platform-express';
 
 import { AppModule } from './app.module';
+import { JsonLogger, useJsonLogs } from './common/observability/json-logger';
 import { configureApplication } from './configure-application';
 
 const DEFAULT_API_PORT = 3333;
@@ -25,7 +26,12 @@ function resolveApiPort(rawPort: string | undefined): number {
 async function bootstrap(): Promise<void> {
   // Adaptador explícito (DT-055): a busca automática parte do `@nestjs/core`, na raiz do
   // `node_modules`, e não acha o `@nestjs/platform-express` instalado dentro da API.
-  const app = await NestFactory.create<NestExpressApplication>(AppModule, new ExpressAdapter());
+  // Logs em JSON em produção, com o requestId de cada requisição (R-07).
+  const app = await NestFactory.create<NestExpressApplication>(
+    AppModule,
+    new ExpressAdapter(),
+    useJsonLogs() ? { logger: new JsonLogger() } : {}
+  );
 
   configureApplication(app);
   app.enableShutdownHooks();

@@ -6,6 +6,9 @@ node_modules/
 dist/
 **/dist/
 **/dist-dev/
+**/.next-e2e/
+test-results/
+playwright-report/
 # Cliente do Prisma gerado (npm run prisma:generate)
 apps/api/src/generated/
 coverage/
