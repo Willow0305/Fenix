@@ -21,6 +21,7 @@ describe('categoryOf', () => {
     ['fee.reminder.due-soon', 'FINANCE'],
     ['order.status', 'STORE'],
     ['campaign.arrived', 'STORE'],
+    ['card.expiring', 'STORE'],
     ['tryout_registration.approved', 'SPORTS'],
     ['tryout.cancelled', 'SPORTS'],
     ['athlete.linked', 'SPORTS'],

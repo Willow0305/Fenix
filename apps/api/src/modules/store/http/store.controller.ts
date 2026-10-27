@@ -70,6 +70,7 @@ import {
   CouponPreviewDto,
   AdminProductQueryDto,
   CartChangeDto,
+  BeneficiariesDto,
   CartItemDto,
   CheckoutDto,
   GuestLookupDto,
@@ -92,6 +93,7 @@ import {
   VariantDto
 } from './store.dto';
 import { DeleteReasonDto } from '../../../common/http/delete-reason.dto';
+import { CardsService } from '../../cards/application/cards.service';
 
 export const CART_COOKIE = 'fenix_cart';
 const IDEMPOTENCY_HEADER = { name: 'Idempotency-Key', required: true };
@@ -228,6 +230,17 @@ export class StorefrontController {
     }
 
     return result.view;
+  }
+
+  /** Beneficiários de uma afiliação, um por unidade (DT-068). Exige conta. */
+  @Put('cart/items/:lineId/beneficiaries')
+  @Throttle({ default: { limit: 60, ttl: 60_000 } })
+  setBeneficiaries(
+    @CurrentPrincipal() principal: Principal,
+    @Param('lineId', new ParseUUIDPipe()) lineId: string,
+    @Body() body: BeneficiariesDto
+  ): Promise<CartView> {
+    return this.carts.setBeneficiaries({ principal }, lineId, body.beneficiaries);
   }
 
   /** Troca a opção de um item do carrinho (tamanho, cor) mantendo a quantidade (DT-051). */
@@ -389,8 +402,21 @@ export class StoreAdminController {
     private readonly catalog: CatalogService,
     private readonly inventory: InventoryService,
     private readonly orders: OrdersService,
-    private readonly coupons: CouponsService
+    private readonly coupons: CouponsService,
+    private readonly cards: CardsService
   ) {}
+
+  /** "Afiliações abertas": avisa todas as contas uma vez por produto (DT-068). */
+  @Post('products/:id/announce-membership')
+  @HttpCode(200)
+  @RequirePermissions(PERMISSIONS.productsManage, PERMISSIONS.notificationsSend)
+  announceMembership(
+    @CurrentPrincipal() actor: Principal,
+    @Param('id', new ParseUUIDPipe()) id: string,
+    @ReqMeta() meta: RequestMeta
+  ): Promise<{ notified: number }> {
+    return this.cards.announceMembership(actor, id, meta);
+  }
 
   private couponInput(body: CouponDto): CouponInput {
     return {

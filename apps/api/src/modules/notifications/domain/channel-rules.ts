@@ -39,6 +39,7 @@ const PREFIX_CATEGORY: readonly (readonly [string, NotificationCategory])[] = [
   ['fee.', 'FINANCE'],
   ['order.', 'STORE'],
   ['campaign.', 'STORE'],
+  ['card.', 'STORE'],
   ['tryout', 'SPORTS'],
   ['athlete.', 'SPORTS'],
   ['appointment.', 'AGENDA'],

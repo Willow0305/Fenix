@@ -160,6 +160,7 @@ export default function ProductAdminPage() {
         description: p.description ?? '',
         buyerLimit: p.buyerLimit ? String(p.buyerLimit) : '',
         productionLeadDays: p.productionLeadDays ? String(p.productionLeadDays) : '',
+        membershipMonths: p.membershipMonths ? String(p.membershipMonths) : '',
         pickupInstructions: p.pickupInstructions ?? '',
         isFeatured: p.isFeatured ? 'true' : 'false',
         partnerId: p.partner?.id ?? '',
@@ -190,6 +191,9 @@ export default function ProductAdminPage() {
             ? { productionLeadDays: Number(form['productionLeadDays']) }
             : {}),
           pickupInstructions: form['pickupInstructions'] ?? '',
+          ...(form['fulfillmentType'] === 'MEMBERSHIP' && form['membershipMonths']
+            ? { membershipMonths: Number(form['membershipMonths']) }
+            : {}),
           isFeatured: form['isFeatured'] === 'true',
           partnerId: form['partnerId'] ?? '',
           commissionTypeOverride: form['partnerId'] ? (form['commissionTypeOverride'] ?? '') : '',
@@ -271,6 +275,37 @@ export default function ProductAdminPage() {
         }
       />
       {notice ? <Alert kind="success">{notice}</Alert> : null}
+      {p.fulfillmentType === 'MEMBERSHIP' && p.status === 'ACTIVE' && can('notifications.send') ? (
+        <section className="card row">
+          <Icon name="megaphone" />
+          {p.membershipAnnouncedAt ? (
+            <span className="muted">
+              Aviso &quot;afiliações abertas&quot; enviado a todas as contas em{' '}
+              {new Date(p.membershipAnnouncedAt).toLocaleString('pt-BR')}.
+            </span>
+          ) : (
+            <>
+              <span>Avise todas as contas que as afiliações estão abertas (uma vez só).</span>
+              <span className="spacer" />
+              <button
+                type="button"
+                className="btn btn-primary btn-sm"
+                onClick={() =>
+                  void api<{ notified: number }>(`/store/products/${id}/announce-membership`, {
+                    method: 'POST',
+                    body: {}
+                  }).then(async (res) => {
+                    setNotice(`Aviso enviado para ${res.notified} conta(s).`);
+                    await product.reload();
+                  })
+                }
+              >
+                Avisar todos
+              </button>
+            </>
+          )}
+        </section>
+      ) : null}
       <section className="card row">
         <span className={`badge ${PRODUCT_STATUS[p.status].badge}`}>
           {PRODUCT_STATUS[p.status].label}
@@ -335,11 +370,20 @@ export default function ProductAdminPage() {
             label="Modo de venda"
             value={form['fulfillmentType'] ?? 'STOCK'}
             onChange={set('fulfillmentType')}
-            options={(['STOCK', 'MADE_TO_ORDER', 'CAMPAIGN'] as Fulfillment[]).map((value) => ({
-              value,
-              label: FULFILLMENT[value]
-            }))}
+            options={(['STOCK', 'MADE_TO_ORDER', 'CAMPAIGN', 'MEMBERSHIP'] as Fulfillment[]).map(
+              (value) => ({ value, label: FULFILLMENT[value] })
+            )}
           />
+          {form['fulfillmentType'] === 'MEMBERSHIP' ? (
+            <TextField
+              label="Validade (meses)"
+              numeric="integer"
+              maxLength={2}
+              required
+              value={form['membershipMonths'] ?? ''}
+              onChange={set('membershipMonths')}
+            />
+          ) : null}
           <TextField
             label="Preço (R$)"
             maxLength={16}

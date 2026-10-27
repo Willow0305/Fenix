@@ -83,7 +83,12 @@ export function ProductPurchase({ product }: { readonly product: ProductDetail }
           <Icon name="hourglass-split" /> Últimas unidades
         </span>
       ) : null}
-      {product.purchasable && variant?.inStock ? (
+      {product.fulfillmentType === 'MEMBERSHIP' && status === 'anonymous' ? (
+        <Alert kind="info">
+          <Link href={`/entrar?next=/loja/${product.slug}`}>Entre na sua conta</Link> para comprar:
+          as carteirinhas ficam nela.
+        </Alert>
+      ) : product.purchasable && variant?.inStock ? (
         <form className="row" onSubmit={(event) => void add.submit(event)}>
           <QuantityStepper
             label={`Quantidade de ${product.name}`}

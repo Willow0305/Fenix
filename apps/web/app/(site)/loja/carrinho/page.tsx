@@ -25,6 +25,7 @@ import { useAuth } from '../../../../lib/auth-context';
 import { useCart } from '../../../../lib/cart-context';
 import { formatMoney, formatPhoneDisplay } from '../../../../lib/format';
 import type { CouponPreview, Order } from '../../../../lib/store-types';
+import { BeneficiariesEditor } from '../../../../components/beneficiaries-editor';
 import { CouponBox } from '../../../../components/coupon-box';
 
 export default function CartPage() {
@@ -176,6 +177,14 @@ export default function CartPage() {
                     )}
                     {line.warning === 'UNAVAILABLE' ? (
                       <span className="field-error">Indisponível — remova para continuar.</span>
+                    ) : null}
+                    {line.warning === 'BENEFICIARIES_REQUIRED' ? (
+                      <span className="field-error">
+                        Informe o nome completo de cada beneficiário e salve.
+                      </span>
+                    ) : null}
+                    {line.fulfillmentType === 'MEMBERSHIP' ? (
+                      <BeneficiariesEditor line={line} onSaved={() => void reload()} />
                     ) : null}
                     {line.warning === 'INSUFFICIENT_STOCK' ? (
                       <span className="field-error">

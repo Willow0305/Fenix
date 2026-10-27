@@ -9,7 +9,7 @@ import {
   ProductFulfillmentType,
   ProductStatus
 } from '../../../generated/prisma/client';
-import { Transform } from 'class-transformer';
+import { Transform, Type } from 'class-transformer';
 import {
   ArrayMaxSize,
   ArrayMinSize,
@@ -28,7 +28,8 @@ import {
   MaxLength,
   Min,
   MinLength,
-  ValidateIf
+  ValidateIf,
+  ValidateNested
 } from 'class-validator';
 
 import { IsMobilePhoneBr } from '../../../common/validation/br-fields';
@@ -84,6 +85,12 @@ export class ProductDto extends ProductCommissionFields {
   @ApiPropertyOptional() @IsOptional() @IsISO8601() availableFrom?: string;
   @ApiPropertyOptional() @IsOptional() @IsISO8601() availableUntil?: string;
   @ApiPropertyOptional() @IsOptional() @IsInt() @Min(0) @Max(365) productionLeadDays?: number;
+  @ApiPropertyOptional({ description: 'Afiliação: validade em meses (DT-068).' })
+  @IsOptional()
+  @IsInt()
+  @Min(1)
+  @Max(60)
+  membershipMonths?: number;
   @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(2000) pickupInstructions?: string;
   @ApiPropertyOptional() @IsOptional() @IsUUID() partnerId?: string;
 }
@@ -111,6 +118,12 @@ export class UpdateProductDto extends ProductCommissionFields {
   @ApiPropertyOptional() @IsOptional() @IsISO8601() availableFrom?: string;
   @ApiPropertyOptional() @IsOptional() @IsISO8601() availableUntil?: string;
   @ApiPropertyOptional() @IsOptional() @IsInt() @Min(0) @Max(365) productionLeadDays?: number;
+  @ApiPropertyOptional({ description: 'Afiliação: validade em meses (DT-068).' })
+  @IsOptional()
+  @IsInt()
+  @Min(1)
+  @Max(60)
+  membershipMonths?: number;
   @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(2000) pickupInstructions?: string;
   @ApiPropertyOptional({ description: 'String vazia remove o vínculo com o parceiro.' })
   @IsOptional()
@@ -211,6 +224,29 @@ export class PublicProductQueryDto extends PageQueryDto {
   @Transform(({ value }) => value === true || value === 'true')
   @IsBoolean()
   campaign?: boolean;
+  @ApiPropertyOptional({ description: 'Somente afiliações à venda (DT-068).' })
+  @IsOptional()
+  @Transform(({ value }) => value === true || value === 'true')
+  @IsBoolean()
+  membership?: boolean;
+}
+
+export class BeneficiaryDto {
+  @ApiProperty() @IsString() @MaxLength(160) name!: string;
+  @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(180) email?: string;
+  @ApiPropertyOptional({ description: 'Carteirinha de afiliado a renovar.' })
+  @IsOptional()
+  @IsUUID()
+  cardId?: string;
+}
+
+export class BeneficiariesDto {
+  @ApiProperty({ type: [BeneficiaryDto] })
+  @IsArray()
+  @ArrayMaxSize(50)
+  @ValidateNested({ each: true })
+  @Type(() => BeneficiaryDto)
+  beneficiaries!: BeneficiaryDto[];
 }
 
 export class CartItemDto {

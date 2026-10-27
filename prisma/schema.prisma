@@ -268,6 +268,8 @@ enum ProductFulfillmentType {
   CAMPAIGN
   // Reserved for a future approved phase. Active digital products are out of scope.
   DIGITAL
+  /// Afiliação (DT-068): gera carteirinha de afiliado por beneficiário, sem estoque.
+  MEMBERSHIP
 }
 
 enum ProductStatus {
@@ -1451,6 +1453,10 @@ model Product {
   availableFrom                DateTime?              @map("available_from") @db.Timestamptz(6)
   availableUntil               DateTime?              @map("available_until") @db.Timestamptz(6)
   productionLeadDays           Int?                   @map("production_lead_days")
+  /// Validade da afiliação em meses (só para MEMBERSHIP; DT-068).
+  membershipMonths             Int?                   @map("membership_months")
+  /// Aviso "afiliações abertas" já enviado a todos (uma vez por produto).
+  membershipAnnouncedAt        DateTime?              @map("membership_announced_at") @db.Timestamptz(6)
   pickupInstructions           String?                @map("pickup_instructions") @db.Text
   commissionTypeOverride       CommissionType?        @map("commission_type_override")
   commissionPercentageOverride Decimal?               @map("commission_percentage_override") @db.Decimal(7, 4)
@@ -1637,6 +1643,10 @@ model CartItem {
   productVariantId       String   @map("product_variant_id") @db.Uuid
   salesCampaignProductId String?  @map("sales_campaign_product_id") @db.Uuid
   quantity               Int
+  /// Beneficiários da afiliação ou valores de personalização (DT-068, DT-069).
+  details                Json?    @db.JsonB
+  /// Distingue linhas da mesma variação com detalhes diferentes (vazio quando não há).
+  detailsKey             String   @default("") @map("details_key") @db.VarChar(64)
   createdAt              DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt              DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
 
@@ -1698,6 +1708,8 @@ model OrderItem {
   sku                     String          @db.VarChar(100)
   selectedAttributes      Json?           @map("selected_attributes") @db.JsonB
   quantity                Int
+  /// Cópia travada dos beneficiários ou da personalização no momento da compra.
+  details                 Json?           @db.JsonB
   unitPrice               Decimal         @map("unit_price") @db.Decimal(19, 4)
   discountAmount          Decimal         @default(0) @map("discount_amount") @db.Decimal(19, 4)
   totalAmount             Decimal         @map("total_amount") @db.Decimal(19, 4)

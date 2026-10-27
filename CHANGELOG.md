@@ -6,6 +6,15 @@ O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) e o 
 
 ## [Não publicado]
 
+### Afiliação vendida pela loja (2026-10-27)
+
+#### Adicionado
+
+- produto do tipo Afiliação, com validade em meses; no carrinho, um beneficiário por unidade (nome completo e e-mail opcional; o comprador vem como beneficiário 1) ou a renovação de uma carteirinha existente (DT-068);
+- pagamento confirmado cria uma carteirinha de afiliado por beneficiário (pedido só de afiliação fica entregue); renovar soma ao período; cancelar ou estornar o pedido cancela as carteirinhas ou volta a data da renovação;
+- carteirinha comprada para quem não tem conta aparece para quem comprou e passa para o beneficiário quando ele confirmar o e-mail;
+- aviso 15 dias antes de a afiliação vencer; bloco "Afiliações abertas" no Início; botão "Avisar todos" no produto (uma vez só).
+
 ### Carteirinha digital e benefícios de parceiros (2026-10-27)
 
 #### Adicionado

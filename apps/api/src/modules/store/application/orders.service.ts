@@ -37,10 +37,19 @@ import {
   requiresStock,
   RESERVATION_HOURS_DEFAULT
 } from '../domain/store-rules';
-import { cartItemPrice, cartItemSellable, type CartOwner, CartService } from './cart.service';
+import {
+  cartItemPrice,
+  cartItemSellable,
+  type CartOwner,
+  CartService,
+  checkRenewals,
+  detailsJson
+} from './cart.service';
 import { type AppliedCoupon, CouponsService } from './coupons.service';
 import { InventoryService } from './inventory.service';
 import { StaffAlertsService } from '../../notifications/application/staff-alerts.service';
+import { CardsService } from '../../cards/application/cards.service';
+import { beneficiariesOf, beneficiaryProblems, resizeBeneficiaries } from '../domain/cart-details';
 
 export interface OrderItemView {
   readonly id: string;
@@ -138,7 +147,8 @@ export class OrdersService implements OnModuleInit {
     private readonly coupons: CouponsService,
     private readonly jobs: JobScheduler,
     private readonly site: SiteRevalidateService,
-    private readonly staffAlerts: StaffAlertsService
+    private readonly staffAlerts: StaffAlertsService,
+    private readonly cards: CardsService
   ) {}
 
   onModuleInit(): void {
@@ -357,7 +367,12 @@ export class OrdersService implements OnModuleInit {
 
       const levels = await this.inventory.levels(variantIds, tx);
       const now = new Date();
-      const lines: { item: (typeof cart.items)[number]; unitPrice: Money; total: Money }[] = [];
+      const lines: {
+        item: (typeof cart.items)[number];
+        unitPrice: Money;
+        total: Money;
+        details: Prisma.InputJsonObject | null;
+      }[] = [];
 
       for (const item of cart.items) {
         const product = item.productVariant.product;
@@ -403,8 +418,39 @@ export class OrdersService implements OnModuleInit {
         }
 
         const unitPrice = cartItemPrice(item);
+        let details: Prisma.InputJsonObject | null = null;
 
-        lines.push({ item, unitPrice, total: lineTotal({ unitPrice, quantity: item.quantity }) });
+        // Afiliação (DT-068): conta obrigatória e um beneficiário completo por unidade.
+        if (product.fulfillmentType === 'MEMBERSHIP') {
+          if (!principal) {
+            throw AppError.validation(
+              'LOGIN_REQUIRED',
+              'Entre na sua conta para comprar afiliação: as carteirinhas ficam nela.'
+            );
+          }
+
+          const beneficiaries = resizeBeneficiaries(
+            beneficiariesOf(item.details),
+            item.quantity,
+            null
+          );
+          const problem = beneficiaryProblems(beneficiaries)[0];
+
+          if (problem) {
+            throw AppError.validation('BENEFICIARIES_REQUIRED', problem.message);
+          }
+
+          details = detailsJson({
+            beneficiaries: await checkRenewals(tx, principal.userId, beneficiaries)
+          });
+        }
+
+        lines.push({
+          item,
+          unitPrice,
+          total: lineTotal({ unitPrice, quantity: item.quantity }),
+          details
+        });
       }
 
       const subtotal = sum(lines.map((line) => line.total));
@@ -481,6 +527,7 @@ export class OrdersService implements OnModuleInit {
               color: line.item.productVariant.color
             },
             quantity: line.item.quantity,
+            ...(line.details ? { details: line.details } : {}),
             unitPrice: line.unitPrice,
             discountAmount: lineDiscount,
             totalAmount: line.total.minus(lineDiscount),
@@ -499,6 +546,10 @@ export class OrdersService implements OnModuleInit {
             actorId: principal?.userId ?? null
           });
         }
+      }
+
+      if (order.status === 'PAID') {
+        await this.afterPaidInTx(tx, order.id);
       }
 
       if (coupon) {
@@ -720,6 +771,26 @@ export class OrdersService implements OnModuleInit {
 
   // ---------- Pagamento ----------
 
+  /**
+   * Depois do pagamento: afiliações viram carteirinhas (DT-068). Pedido só de afiliação já
+   * está entregue (não há o que retirar); a entrega é a ativação.
+   */
+  private async afterPaidInTx(tx: PrismaTx, orderId: string): Promise<void> {
+    await this.cards.activateAffiliationsInTx(tx, orderId);
+
+    const items = await tx.orderItem.findMany({
+      where: { orderId },
+      select: { product: { select: { fulfillmentType: true } } }
+    });
+
+    if (items.length > 0 && items.every((item) => item.product.fulfillmentType === 'MEMBERSHIP')) {
+      await tx.order.update({
+        where: { id: orderId },
+        data: { status: 'DELIVERED', deliveredAt: new Date() }
+      });
+    }
+  }
+
   private async markPaid(tx: PrismaTx, actorId: string | null, row: OrderRow): Promise<void> {
     await tx.order.update({ where: { id: row.id }, data: { status: 'PAID', paidAt: new Date() } });
 
@@ -749,6 +820,8 @@ export class OrdersService implements OnModuleInit {
         });
       }
     }
+
+    await this.afterPaidInTx(tx, row.id);
 
     if (row.customerUserId) {
       await this.notifications.notify(
@@ -1054,6 +1127,8 @@ export class OrdersService implements OnModuleInit {
 
     // Pedido cancelado, expirado ou estornado não conta como uso do cupom (DT-045).
     await this.coupons.releaseInTx(tx, row.id);
+    // Afiliação desfeita junto: carteirinha cancelada ou renovação revertida (DT-068).
+    await this.cards.cancelAffiliationsInTx(tx, row.id, reason);
 
     for (const item of row.items) {
       const reserved = await tx.inventoryMovement.aggregate({

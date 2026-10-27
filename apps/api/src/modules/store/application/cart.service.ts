@@ -16,6 +16,14 @@ import {
   MAX_ITEM_QUANTITY,
   requiresStock
 } from '../domain/store-rules';
+import {
+  type Beneficiary,
+  type CartItemDetails,
+  beneficiariesOf,
+  beneficiaryProblems,
+  cleanBeneficiary,
+  resizeBeneficiaries
+} from '../domain/cart-details';
 import { InventoryService } from './inventory.service';
 
 export const CART_TTL_DAYS = 30;
@@ -38,7 +46,11 @@ export interface CartLine {
   readonly unitPrice: MoneyView;
   readonly lineTotal: MoneyView;
   readonly campaign: { slug: string; name: string } | null;
-  readonly warning: 'UNAVAILABLE' | 'INSUFFICIENT_STOCK' | null;
+  readonly warning: 'UNAVAILABLE' | 'INSUFFICIENT_STOCK' | 'BENEFICIARIES_REQUIRED' | null;
+  readonly fulfillmentType: string;
+  /** Afiliação: validade em meses e um beneficiário por unidade (DT-068). */
+  readonly membershipMonths: number | null;
+  readonly beneficiaries: Beneficiary[] | null;
   readonly available: number | null;
   /** Opções do mesmo produto, para trocar no carrinho (DT-051). */
   readonly options: CartOption[];
@@ -143,6 +155,56 @@ export function cartItemSellable(item: CartItemRow, now: Date): boolean {
   return isPurchasable(product, now);
 }
 
+/** Detalhes da linha como JSON do Prisma (o tipo lido é imutável; o gravado, não). */
+export function detailsJson(details: CartItemDetails): Prisma.InputJsonObject {
+  return details as unknown as Prisma.InputJsonObject;
+}
+
+/**
+ * Renovação (DT-068): só carteirinha de afiliado da própria pessoa (titular ou quem comprou)
+ * e não cancelada. O nome e o e-mail vêm da carteirinha, que é intransferível.
+ */
+export async function checkRenewals(
+  db: PrismaTx | PrismaService,
+  userId: string,
+  list: readonly Beneficiary[]
+): Promise<Beneficiary[]> {
+  const ids = list.map((b) => b.cardId).filter((id): id is string => id !== null);
+
+  if (ids.length === 0) {
+    return [...list];
+  }
+
+  const cards = await db.memberCard.findMany({
+    where: {
+      id: { in: ids },
+      type: 'AFFILIATE',
+      deletedAt: null,
+      status: { not: 'CANCELLED' },
+      OR: [{ holderUserId: userId }, { purchasedByUserId: userId }]
+    },
+    select: { id: true, holderName: true, holderEmail: true }
+  });
+  const byId = new Map(cards.map((card) => [card.id, card]));
+
+  return list.map((b) => {
+    if (b.cardId === null) {
+      return b;
+    }
+
+    const card = byId.get(b.cardId);
+
+    if (!card) {
+      throw AppError.validation(
+        'INVALID_RENEWAL',
+        'Só é possível renovar uma carteirinha de afiliado sua ou comprada por você.'
+      );
+    }
+
+    return { name: card.holderName, email: card.holderEmail, cardId: card.id };
+  });
+}
+
 /**
  * Carrinho no servidor (RF-037): o preço nunca vem do cliente e é recalculado a cada
  * leitura. Visitante é identificado por token opaco em cookie HttpOnly (somente hash no banco).
@@ -234,6 +296,10 @@ export class CartService {
       const available = tracked ? (levels.get(item.productVariantId)?.available ?? 0) : null;
       const sellable = cartItemSellable(item, now);
       const image = product.images[0];
+      const membership = product.fulfillmentType === 'MEMBERSHIP';
+      const beneficiaries = membership
+        ? resizeBeneficiaries(beneficiariesOf(item.details), item.quantity, null)
+        : null;
 
       return {
         id: item.id,
@@ -257,7 +323,12 @@ export class CartService {
           ? 'UNAVAILABLE'
           : available !== null && available < item.quantity
             ? 'INSUFFICIENT_STOCK'
-            : null,
+            : beneficiaries && beneficiaryProblems(beneficiaries).length > 0
+              ? 'BENEFICIARIES_REQUIRED'
+              : null,
+        fulfillmentType: product.fulfillmentType,
+        membershipMonths: product.membershipMonths,
+        beneficiaries,
         available,
         options: product.variants.map((variant) => ({
           variantId: variant.id,
@@ -285,6 +356,54 @@ export class CartService {
       ),
       hasWarnings: lines.some((line) => line.warning !== null)
     };
+  }
+
+  /** Quem compra é o beneficiário 1 de uma afiliação nova (DT-068). */
+  private async buyerBeneficiary(userId: string): Promise<Beneficiary> {
+    const user = await this.prisma.user.findUniqueOrThrow({
+      where: { id: userId },
+      select: { name: true, email: true }
+    });
+
+    return cleanBeneficiary({ name: user.name, email: user.email });
+  }
+
+  /** Beneficiários de uma linha de afiliação, um por unidade (DT-068). */
+  async setBeneficiaries(
+    owner: CartOwner,
+    lineId: string,
+    input: readonly { name?: string | null; email?: string | null; cardId?: string | null }[]
+  ): Promise<CartView> {
+    const cart = await this.findActive(owner);
+    const line = cart?.items.find((item) => item.id === lineId);
+
+    if (!cart || !line || !owner.principal) {
+      throw AppError.notFound('Item não está no carrinho.');
+    }
+
+    if (line.productVariant.product.fulfillmentType !== 'MEMBERSHIP') {
+      throw AppError.validation('NOT_MEMBERSHIP', 'Este item não tem beneficiários.');
+    }
+
+    if (input.length !== line.quantity) {
+      throw AppError.validation(
+        'BENEFICIARIES_COUNT',
+        `Informe ${line.quantity} beneficiário(s), um por afiliação.`
+      );
+    }
+
+    const beneficiaries = await checkRenewals(
+      this.prisma,
+      owner.principal.userId,
+      input.map((b) => cleanBeneficiary(b))
+    );
+
+    await this.prisma.cartItem.update({
+      where: { id: line.id },
+      data: { details: detailsJson({ beneficiaries }) }
+    });
+
+    return this.toView(await this.findActive(owner));
   }
 
   /**
@@ -416,6 +535,16 @@ export class CartService {
       }
     }
 
+    const membership = product.fulfillmentType === 'MEMBERSHIP';
+
+    // Afiliação vira carteirinha na conta de quem compra (DT-068): exige entrar.
+    if (membership && quantity > 0 && !owner.principal) {
+      throw AppError.validation(
+        'LOGIN_REQUIRED',
+        'Entre na sua conta para comprar afiliação: as carteirinhas ficam nela.'
+      );
+    }
+
     let cart = await this.findActive(owner);
 
     if (cart === null) {
@@ -444,6 +573,16 @@ export class CartService {
     }
 
     const existing = cart.items.find((item) => item.productVariantId === variantId);
+    const details =
+      membership && quantity > 0 && owner.principal
+        ? {
+            beneficiaries: resizeBeneficiaries(
+              beneficiariesOf(existing?.details),
+              quantity,
+              await this.buyerBeneficiary(owner.principal.userId)
+            )
+          }
+        : undefined;
 
     if (quantity === 0) {
       if (existing) {
@@ -452,7 +591,11 @@ export class CartService {
     } else if (existing) {
       await this.prisma.cartItem.update({
         where: { id: existing.id },
-        data: { quantity, salesCampaignProductId: campaignLinkId }
+        data: {
+          quantity,
+          salesCampaignProductId: campaignLinkId,
+          ...(details ? { details: detailsJson(details) } : {})
+        }
       });
     } else {
       await this.prisma.cartItem.create({
@@ -460,7 +603,8 @@ export class CartService {
           cartId: cart.id,
           productVariantId: variantId,
           quantity,
-          salesCampaignProductId: campaignLinkId
+          salesCampaignProductId: campaignLinkId,
+          ...(details ? { details: detailsJson(details) } : {})
         }
       });
     }

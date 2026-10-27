@@ -49,12 +49,21 @@ export default function ProductsAdminPage() {
     name: '',
     categoryId: '',
     fulfillmentType: 'STOCK' as Fulfillment,
-    basePrice: ''
+    basePrice: '',
+    membershipMonths: '12'
   });
   const create = useSubmit(async () => {
     const created = await api<ProductDetail>('/store/products', {
       method: 'POST',
-      body: { ...form, basePrice: normalizeAmount(form.basePrice) }
+      body: {
+        name: form.name,
+        categoryId: form.categoryId,
+        fulfillmentType: form.fulfillmentType,
+        basePrice: normalizeAmount(form.basePrice),
+        ...(form.fulfillmentType === 'MEMBERSHIP'
+          ? { membershipMonths: Number(form.membershipMonths) }
+          : {})
+      }
     });
 
     router.push(`/admin/produtos/${created.id}`);
@@ -107,11 +116,21 @@ export default function ProductsAdminPage() {
                 onChange={(e) =>
                   setForm({ ...form, fulfillmentType: e.target.value as Fulfillment })
                 }
-                options={(['STOCK', 'MADE_TO_ORDER', 'CAMPAIGN'] as Fulfillment[]).map((value) => ({
-                  value,
-                  label: FULFILLMENT[value]
-                }))}
+                options={(
+                  ['STOCK', 'MADE_TO_ORDER', 'CAMPAIGN', 'MEMBERSHIP'] as Fulfillment[]
+                ).map((value) => ({ value, label: FULFILLMENT[value] }))}
               />
+              {form.fulfillmentType === 'MEMBERSHIP' ? (
+                <TextField
+                  label="Validade (meses)"
+                  numeric="integer"
+                  maxLength={2}
+                  required
+                  value={form.membershipMonths}
+                  onChange={(e) => setForm({ ...form, membershipMonths: e.target.value })}
+                  hint="Cada beneficiário recebe uma carteirinha de afiliado por esse período."
+                />
+              ) : null}
               <TextField
                 label="Preço (R$)"
                 maxLength={16}

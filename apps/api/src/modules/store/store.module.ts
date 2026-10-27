@@ -8,9 +8,10 @@ import { CouponsService } from './application/coupons.service';
 import { InventoryService } from './application/inventory.service';
 import { OrdersService } from './application/orders.service';
 import { StoreAdminController, StorefrontController } from './http/store.controller';
+import { CardsModule } from '../cards/http/cards.controller';
 
 @Module({
-  imports: [FinanceModule, SettingsModule],
+  imports: [FinanceModule, SettingsModule, CardsModule],
   controllers: [StorefrontController, StoreAdminController],
   providers: [
     CatalogService,

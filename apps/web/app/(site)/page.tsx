@@ -1,17 +1,24 @@
 import Link from 'next/link';
 
 import { BrandLogo } from '../../components/brand-logo';
+import { MembershipCta } from '../../components/membership-cta';
 import { firstTeamLogo } from '../../lib/brand';
 import { getPublicTeam, serverGet } from '../../lib/server-api';
+import type { Page } from '../../lib/api-types';
+import { formatMoney } from '../../lib/format';
 import type { Team } from '../../lib/sports-types';
+import type { ProductSummary } from '../../lib/store-types';
 import styles from './home.module.scss';
 import { HomeHighlights } from './home-highlights';
 
 export default async function HomePage() {
-  const [team, teams] = await Promise.all([
+  const [team, teams, memberships] = await Promise.all([
     getPublicTeam(),
-    serverGet<Team[]>('/public/teams').then((rows) => rows ?? [])
+    serverGet<Team[]>('/public/teams').then((rows) => rows ?? []),
+    // Bloco "Afiliações abertas" só enquanto houver afiliação à venda (DT-068).
+    serverGet<Page<ProductSummary>>('/public/products?membership=true&pageSize=1')
   ]);
+  const membership = memberships?.data[0];
   const logo = team.brandAssets.OFFICIAL;
   const male = firstTeamLogo(teams, 'MALE') ?? logo?.url;
   const female = firstTeamLogo(teams, 'FEMALE') ?? logo?.url;
@@ -43,6 +50,18 @@ export default async function HomePage() {
           </div>
         </div>
       </section>
+
+      {membership ? (
+        <div className={`container ${styles.section}`} style={{ paddingBottom: 0 }}>
+          <MembershipCta
+            product={{
+              name: membership.name,
+              slug: membership.slug,
+              price: formatMoney(membership.priceFrom.amount)
+            }}
+          />
+        </div>
+      ) : null}
 
       <section className={`container ${styles.section}`} aria-labelledby="times-title">
         <h2 id="times-title">Nossos times</h2>

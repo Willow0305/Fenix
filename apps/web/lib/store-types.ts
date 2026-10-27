@@ -1,6 +1,13 @@
 import type { MoneyView, Payment } from './finance-types';
 
-export type Fulfillment = 'STOCK' | 'MADE_TO_ORDER' | 'CAMPAIGN' | 'DIGITAL';
+export type Fulfillment = 'STOCK' | 'MADE_TO_ORDER' | 'CAMPAIGN' | 'DIGITAL' | 'MEMBERSHIP';
+
+/** Beneficiário de afiliação (DT-068). */
+export interface Beneficiary {
+  name: string;
+  email: string | null;
+  cardId: string | null;
+}
 export type ProductStatus = 'DRAFT' | 'ACTIVE' | 'INACTIVE' | 'SOLD_OUT' | 'ARCHIVED';
 export type OrderStatus =
   | 'CREATED'
@@ -58,6 +65,8 @@ export interface ProductDetail extends ProductSummary {
   description: string | null;
   buyerLimit: number | null;
   productionLeadDays: number | null;
+  membershipMonths: number | null;
+  membershipAnnouncedAt: string | null;
   pickupInstructions: string | null;
   availableFrom: string | null;
   availableUntil: string | null;
@@ -86,7 +95,10 @@ export interface CartLine {
   unitPrice: MoneyView;
   lineTotal: MoneyView;
   campaign: { slug: string; name: string } | null;
-  warning: 'UNAVAILABLE' | 'INSUFFICIENT_STOCK' | null;
+  warning: 'UNAVAILABLE' | 'INSUFFICIENT_STOCK' | 'BENEFICIARIES_REQUIRED' | null;
+  fulfillmentType: Fulfillment;
+  membershipMonths: number | null;
+  beneficiaries: Beneficiary[] | null;
   available: number | null;
   /** Outras opções do mesmo produto, para trocar no carrinho (DT-051). */
   options: { variantId: string; name: string; available: number | null }[];
@@ -170,7 +182,8 @@ export const FULFILLMENT: Record<Fulfillment, string> = {
   STOCK: 'Pronta entrega',
   MADE_TO_ORDER: 'Sob encomenda',
   CAMPAIGN: 'Remessa (pré-venda)',
-  DIGITAL: 'Digital (indisponível)'
+  DIGITAL: 'Digital (indisponível)',
+  MEMBERSHIP: 'Afiliação (carteirinha)'
 };
 
 export const PRODUCT_STATUS: Record<ProductStatus, { label: string; badge: string }> = {

@@ -92,6 +92,10 @@ export interface ProductDetail extends ProductSummary {
   readonly description: string | null;
   readonly buyerLimit: number | null;
   readonly productionLeadDays: number | null;
+  /** Validade da afiliação em meses (DT-068); nulo nos demais produtos. */
+  readonly membershipMonths: number | null;
+  /** Quando o aviso "afiliações abertas" foi enviado (só uma vez). */
+  readonly membershipAnnouncedAt: string | null;
   readonly pickupInstructions: string | null;
   readonly availableFrom: string | null;
   readonly availableUntil: string | null;
@@ -122,6 +126,7 @@ export interface ProductInput {
   readonly availableFrom?: string | null;
   readonly availableUntil?: string | null;
   readonly productionLeadDays?: number | null;
+  readonly membershipMonths?: number | null;
   readonly pickupInstructions?: string | null;
   readonly partnerId?: string | null;
   readonly commissionTypeOverride?: CommissionType | null;
@@ -364,6 +369,8 @@ export class CatalogService {
       description: row.description,
       buyerLimit: row.buyerLimit,
       productionLeadDays: row.productionLeadDays,
+      membershipMonths: row.membershipMonths,
+      membershipAnnouncedAt: row.membershipAnnouncedAt?.toISOString() ?? null,
       pickupInstructions: row.pickupInstructions,
       availableFrom: row.availableFrom?.toISOString() ?? null,
       availableUntil: row.availableUntil?.toISOString() ?? null,
@@ -393,7 +400,12 @@ export class CatalogService {
 
   /** Vitrine pública: somente produtos ativos e de parceiros aprovados (RN-PAR-001). */
   async publicList(
-    query: PageQueryDto & { category?: string; featured?: boolean; campaign?: boolean }
+    query: PageQueryDto & {
+      category?: string;
+      featured?: boolean;
+      campaign?: boolean;
+      membership?: boolean;
+    }
   ): Promise<Page<ProductSummary>> {
     const { skip, take, page, pageSize } = pageArgs(query);
     const now = new Date();
@@ -440,7 +452,9 @@ export class CatalogService {
               }
             }
           }
-        : {})
+        : {}),
+      // Bloco "Afiliações abertas" do Início (DT-068).
+      ...(query.membership ? { fulfillmentType: 'MEMBERSHIP' as const } : {})
     };
     const [rows, total] = await this.prisma.$transaction([
       this.prisma.product.findMany({
@@ -564,6 +578,15 @@ export class CatalogService {
       }
     }
 
+    if (
+      input.fulfillmentType === 'MEMBERSHIP' &&
+      (input.membershipMonths === undefined || input.membershipMonths === null)
+    ) {
+      throw AppError.validation('MONTHS_REQUIRED', 'Informe por quantos meses a afiliação vale.', [
+        { field: 'membershipMonths', code: 'REQUIRED', message: 'Informe a validade em meses.' }
+      ]);
+    }
+
     if (input.fulfillmentType === 'DIGITAL') {
       throw AppError.validation(
         'DIGITAL_NOT_AVAILABLE',
@@ -635,12 +658,24 @@ export class CatalogService {
         availableFrom: iso(input.availableFrom),
         availableUntil: iso(input.availableUntil),
         productionLeadDays: input.productionLeadDays ?? null,
+        membershipMonths:
+          input.fulfillmentType === 'MEMBERSHIP' ? (input.membershipMonths ?? null) : null,
         pickupInstructions: input.pickupInstructions ?? null,
         ...this.commissionOverrideData(input),
         status: 'DRAFT',
         variants: { create: { sku: `${slug.slice(0, 60).toUpperCase()}-UN`, name: 'Único' } }
       }
     });
+
+    if (row.fulfillmentType === 'MEMBERSHIP') {
+      await this.prisma.productVariant.create({
+        data: {
+          productId: row.id,
+          name: 'Afiliação',
+          sku: `AFIL-${slug.toUpperCase()}`.slice(0, 100)
+        }
+      });
+    }
 
     await this.audit.record({
       actorUserId: actor.userId,
@@ -668,6 +703,15 @@ export class CatalogService {
 
     await this.assertRefs({
       ...input,
+      ...(input.fulfillmentType === 'MEMBERSHIP' || before.fulfillmentType === 'MEMBERSHIP'
+        ? {
+            fulfillmentType: input.fulfillmentType ?? before.fulfillmentType,
+            membershipMonths:
+              input.membershipMonths === undefined
+                ? before.membershipMonths
+                : input.membershipMonths
+          }
+        : {}),
       basePrice: input.basePrice ?? before.basePrice,
       ...(input.promotionalPrice === undefined ? {} : { promotionalPrice: input.promotionalPrice })
     });
@@ -694,6 +738,9 @@ export class CatalogService {
         ...(input.productionLeadDays === undefined
           ? {}
           : { productionLeadDays: input.productionLeadDays }),
+        ...(input.membershipMonths === undefined
+          ? {}
+          : { membershipMonths: input.membershipMonths }),
         ...(input.pickupInstructions === undefined
           ? {}
           : { pickupInstructions: input.pickupInstructions }),

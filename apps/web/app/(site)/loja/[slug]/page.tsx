@@ -105,6 +105,19 @@ export default async function ProductPage({
               ) : null}
             </section>
           ) : null}
+          {product.fulfillmentType === 'MEMBERSHIP' ? (
+            <section className="alert alert-info stack" style={{ gap: '0.4rem' }}>
+              <strong>
+                <Icon name="person-vcard" /> Carteirinha de afiliado
+                {product.membershipMonths ? `, válida por ${product.membershipMonths} meses` : ''}
+              </strong>
+              <span>
+                Dá desconto nos <Link href="/parceiros">parceiros do clube</Link>. Comprando mais de
+                uma, você informa no carrinho o nome de cada beneficiário. Uso pessoal e
+                intransferível; renovar soma ao período que ainda falta.
+              </span>
+            </section>
+          ) : null}
           {product.productionLeadDays ? (
             <p className="muted">Prazo de produção: cerca de {product.productionLeadDays} dias.</p>
           ) : null}
