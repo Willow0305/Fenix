@@ -125,7 +125,14 @@ export default async function ProductPage({
             <p className="muted">Disponível até {formatDateTime(product.availableUntil)}.</p>
           ) : null}
           <ProductPurchase product={product} />
-          {product.description ? <p className="prose">{product.description}</p> : null}
+          {product.description ? (
+            <section className="stack gap-sm" aria-labelledby="descricao-produto">
+              <h2 id="descricao-produto" className="h-small m-0">
+                Descrição
+              </h2>
+              <p className="prose m-0">{product.description}</p>
+            </section>
+          ) : null}
           {product.pickupInstructions ? (
             <div className="card">
               <strong>Retirada</strong>

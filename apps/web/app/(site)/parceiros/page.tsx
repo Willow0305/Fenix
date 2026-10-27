@@ -18,13 +18,15 @@ export default async function PartnersPage() {
   const bestDiscount = new Map<string, number>();
 
   for (const benefit of benefits) {
-    const value = Number(benefit.discountPercent);
+    const id = benefit.partner.id;
 
-    bestDiscount.set(
-      benefit.partner.id,
-      Math.max(bestDiscount.get(benefit.partner.id) ?? 0, value)
-    );
+    if (id) {
+      bestDiscount.set(id, Math.max(bestDiscount.get(id) ?? 0, Number(benefit.discountPercent)));
+    }
   }
+
+  // Lojas sem cadastro no site: o desconto vale, mas não há página do parceiro (DT-074).
+  const informal = benefits.filter((benefit) => benefit.partner.id === null);
 
   return (
     <div className="container stack" style={{ paddingTop: '2.5rem' }}>
@@ -39,7 +41,7 @@ export default async function PartnersPage() {
           <Link href="/minha-conta/carteirinhas">Minha conta → Carteirinhas</Link>.
         </p>
       ) : null}
-      {partners.length === 0 ? (
+      {partners.length === 0 && informal.length === 0 ? (
         <div className="card empty">
           <p>Nenhum parceiro publicado no momento.</p>
         </div>
@@ -80,6 +82,25 @@ export default async function PartnersPage() {
           ))}
         </div>
       )}
+      {informal.length > 0 ? (
+        <section className="card stack" aria-labelledby="outros-descontos">
+          <h2 id="outros-descontos" className="m-0">
+            Outros descontos com a carteirinha
+          </h2>
+          <ul className="stack list-plain">
+            {informal.map((benefit) => (
+              <li key={benefit.id}>
+                <strong>{benefit.discountPercent}%</strong> em{' '}
+                <strong>{benefit.partner.name}</strong>: {benefit.title}
+                {benefit.partner.details ? (
+                  <div className="muted">{benefit.partner.details}</div>
+                ) : null}
+                {benefit.conditions ? <div className="muted">{benefit.conditions}</div> : null}
+              </li>
+            ))}
+          </ul>
+        </section>
+      ) : null}
     </div>
   );
 }

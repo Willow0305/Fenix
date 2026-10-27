@@ -35,7 +35,8 @@ export interface CardDesign {
 
 export interface Benefit {
   id: string;
-  partner: { id: string; name: string; logoUrl: string | null };
+  /** `id` nulo: parceiro sem cadastro no site, só nome e contato (DT-074). */
+  partner: { id: string | null; name: string; logoUrl: string | null; details: string | null };
   title: string;
   discountPercent: string;
   conditions: string | null;

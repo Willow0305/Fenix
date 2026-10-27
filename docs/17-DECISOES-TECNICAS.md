@@ -1441,3 +1441,21 @@ Mesmo padrão da inativação de atleta (COR-018):
 
 - nenhuma versão nova depende de lembrar o seed para liberar telas; `npm run db:seed` continua servindo para o primeiro administrador.
 
+## DT-074 — Benefício de parceiro sem cadastro no site
+
+- **Estado:** Aceita
+- **Data:** 2026-10-27
+- **Aprovador:** responsável do projeto ("não preciso ter um parceiro cadastrado no site para dar a promoção, algumas lojas parceiras não vão querer criar um cadastro direto na nossa loja, fica só no boca a boca")
+
+### Decisão
+
+- o benefício (DT-068 D) passa a ter **um** de dois: parceiro cadastrado em Parceiros **ou** só o nome da loja, com "onde fica / contato" opcional (texto livre, até 500 caracteres); o banco garante exatamente um (`CHECK`);
+- parceiro sem cadastro não tem página, logo nem contrato: o benefício vale enquanto estiver ativo e no período; o de parceiro cadastrado continua dependendo do parceiro ativo;
+- na edição, o nome e o contato do parceiro sem cadastro podem ser corrigidos; o de parceiro cadastrado vem do cadastro dele;
+- aparece na carteirinha (com o contato), na conferência pelo QR e no site em Parceiros → "Outros descontos com a carteirinha".
+
+### Consequências
+
+- `partner_benefits.partner_id` opcional, colunas `partner_name` e `partner_details` (migração `20261027080000_beneficio_sem_parceiro_cadastrado`);
+- teste de integração cobre criação, os dois ao mesmo tempo (recusado), edição e listagem pública; E2E cria pelo formulário.
+

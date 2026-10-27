@@ -12,6 +12,7 @@ import {
   PageHeader,
   Pagination,
   SelectField,
+  TextArea,
   TextField,
   useSubmit
 } from '../../../components/ui';
@@ -50,7 +51,8 @@ export default function ProductsAdminPage() {
     name: '',
     categoryId: '',
     fulfillmentType: 'STOCK' as Fulfillment,
-    basePrice: ''
+    basePrice: '',
+    description: ''
   });
   const create = useSubmit(async () => {
     const created = await api<ProductDetail>('/store/products', {
@@ -59,7 +61,8 @@ export default function ProductsAdminPage() {
         name: form.name,
         categoryId: form.categoryId,
         fulfillmentType: form.fulfillmentType,
-        basePrice: normalizeAmount(form.basePrice)
+        basePrice: normalizeAmount(form.basePrice),
+        ...(form.description.trim() ? { description: form.description } : {})
       }
     });
 
@@ -128,6 +131,13 @@ export default function ProductsAdminPage() {
                 onChange={(e) => setForm({ ...form, basePrice: e.target.value })}
               />
             </div>
+            <TextArea
+              label="Descrição (opcional)"
+              maxLength={8000}
+              value={form.description}
+              onChange={(e) => setForm({ ...form, description: e.target.value })}
+              hint="Aparece na página do produto na loja. Dá para completar depois."
+            />
             <div className="form-actions">
               <button type="submit" className="btn btn-primary" disabled={create.pending}>
                 Criar e continuar

@@ -99,7 +99,20 @@ class CardDesignDto {
 }
 
 class BenefitDto {
-  @ApiProperty() @IsUUID() partnerId!: string;
+  @ApiPropertyOptional({ description: 'Parceiro cadastrado (ou use partnerName).' })
+  @IsOptional()
+  @IsUUID()
+  partnerId?: string;
+  @ApiPropertyOptional({ description: 'Parceiro sem cadastro no site (DT-074).' })
+  @IsOptional()
+  @IsString()
+  @MaxLength(120)
+  partnerName?: string;
+  @ApiPropertyOptional({ description: 'Onde fica ou contato do parceiro sem cadastro.' })
+  @IsOptional()
+  @IsString()
+  @MaxLength(500)
+  partnerDetails?: string;
   @ApiProperty() @IsString() @MinLength(3) @MaxLength(120) title!: string;
   @ApiProperty({ example: '10' })
   @Matches(PERCENT, { message: 'Percentual inválido.' })
@@ -111,6 +124,12 @@ class BenefitDto {
 }
 
 class UpdateBenefitDto {
+  @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(120) partnerName?: string;
+  @ApiPropertyOptional({ description: 'Vazio remove.' })
+  @IsOptional()
+  @IsString()
+  @MaxLength(500)
+  partnerDetails?: string;
   @ApiPropertyOptional() @IsOptional() @IsString() @MinLength(3) @MaxLength(120) title?: string;
   @ApiPropertyOptional()
   @IsOptional()

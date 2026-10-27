@@ -11,7 +11,13 @@ import { mediaUrl } from '../../media/application/media.service';
 
 export interface BenefitView {
   readonly id: string;
-  readonly partner: { id: string; name: string; logoUrl: string | null };
+  /** `id` nulo: parceiro sem cadastro no site, só com nome e contato (DT-074). */
+  readonly partner: {
+    id: string | null;
+    name: string;
+    logoUrl: string | null;
+    details: string | null;
+  };
   readonly title: string;
   readonly discountPercent: string;
   readonly conditions: string | null;
@@ -22,12 +28,15 @@ export interface BenefitAdminView extends BenefitView {
   readonly startsOn: string | null;
   readonly endsOn: string | null;
   readonly isActive: boolean;
-  /** Visível agora: ativo, no período e de parceiro ativo. */
+  /** Visível agora: ativo, no período e (se cadastrado) de parceiro ativo. */
   readonly inEffect: boolean;
 }
 
 export interface BenefitInput {
-  readonly partnerId: string;
+  /** Parceiro cadastrado; ou então `partnerName` (parceiro sem cadastro). */
+  readonly partnerId?: string | null;
+  readonly partnerName?: string | null;
+  readonly partnerDetails?: string | null;
   readonly title: string;
   readonly discountPercent: string;
   readonly conditions?: string | null;
@@ -44,6 +53,12 @@ const INCLUDE = {
 
 type Row = Prisma.PartnerBenefitGetPayload<{ include: typeof INCLUDE }>;
 
+const BENEFIT_ORDER: Prisma.PartnerBenefitOrderByWithRelationInput[] = [
+  { partner: { displayName: 'asc' } },
+  { partnerName: 'asc' },
+  { discountPercent: 'desc' }
+];
+
 /** Onde o benefício está valendo hoje (ativo, no período e de parceiro ativo). */
 function inEffectWhere(today: string): Prisma.PartnerBenefitWhereInput {
   const day = civilToDate(today);
@@ -51,8 +66,8 @@ function inEffectWhere(today: string): Prisma.PartnerBenefitWhereInput {
   return {
     deletedAt: null,
     isActive: true,
-    partner: { status: 'ACTIVE', deletedAt: null },
     AND: [
+      { OR: [{ partnerId: null }, { partner: { status: 'ACTIVE', deletedAt: null } }] },
       { OR: [{ startsOn: null }, { startsOn: { lte: day } }] },
       { OR: [{ endsOn: null }, { endsOn: { gte: day } }] }
     ]
@@ -70,11 +85,19 @@ export class BenefitsService {
   private view(row: Row): BenefitView {
     return {
       id: row.id,
-      partner: {
-        id: row.partner.id,
-        name: row.partner.displayName,
-        logoUrl: row.partner.logoMediaFileId ? mediaUrl(row.partner.logoMediaFileId) : null
-      },
+      partner: row.partner
+        ? {
+            id: row.partner.id,
+            name: row.partner.displayName,
+            logoUrl: row.partner.logoMediaFileId ? mediaUrl(row.partner.logoMediaFileId) : null,
+            details: null
+          }
+        : {
+            id: null,
+            name: row.partnerName ?? '',
+            logoUrl: null,
+            details: row.partnerDetails
+          },
       title: row.title,
       discountPercent: row.discountPercent.toFixed(0),
       conditions: row.conditions,
@@ -90,7 +113,7 @@ export class BenefitsService {
         audience: { in: ['BOTH', type === 'ATHLETE' ? 'ATHLETES' : 'AFFILIATES'] }
       },
       include: INCLUDE,
-      orderBy: [{ partner: { displayName: 'asc' } }, { discountPercent: 'desc' }]
+      orderBy: BENEFIT_ORDER
     });
 
     return rows.map((row) => this.view(row));
@@ -106,7 +129,7 @@ export class BenefitsService {
     const rows = await this.prisma.partnerBenefit.findMany({
       where: { ...inEffectWhere(todayIn()), ...(partnerId ? { partnerId } : {}) },
       include: INCLUDE,
-      orderBy: [{ partner: { displayName: 'asc' } }, { discountPercent: 'desc' }]
+      orderBy: BENEFIT_ORDER
     });
 
     return rows.map((row) => this.view(row));
@@ -176,18 +199,31 @@ export class BenefitsService {
   ): Promise<BenefitAdminView> {
     this.validate(input);
 
-    const partner = await this.prisma.partner.findFirst({
-      where: { id: input.partnerId, deletedAt: null },
-      select: { id: true }
-    });
+    const partnerName = input.partnerName?.trim() || null;
 
-    if (partner === null) {
-      throw AppError.validation('INVALID_PARTNER', 'Parceiro inexistente.');
+    if ((input.partnerId ? 1 : 0) + (partnerName ? 1 : 0) !== 1) {
+      throw AppError.validation(
+        'PARTNER_REQUIRED',
+        'Escolha um parceiro cadastrado ou informe o nome do parceiro sem cadastro.'
+      );
+    }
+
+    if (input.partnerId) {
+      const partner = await this.prisma.partner.findFirst({
+        where: { id: input.partnerId, deletedAt: null },
+        select: { id: true }
+      });
+
+      if (partner === null) {
+        throw AppError.validation('INVALID_PARTNER', 'Parceiro inexistente.');
+      }
     }
 
     const row = await this.prisma.partnerBenefit.create({
       data: {
-        partnerId: input.partnerId,
+        partnerId: input.partnerId || null,
+        partnerName,
+        partnerDetails: partnerName ? input.partnerDetails?.trim() || null : null,
         title: input.title.trim(),
         discountPercent: input.discountPercent,
         conditions: input.conditions?.trim() || null,
@@ -203,7 +239,8 @@ export class BenefitsService {
       entityType: 'PartnerBenefit',
       entityId: row.id,
       after: {
-        partnerId: input.partnerId,
+        partnerId: row.partnerId,
+        partnerName: row.partnerName,
         title: row.title,
         discountPercent: input.discountPercent
       },
@@ -221,6 +258,20 @@ export class BenefitsService {
   ): Promise<BenefitAdminView> {
     const before = await this.load(id);
 
+    if (
+      before.partnerId !== null &&
+      (input.partnerName !== undefined || input.partnerDetails !== undefined)
+    ) {
+      throw AppError.validation(
+        'REGISTERED_PARTNER',
+        'Este benefício é de um parceiro cadastrado; o nome vem do cadastro dele.'
+      );
+    }
+
+    if (input.partnerName !== undefined && !input.partnerName?.trim()) {
+      throw AppError.validation('PARTNER_REQUIRED', 'Informe o nome do parceiro.');
+    }
+
     this.validate({
       ...input,
       startsOn: input.startsOn === undefined ? optionalCivil(before.startsOn) : input.startsOn,
@@ -230,6 +281,10 @@ export class BenefitsService {
     await this.prisma.partnerBenefit.update({
       where: { id },
       data: {
+        ...(input.partnerName ? { partnerName: input.partnerName.trim() } : {}),
+        ...(input.partnerDetails === undefined
+          ? {}
+          : { partnerDetails: input.partnerDetails?.trim() || null }),
         ...(input.title === undefined ? {} : { title: input.title.trim() }),
         ...(input.discountPercent === undefined ? {} : { discountPercent: input.discountPercent }),
         ...(input.conditions === undefined ? {} : { conditions: input.conditions?.trim() || null }),
@@ -249,6 +304,8 @@ export class BenefitsService {
       entityType: 'PartnerBenefit',
       entityId: id,
       before: {
+        partnerName: before.partnerName,
+        partnerDetails: before.partnerDetails,
         title: before.title,
         discountPercent: before.discountPercent.toFixed(2),
         isActive: before.isActive

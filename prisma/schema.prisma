@@ -2580,7 +2580,12 @@ model MemberCardCheck {
 /// Benefício de parceiro para quem tem carteirinha (DT-068 D).
 model PartnerBenefit {
   id              String          @id @default(uuid()) @db.Uuid
-  partnerId       String          @map("partner_id") @db.Uuid
+  /// Parceiro cadastrado no site; nulo quando o parceiro é só de boca a boca (DT-074).
+  partnerId       String?         @map("partner_id") @db.Uuid
+  /// Nome do parceiro sem cadastro (exatamente um: partnerId ou partnerName).
+  partnerName     String?         @map("partner_name") @db.VarChar(120)
+  /// Onde fica ou como falar com o parceiro sem cadastro (texto livre, opcional).
+  partnerDetails  String?         @map("partner_details") @db.VarChar(500)
   title           String          @db.VarChar(120)
   discountPercent Decimal         @map("discount_percent") @db.Decimal(5, 2)
   conditions      String?         @db.Text
@@ -2592,7 +2597,7 @@ model PartnerBenefit {
   updatedAt       DateTime        @updatedAt @map("updated_at") @db.Timestamptz(6)
   deletedAt       DateTime?       @map("deleted_at") @db.Timestamptz(6)
 
-  partner Partner @relation(fields: [partnerId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+  partner Partner? @relation(fields: [partnerId], references: [id], onDelete: Restrict, onUpdate: Cascade)
 
   @@index([partnerId, isActive, deletedAt])
   @@map("partner_benefits")

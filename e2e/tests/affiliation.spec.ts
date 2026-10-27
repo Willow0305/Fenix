@@ -35,5 +35,28 @@ test('aba Afiliação: abas, endereço antigo e novo plano', async ({ page, requ
   await page.getByRole('button', { name: 'Publicar na loja' }).click();
   await expect(page.getByText('Plano à venda na loja.')).toBeVisible();
   await expectNoHorizontalScroll(page);
+
+  // Benefício de loja sem cadastro no site (DT-074).
+  await page.goto('/admin/afiliacao/beneficios');
+  await page.getByRole('button', { name: /Novo benefício/ }).click();
+  await page.getByLabel(/^Nome do parceiro/).fill(`Ótica ${info.project.name}`);
+  await page.getByLabel(/^Onde fica/).fill('Rua das Flores, 10');
+  await page.getByLabel(/^Título/).fill('Desconto em armações');
+  await page.getByLabel(/^Desconto/).fill('15');
+  await page.getByRole('button', { name: 'Salvar' }).click();
+  await expect(page.getByText('Benefício criado.')).toBeVisible();
+  await expect(page.getByText(`Ótica ${info.project.name}`)).toBeVisible();
+  await expectNoHorizontalScroll(page);
+  if (process.env['SHOTS_DIR']) {
+    await page.screenshot({
+      path: `${process.env['SHOTS_DIR']}/${info.project.name}-beneficios.png`,
+      fullPage: true
+    });
+    await page.goto('/parceiros');
+    await page.screenshot({
+      path: `${process.env['SHOTS_DIR']}/${info.project.name}-parceiros.png`,
+      fullPage: true
+    });
+  }
   expect(watcher.problems).toEqual([]);
 });

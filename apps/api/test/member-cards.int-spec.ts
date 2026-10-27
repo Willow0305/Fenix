@@ -139,6 +139,59 @@ describe('Carteirinha digital e benefícios (DT-068)', () => {
     await ctx.http().get('/api/v1/partner-benefits').set(auth(user.token)).expect(403);
   });
 
+  it('benefício de parceiro sem cadastro no site: só nome e contato (DT-074)', async () => {
+    const send = (body: Record<string, unknown>) =>
+      ctx.http().post('/api/v1/partner-benefits').set(auth(board.token)).send(body);
+    const base = { title: 'Desconto em óculos', discountPercent: '12', audience: 'BOTH' };
+
+    await send(base).expect(422);
+    await send({ ...base, partnerId, partnerName: 'Os dois' }).expect(422);
+
+    const created = await send({
+      ...base,
+      partnerName: 'Ótica Boca a Boca',
+      partnerDetails: 'Rua das Flores, 10 — Centro'
+    }).expect(201);
+
+    expect(created.body.partner).toEqual({
+      id: null,
+      name: 'Ótica Boca a Boca',
+      logoUrl: null,
+      details: 'Rua das Flores, 10 — Centro'
+    });
+    expect(created.body.inEffect).toBe(true);
+
+    const benefits = (await myCards()).cards.find((c) => c.type === 'ATHLETE')?.benefits;
+
+    expect(benefits?.map((b) => b.title)).toContain('Desconto em óculos');
+
+    const edited = await ctx
+      .http()
+      .patch(`/api/v1/partner-benefits/${created.body.id}`)
+      .set(auth(board.token))
+      .send({ discountPercent: '18', partnerName: 'Ótica Central', partnerDetails: '' })
+      .expect(200);
+
+    expect(edited.body).toMatchObject({
+      discountPercent: '18',
+      partner: { id: null, name: 'Ótica Central', details: null }
+    });
+
+    const listed = await ctx.http().get('/api/v1/public/benefits').expect(200);
+
+    expect(listed.body.map((b: { id: string }) => b.id)).toContain(created.body.id);
+
+    // Benefício de parceiro cadastrado não aceita nome livre.
+    const registered = await send({ ...base, partnerId, title: 'Cadastrado' }).expect(201);
+
+    await ctx
+      .http()
+      .patch(`/api/v1/partner-benefits/${registered.body.id}`)
+      .set(auth(board.token))
+      .send({ partnerName: 'Outro nome' })
+      .expect(422);
+  });
+
   it('parceiro confere sem login: nome curto, foto conforme a regra e benefícios', async () => {
     const card = await ctx.prisma.memberCard.findUniqueOrThrow({ where: { athleteId } });
     const ok = await publicCheck(signLiveToken(key, card.id, card.version, new Date()));

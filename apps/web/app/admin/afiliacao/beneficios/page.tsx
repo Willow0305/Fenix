@@ -33,7 +33,11 @@ interface PartnerOption {
 }
 
 interface FormState {
+  /** Parceiro cadastrado no site ou só de boca a boca (DT-074). */
+  kind: 'registered' | 'informal';
   partnerId: string;
+  partnerName: string;
+  partnerDetails: string;
   title: string;
   discountPercent: string;
   conditions: string;
@@ -43,7 +47,10 @@ interface FormState {
 }
 
 const EMPTY: FormState = {
+  kind: 'informal',
   partnerId: '',
+  partnerName: '',
+  partnerDetails: '',
   title: '',
   discountPercent: '',
   conditions: '',
@@ -54,7 +61,10 @@ const EMPTY: FormState = {
 
 function formOf(b: BenefitAdmin): FormState {
   return {
-    partnerId: b.partner.id,
+    kind: b.partner.id ? 'registered' : 'informal',
+    partnerId: b.partner.id ?? '',
+    partnerName: b.partner.id ? '' : b.partner.name,
+    partnerDetails: b.partner.details ?? '',
     title: b.title,
     discountPercent: b.discountPercent,
     conditions: b.conditions ?? '',
@@ -84,18 +94,30 @@ export default function BenefitsAdminPage() {
       endsOn: form.endsOn
     };
 
+    const informal = form.kind === 'informal';
+
     if (editing === 'new') {
       await api('/partner-benefits', {
         method: 'POST',
         body: {
           ...body,
-          partnerId: form.partnerId,
+          ...(informal
+            ? {
+                partnerName: form.partnerName,
+                ...(form.partnerDetails ? { partnerDetails: form.partnerDetails } : {})
+              }
+            : { partnerId: form.partnerId }),
           ...(form.startsOn ? {} : { startsOn: undefined }),
           ...(form.endsOn ? {} : { endsOn: undefined })
         }
       });
     } else if (editing) {
-      await api(`/partner-benefits/${editing.id}`, { method: 'PATCH', body });
+      await api(`/partner-benefits/${editing.id}`, {
+        method: 'PATCH',
+        body: informal
+          ? { ...body, partnerName: form.partnerName, partnerDetails: form.partnerDetails }
+          : body
+      });
     }
 
     setNotice(editing === 'new' ? 'Benefício criado.' : 'Benefício atualizado.');
@@ -140,21 +162,65 @@ export default function BenefitsAdminPage() {
             {editing === 'new' ? 'Novo benefício' : `Editar: ${editing.title}`}
           </h2>
           <ErrorSummary error={save.error} />
+          {editing === 'new' ? (
+            <fieldset className="form-section">
+              <legend>Parceiro</legend>
+              <label className="checkbox">
+                <input
+                  type="radio"
+                  name="tipo-parceiro"
+                  checked={form.kind === 'informal'}
+                  onChange={() => setForm({ ...form, kind: 'informal' })}
+                />
+                <span>Parceiro sem cadastro no site (combinado direto com a loja)</span>
+              </label>
+              <label className="checkbox">
+                <input
+                  type="radio"
+                  name="tipo-parceiro"
+                  checked={form.kind === 'registered'}
+                  onChange={() => setForm({ ...form, kind: 'registered' })}
+                />
+                <span>Parceiro cadastrado em Parceiros</span>
+              </label>
+            </fieldset>
+          ) : null}
           <div className="form-grid">
-            <SelectField
-              label="Parceiro"
-              required
-              disabled={editing !== 'new'}
-              value={form.partnerId}
-              onChange={set('partnerId')}
-              options={[
-                { value: '', label: 'Selecione' },
-                ...(partners.data?.data ?? []).map((p) => ({
-                  value: p.id,
-                  label: p.status === 'ACTIVE' ? p.displayName : `${p.displayName} (inativo)`
-                }))
-              ]}
-            />
+            {form.kind === 'informal' ? (
+              <>
+                <TextField
+                  label="Nome do parceiro"
+                  maxLength={120}
+                  required
+                  value={form.partnerName}
+                  onChange={set('partnerName')}
+                  placeholder="Ótica Central"
+                />
+                <TextField
+                  label="Onde fica / contato (opcional)"
+                  maxLength={500}
+                  value={form.partnerDetails}
+                  onChange={set('partnerDetails')}
+                  placeholder="Rua Exemplo, 123 — Centro"
+                  hint="Aparece para quem tem carteirinha."
+                />
+              </>
+            ) : (
+              <SelectField
+                label="Parceiro"
+                required
+                disabled={editing !== 'new'}
+                value={form.partnerId}
+                onChange={set('partnerId')}
+                options={[
+                  { value: '', label: 'Selecione' },
+                  ...(partners.data?.data ?? []).map((p) => ({
+                    value: p.id,
+                    label: p.status === 'ACTIVE' ? p.displayName : `${p.displayName} (inativo)`
+                  }))
+                ]}
+              />
+            )}
             <TextField
               label="Título"
               maxLength={120}
@@ -231,7 +297,14 @@ export default function BenefitsAdminPage() {
             <tbody>
               {benefits.data.map((b) => (
                 <tr key={b.id}>
-                  <td data-label="Parceiro">{b.partner.name}</td>
+                  <td data-label="Parceiro">
+                    {b.partner.name}
+                    {b.partner.id ? null : (
+                      <div className="muted">
+                        Sem cadastro{b.partner.details ? ` · ${b.partner.details}` : ''}
+                      </div>
+                    )}
+                  </td>
                   <td data-label="Benefício">
                     {b.title}
                     {b.conditions ? <div className="muted line-clamp-2">{b.conditions}</div> : null}

@@ -13,6 +13,8 @@ O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) e o 
 - Painel → Afiliação, com Visão geral, Planos de afiliação, Benefícios, Carteirinhas e Visual da carteirinha num lugar só (DT-072);
 - planos criados e editados à parte dos produtos: preço, validade, período de venda, fotos, publicar, pausar e avisar;
 - carteirinhas filtradas por plano e números da afiliação na visão geral.
+- benefício de loja sem cadastro no site (combinado no boca a boca): só nome e, se quiser, onde fica ou contato (DT-074);
+- descrição no cadastro de produto novo e em destaque, com título, na página do produto.
 
 #### Corrigido
 

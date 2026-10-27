@@ -90,6 +90,7 @@ function CardBlock({ card, design }: { readonly card: MemberCard; readonly desig
             {card.benefits.map((b) => (
               <li key={b.id}>
                 <strong>{b.discountPercent}%</strong> em {b.partner.name}: {b.title}
+                {b.partner.details ? <span className="muted"> · {b.partner.details}</span> : null}
                 {b.conditions ? <span className="muted"> ({b.conditions})</span> : null}
               </li>
             ))}

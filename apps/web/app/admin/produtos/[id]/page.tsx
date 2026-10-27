@@ -461,6 +461,7 @@ export default function ProductAdminPage() {
           maxLength={8000}
           value={form['description'] ?? ''}
           onChange={set('description')}
+          hint="Aparece na página do produto na loja: material, caimento, cuidados, o que vem incluso."
         />
         <TextArea
           label="Instruções de retirada"
