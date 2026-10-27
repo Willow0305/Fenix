@@ -72,6 +72,10 @@ import {
   CartChangeDto,
   BeneficiariesDto,
   CartItemDto,
+  GuestReturnDto,
+  ReturnDecisionDto,
+  ReturnListQueryDto,
+  ReturnRequestDto,
   PersonalizationDto,
   PersonalizationFieldDto,
   UpdatePersonalizationFieldDto,
@@ -97,6 +101,7 @@ import {
 } from './store.dto';
 import { DeleteReasonDto } from '../../../common/http/delete-reason.dto';
 import { CardsService } from '../../cards/application/cards.service';
+import { type OrderRights, ReturnsService, type ReturnView } from '../application/returns.service';
 
 export const CART_COOKIE = 'fenix_cart';
 const IDEMPOTENCY_HEADER = { name: 'Idempotency-Key', required: true };
@@ -167,7 +172,8 @@ export class StorefrontController {
     private readonly orders: OrdersService,
     private readonly favorites: FavoritesService,
     private readonly config: AppConfig,
-    private readonly coupons: CouponsService
+    private readonly coupons: CouponsService,
+    private readonly returns: ReturnsService
   ) {}
 
   private cookieOptions(): CookieOptions {
@@ -362,6 +368,60 @@ export class StorefrontController {
     );
   }
 
+  /** Direitos do pedido: prazos, itens que ainda podem ser devolvidos e pedidos feitos (DT-070). */
+  @Get('me/orders/:id/rights')
+  rights(
+    @CurrentPrincipal() principal: Principal,
+    @Param('id', new ParseUUIDPipe()) id: string
+  ): Promise<OrderRights> {
+    return this.returns.rights({ userId: principal.userId }, id);
+  }
+
+  @Post('me/orders/:id/receipt')
+  @HttpCode(200)
+  confirmReceipt(
+    @CurrentPrincipal() principal: Principal,
+    @Param('id', new ParseUUIDPipe()) id: string
+  ): Promise<OrderRights> {
+    return this.returns.confirmReceipt({ userId: principal.userId }, id);
+  }
+
+  @Post('me/orders/:id/returns')
+  @Throttle({ default: { limit: 10, ttl: 60_000 } })
+  requestReturn(
+    @CurrentPrincipal() principal: Principal,
+    @Param('id', new ParseUUIDPipe()) id: string,
+    @Body() body: ReturnRequestDto
+  ): Promise<OrderRights> {
+    return this.returns.request({ userId: principal.userId }, { ...defined(body), orderId: id });
+  }
+
+  /** Visitante: mesmos direitos, com número e código do pedido. */
+  @Post('public/orders/rights')
+  @Public()
+  @HttpCode(200)
+  @Throttle({ default: { limit: 10, ttl: 60_000 } })
+  guestRights(@Body() body: GuestLookupDto): Promise<OrderRights> {
+    return this.returns.rights({ orderNumber: body.orderNumber, code: body.code });
+  }
+
+  @Post('public/orders/receipt')
+  @Public()
+  @HttpCode(200)
+  @Throttle({ default: { limit: 10, ttl: 60_000 } })
+  guestReceipt(@Body() body: GuestLookupDto): Promise<OrderRights> {
+    return this.returns.confirmReceipt({ orderNumber: body.orderNumber, code: body.code });
+  }
+
+  @Post('public/orders/returns')
+  @Public()
+  @Throttle({ default: { limit: 5, ttl: 60_000 } })
+  guestReturn(@Body() body: GuestReturnDto): Promise<OrderRights> {
+    const { orderNumber, code, ...rest } = defined(body);
+
+    return this.returns.request({ orderNumber, code }, rest);
+  }
+
   @Get('me/orders')
   @ApiBearerAuth()
   myOrders(@CurrentPrincipal() principal: Principal): Promise<OrderView[]> {
@@ -437,8 +497,42 @@ export class StoreAdminController {
     private readonly inventory: InventoryService,
     private readonly orders: OrdersService,
     private readonly coupons: CouponsService,
-    private readonly cards: CardsService
+    private readonly cards: CardsService,
+    private readonly returns: ReturnsService
   ) {}
+
+  /** Desistências e defeitos (DT-070). */
+  @Get('returns')
+  @RequirePermissions(PERMISSIONS.ordersRead)
+  returnsList(@Query() query: ReturnListQueryDto): Promise<Page<ReturnView>> {
+    return this.returns.list(query);
+  }
+
+  @Post('returns/:id/decide')
+  @HttpCode(200)
+  @RequirePermissions(PERMISSIONS.refundsCreate)
+  decideReturn(
+    @CurrentPrincipal() actor: Principal,
+    @Param('id', new ParseUUIDPipe()) id: string,
+    @Body() body: ReturnDecisionDto,
+    @ReqMeta() meta: RequestMeta
+  ): Promise<ReturnView> {
+    return this.returns.decide(actor, id, defined(body), meta);
+  }
+
+  /** Foto da entrega: comprova a entrega e inicia os prazos (DT-070). */
+  @Post('orders/:id/delivery-proof')
+  @HttpCode(200)
+  @RequirePermissions(PERMISSIONS.ordersStatusChange)
+  @UseInterceptors(FileInterceptor('file', UPLOAD_LIMITS))
+  deliveryProof(
+    @CurrentPrincipal() actor: Principal,
+    @Param('id', new ParseUUIDPipe()) id: string,
+    @UploadedFile() file: IncomingFile | undefined,
+    @ReqMeta() meta: RequestMeta
+  ): Promise<{ deliveryConfirmedAt: string }> {
+    return this.returns.uploadProof(actor, id, file, meta);
+  }
 
   /** "Afiliações abertas": avisa todas as contas uma vez por produto (DT-068). */
   @Post('products/:id/announce-membership')

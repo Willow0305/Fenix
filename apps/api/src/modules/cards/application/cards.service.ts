@@ -740,6 +740,16 @@ export class CardsService implements OnModuleInit {
     return changed;
   }
 
+  /** Desistência de uma afiliação (DT-070): as carteirinhas daquele item são canceladas. */
+  async cancelByOrderItemInTx(tx: PrismaTx, orderItemId: string, reason: string): Promise<number> {
+    const { count } = await tx.memberCard.updateMany({
+      where: { orderItemId, status: { not: 'CANCELLED' } },
+      data: { status: 'CANCELLED', statusReason: reason }
+    });
+
+    return count;
+  }
+
   private async freeCode(tx: PrismaTx): Promise<string> {
     for (let attempt = 0; attempt < 10; attempt += 1) {
       const code = newCardCode();

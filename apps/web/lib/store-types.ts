@@ -187,6 +187,9 @@ export interface Order {
   paidAt: string | null;
   readyForPickupAt: string | null;
   deliveredAt: string | null;
+  deliveryConfirmedAt: string | null;
+  receiptConfirmedAt: string | null;
+  hasDeliveryProof: boolean;
   cancelledAt: string | null;
   cancellationReason: string | null;
   reservationExpiresAt: string | null;
@@ -288,3 +291,47 @@ export const COUPON_AUDIENCE: Record<CouponAudience, string> = {
   LOGGED_IN: 'Quem tem conta',
   ROLES: 'Públicos escolhidos (ex.: diretoria, atletas)'
 };
+
+/** Desistência e defeito (DT-070). */
+export type ReturnStatus = 'OPEN' | 'AWAITING_ITEM' | 'REFUNDED' | 'RESOLVED' | 'REJECTED';
+
+export const RETURN_STATUS: Record<ReturnStatus, { label: string; badge: string }> = {
+  OPEN: { label: 'Aguardando a diretoria', badge: 'badge-warning' },
+  AWAITING_ITEM: { label: 'Aguardando devolução do item', badge: 'badge-warning' },
+  REFUNDED: { label: 'Estornado', badge: 'badge-success' },
+  RESOLVED: { label: 'Resolvido', badge: 'badge-success' },
+  REJECTED: { label: 'Recusado', badge: '' }
+};
+
+export const RETURN_RESOLUTION: Record<'REFUND' | 'EXCHANGE' | 'REPAIR', string> = {
+  REFUND: 'Estorno',
+  EXCHANGE: 'Troca',
+  REPAIR: 'Conserto'
+};
+
+export interface ReturnView {
+  id: string;
+  orderId: string;
+  orderNumber: string;
+  kind: 'WITHDRAWAL' | 'DEFECT';
+  status: ReturnStatus;
+  description: string | null;
+  resolution: 'REFUND' | 'EXCHANGE' | 'REPAIR' | null;
+  response: string | null;
+  refundAmount: MoneyView | null;
+  items: { orderItemId: string; productName: string; quantity: number }[];
+  customerName: string;
+  createdAt: string;
+  decidedAt: string | null;
+}
+
+export interface OrderRights {
+  deliveryConfirmedAt: string | null;
+  awaitingReceipt: boolean;
+  withdrawalUntil: string | null;
+  defectUntil: string | null;
+  canWithdraw: boolean;
+  canReportDefect: boolean;
+  items: { orderItemId: string; productName: string; personalized: boolean; available: number }[];
+  returns: ReturnView[];
+}

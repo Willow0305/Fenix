@@ -9,6 +9,7 @@ import { InventoryService } from './application/inventory.service';
 import { OrdersService } from './application/orders.service';
 import { StoreAdminController, StorefrontController } from './http/store.controller';
 import { CardsModule } from '../cards/http/cards.controller';
+import { ReturnsService } from './application/returns.service';
 
 @Module({
   imports: [FinanceModule, SettingsModule, CardsModule],
@@ -19,7 +20,8 @@ import { CardsModule } from '../cards/http/cards.controller';
     CartService,
     FavoritesService,
     OrdersService,
-    CouponsService
+    CouponsService,
+    ReturnsService
   ],
   exports: [OrdersService, InventoryService, CatalogService]
 })

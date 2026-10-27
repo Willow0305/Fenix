@@ -6,6 +6,16 @@ O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) e o 
 
 ## [Não publicado]
 
+### Entrega comprovada, desistência e defeito (2026-10-27)
+
+#### Adicionado
+
+- entrega comprovada: foto anexada pela diretoria ou "Recebi" do comprador; os prazos contam daí (DT-070);
+- "Desistir da compra" em até 7 dias da entrega (itens não personalizados; afiliação, da ativação) e "Problema com o produto" em até 90 dias, em Meus pedidos e na consulta de visitante;
+- painel Trocas e devoluções com bolinha: desistência não pode ser negada (estorno integral pelo Caixa, item volta ao estoque, afiliação cancelada); defeito resolvido com troca, conserto ou estorno, ou recusado com resposta;
+- estorno parcial de pagamento, vinculado ao recebimento original; cancelar o pedido depois devolve o restante;
+- direitos de quem compra no checkout e em Termos.
+
 ### Produtos personalizados (2026-10-27)
 
 #### Adicionado

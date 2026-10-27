@@ -4,9 +4,11 @@ import type { FinancialOrigin, PaymentStatus, Prisma } from '../../../generated/
 import { AuditService } from '../../../common/audit/audit.service';
 import {
   DEFAULT_CURRENCY,
+  money,
   type Money,
   type MoneyView,
-  moneyView
+  moneyView,
+  round2
 } from '../../../common/domain/money';
 import { AppError } from '../../../common/errors/app-error';
 import { PrismaService, type PrismaTx } from '../../../common/prisma/prisma.service';
@@ -313,5 +315,101 @@ export class PaymentsService {
     );
 
     return 'REFUNDED';
+  }
+
+  /**
+   * Reembolso de parte de um pagamento confirmado (DT-070: desistência ou defeito de um item).
+   * Gera o reembolso e uma saída no Caixa vinculada; a soma dos reembolsos nunca passa do
+   * valor pago. Nada do lançamento original é alterado.
+   */
+  async partialRefundInTx(
+    tx: PrismaTx,
+    actorId: string | null,
+    paymentId: string,
+    amount: Money,
+    reason: string,
+    idempotencyKey: string
+  ): Promise<string> {
+    await lockRow(tx, 'payment', paymentId);
+    const payment = await tx.payment.findUnique({
+      where: { id: paymentId },
+      include: { financialTransaction: true, refunds: { where: { status: 'COMPLETED' } } }
+    });
+
+    if (payment === null) {
+      throw AppError.notFound('Pagamento não encontrado.');
+    }
+
+    if (payment.status !== 'CONFIRMED' && payment.status !== 'PARTIALLY_REFUNDED') {
+      throw AppError.conflict('PAYMENT_NOT_REFUNDABLE', 'Este pagamento não pode ser reembolsado.');
+    }
+
+    const already = payment.refunds.reduce((total, r) => total.plus(r.amount), money(0));
+    const value = round2(amount);
+
+    if (value.lte(0) || already.plus(value).gt(payment.amount)) {
+      throw AppError.conflict(
+        'REFUND_EXCEEDS_PAYMENT',
+        'O reembolso passaria do valor pago neste pagamento.'
+      );
+    }
+
+    const refund = await tx.refund.create({
+      data: {
+        paymentId,
+        orderId: payment.orderId,
+        amount: value,
+        currency: payment.currency,
+        status: 'COMPLETED',
+        reason,
+        idempotencyKey: `refund:${idempotencyKey}`,
+        requestedById: actorId,
+        approvedById: actorId,
+        approvedAt: new Date(),
+        processedAt: new Date()
+      }
+    });
+    const original = payment.financialTransaction;
+
+    if (original) {
+      await this.ledger.post(tx, actorId, {
+        accountId: original.accountId,
+        categoryId: original.categoryId,
+        costCenterId: original.costCenterId,
+        paymentMethodId: original.paymentMethodId,
+        direction: 'EXPENSE',
+        origin: 'REFUND',
+        amount: value,
+        occurredAt: new Date(),
+        description: `Reembolso parcial: ${original.description}`,
+        notes: reason,
+        idempotencyKey: `refund-tx:${refund.id}`,
+        status: 'CONFIRMED',
+        refundId: refund.id,
+        // Estorno parcial do recebimento: mesma categoria, sentido oposto (DT-070).
+        reversesTransactionId: original.id
+      });
+    }
+
+    const total = already.plus(value);
+
+    await tx.payment.update({
+      where: { id: paymentId },
+      data: { status: total.gte(payment.amount) ? 'REFUNDED' : 'PARTIALLY_REFUNDED' }
+    });
+    await this.audit.record(
+      {
+        actorUserId: actorId,
+        action: 'payment.partially_refunded',
+        entityType: 'Payment',
+        entityId: paymentId,
+        reason,
+        before: { status: payment.status, refunded: already.toFixed(2) },
+        after: { refundId: refund.id, amount: value.toFixed(2), refunded: total.toFixed(2) }
+      },
+      tx
+    );
+
+    return refund.id;
   }
 }

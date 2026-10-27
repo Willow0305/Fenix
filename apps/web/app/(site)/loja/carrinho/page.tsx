@@ -28,6 +28,7 @@ import type { CouponPreview, Order } from '../../../../lib/store-types';
 import { BeneficiariesEditor } from '../../../../components/beneficiaries-editor';
 import { CartPersonalization } from '../../../../components/cart-personalization';
 import { CouponBox } from '../../../../components/coupon-box';
+import { ConsumerRights } from '../../../../components/consumer-rights';
 
 export default function CartPage() {
   const { status, profile } = useAuth();
@@ -258,6 +259,7 @@ export default function CartPage() {
               Retirada combinada com o time. O pagamento é feito por PIX após a confirmação do
               pedido.
             </p>
+            <ConsumerRights compact />
             <ErrorSummary error={checkout.error} />
             {status === 'authenticated' && profile ? (
               <p>

@@ -3,6 +3,7 @@
 import { useState } from 'react';
 
 import { OrderPayment } from '../../../../components/payment-instructions';
+import { OrderRightsPanel } from '../../../../components/order-rights';
 import { OrderSummary } from '../../../../components/order-summary';
 import { ErrorSummary, PageHeader, TextField, useSubmit } from '../../../../components/ui';
 import { api } from '../../../../lib/api-client';
@@ -63,6 +64,9 @@ export default function GuestOrderPage() {
             endpoint="/public/orders/proof"
             extraFields={{ orderNumber: order.orderNumber, code: code.trim() }}
             onDone={setOrder}
+          />
+          <OrderRightsPanel
+            target={{ kind: 'guest', orderNumber: order.orderNumber, code: code.trim() }}
           />
         </>
       ) : null}

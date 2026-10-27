@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 
+import { ConsumerRights } from '../../../components/consumer-rights';
 import { getPublicTeam } from '../../../lib/server-api';
 
 export const metadata: Metadata = { title: 'Termos de uso' };
@@ -14,6 +15,7 @@ export default async function TermsPage() {
         {team.termsOfUse ??
           'Os termos de uso estão em elaboração pela diretoria e serão publicados aqui.'}
       </div>
+      <ConsumerRights />
     </div>
   );
 }

@@ -452,3 +452,49 @@ export class UpdatePersonalizationFieldDto {
   @ApiPropertyOptional() @IsOptional() @IsInt() @Min(0) @Max(100) sortOrder?: number;
   @ApiPropertyOptional() @IsOptional() @IsBoolean() isActive?: boolean;
 }
+
+/** Itens e motivo de uma desistência ou defeito (DT-070). */
+export class ReturnItemDto {
+  @ApiProperty() @IsUUID() orderItemId!: string;
+  @ApiProperty() @IsInt() @Min(0) @Max(50) quantity!: number;
+}
+
+export class ReturnRequestDto {
+  @ApiProperty({ enum: ['WITHDRAWAL', 'DEFECT'] })
+  @IsIn(['WITHDRAWAL', 'DEFECT'])
+  kind!: 'WITHDRAWAL' | 'DEFECT';
+  @ApiProperty({ type: [ReturnItemDto] })
+  @IsArray()
+  @ArrayMaxSize(50)
+  @ValidateNested({ each: true })
+  @Type(() => ReturnItemDto)
+  items!: ReturnItemDto[];
+  @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(2000) description?: string;
+}
+
+export class GuestReturnDto extends ReturnRequestDto {
+  @ApiProperty()
+  @IsString()
+  @Matches(/^FNX-\d{6}-[A-Z0-9]{6}$/i, { message: 'Número de pedido inválido.' })
+  orderNumber!: string;
+  @ApiProperty() @IsString() @MinLength(8) @MaxLength(64) code!: string;
+}
+
+export class ReturnDecisionDto {
+  @ApiPropertyOptional({ enum: ['REFUND', 'EXCHANGE', 'REPAIR'] })
+  @IsOptional()
+  @IsIn(['REFUND', 'EXCHANGE', 'REPAIR'])
+  resolution?: 'REFUND' | 'EXCHANGE' | 'REPAIR';
+  @ApiPropertyOptional({ description: 'Recusar o defeito (desistência não pode ser recusada).' })
+  @IsOptional()
+  @IsBoolean()
+  reject?: boolean;
+  @ApiProperty() @IsString() @MinLength(5) @MaxLength(2000) response!: string;
+}
+
+export class ReturnListQueryDto extends PageQueryDto {
+  @ApiPropertyOptional({ enum: ['open', 'closed'] })
+  @IsOptional()
+  @IsIn(['open', 'closed'])
+  status?: 'open' | 'closed';
+}

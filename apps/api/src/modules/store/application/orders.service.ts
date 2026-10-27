@@ -3,7 +3,14 @@ import type { OrderStatus, Prisma } from '../../../generated/prisma/client';
 
 import { AuditService } from '../../../common/audit/audit.service';
 import { generateOpaqueToken, sha256Hex } from '../../../common/crypto/tokens';
-import { type Money, type MoneyView, moneyView, sum, ZERO } from '../../../common/domain/money';
+import {
+  money,
+  type Money,
+  type MoneyView,
+  moneyView,
+  sum,
+  ZERO
+} from '../../../common/domain/money';
 import { assertTransition } from '../../../common/domain/state-machine';
 import { endOfDayExclusive, startOfDayInZone } from '../../../common/domain/time-zone';
 import { AppError } from '../../../common/errors/app-error';
@@ -100,6 +107,10 @@ export interface OrderView {
   readonly paidAt: string | null;
   readonly readyForPickupAt: string | null;
   readonly deliveredAt: string | null;
+  /** Entrega comprovada (DT-070): foto da diretoria ou "Recebi" do comprador. */
+  readonly deliveryConfirmedAt: string | null;
+  readonly receiptConfirmedAt: string | null;
+  readonly hasDeliveryProof: boolean;
   readonly cancelledAt: string | null;
   readonly cancellationReason: string | null;
   readonly reservationExpiresAt: string | null;
@@ -247,6 +258,9 @@ export class OrdersService implements OnModuleInit {
       paidAt: row.paidAt?.toISOString() ?? null,
       readyForPickupAt: row.readyForPickupAt?.toISOString() ?? null,
       deliveredAt: row.deliveredAt?.toISOString() ?? null,
+      deliveryConfirmedAt: row.deliveryConfirmedAt?.toISOString() ?? null,
+      receiptConfirmedAt: row.receiptConfirmedAt?.toISOString() ?? null,
+      hasDeliveryProof: row.deliveryProofMediaFileId !== null,
       cancelledAt: row.cancelledAt?.toISOString() ?? null,
       cancellationReason: row.cancellationReason,
       reservationExpiresAt: row.reservationExpiresAt?.toISOString() ?? null
@@ -844,7 +858,8 @@ export class OrdersService implements OnModuleInit {
     if (items.length > 0 && items.every((item) => item.product.fulfillmentType === 'MEMBERSHIP')) {
       await tx.order.update({
         where: { id: orderId },
-        data: { status: 'DELIVERED', deliveredAt: new Date() }
+        // Afiliação: a entrega é a ativação, comprovada pelo sistema (DT-070).
+        data: { status: 'DELIVERED', deliveredAt: new Date(), deliveryConfirmedAt: new Date() }
       });
     }
   }
@@ -1151,7 +1166,9 @@ export class OrdersService implements OnModuleInit {
         message:
           status === 'READY_FOR_PICKUP'
             ? 'Seu pedido está pronto para retirada.'
-            : `A situação do seu pedido mudou para "${ORDER_STATUS_LABELS[status]}".`,
+            : status === 'DELIVERED'
+              ? 'Pedido entregue. Toque em "Recebi" em Meus pedidos para confirmar; os prazos de troca contam a partir daí.'
+              : `A situação do seu pedido mudou para "${ORDER_STATUS_LABELS[status]}".`,
         link: `/minha-conta/pedidos/${row.id}`,
         deduplicationKey: `order-status:${row.id}:${status}`
       },
@@ -1230,6 +1247,26 @@ export class OrdersService implements OnModuleInit {
       (p) => p.status === 'CONFIRMED' || p.status === 'PENDING'
     )) {
       await this.payments.reverseInTx(tx, actorId, payment.id, reason, `${keyBase}:${payment.id}`);
+    }
+
+    // Pagamento com reembolso parcial (desistência de item, DT-070): devolve o restante.
+    for (const payment of row.payments.filter((p) => p.status === 'PARTIALLY_REFUNDED')) {
+      const refunded = await tx.refund.aggregate({
+        where: { paymentId: payment.id, status: 'COMPLETED' },
+        _sum: { amount: true }
+      });
+      const remaining = money(payment.amount).minus(refunded._sum.amount ?? 0);
+
+      if (remaining.gt(0)) {
+        await this.payments.partialRefundInTx(
+          tx,
+          actorId,
+          payment.id,
+          remaining,
+          reason,
+          `${keyBase}:rest:${payment.id}`
+        );
+      }
     }
   }
 

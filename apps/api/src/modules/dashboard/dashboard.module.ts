@@ -156,6 +156,15 @@ export class PendingBadgesService {
       ]);
     }
 
+    if (can(PERMISSIONS.ordersRead)) {
+      // Desistência ou defeito aguardando a diretoria (DT-070).
+      tasks.push([
+        '/admin/devolucoes',
+        () =>
+          this.prisma.returnRequest.count({ where: { status: { in: ['OPEN', 'AWAITING_ITEM'] } } })
+      ]);
+    }
+
     if (can(PERMISSIONS.feesRead)) {
       tasks.push([
         '/admin/mensalidades',

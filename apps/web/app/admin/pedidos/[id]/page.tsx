@@ -30,6 +30,7 @@ import {
 import { useResource } from '../../../../lib/use-resource';
 import { ContactActions } from '../../../../components/contact-actions';
 import { Icon } from '../../../../components/icon';
+import { DeliveryProof } from '../../../../components/delivery-proof';
 
 export default function OrderAdminPage() {
   const { id } = useParams<{ id: string }>();
@@ -94,6 +95,7 @@ export default function OrderAdminPage() {
       />
       {notice ? <Alert kind="success">{notice}</Alert> : null}
       <OrderSummary order={o} />
+      <DeliveryProof order={o} onChanged={order.reload} />
       {o.notes ? <Alert kind="info">Observação do cliente: {o.notes}</Alert> : null}
 
       {o.payments.some((p) => p.status === 'PENDING' || p.attachments.length > 0) ? (

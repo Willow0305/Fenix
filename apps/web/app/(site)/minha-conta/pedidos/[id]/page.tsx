@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { useParams } from 'next/navigation';
 
 import { OrderPayment } from '../../../../../components/payment-instructions';
+import { OrderRightsPanel } from '../../../../../components/order-rights';
 import { OrderSummary } from '../../../../../components/order-summary';
 import { Alert, Loading } from '../../../../../components/ui';
 import type { Order } from '../../../../../lib/store-types';
@@ -25,6 +26,7 @@ export default function MyOrderPage() {
         <Alert kind="success">Seu pedido está pronto para retirada!</Alert>
       ) : null}
       <OrderPayment order={order.data} endpoint={`/me/orders/${id}/proof`} onDone={order.setData} />
+      <OrderRightsPanel target={{ kind: 'user', orderId: id }} />
     </>
   );
 }
