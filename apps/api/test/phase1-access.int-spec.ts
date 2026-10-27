@@ -572,22 +572,32 @@ describe('Fase 1 — autenticação, permissões e configurações', () => {
       await ctx.http().get(url).expect(200).expect('Content-Type', 'image/webp');
       await ctx
         .http()
-        .put('/api/v1/team-settings/brand-assets/MALE')
+        .put('/api/v1/team-settings/brand-assets/COVER')
         .set('Authorization', `Bearer ${board.token}`)
         .attach('file', PNG_1X1.subarray(0, 40), 'logo.png')
         .expect(422);
       await ctx
         .http()
-        .put('/api/v1/team-settings/brand-assets/MALE')
+        .put('/api/v1/team-settings/brand-assets/COVER')
         .set('Authorization', `Bearer ${board.token}`)
         .attach('file', Buffer.from('<svg onload="alert(1)"></svg>'), 'logo.png')
         .expect(415);
       await ctx
         .http()
-        .put('/api/v1/team-settings/brand-assets/MALE')
+        .put('/api/v1/team-settings/brand-assets/COVER')
         .set('Authorization', `Bearer ${board.token}`)
         .attach('file', PNG_1X1, 'logo.pdf')
         .expect(415);
+
+      // Logo de time masculino/feminino agora fica em cada equipe (DT-064).
+      const moved = await ctx
+        .http()
+        .put('/api/v1/team-settings/brand-assets/MALE')
+        .set('Authorization', `Bearer ${board.token}`)
+        .attach('file', PNG_1X1, 'logo.png')
+        .expect(422);
+
+      expect(moved.body.code).toBe('TEAM_LOGO_MOVED');
     });
   });
 });

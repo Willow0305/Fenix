@@ -9,7 +9,12 @@ import { slugify } from '../domain/sports-rules';
 import { softDeleteIfUnused } from '../../../common/domain/safe-delete';
 import { ageOn, civilToDate, dateToCivil, todayIn } from '../../../common/domain/civil-date';
 import { ADULT_AGE } from '../domain/sports-rules';
-import { mediaUrl } from '../../media/application/media.service';
+import {
+  IMAGE_POLICY,
+  type IncomingFile,
+  MediaService,
+  mediaUrl
+} from '../../media/application/media.service';
 
 export interface CategoryView {
   readonly id: string;
@@ -29,6 +34,8 @@ export interface TeamView {
   readonly description: string | null;
   readonly isActive: boolean;
   readonly category: { id: string; name: string } | null;
+  /** Logo própria da equipe; `null` = o site usa o brasão oficial (DT-064). */
+  readonly logoUrl: string | null;
   readonly activeAthletes?: number;
 }
 
@@ -64,6 +71,7 @@ export interface RosterCategoryView {
     slug: string;
     type: TeamType;
     description: string | null;
+    logoUrl: string | null;
     athletes: RosterAthleteView[];
   }[];
 }
@@ -102,7 +110,8 @@ export function publicDisplayName(
 export class TeamsService {
   constructor(
     private readonly prisma: PrismaService,
-    private readonly audit: AuditService
+    private readonly audit: AuditService,
+    private readonly media: MediaService
   ) {}
 
   async categories(includeInactive: boolean): Promise<CategoryView[]> {
@@ -259,6 +268,7 @@ export class TeamsService {
         slug: team.slug,
         type: team.type,
         description: team.description,
+        logoUrl: team.logoMediaFileId ? mediaUrl(team.logoMediaFileId) : null,
         athletes: team.memberships
           .map((membership) => {
             const athlete = membership.athlete;
@@ -309,6 +319,7 @@ export class TeamsService {
       description: row.description,
       isActive: row.isActive,
       category: row.category,
+      logoUrl: row.logoMediaFileId ? mediaUrl(row.logoMediaFileId) : null,
       ...('_count' in row
         ? { activeAthletes: (row._count as { memberships: number }).memberships }
         : {})
@@ -423,6 +434,56 @@ export class TeamsService {
       },
       after: input as Record<string, unknown>,
       meta
+    });
+
+    return (await this.teams({ includeInactive: true, withCounts: true })).find(
+      (t) => t.id === id
+    ) as TeamView;
+  }
+
+  /**
+   * Troca a logo da equipe ou, com `null`, remove (DT-064). A imagem é pública, validada e
+   * otimizada como as demais logos; envio sem arquivo responde "Selecione um arquivo.".
+   */
+  async setLogo(
+    actor: Principal,
+    id: string,
+    file: IncomingFile | undefined | null,
+    meta: RequestMeta
+  ): Promise<TeamView> {
+    await this.prisma.$transaction(async (tx) => {
+      const team = await tx.team.findFirst({
+        where: { id, deletedAt: null },
+        select: { logoMediaFileId: true }
+      });
+
+      if (team === null) {
+        throw AppError.notFound('Equipe não encontrada.');
+      }
+
+      const stored =
+        file === null
+          ? null
+          : await this.media.store(
+              file,
+              { ...IMAGE_POLICY, kind: 'IMAGE', classification: 'PUBLIC' },
+              actor.userId,
+              tx
+            );
+
+      await tx.team.update({ where: { id }, data: { logoMediaFileId: stored?.id ?? null } });
+      await this.audit.record(
+        {
+          actorUserId: actor.userId,
+          action: stored ? 'team.logo.updated' : 'team.logo.removed',
+          entityType: 'Team',
+          entityId: id,
+          before: { mediaFileId: team.logoMediaFileId },
+          after: { mediaFileId: stored?.id ?? null },
+          meta
+        },
+        tx
+      );
     });
 
     return (await this.teams({ includeInactive: true, withCounts: true })).find(

@@ -10,9 +10,12 @@ import {
   Patch,
   Post,
   Put,
-  Query
+  Query,
+  UploadedFile,
+  UseInterceptors
 } from '@nestjs/common';
-import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { ApiBearerAuth, ApiConsumes, ApiTags } from '@nestjs/swagger';
 import { Throttle } from '@nestjs/throttler';
 
 import type { Page } from '../../../common/http/pagination';
@@ -26,6 +29,8 @@ import {
 import { defined } from '../../../common/util/defined';
 import { PERMISSIONS } from '../../access/domain/permission-catalog';
 import { Public, RequirePermissions } from '../../auth/http/auth.decorators';
+import type { IncomingFile } from '../../media/application/media.service';
+import { UPLOAD_LIMITS } from '../../settings/http/settings.controller';
 import {
   type AthleteDetail,
   type StatusImpact,
@@ -222,6 +227,29 @@ export class TeamsController {
     @ReqMeta() meta: RequestMeta
   ): Promise<TeamView> {
     return this.teams.updateTeam(actor, id, defined(body), meta);
+  }
+
+  @Put('teams/:id/logo')
+  @ApiConsumes('multipart/form-data')
+  @RequirePermissions(PERMISSIONS.teamsManage)
+  @UseInterceptors(FileInterceptor('file', UPLOAD_LIMITS))
+  setLogo(
+    @CurrentPrincipal() actor: Principal,
+    @Param('id', new ParseUUIDPipe()) id: string,
+    @UploadedFile() file: IncomingFile | undefined,
+    @ReqMeta() meta: RequestMeta
+  ): Promise<TeamView> {
+    return this.teams.setLogo(actor, id, file, meta);
+  }
+
+  @Delete('teams/:id/logo')
+  @RequirePermissions(PERMISSIONS.teamsManage)
+  removeLogo(
+    @CurrentPrincipal() actor: Principal,
+    @Param('id', new ParseUUIDPipe()) id: string,
+    @ReqMeta() meta: RequestMeta
+  ): Promise<TeamView> {
+    return this.teams.setLogo(actor, id, null, meta);
   }
 }
 

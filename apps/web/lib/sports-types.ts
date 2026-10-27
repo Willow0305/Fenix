@@ -24,6 +24,8 @@ export interface Team {
   description: string | null;
   isActive: boolean;
   category: { id: string; name: string } | null;
+  /** Logo própria; `null` = o site usa o brasão oficial (DT-064). */
+  logoUrl: string | null;
   activeAthletes?: number;
 }
 
@@ -255,6 +257,7 @@ export interface RosterCategory {
     slug: string;
     type: TeamType;
     description: string | null;
+    logoUrl: string | null;
     athletes: { displayName: string; position: string | null; photoUrl: string | null }[];
   }[];
 }

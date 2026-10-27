@@ -1245,3 +1245,25 @@ As imagens enviadas em Configurações → Marca passam a aparecer onde fazem se
 - **time masculino / feminino:** nos cartões "Nossos times" do Início, no título de Times quando filtrado e em cada time da página Times (misto e outros usam o brasão);
 - **diretoria:** no topo do menu do painel;
 - **capa:** faixa no topo do Sobre e imagem padrão ao compartilhar links do site (sem capa, o brasão). Notícias continuam com a própria capa.
+
+## DT-064 — Logo própria em cada equipe
+
+- **Estado:** Aceita (substitui a parte "time masculino / feminino" da DT-063)
+- **Data:** 2026-10-26
+- **Aprovador:** responsável do projeto ("seria bom transferir essa parte de imagens para dentro das configurações dos times criados [...] ficaria lá apenas a logo do time oficial", 2026-10-26)
+
+### Contexto
+
+As logos "time masculino" e "time feminino" ficavam em Configurações e eram associadas pelo **tipo** da equipe: qualquer equipe masculina herdava a mesma logo, e equipes de outros tipos (ex.: 4x4, misto) não tinham como ter logo própria.
+
+### Decisão
+
+- cada equipe tem `logoMediaFileId` (opcional), enviado em Painel → Equipes, na edição do time (`PUT /teams/:id/logo`, `DELETE /teams/:id/logo`, permissão `teams.manage`); imagem pública validada e otimizada como as demais logos; troca e remoção auditadas;
+- sem logo própria, o site usa o brasão oficial;
+- no site: cada cartão em Times mostra a logo da equipe; o título de Times filtrado e os cartões Masculino/Feminino do Início usam a logo da primeira equipe daquele tipo que tenha logo;
+- Configurações → Marca fica com **brasão oficial, logo da diretoria e capa**, que não pertencem a uma equipe; o envio de "masculino"/"feminino" lá passa a responder 422 (`TEAM_LOGO_MOVED`) indicando Equipes;
+- a migração `logo_por_equipe` copia as logos antigas para as equipes desse tipo e remove as duas entradas de Configurações, para nada sumir do site. Equipes criadas depois começam sem logo (brasão) até receberem a própria.
+
+### Consequências
+
+- 1 teste de integração (permissão, envio sem arquivo, envio, elenco público com a logo, remoção) e ajuste do teste de logos de Configurações.

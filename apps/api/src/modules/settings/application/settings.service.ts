@@ -4,6 +4,7 @@ import { Prisma, type TeamBrandContext } from '../../../generated/prisma/client'
 import { AuditService } from '../../../common/audit/audit.service';
 import { AppConfig } from '../../../common/config/app-config';
 import { decryptField, DATA_KEY_VERSION, encryptField } from '../../../common/crypto/data-cipher';
+import { AppError } from '../../../common/errors/app-error';
 import type { Principal, RequestMeta } from '../../../common/http/request-context';
 import { PrismaService, type PrismaTx } from '../../../common/prisma/prisma.service';
 import { PERMISSIONS } from '../../access/domain/permission-catalog';
@@ -120,6 +121,8 @@ export function defaultSettingsData(): Prisma.TeamSettingsCreateInput {
     timeZone: 'America/Rio_Branco'
   };
 }
+
+const TEAM_LEVEL_CONTEXTS: ReadonlySet<TeamBrandContext> = new Set(['MALE', 'FEMALE']);
 
 @Injectable()
 export class SettingsService {
@@ -306,6 +309,14 @@ export class SettingsService {
     altText: string | null,
     meta: RequestMeta
   ): Promise<AdminTeamSettings> {
+    // Logo de time masculino/feminino virou logo de cada equipe (DT-064).
+    if (TEAM_LEVEL_CONTEXTS.has(context)) {
+      throw AppError.validation(
+        'TEAM_LOGO_MOVED',
+        'A logo de cada time agora é enviada em Equipes, no cadastro do próprio time.'
+      );
+    }
+
     await this.prisma.$transaction(async (tx) => {
       const settings = await this.load(tx);
       const stored = await this.media.store(

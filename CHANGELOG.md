@@ -10,7 +10,8 @@ O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) e o 
 
 #### Adicionado
 
-- logos do time masculino e feminino nos cartões do Início e na página Times; logo da diretoria no painel; imagem de capa no Sobre e ao compartilhar links (DT-063).
+- cada time tem a própria logo, enviada em Painel → Equipes, na edição do time; aparece em Times e nos cartões do Início (sem logo, o brasão). Configurações → Marca fica com brasão, diretoria e capa; as logos antigas de masculino/feminino foram copiadas para os times desse tipo (DT-064);
+- logo da diretoria no painel; imagem de capa no Sobre e ao compartilhar links (DT-063).
 
 ### Excluir contas financeiras e remessas (2026-10-26)
 

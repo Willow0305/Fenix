@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { Avatar } from '../../../components/avatar';
 import { BrandLogo } from '../../../components/brand-logo';
 import { Icon } from '../../../components/icon';
-import { brandAsset, teamTypeContext } from '../../../lib/brand';
+import { firstTeamLogo } from '../../../lib/brand';
 import { getPublicTeam, serverGet } from '../../../lib/server-api';
 import { type RosterCategory, TEAM_TYPE, type TeamType } from '../../../lib/sports-types';
 
@@ -36,13 +36,15 @@ export default async function TeamsPage({
     ),
     getPublicTeam()
   ]);
-  const heading = brandAsset(club.brandAssets, teamTypeContext(type ?? 'OFFICIAL'));
+  const official = club.brandAssets.OFFICIAL;
+  const teams = roster.flatMap((group) => group.teams);
+  const headingLogo = (type ? firstTeamLogo(teams, type) : undefined) ?? official?.url;
   const teamCount = roster.reduce((total, group) => total + group.teams.length, 0);
 
   return (
     <div className="container stack" style={{ paddingTop: '2.5rem' }}>
       <div className="row">
-        <BrandLogo src={heading?.url} alt={heading?.altText ?? undefined} size={64} />
+        <BrandLogo src={headingLogo} alt="" size={64} />
         <h1 style={{ margin: 0 }}>
           {type === 'MALE'
             ? 'Time masculino'
@@ -81,13 +83,11 @@ export default async function TeamsPage({
               {group.category ? `Categoria ${group.category.name}` : 'Outras equipes'}
             </h2>
             {group.teams.map((team) => {
-              const logo = brandAsset(club.brandAssets, teamTypeContext(team.type));
-
               return (
                 <details key={team.id} className="card team-card" id={team.slug}>
                   <summary>
                     <span className="team-card-head">
-                      <BrandLogo src={logo?.url} alt="" size={40} />
+                      <BrandLogo src={team.logoUrl ?? official?.url} alt="" size={40} />
                       <strong className="team-card-name">{team.name}</strong>
                       <span className="badge badge-brand">{TEAM_TYPE[team.type]}</span>
                       <span className="spacer" />

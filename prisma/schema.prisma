@@ -719,6 +719,7 @@ model MediaFile {
   uploadedBy           User?                            @relation("MediaUploader", fields: [uploadedById], references: [id], onDelete: SetNull, onUpdate: Cascade)
   userAvatars          User[]                           @relation("UserAvatar")
   teamBrandAssets      TeamBrandAsset[]
+  teamLogos            Team[]                           @relation("TeamLogo")
   athleteDocuments     AthleteDocument[]
   financialAttachments FinancialTransactionAttachment[]
   partnerLogos         Partner[]                        @relation("PartnerLogo")
@@ -839,23 +840,27 @@ model Category {
 }
 
 model Team {
-  id          String    @id @default(uuid()) @db.Uuid
-  categoryId  String?   @map("category_id") @db.Uuid
-  name        String    @db.VarChar(120)
-  slug        String    @unique @db.VarChar(140)
-  type        TeamType
-  description String?   @db.Text
-  isActive    Boolean   @default(true) @map("is_active")
-  createdAt   DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
-  updatedAt   DateTime  @updatedAt @map("updated_at") @db.Timestamptz(6)
-  deletedAt   DateTime? @map("deleted_at") @db.Timestamptz(6)
+  id              String    @id @default(uuid()) @db.Uuid
+  categoryId      String?   @map("category_id") @db.Uuid
+  name            String    @db.VarChar(120)
+  slug            String    @unique @db.VarChar(140)
+  type            TeamType
+  description     String?   @db.Text
+  /// Logo própria da equipe (DT-064); sem ela, o site usa o brasão oficial.
+  logoMediaFileId String?   @map("logo_media_file_id") @db.Uuid
+  isActive        Boolean   @default(true) @map("is_active")
+  createdAt       DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt       DateTime  @updatedAt @map("updated_at") @db.Timestamptz(6)
+  deletedAt       DateTime? @map("deleted_at") @db.Timestamptz(6)
 
-  category    Category?     @relation(fields: [categoryId], references: [id], onDelete: SetNull, onUpdate: Cascade)
-  memberships TeamAthlete[]
-  tryouts     Tryout[]
-  matches     Match[]
+  category      Category?     @relation(fields: [categoryId], references: [id], onDelete: SetNull, onUpdate: Cascade)
+  logoMediaFile MediaFile?    @relation("TeamLogo", fields: [logoMediaFileId], references: [id], onDelete: SetNull, onUpdate: Cascade)
+  memberships   TeamAthlete[]
+  tryouts       Tryout[]
+  matches       Match[]
 
   @@index([categoryId, isActive, deletedAt])
+  @@index([logoMediaFileId])
   @@map("teams")
 }
 

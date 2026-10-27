@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import { useEffect, useState } from 'react';
 
 import {
@@ -20,8 +21,6 @@ import { useResource } from '../../../lib/use-resource';
 
 const BRAND_CONTEXTS: { context: BrandContext; label: string }[] = [
   { context: 'OFFICIAL', label: 'Brasão oficial' },
-  { context: 'MALE', label: 'Logo time masculino' },
-  { context: 'FEMALE', label: 'Logo time feminino' },
   { context: 'BOARD', label: 'Logo da diretoria' },
   { context: 'COVER', label: 'Imagem de capa' }
 ];
@@ -338,6 +337,10 @@ export default function SettingsPage() {
       {can('logos.manage') ? (
         <section className="stack" aria-labelledby="marca">
           <h2 id="marca">Marca e logos</h2>
+          <p className="muted" style={{ margin: 0 }}>
+            A logo de cada time (masculino, feminino, 4x4…) é enviada em{' '}
+            <Link href="/admin/equipes">Equipes</Link>, na edição do próprio time.
+          </p>
           <div className="form-grid">
             {BRAND_CONTEXTS.map((item) => (
               <BrandUpload

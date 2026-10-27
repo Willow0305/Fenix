@@ -19,7 +19,9 @@ import { api } from '../../../lib/api-client';
 import { useAuth } from '../../../lib/auth-context';
 import { type Category, TEAM_TYPE, type Team, type TeamType } from '../../../lib/sports-types';
 import { useResource } from '../../../lib/use-resource';
+import { BrandLogo } from '../../../components/brand-logo';
 import { CategoryManager } from '../../../components/category-manager';
+import { TeamLogoUpload } from '../../../components/team-logo-upload';
 
 interface TeamFormState {
   name: string;
@@ -113,7 +115,7 @@ export default function TeamsAdminPage() {
   const manage = can('teams.manage');
 
   async function saveTeam(form: TeamFormState, id?: string) {
-    await api(id ? `/teams/${id}` : '/teams', {
+    const saved = await api<Team>(id ? `/teams/${id}` : '/teams', {
       method: id ? 'PATCH' : 'POST',
       body: {
         name: form.name,
@@ -123,8 +125,9 @@ export default function TeamsAdminPage() {
         ...(form.description || id ? { description: form.description || null } : {})
       }
     });
-    setNotice(id ? 'Equipe atualizada.' : 'Equipe criada.');
-    setEditing(null);
+    setNotice(id ? 'Equipe atualizada.' : 'Equipe criada. Se quiser, envie a logo do time abaixo.');
+    // Depois de criar, a edição fica aberta para enviar a logo do time.
+    setEditing(id ? null : saved);
     setCreating(false);
     await teams.reload();
   }
@@ -187,6 +190,14 @@ export default function TeamsAdminPage() {
             onSubmit={(form) => saveTeam(form, editing.id)}
             onCancel={() => setEditing(null)}
           />
+          <hr />
+          <TeamLogoUpload
+            team={editing}
+            onChanged={async (saved) => {
+              setEditing(saved);
+              await teams.reload();
+            }}
+          />
         </section>
       ) : null}
 
@@ -212,7 +223,12 @@ export default function TeamsAdminPage() {
               <tbody>
                 {teams.data.map((t) => (
                   <tr key={t.id}>
-                    <td data-label="Equipe">{t.name}</td>
+                    <td data-label="Equipe">
+                      <span className="row" style={{ gap: '0.5rem', flexWrap: 'nowrap' }}>
+                        <BrandLogo src={t.logoUrl ?? undefined} alt="" size={28} />
+                        {t.name}
+                      </span>
+                    </td>
                     <td data-label="Tipo">{TEAM_TYPE[t.type]}</td>
                     <td data-label="Categoria">{t.category?.name ?? '—'}</td>
                     <td data-label="Vínculos atuais" className="num">
