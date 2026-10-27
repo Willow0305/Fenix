@@ -420,6 +420,9 @@ enum NotificationCategory {
   COMMUNITY
   ACCOUNT
   OPERATIONS
+  NEWS
+  EVENTS
+  FORUM_TOPICS
 }
 
 enum NotificationDeliveryStatus {
@@ -1969,6 +1972,8 @@ model Event {
   address          String?     @db.Text
   isPublic         Boolean     @default(false) @map("is_public")
   publishedAt      DateTime?   @map("published_at") @db.Timestamptz(6)
+  /// Quando os inscritos em "Eventos e jogos" foram avisados (uma vez só; DT-067).
+  announcedAt      DateTime?   @map("announced_at") @db.Timestamptz(6)
   /// Imagem de capa 16:9 (PEN-058, DT-041).
   coverMediaFileId String?     @map("cover_media_file_id") @db.Uuid
   createdAt        DateTime    @default(now()) @map("created_at") @db.Timestamptz(6)
@@ -2157,6 +2162,8 @@ model News {
   isFeatured       Boolean    @default(false) @map("is_featured")
   scheduledAt      DateTime?  @map("scheduled_at") @db.Timestamptz(6)
   publishedAt      DateTime?  @map("published_at") @db.Timestamptz(6)
+  /// Quando os inscritos em "Notícias do clube" foram avisados (uma vez só; DT-067).
+  announcedAt      DateTime?  @map("announced_at") @db.Timestamptz(6)
   createdAt        DateTime   @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt        DateTime   @updatedAt @map("updated_at") @db.Timestamptz(6)
   deletedAt        DateTime?  @map("deleted_at") @db.Timestamptz(6)

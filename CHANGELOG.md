@@ -6,6 +6,22 @@ O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) e o 
 
 ## [Não publicado]
 
+### Planos, contas, seletivas e avisos de conteúdo (2026-10-27)
+
+#### Adicionado
+
+- avisos de notícias, eventos e novos tópicos do fórum por e-mail ou WhatsApp, que qualquer pessoa liga em Minha conta → Notificações (desligados por padrão) (DT-067);
+- ao inativar um plano, a tela mostra o impacto e permite cancelar as mensalidades futuras sem pagamento e encerrar o vínculo dos atletas; excluir faz isso sempre (DT-066);
+- `npm run db:fees-ended-plans` corrige planos excluídos antes da regra.
+
+#### Alterado
+
+- conta financeira com histórico pode ser excluída quando inativa, sem pendências e com saldo zero; o histórico continua nos relatórios; contas inativas ficam recolhidas (DT-065).
+
+#### Corrigido
+
+- a bolinha de Seletivas contava inscrições de seletivas apagadas ou encerradas.
+
 ### Convite para jogar em destaque (2026-10-26)
 
 #### Alterado

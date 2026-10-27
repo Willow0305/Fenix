@@ -27,6 +27,9 @@ describe('categoryOf', () => {
     ['appointment.status', 'AGENDA'],
     ['announcement', 'ANNOUNCEMENTS'],
     ['forum.reply', 'COMMUNITY'],
+    ['content.news', 'NEWS'],
+    ['content.event', 'EVENTS'],
+    ['content.forum_topic', 'FORUM_TOPICS'],
     ['privacy.request.answered', 'ACCOUNT'],
     ['tipo.desconhecido', 'ACCOUNT']
   ])('%s → %s', (type, category) => {
@@ -38,6 +41,10 @@ describe('channelsFor', () => {
   it('por padrão manda cobrança por e-mail e WhatsApp, e fórum só no painel', () => {
     expect(channelsFor('FINANCE', [], recipient, BOTH)).toEqual(['EMAIL', 'WHATSAPP']);
     expect(channelsFor('COMMUNITY', [], recipient, BOTH)).toEqual([]);
+    // Notícias, eventos e novos tópicos só chegam para quem escolheu receber (DT-067).
+    expect(channelsFor('NEWS', [], recipient, BOTH)).toEqual([]);
+    expect(channelsFor('EVENTS', [], recipient, BOTH)).toEqual([]);
+    expect(channelsFor('FORUM_TOPICS', [], recipient, BOTH)).toEqual([]);
   });
 
   it('respeita a escolha registrada', () => {

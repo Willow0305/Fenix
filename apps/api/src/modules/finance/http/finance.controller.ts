@@ -41,6 +41,7 @@ import {
   type FeeDetail,
   FeesService,
   type FeeView,
+  type PlanImpact,
   type PlanView,
   type AthletePlanView,
   type BulkAssignResult,
@@ -568,6 +569,12 @@ export class FeesController {
     @ReqMeta() meta: RequestMeta
   ): Promise<void> {
     await this.fees.deletePlan(actor, id, body.reason, meta);
+  }
+
+  @Get('fee-plans/:id/impact')
+  @RequirePermissions(PERMISSIONS.feesManagePlans)
+  planImpact(@Param('id', new ParseUUIDPipe()) id: string): Promise<PlanImpact> {
+    return this.fees.planImpact(id);
   }
 
   @Get('fee-plans/:id/athletes')

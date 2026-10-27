@@ -8,7 +8,7 @@ import { PlanForm, type PlanPayload } from '../../../components/plan-form';
 import { Alert, ConfirmDialog, PageHeader, Skeleton } from '../../../components/ui';
 import { api } from '../../../lib/api-client';
 import { useAuth } from '../../../lib/auth-context';
-import type { Plan } from '../../../lib/finance-types';
+import type { Plan, PlanImpact } from '../../../lib/finance-types';
 import { formatMoney } from '../../../lib/format';
 import { useResource } from '../../../lib/use-resource';
 
@@ -25,6 +25,13 @@ export default function PlansPage() {
   const [deleting, setDeleting] = useState<Plan | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
   const manage = can('fees.plans.manage');
+  const target = toggling ?? deleting;
+  const deactivating = toggling?.status === 'ACTIVE';
+  // Impacto de inativar ou excluir (DT-066), carregado ao abrir o diálogo.
+  const impact = useResource<PlanImpact>(
+    target && (deleting || deactivating) ? `/fee-plans/${target.id}/impact` : null
+  );
+  const [effects, setEffects] = useState({ cancelFutureFees: true, endAthletePlans: true });
 
   async function save(payload: PlanPayload, id?: string) {
     await api(id ? `/fee-plans/${id}` : '/fee-plans', {
@@ -144,7 +151,10 @@ export default function PlansPage() {
                         <button
                           type="button"
                           className="btn btn-secondary btn-sm"
-                          onClick={() => setToggling(plan)}
+                          onClick={() => {
+                            setEffects({ cancelFutureFees: true, endAthletePlans: true });
+                            setToggling(plan);
+                          }}
                         >
                           {plan.status === 'ACTIVE' ? 'Inativar' : 'Reativar'}
                         </button>
@@ -170,36 +180,74 @@ export default function PlansPage() {
       <ConfirmDialog
         open={toggling !== null}
         title={
-          toggling?.status === 'ACTIVE'
-            ? `Inativar ${toggling.name}`
-            : `Reativar ${toggling?.name ?? ''}`
+          deactivating ? `Inativar ${toggling?.name ?? ''}` : `Reativar ${toggling?.name ?? ''}`
         }
         description={
-          toggling?.status === 'ACTIVE'
-            ? 'O plano deixa de gerar novas cobranças e não pode ser atribuído. Os atletas continuam vinculados e as cobranças já geradas não mudam.'
+          deactivating
+            ? 'O plano deixa de gerar cobranças e não pode ser atribuído. Escolha o que fazer com o que já existe; meses passados e cobranças com pagamento nunca mudam.'
             : 'O plano volta a gerar cobranças para os atletas vinculados.'
         }
-        confirmLabel={toggling?.status === 'ACTIVE' ? 'Inativar' : 'Reativar'}
+        confirmLabel={deactivating ? 'Inativar' : 'Reativar'}
+        requireReason={deactivating && (effects.cancelFutureFees || effects.endAthletePlans)}
         onClose={() => setToggling(null)}
-        onConfirm={async () => {
+        onConfirm={async (reason) => {
           if (!toggling) {
             return;
           }
 
           await api(`/fee-plans/${toggling.id}`, {
             method: 'PATCH',
-            body: { status: toggling.status === 'ACTIVE' ? 'INACTIVE' : 'ACTIVE' }
+            body: deactivating
+              ? { status: 'INACTIVE', ...effects, ...(reason ? { reason } : {}) }
+              : { status: 'ACTIVE' }
           });
+          setNotice(deactivating ? 'Plano inativado.' : 'Plano reativado.');
           await plans.reload();
         }}
-      />
+      >
+        {deactivating && impact.data ? (
+          <fieldset className="form-section">
+            <legend>O que já existe</legend>
+            <label className="checkbox">
+              <input
+                type="checkbox"
+                disabled={impact.data.cancellableFees === 0}
+                checked={effects.cancelFutureFees}
+                onChange={(e) => setEffects({ ...effects, cancelFutureFees: e.target.checked })}
+              />
+              <span>
+                Cancelar {impact.data.cancellableFees} mensalidade(s) deste mês em diante sem
+                pagamento
+              </span>
+            </label>
+            <label className="checkbox">
+              <input
+                type="checkbox"
+                disabled={impact.data.activeAthletes === 0}
+                checked={effects.endAthletePlans}
+                onChange={(e) => setEffects({ ...effects, endAthletePlans: e.target.checked })}
+              />
+              <span>
+                Encerrar hoje o plano de {impact.data.activeAthletes} atleta(s), para receberem
+                outro
+              </span>
+            </label>
+            {impact.data.keptOpenFees > 0 ? (
+              <small className="muted">
+                {impact.data.keptOpenFees} mensalidade(s) de meses passados ou com pagamento
+                continuam em aberto (dívida real).
+              </small>
+            ) : null}
+          </fieldset>
+        ) : null}
+      </ConfirmDialog>
       <ConfirmDialog
         open={deleting !== null}
         title={`Excluir ${deleting?.name ?? ''}`}
         description={
-          deleting && deleting.activeAthletes > 0
-            ? `O plano tem ${deleting.activeAthletes} atleta(s) vigente(s). Encerre os vínculos na tela do plano ou inative-o.`
-            : 'O plano some das listas. Cobranças já geradas continuam no histórico.'
+          impact.data
+            ? `O plano some das listas e para de cobrar: ${impact.data.cancellableFees} mensalidade(s) deste mês em diante sem pagamento serão canceladas e ${impact.data.activeAthletes} atleta(s) saem do plano hoje. ${impact.data.keptOpenFees} cobrança(s) de meses passados ou com pagamento continuam em aberto.`
+            : 'O plano some das listas e para de cobrar.'
         }
         confirmLabel="Excluir"
         danger

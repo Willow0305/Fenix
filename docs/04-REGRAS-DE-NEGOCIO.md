@@ -34,7 +34,7 @@
 
 | ID | Regra | Estado | Rastreabilidade |
 |---|---|---|---|
-| RN-MEN-001 | Plano de mensalidade registra valor, vencimento e situação; sua inativação não altera cobranças históricas. | Definida | RF-011, integridade histórica |
+| RN-MEN-001 | Plano de mensalidade registra valor, vencimento e situação; sua inativação não altera cobranças históricas. Ao inativar, a diretoria pode cancelar as mensalidades do mês atual em diante sem pagamento e encerrar os vínculos; ao excluir, isso é obrigatório (DT-066). Meses passados e cobranças com pagamento nunca mudam. | Definida | RF-011, integridade histórica, DT-066 |
 | RN-MEN-002 | Mensalidade identifica atleta, plano aplicado, mês de referência e vencimento. | Definida | RF-012 |
 | RN-MEN-003 | A geração deve impedir cobrança duplicada para a mesma chave de negócio aprovada. A chave exata além de atleta/mês permanece provisória. | Provisória | RF-012; SQL ilustrativo |
 | RN-MEN-004 | Pagamento registra método, valor, data, origem e comprovante/observação quando aplicável. | Definida | RF-013 |

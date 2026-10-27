@@ -1267,3 +1267,55 @@ As logos "time masculino" e "time feminino" ficavam em Configurações e eram as
 ### Consequências
 
 - 1 teste de integração (permissão, envio sem arquivo, envio, elenco público com a logo, remoção) e ajuste do teste de logos de Configurações.
+
+## DT-065 — Excluir conta financeira com histórico
+
+- **Estado:** Aceita (amplia a DT-062)
+- **Data:** 2026-10-27
+- **Aprovador:** responsável do projeto ("não consigo excluir contas desativadas e nem excluir", 2026-10-27)
+
+### Contexto
+
+A DT-062 só deixava excluir conta nunca movimentada e, nas demais, sugeria inativar. Conta já inativa ficava sem saída e a lista crescia sem fim.
+
+### Decisão
+
+- conta sem lançamentos, transferências nem fechamentos: exclusão lógica direta (como antes);
+- conta com histórico: exclusão lógica permitida se estiver **inativa**, **sem lançamento pendente** e com **saldo zero** (calculado de todos os lançamentos confirmados). Os lançamentos, transferências e fechamentos continuam ligados à conta e aparecem nos relatórios pelo nome; nada do histórico financeiro é apagado ou reescrito (AGENTS.md);
+- conta com saldo: recusa (`BALANCE_NOT_ZERO`) pedindo transferir o saldo antes; ativa: recusa (`ACCOUNT_ACTIVE`) pedindo inativar antes; a única conta ativa não pode ser excluída;
+- a verificação trava a conta (`FOR UPDATE`) para nenhum lançamento entrar no meio; motivo, contagens e saldo vão para a auditoria;
+- na tela, contas inativas ficam recolhidas em "Contas inativas (N)".
+
+## DT-066 — Mensalidades de planos inativados ou excluídos
+
+- **Estado:** Aceita (complementa RN-MEN-001)
+- **Data:** 2026-10-27
+- **Aprovador:** responsável do projeto ("existe um plano ativo, mas ainda tem muitas mensalidades antigas ainda vigentes. construa a regra de negócio das mensalidades desativadas ou apagadas", 2026-10-27)
+
+### Contexto
+
+Inativar ou excluir um plano não tocava nas cobranças já geradas: mensalidades futuras de um plano excluído continuavam em aberto para sempre, e os atletas seguiam vinculados a ele (sem poder receber outro plano).
+
+### Decisão
+
+Mesmo padrão da inativação de atleta (COR-018):
+
+- **inativar:** antes de confirmar, a tela mostra o impacto (`GET /fee-plans/:id/impact`: atletas vigentes, mensalidades canceláveis e as que continuam) e oferece, já marcados: cancelar as mensalidades **do mês atual em diante sem nenhum pagamento** e encerrar hoje o vínculo dos atletas. Com algum efeito, o motivo é obrigatório;
+- **excluir:** os dois efeitos valem sempre (plano excluído não pode seguir cobrando); antes era recusado com atletas vigentes;
+- **nunca mudam:** mensalidades de meses passados (dívida real) e qualquer mensalidade com pagamento; reativar o plano não recria o que foi cancelado;
+- cada mensalidade cancelada e cada vínculo encerrado gera auditoria com o motivo;
+- dados anteriores à regra: `npm run db:fees-ended-plans` (simula; grava com `--apply`) aplica o mesmo aos planos já excluídos, com auditoria `maintenance.fee_plan.ended`.
+
+## DT-067 — Avisos de notícias, eventos e tópicos do fórum
+
+- **Estado:** Aceita
+- **Data:** 2026-10-27
+- **Aprovador:** responsável do projeto ("colocar nas opções para receber avisos sobre notícias, eventos, fórum por e-mail ou WhatsApp (qualquer usuário pode configurar se recebe ou não)", 2026-10-27)
+
+### Decisão
+
+- finalidades novas: **Notícias do clube** (`NEWS`), **Eventos e jogos** (`EVENTS`) e **Novos tópicos no fórum** (`FORUM_TOPICS`); "Fórum" passa a se chamar "Fórum: respostas aos meus tópicos e moderação";
+- disponíveis para qualquer conta; começam **desligadas**. Só quem liga e-mail ou WhatsApp recebe (inclusive o aviso no painel), para ninguém ser inundado;
+- notícia: ao publicar agora, ou quando a agendada fica visível (rotina a cada 5 min); evento: público, agendado e ainda por acontecer; tópico: só em categoria pública, sem avisar o autor;
+- cada conteúdo é anunciado uma vez (`announcedAt` + chave idempotente por pessoa); conteúdo com mais de 7 dias não é anunciado; o que já estava no ar na atualização foi marcado como anunciado;
+- envio em lotes de 500 pessoas pela fila de entregas existente (DT-048); falha no aviso nunca desfaz a publicação.

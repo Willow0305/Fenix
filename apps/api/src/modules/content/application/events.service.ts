@@ -16,6 +16,7 @@ import {
 import { assertActiveTeam } from '../../sports/application/active-team';
 import { slugify } from '../../sports/domain/sports-rules';
 import { EVENT_STATUS_LABELS, EVENT_TRANSITIONS, sanitizeText } from '../domain/content-rules';
+import { ContentAlertsService } from './content-alerts.service';
 
 export interface MatchView {
   readonly opponentName: string;
@@ -95,7 +96,8 @@ export class EventsService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly audit: AuditService,
-    private readonly media: MediaService
+    private readonly media: MediaService,
+    private readonly alerts: ContentAlertsService
   ) {}
 
   private toView(row: EventRow, now: Date): EventView {
@@ -421,6 +423,9 @@ export class EventsService {
       );
     });
 
+    // Evento que virou público já agendado: avisa os inscritos (DT-067).
+    await this.alerts.event(id);
+
     return this.get(id);
   }
 
@@ -464,6 +469,11 @@ export class EventsService {
       after: { status },
       meta
     });
+
+    // Evento público que entrou na agenda: avisa os inscritos uma vez (DT-067).
+    if (status === 'SCHEDULED') {
+      await this.alerts.event(id);
+    }
 
     return this.get(id);
   }

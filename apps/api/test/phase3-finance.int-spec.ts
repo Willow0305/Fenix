@@ -149,12 +149,18 @@ describe('Fase 3 — mensalidades e Caixa Fênix', () => {
         [athleteId, other.id].sort()
       );
 
+      // Excluir plano com atletas encerra os vínculos (DT-066); o histórico continua.
       await ctx
         .http()
         .delete(`/api/v1/fee-plans/${plan.body.id}`)
         .set(auth(board.token))
         .send({ reason: 'Teste' })
-        .expect(409);
+        .expect(204);
+      await expect(
+        ctx.prisma.athleteMonthlyFeePlan.count({
+          where: { monthlyFeePlanId: plan.body.id, status: 'ACTIVE', endsOn: null }
+        })
+      ).resolves.toBe(0);
 
       // Vencimento de uma cobrança em aberto.
       const moved = await ctx
@@ -187,6 +193,89 @@ describe('Fase 3 — mensalidades e Caixa Fênix', () => {
           }[]
         ).map((p) => p.id)
       ).not.toContain(empty.body.id);
+    });
+
+    it('plano inativado ou excluído não segue cobrando; dívida passada e pagamentos ficam (DT-066)', async () => {
+      const future = await feeFor('70.00');
+      const fee = await ctx.prisma.monthlyFee.findUniqueOrThrow({ where: { id: future.feeId } });
+      const planId = fee.monthlyFeePlanId;
+      // Dívida de um mês passado do mesmo plano: nunca é cancelada.
+      const past = await ctx.prisma.monthlyFee.create({
+        data: {
+          athleteId: future.athleteId,
+          monthlyFeePlanId: planId,
+          referenceMonth: new Date('2025-01-01T00:00:00Z'),
+          dueDate: new Date('2025-01-10T00:00:00Z'),
+          originalAmount: '70.00',
+          totalAmount: '70.00',
+          currency: 'BRL'
+        }
+      });
+
+      const impact = await ctx
+        .http()
+        .get(`/api/v1/fee-plans/${planId}/impact`)
+        .set(auth(board.token))
+        .expect(200);
+
+      expect(impact.body).toEqual({ activeAthletes: 1, cancellableFees: 1, keptOpenFees: 1 });
+
+      // Efeitos sem motivo são recusados.
+      await ctx
+        .http()
+        .patch(`/api/v1/fee-plans/${planId}`)
+        .set(auth(board.token))
+        .send({ status: 'INACTIVE', cancelFutureFees: true })
+        .expect(422);
+      await ctx
+        .http()
+        .patch(`/api/v1/fee-plans/${planId}`)
+        .set(auth(board.token))
+        .send({
+          status: 'INACTIVE',
+          cancelFutureFees: true,
+          endAthletePlans: true,
+          reason: 'Plano substituído pelo novo valor'
+        })
+        .expect(200);
+
+      const [cancelled, kept, link] = await Promise.all([
+        ctx.prisma.monthlyFee.findUniqueOrThrow({ where: { id: future.feeId } }),
+        ctx.prisma.monthlyFee.findUniqueOrThrow({ where: { id: past.id } }),
+        ctx.prisma.athleteMonthlyFeePlan.findFirstOrThrow({
+          where: { monthlyFeePlanId: planId, athleteId: future.athleteId }
+        })
+      ]);
+
+      expect(cancelled.status).toBe('CANCELLED');
+      expect(cancelled.cancellationReason).toBe('Plano substituído pelo novo valor');
+      expect(kept.status).toBe('OPEN');
+      expect(link.status).toBe('ENDED');
+
+      // Exclusão: aplica sempre os efeitos e também preserva a dívida passada.
+      const other = await feeFor('40.00');
+      const otherPlan = (
+        await ctx.prisma.monthlyFee.findUniqueOrThrow({ where: { id: other.feeId } })
+      ).monthlyFeePlanId;
+
+      await ctx
+        .http()
+        .delete(`/api/v1/fee-plans/${otherPlan}`)
+        .set(auth(board.token))
+        .send({ reason: 'Plano descontinuado' })
+        .expect(204);
+      await expect(
+        ctx.prisma.monthlyFee.findUniqueOrThrow({ where: { id: other.feeId } })
+      ).resolves.toMatchObject({ status: 'CANCELLED' });
+      await ctx
+        .http()
+        .delete(`/api/v1/fee-plans/${planId}`)
+        .set(auth(board.token))
+        .send({ reason: 'Fim' })
+        .expect(204);
+      await expect(
+        ctx.prisma.monthlyFee.findUniqueOrThrow({ where: { id: past.id } })
+      ).resolves.toMatchObject({ status: 'OPEN' });
     });
 
     it('ao inativar, aplica só os efeitos escolhidos e preserva dívida passada (COR-018)', async () => {
@@ -655,10 +744,17 @@ describe('Fase 3 — mensalidades e Caixa Fênix', () => {
         .expect(422);
     });
 
-    it('exclui conta nunca movimentada; com lançamento, recusa e sugere inativar', async () => {
+    it('exclui conta sem uso; com histórico, só inativa e zerada, preservando lançamentos (DT-065)', async () => {
       const unused = await newAccount();
       const used = await newAccount();
-      const reason = { reason: 'Cadastrada por engano' };
+      const reason = { reason: 'Conta encerrada no banco' };
+      const remove = (id: string, status: number) =>
+        ctx
+          .http()
+          .delete(`/api/v1/finance/accounts/${id}`)
+          .set(auth(board.token))
+          .send(reason)
+          .expect(status);
 
       await ctx
         .http()
@@ -668,22 +764,38 @@ describe('Fase 3 — mensalidades e Caixa Fênix', () => {
         .send({ amount: '50.00', occurredOn: '2026-01-01', notes: 'Extrato' })
         .expect(201);
 
-      const refused = await ctx
-        .http()
-        .delete(`/api/v1/finance/accounts/${used}`)
-        .set(auth(board.token))
-        .send(reason)
-        .expect(409);
-
-      expect(refused.body.code).toBe('IN_USE');
-      expect(refused.body.detail).toContain('Inative');
-
+      expect((await remove(used, 409)).body.code).toBe('ACCOUNT_ACTIVE');
       await ctx
         .http()
-        .delete(`/api/v1/finance/accounts/${unused}`)
+        .patch(`/api/v1/finance/accounts/${used}`)
         .set(auth(board.token))
-        .send(reason)
-        .expect(204);
+        .send({ isActive: false })
+        .expect(200);
+
+      const withBalance = await remove(used, 409);
+
+      expect(withBalance.body.code).toBe('BALANCE_NOT_ZERO');
+      expect(withBalance.body.detail).toContain('R$ 50,00');
+
+      // Zera o saldo com uma saída confirmada; a conta inativa ainda aceita o acerto.
+      const out = await ctx.prisma.financialTransaction.create({
+        data: {
+          accountId: used,
+          categoryId: await categoryId('outras-despesas'),
+          direction: 'EXPENSE',
+          amount: '50.00',
+          currency: 'BRL',
+          occurredAt: new Date('2026-01-02T12:00:00Z'),
+          competenceDate: new Date('2026-01-02T00:00:00Z'),
+          idempotencyKey: `teste-saque-${used}`,
+          description: 'Saque para encerrar a conta',
+          origin: 'MANUAL',
+          status: 'CONFIRMED'
+        }
+      });
+
+      await remove(used, 204);
+      await remove(unused, 204);
 
       const list = await ctx
         .http()
@@ -692,11 +804,17 @@ describe('Fase 3 — mensalidades e Caixa Fênix', () => {
         .expect(200);
       const ids = (list.body as { id: string }[]).map((a) => a.id);
 
-      expect(ids).toContain(used);
+      expect(ids).not.toContain(used);
       expect(ids).not.toContain(unused);
+      // O histórico continua: os dois lançamentos seguem ligados à conta excluída.
       await expect(
         ctx.prisma.financialTransaction.count({ where: { accountId: used } })
-      ).resolves.toBe(1);
+      ).resolves.toBe(2);
+      await ctx
+        .http()
+        .get(`/api/v1/finance/transactions/${out.id}`)
+        .set(auth(board.token))
+        .expect(200);
     });
 
     it('transfere com dois lançamentos vinculados sem mudar o saldo total', async () => {

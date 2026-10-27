@@ -166,6 +166,10 @@ export function NotificationPreferencesSection() {
         )}
       </div>
 
+      <p className="muted" style={{ margin: 0 }}>
+        Notícias do clube, eventos e jogos e novos tópicos do fórum só chegam para quem marcar
+        e-mail ou WhatsApp abaixo.
+      </p>
       <div className="table-wrap">
         <table className="table table-stack">
           <thead>

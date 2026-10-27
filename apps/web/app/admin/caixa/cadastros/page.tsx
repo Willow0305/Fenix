@@ -32,6 +32,47 @@ const NATURE: Record<string, string> = {
   TRANSFER: 'Transferência'
 };
 
+/**
+ * Contas no gerenciador padrão (editar, inativar, excluir). A exclusão segue a DT-065:
+ * conta com histórico precisa estar inativa e com saldo zero; o histórico continua.
+ */
+function AccountList({
+  items,
+  manage,
+  emptyText,
+  onOpening,
+  onChanged
+}: {
+  readonly items: readonly Account[];
+  readonly manage: boolean;
+  readonly emptyText: string;
+  readonly onOpening: (account: Account) => void;
+  readonly onChanged: () => Promise<void>;
+}) {
+  return (
+    <CategoryManager
+      items={items.map((a) => ({
+        ...a,
+        detail: [ACCOUNT_TYPE[a.type], a.institutionName].filter(Boolean).join(' · ')
+      }))}
+      endpoint="/finance/accounts"
+      manage={manage}
+      withDescription={false}
+      noun="conta"
+      emptyText={emptyText}
+      deleteHint="Conta sem movimentação é excluída na hora. Conta com lançamentos precisa estar inativa, sem pendências e com saldo zero (transfira o saldo antes); os lançamentos continuam nos relatórios."
+      rowExtra={(a) =>
+        manage && a.isActive ? (
+          <button type="button" className="btn btn-link" onClick={() => onOpening(a)}>
+            Saldo inicial
+          </button>
+        ) : null
+      }
+      onChanged={onChanged}
+    />
+  );
+}
+
 export default function FinanceSetupPage() {
   const { can } = useAuth();
   const manage = can('finance.setup');
@@ -51,6 +92,8 @@ export default function FinanceSetupPage() {
   const [openingForm, setOpeningForm] = useState({ amount: '', occurredOn: todayCivil() });
   const [notice, setNotice] = useState<string | null>(null);
 
+  const activeAccounts = (accounts.data ?? []).filter((a) => a.isActive);
+  const inactiveAccounts = (accounts.data ?? []).filter((a) => !a.isActive);
   const createAccount = useSubmit(async () => {
     await api('/finance/accounts', {
       method: 'POST',
@@ -84,25 +127,25 @@ export default function FinanceSetupPage() {
 
       <section className="card stack" aria-labelledby="contas">
         <h2 id="contas">Contas financeiras</h2>
-        <CategoryManager
-          items={(accounts.data ?? []).map((a) => ({
-            ...a,
-            detail: [ACCOUNT_TYPE[a.type], a.institutionName].filter(Boolean).join(' · ')
-          }))}
-          endpoint="/finance/accounts"
+        <AccountList
+          items={activeAccounts}
           manage={manage}
-          withDescription={false}
-          noun="conta"
-          emptyText="Nenhuma conta cadastrada."
-          rowExtra={(a) =>
-            manage ? (
-              <button type="button" className="btn btn-link" onClick={() => setOpening(a)}>
-                Saldo inicial
-              </button>
-            ) : null
-          }
+          emptyText="Nenhuma conta ativa."
+          onOpening={setOpening}
           onChanged={accounts.reload}
         />
+        {inactiveAccounts.length > 0 ? (
+          <details className="collapsible">
+            <summary>Contas inativas ({inactiveAccounts.length})</summary>
+            <AccountList
+              items={inactiveAccounts}
+              manage={manage}
+              emptyText=""
+              onOpening={setOpening}
+              onChanged={accounts.reload}
+            />
+          </details>
+        ) : null}
         {manage ? (
           <form className="row" onSubmit={(event) => void createAccount.submit(event)}>
             <TextField

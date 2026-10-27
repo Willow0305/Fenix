@@ -224,6 +224,20 @@ export class UpdatePlanDto {
   @IsOptional()
   @IsEnum(MonthlyFeePlanStatus)
   status?: MonthlyFeePlanStatus;
+  @ApiPropertyOptional({ description: 'Motivo, obrigatório ao inativar com efeitos (DT-066).' })
+  @IsOptional()
+  @IsString()
+  @MinLength(3)
+  @MaxLength(1000)
+  reason?: string;
+  @ApiPropertyOptional({ description: 'Ao inativar: cancela mensalidades futuras sem pagamento.' })
+  @IsOptional()
+  @IsBoolean()
+  cancelFutureFees?: boolean;
+  @ApiPropertyOptional({ description: 'Ao inativar: encerra hoje o vínculo dos atletas.' })
+  @IsOptional()
+  @IsBoolean()
+  endAthletePlans?: boolean;
 }
 
 export class AssignPlanDto {

@@ -7,7 +7,7 @@ import type {
 } from '../../../generated/prisma/client';
 
 import { AuditService } from '../../../common/audit/audit.service';
-import { DEFAULT_CURRENCY } from '../../../common/domain/money';
+import { DEFAULT_CURRENCY, money, round2 } from '../../../common/domain/money';
 import { AppError } from '../../../common/errors/app-error';
 import type { Principal, RequestMeta } from '../../../common/http/request-context';
 import { PrismaService, type PrismaTx } from '../../../common/prisma/prisma.service';
@@ -19,6 +19,7 @@ import {
   SYSTEM_CATEGORY_CODES
 } from '../domain/finance-catalog';
 import { softDeleteIfUnused } from '../../../common/domain/safe-delete';
+import { LedgerService, lockRow } from './ledger.service';
 
 export interface AccountView {
   readonly id: string;
@@ -55,6 +56,9 @@ export interface PaymentMethodView {
   readonly isActive: boolean;
 }
 
+/** Data além de qualquer lançamento: saldo com todo o histórico confirmado. */
+const FAR_FUTURE = new Date(Date.UTC(9999, 0, 1));
+
 /** Semeia contas, categorias e métodos padrão de forma idempotente (por código). */
 export async function syncFinanceCatalog(tx: PrismaTx): Promise<void> {
   for (const category of DEFAULT_CATEGORIES) {
@@ -81,7 +85,8 @@ export async function syncFinanceCatalog(tx: PrismaTx): Promise<void> {
 export class FinanceSetupService {
   constructor(
     private readonly prisma: PrismaService,
-    private readonly audit: AuditService
+    private readonly audit: AuditService,
+    private readonly ledger: LedgerService
   ) {}
 
   private async uniqueCode(
@@ -202,8 +207,10 @@ export class FinanceSetupService {
   }
 
   /**
-   * Exclusão lógica de conta só quando nunca movimentada (sem lançamentos, transferências
-   * nem fechamentos): o histórico financeiro não pode sumir (AGENTS.md). Com uso, inativar.
+   * Exclusão lógica de conta (DT-065). Sem movimentação, exclui direto. Com histórico, só
+   * se estiver inativa, sem lançamento pendente e com saldo zero: a conta sai das telas,
+   * mas lançamentos, transferências e fechamentos continuam ligados a ela e aparecem nos
+   * relatórios pelo nome. Nada do histórico financeiro é apagado (AGENTS.md).
    */
   async deleteAccount(
     actor: Principal,
@@ -211,17 +218,16 @@ export class FinanceSetupService {
     reason: string,
     meta: RequestMeta
   ): Promise<void> {
-    await softDeleteIfUnused({
-      prisma: this.prisma,
-      audit: this.audit,
-      actor,
-      meta,
-      reason,
-      entityId: id,
-      entityType: 'FinancialAccount',
-      action: 'finance.account.deleted',
-      noun: 'a conta',
-      load: async (tx) => {
+    await this.prisma.$transaction(async (tx) => {
+      // Trava a conta: nenhum lançamento novo entra enquanto o saldo é conferido.
+      await lockRow(tx, 'account', id);
+      const account = await tx.financialAccount.findFirst({ where: { id, deletedAt: null } });
+
+      if (account === null) {
+        throw AppError.notFound('Conta não encontrada.');
+      }
+
+      if (account.isActive) {
         const others = await tx.financialAccount.count({
           where: { deletedAt: null, isActive: true, id: { not: id } }
         });
@@ -233,33 +239,68 @@ export class FinanceSetupService {
             'Esta é a única conta ativa. Cadastre ou ative outra antes de excluir.'
           );
         }
+      }
 
-        return tx.financialAccount.findFirst({
-          where: { id, deletedAt: null },
-          select: { name: true }
-        });
-      },
-      usage: async (tx) => [
-        {
-          count: await tx.financialTransaction.count({ where: { accountId: id } }),
-          label: 'lançamento(s)'
-        },
-        {
-          count: await tx.financialTransfer.count({
-            where: { OR: [{ sourceAccountId: id }, { destinationAccountId: id }] }
-          }),
-          label: 'transferência(s)'
-        },
-        {
-          count: await tx.cashClosing.count({ where: { financialAccountId: id } }),
-          label: 'fechamento(s)'
+      const [transactions, transfers, closings, pending] = await Promise.all([
+        tx.financialTransaction.count({ where: { accountId: id } }),
+        tx.financialTransfer.count({
+          where: { OR: [{ sourceAccountId: id }, { destinationAccountId: id }] }
+        }),
+        tx.cashClosing.count({ where: { financialAccountId: id } }),
+        tx.financialTransaction.count({ where: { accountId: id, status: 'PENDING' } })
+      ]);
+      const hasHistory = transactions + transfers + closings > 0;
+      let balance = round2(money(0));
+
+      if (hasHistory) {
+        if (account.isActive) {
+          throw AppError.conflict(
+            'ACCOUNT_ACTIVE',
+            `A conta "${account.name}" tem ${transactions} lançamento(s). Inative-a antes de excluir; o histórico continua nos relatórios.`
+          );
         }
-      ],
-      remove: (tx) =>
-        tx.financialAccount.update({
-          where: { id },
-          data: { deletedAt: new Date(), isActive: false }
-        })
+
+        if (pending > 0) {
+          throw AppError.conflict(
+            'PENDING_TRANSACTIONS',
+            `A conta "${account.name}" tem ${pending} lançamento(s) pendente(s). Confirme ou cancele antes de excluir.`
+          );
+        }
+
+        balance = round2(await this.ledger.accountBalance(tx, id, FAR_FUTURE));
+
+        if (!balance.isZero()) {
+          throw AppError.conflict(
+            'BALANCE_NOT_ZERO',
+            `A conta "${account.name}" ainda tem saldo de R$ ${balance.toFixed(2).replace('.', ',')}. Transfira o saldo para outra conta antes de excluir.`
+          );
+        }
+      }
+
+      await tx.financialAccount.update({
+        where: { id },
+        data: { deletedAt: new Date(), isActive: false }
+      });
+      await this.audit.record(
+        {
+          actorUserId: actor.userId,
+          action: 'finance.account.deleted',
+          entityType: 'FinancialAccount',
+          entityId: id,
+          reason,
+          before: {
+            name: account.name,
+            isActive: account.isActive,
+            transactions,
+            transfers,
+            closings,
+            balance: balance.toFixed(2)
+          },
+          after: { deleted: true },
+          meta
+        },
+        tx
+      );
     });
   }
 

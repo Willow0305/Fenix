@@ -31,6 +31,7 @@ export function CategoryManager<T extends ManagedCategory>({
   noun = 'categoria',
   emptyText = 'Nenhuma categoria cadastrada.',
   rowExtra,
+  deleteHint,
   onChanged
 }: {
   readonly items: readonly T[];
@@ -42,6 +43,8 @@ export function CategoryManager<T extends ManagedCategory>({
   readonly emptyText?: string;
   /** Controles extras por linha (ex.: visibilidade do fórum). */
   readonly rowExtra?: (item: T) => ReactNode;
+  /** Texto do diálogo de exclusão quando a regra do cadastro é outra (ex.: contas). */
+  readonly deleteHint?: string;
   readonly onChanged: () => Promise<void> | void;
 }) {
   const [editing, setEditing] = useState<T | null>(null);
@@ -164,7 +167,10 @@ export function CategoryManager<T extends ManagedCategory>({
       <ConfirmDialog
         open={deleting !== null}
         title={`Excluir ${noun} ${deleting?.name ?? ''}`}
-        description={`Só é possível excluir ${noun} que não esteja em uso. Se estiver, inative para esconder sem perder o histórico.`}
+        description={
+          deleteHint ??
+          `Só é possível excluir ${noun} que não esteja em uso. Se estiver, inative para esconder sem perder o histórico.`
+        }
         confirmLabel="Excluir"
         danger
         requireReason

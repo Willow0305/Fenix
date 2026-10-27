@@ -28,6 +28,13 @@ export type ObligationStatus = 'OPEN' | 'SETTLED' | 'OVERDUE' | 'CANCELLED';
 export type CategoryNature = 'INCOME' | 'EXPENSE' | 'TRANSFER';
 export type AccountType = 'CASH' | 'BANK' | 'PIX' | 'WALLET' | 'CARD_CLEARING' | 'OTHER';
 
+/** Impacto de inativar ou excluir um plano (DT-066). */
+export interface PlanImpact {
+  activeAthletes: number;
+  cancellableFees: number;
+  keptOpenFees: number;
+}
+
 export interface Plan {
   id: string;
   name: string;

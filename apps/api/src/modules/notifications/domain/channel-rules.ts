@@ -14,10 +14,23 @@ export const CATEGORY_LABELS: Record<NotificationCategory, string> = {
   SPORTS: 'Seletivas, inscrições e cadastro de atleta',
   AGENDA: 'Atendimentos com parceiros',
   ANNOUNCEMENTS: 'Avisos da diretoria',
-  COMMUNITY: 'Fórum',
+  COMMUNITY: 'Fórum: respostas aos meus tópicos e moderação',
   ACCOUNT: 'Conta e privacidade',
-  OPERATIONS: 'Tarefas da diretoria'
+  OPERATIONS: 'Tarefas da diretoria',
+  NEWS: 'Notícias do clube',
+  EVENTS: 'Eventos e jogos',
+  FORUM_TOPICS: 'Novos tópicos no fórum'
 };
+
+/**
+ * Finalidades de conteúdo (DT-067): só quem liga e-mail ou WhatsApp recebe, inclusive o
+ * aviso no painel, para ninguém ser inundado com o que não pediu.
+ */
+export const CONTENT_CATEGORIES: readonly NotificationCategory[] = [
+  'NEWS',
+  'EVENTS',
+  'FORUM_TOPICS'
+];
 
 export const CATEGORIES = Object.keys(CATEGORY_LABELS) as NotificationCategory[];
 
@@ -30,6 +43,9 @@ const PREFIX_CATEGORY: readonly (readonly [string, NotificationCategory])[] = [
   ['athlete.', 'SPORTS'],
   ['appointment.', 'AGENDA'],
   ['announcement', 'ANNOUNCEMENTS'],
+  ['content.news', 'NEWS'],
+  ['content.event', 'EVENTS'],
+  ['content.forum_topic', 'FORUM_TOPICS'],
   ['forum.', 'COMMUNITY'],
   ['privacy.', 'ACCOUNT'],
   ['staff.', 'OPERATIONS']
@@ -41,8 +57,9 @@ export function categoryOf(type: string): NotificationCategory {
 
 /**
  * Padrão sem escolha registrada (DT-048): e-mail ligado para avisos de serviço (cobrança,
- * pedido, inscrição, agenda, diretoria); fórum e conta ficam só no painel. WhatsApp segue
- * o mesmo padrão, mas só vale depois do consentimento da pessoa.
+ * pedido, inscrição, agenda, diretoria); fórum e conta ficam só no painel. Notícias,
+ * eventos e novos tópicos começam desligados: a pessoa escolhe receber (DT-067). WhatsApp
+ * segue o mesmo padrão, mas só vale depois do consentimento da pessoa.
  */
 const DEFAULT_ON: ReadonlySet<NotificationCategory> = new Set([
   'FINANCE',

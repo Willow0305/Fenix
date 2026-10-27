@@ -50,6 +50,33 @@ describe('Pendências do menu e avisos à diretoria (DT-061)', () => {
     expect(alerts[0]?.title).toBe('Novo interessado');
   });
 
+  it('inscrição de seletiva encerrada ou apagada não vira pendência', async () => {
+    const before = (await badges())['/admin/seletivas'] ?? 0;
+    const tag = `${Date.now()}`;
+
+    for (const [status, deletedAt] of [
+      ['OPEN', null],
+      ['CANCELLED', null],
+      ['COMPLETED', null],
+      ['OPEN', new Date()]
+    ] as const) {
+      const tryout = await ctx.prisma.tryout.create({
+        data: {
+          title: `Seletiva ${tag} ${status}`,
+          slug: `sel-${tag}-${status}-${deletedAt ? 'x' : 'v'}`,
+          status,
+          deletedAt
+        }
+      });
+
+      await ctx.prisma.tryoutRegistration.create({
+        data: { tryoutId: tryout.id, fullName: 'Candidata Teste', email: `c-${tag}@exemplo.test` }
+      });
+    }
+
+    expect((await badges())['/admin/seletivas'] ?? 0).toBe(before + 1);
+  });
+
   it('sem pendência, o item não aparece; sem painel, não há acesso', async () => {
     const counts = await badges();
 

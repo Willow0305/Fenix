@@ -1,5 +1,6 @@
 import { Controller, Get, Injectable, Module } from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
+import type { Prisma } from '../../generated/prisma/client';
 
 import { todayIn } from '../../common/domain/civil-date';
 import { CurrentPrincipal, type Principal } from '../../common/http/request-context';
@@ -25,6 +26,17 @@ export interface DashboardIndicator {
  * Indicadores do painel (RF-020). Cada indicador declara sua definição e aponta para a
  * listagem de origem, permitindo conferir o total.
  */
+/**
+ * Inscrições novas que ainda dá para analisar: só de seletivas não apagadas e em andamento.
+ * Inscrição de seletiva apagada, cancelada ou concluída não aparece na tela de Seletivas e
+ * não pode virar pendência.
+ */
+const NEW_REGISTRATIONS = {
+  status: 'NEW',
+  deletedAt: null,
+  tryout: { deletedAt: null, status: { notIn: ['COMPLETED', 'CANCELLED'] } }
+} satisfies Prisma.TryoutRegistrationWhereInput;
+
 @Injectable()
 export class DashboardService {
   constructor(
@@ -37,7 +49,7 @@ export class DashboardService {
     const [activeAthletes, newTryoutRegistrations, newInterested, openTryouts] =
       await this.prisma.$transaction([
         this.prisma.athlete.count({ where: { status: 'ACTIVE', deletedAt: null } }),
-        this.prisma.tryoutRegistration.count({ where: { status: 'NEW', deletedAt: null } }),
+        this.prisma.tryoutRegistration.count({ where: NEW_REGISTRATIONS }),
         this.prisma.interestedPerson.count({ where: { status: 'NEW', deletedAt: null } }),
         this.prisma.tryout.count({ where: { status: 'OPEN', deletedAt: null } })
       ]);
@@ -161,7 +173,7 @@ export class PendingBadgesService {
       ]);
       tasks.push([
         '/admin/seletivas',
-        () => this.prisma.tryoutRegistration.count({ where: { status: 'NEW', deletedAt: null } })
+        () => this.prisma.tryoutRegistration.count({ where: NEW_REGISTRATIONS })
       ]);
     }
 

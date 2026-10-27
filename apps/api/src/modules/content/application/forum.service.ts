@@ -31,6 +31,7 @@ import {
   visibleTopicStatuses
 } from '../domain/content-rules';
 import { softDeleteIfUnused } from '../../../common/domain/safe-delete';
+import { ContentAlertsService } from './content-alerts.service';
 
 export interface ForumCategoryView {
   readonly id: string;
@@ -115,7 +116,8 @@ export class ForumService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly audit: AuditService,
-    private readonly notifications: NotificationsService
+    private readonly notifications: NotificationsService,
+    private readonly alerts: ContentAlertsService
   ) {}
 
   viewer(principal: Principal | undefined): ForumViewer {
@@ -446,6 +448,9 @@ export class ForumService {
 
       return topic.id;
     });
+
+    // Tópico em categoria pública: avisa quem pediu "Novos tópicos no fórum" (DT-067).
+    await this.alerts.forumTopic(id);
 
     return this.topic(id, principal, {});
   }

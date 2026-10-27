@@ -22,6 +22,7 @@ import {
   sanitizeText
 } from '../domain/content-rules';
 import { softDeleteIfUnused } from '../../../common/domain/safe-delete';
+import { ContentAlertsService } from './content-alerts.service';
 
 export interface NewsCategoryView {
   readonly id: string;
@@ -97,7 +98,8 @@ export class NewsService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly audit: AuditService,
-    private readonly media: MediaService
+    private readonly media: MediaService,
+    private readonly alerts: ContentAlertsService
   ) {}
 
   private summary(row: NewsRow): NewsSummary {
@@ -429,6 +431,11 @@ export class NewsService {
       after: { status: state.status, publishedAt: state.publishedAt.toISOString() },
       meta
     });
+
+    // Publicada agora: avisa já os inscritos; agendada, a rotina avisa na hora (DT-067).
+    if (state.status === 'PUBLISHED') {
+      await this.alerts.news(id);
+    }
 
     return this.get(id);
   }

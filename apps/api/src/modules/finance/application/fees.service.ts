@@ -11,6 +11,7 @@ import {
   civilToDate,
   dateToCivil,
   daysInMonth,
+  monthStart,
   optionalCivil,
   todayIn
 } from '../../../common/domain/civil-date';
@@ -57,6 +58,32 @@ export interface PlanView {
   readonly dueDay: number;
   readonly status: MonthlyFeePlanStatus;
   readonly activeAthletes: number;
+}
+
+/** Efeitos ao inativar um plano (DT-066); ao excluir, os dois valem sempre. */
+export interface PlanEndEffects {
+  /** Cancela mensalidades do plano do mês atual em diante sem nenhum pagamento. */
+  readonly cancelFutureFees?: boolean;
+  /** Encerra hoje o vínculo dos atletas com o plano, para poderem receber outro. */
+  readonly endAthletePlans?: boolean;
+}
+
+/** O que muda ao inativar ou excluir o plano, mostrado antes de confirmar. */
+export interface PlanImpact {
+  readonly activeAthletes: number;
+  readonly cancellableFees: number;
+  /** Mensalidades em aberto que continuam: meses passados (dívida real) ou com pagamento. */
+  readonly keptOpenFees: number;
+}
+
+/** Mensalidade que pode ser cancelada junto com o plano: do mês atual em diante, sem pagamento. */
+function cancellablePlanFees(planId: string): Prisma.MonthlyFeeWhereInput {
+  return {
+    monthlyFeePlanId: planId,
+    status: { in: ['OPEN', 'OVERDUE'] },
+    referenceMonth: { gte: civilToDate(monthStart(todayIn())) },
+    paymentAllocations: { none: {} }
+  };
 }
 
 export interface AthletePlanView {
@@ -219,7 +246,8 @@ export class FeesService {
       amount?: Money;
       dueDay?: number;
       status?: MonthlyFeePlanStatus;
-    },
+      reason?: string;
+    } & PlanEndEffects,
     meta: RequestMeta
   ): Promise<PlanView> {
     const before = await this.prisma.monthlyFeePlan.findFirst({ where: { id, deletedAt: null } });
@@ -228,32 +256,161 @@ export class FeesService {
       throw AppError.notFound('Plano não encontrado.');
     }
 
-    await this.prisma.monthlyFeePlan.update({
-      where: { id },
-      data: {
-        ...(input.name === undefined ? {} : { name: input.name.trim() }),
-        ...(input.description === undefined ? {} : { description: input.description || null }),
-        ...(input.amount === undefined ? {} : { amount: input.amount }),
-        ...(input.dueDay === undefined ? {} : { dueDay: input.dueDay }),
-        ...(input.status === undefined ? {} : { status: input.status })
-      }
+    const deactivating = before.status === 'ACTIVE' && input.status === 'INACTIVE';
+    const effects = deactivating
+      ? {
+          cancelFutureFees: input.cancelFutureFees === true,
+          endAthletePlans: input.endAthletePlans === true
+        }
+      : {};
+
+    if ((effects.cancelFutureFees || effects.endAthletePlans) && !input.reason?.trim()) {
+      throw AppError.validation('REASON_REQUIRED', 'Informe o motivo da inativação.');
+    }
+
+    const applied = await this.prisma.$transaction(async (tx) => {
+      await tx.monthlyFeePlan.update({
+        where: { id },
+        data: {
+          ...(input.name === undefined ? {} : { name: input.name.trim() }),
+          ...(input.description === undefined ? {} : { description: input.description || null }),
+          ...(input.amount === undefined ? {} : { amount: input.amount }),
+          ...(input.dueDay === undefined ? {} : { dueDay: input.dueDay }),
+          ...(input.status === undefined ? {} : { status: input.status })
+        }
+      });
+
+      return this.applyPlanEndEffects(tx, actor, id, effects, input.reason ?? '', meta);
     });
+    const { reason, cancelFutureFees, endAthletePlans, ...changes } = input;
+
     await this.audit.record({
       actorUserId: actor.userId,
       action: 'fee_plan.updated',
       entityType: 'MonthlyFeePlan',
       entityId: id,
+      reason: reason ?? null,
       before: {
         name: before.name,
         amount: before.amount.toFixed(2),
         dueDay: before.dueDay,
         status: before.status
       },
-      after: { ...input, ...(input.amount ? { amount: input.amount.toFixed(2) } : {}) },
+      after: {
+        ...changes,
+        ...(input.amount ? { amount: input.amount.toFixed(2) } : {}),
+        ...(deactivating ? { cancelFutureFees, endAthletePlans, ...applied } : {})
+      },
       meta
     });
 
     return (await this.plans()).find((p) => p.id === id) as PlanView;
+  }
+
+  /** Impacto de inativar ou excluir o plano (DT-066), para o diálogo de confirmação. */
+  async planImpact(id: string): Promise<PlanImpact> {
+    const exists = await this.prisma.monthlyFeePlan.count({ where: { id, deletedAt: null } });
+
+    if (exists === 0) {
+      throw AppError.notFound('Plano não encontrado.');
+    }
+
+    const [activeAthletes, cancellableFees, openFees] = await Promise.all([
+      this.prisma.athleteMonthlyFeePlan.count({
+        where: { monthlyFeePlanId: id, status: 'ACTIVE', endsOn: null }
+      }),
+      this.prisma.monthlyFee.count({ where: cancellablePlanFees(id) }),
+      this.prisma.monthlyFee.count({
+        where: { monthlyFeePlanId: id, status: { in: ['OPEN', 'OVERDUE', 'PARTIALLY_PAID'] } }
+      })
+    ]);
+
+    return { activeAthletes, cancellableFees, keptOpenFees: openFees - cancellableFees };
+  }
+
+  /**
+   * Efeitos de encerrar um plano, no mesmo instante e com o mesmo motivo. Nunca cancela
+   * mensalidade com pagamento nem de mês passado (dívida real); cada mudança é auditada.
+   */
+  async applyPlanEndEffects(
+    tx: PrismaTx,
+    actor: Principal | null,
+    planId: string,
+    effects: PlanEndEffects,
+    reason: string,
+    meta: RequestMeta,
+    origin = 'fee_plan.ended'
+  ): Promise<{ cancelledFees: number; endedAthletePlans: number }> {
+    let cancelledFees = 0;
+    let endedAthletePlans = 0;
+
+    if (effects.cancelFutureFees) {
+      const fees = await tx.monthlyFee.findMany({
+        where: cancellablePlanFees(planId),
+        select: { id: true, status: true }
+      });
+
+      for (const fee of fees) {
+        await tx.monthlyFee.update({
+          where: { id: fee.id },
+          data: {
+            status: 'CANCELLED',
+            cancelledAt: new Date(),
+            cancelledById: actor?.userId ?? null,
+            cancellationReason: reason
+          }
+        });
+        await this.audit.record(
+          {
+            actorUserId: actor?.userId ?? null,
+            action: 'fee.cancelled',
+            entityType: 'MonthlyFee',
+            entityId: fee.id,
+            reason,
+            before: { status: fee.status },
+            after: { status: 'CANCELLED', origin },
+            meta
+          },
+          tx
+        );
+      }
+
+      cancelledFees = fees.length;
+    }
+
+    if (effects.endAthletePlans) {
+      const today = todayIn();
+      const links = await tx.athleteMonthlyFeePlan.findMany({
+        where: { monthlyFeePlanId: planId, status: 'ACTIVE', endsOn: null },
+        select: { id: true, athleteId: true, startsOn: true }
+      });
+
+      for (const link of links) {
+        const startsOn = dateToCivil(link.startsOn);
+        const endsOn = startsOn > today ? startsOn : today;
+
+        await tx.athleteMonthlyFeePlan.update({
+          where: { id: link.id },
+          data: { endsOn: civilToDate(endsOn), status: 'ENDED' }
+        });
+        await this.audit.record(
+          {
+            actorUserId: actor?.userId ?? null,
+            action: 'athlete_plan.ended',
+            entityType: 'Athlete',
+            entityId: link.athleteId,
+            reason,
+            after: { athletePlanId: link.id, endsOn, origin },
+            meta
+          },
+          tx
+        );
+      }
+
+      endedAthletePlans = links.length;
+    }
+
+    return { cancelledFees, endedAthletePlans };
   }
 
   // ---------- Vínculo atleta–plano ----------
@@ -483,27 +640,28 @@ export class FeesService {
   }
 
   /**
-   * Exclusão lógica do plano (fica no histórico das cobranças já geradas). Só sem atletas
-   * vigentes: com atletas, encerre os vínculos ou inative o plano.
+   * Exclusão lógica do plano (DT-066). Plano excluído não pode continuar cobrando: as
+   * mensalidades do mês atual em diante sem pagamento são canceladas e os vínculos vigentes
+   * terminam hoje. Meses passados e cobranças com pagamento continuam (dívida real).
    */
   async deletePlan(actor: Principal, id: string, reason: string, meta: RequestMeta): Promise<void> {
-    const plan = await this.prisma.monthlyFeePlan.findFirst({
-      where: { id, deletedAt: null },
-      include: { _count: { select: { athletePlans: { where: { status: 'ACTIVE' } } } } }
-    });
+    const plan = await this.prisma.monthlyFeePlan.findFirst({ where: { id, deletedAt: null } });
 
     if (plan === null) {
       throw AppError.notFound('Plano não encontrado.');
     }
 
-    if (plan._count.athletePlans > 0) {
-      throw AppError.conflict(
-        'PLAN_IN_USE',
-        `O plano tem ${plan._count.athletePlans} atleta(s) vigente(s). Encerre os vínculos ou inative o plano.`
-      );
-    }
-
     await this.prisma.$transaction(async (tx) => {
+      const applied = await this.applyPlanEndEffects(
+        tx,
+        actor,
+        id,
+        { cancelFutureFees: true, endAthletePlans: true },
+        reason,
+        meta,
+        'fee_plan.deleted'
+      );
+
       await tx.monthlyFeePlan.update({
         where: { id },
         data: { deletedAt: new Date(), status: 'INACTIVE' }
@@ -516,6 +674,7 @@ export class FeesService {
           entityId: id,
           reason,
           before: { name: plan.name, status: plan.status },
+          after: applied,
           meta
         },
         tx
