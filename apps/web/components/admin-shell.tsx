@@ -74,6 +74,12 @@ export const ADMIN_NAV: readonly AdminGroup[] = [
       { href: '/admin/planos', icon: 'card-list', label: 'Planos', permission: 'fees.read' },
       { href: '/admin/caixa', icon: 'cash-coin', label: 'Caixa Fênix', permission: 'finance.read' },
       {
+        href: '/admin/pix',
+        icon: 'qr-code',
+        label: 'PIX automático',
+        permission: 'payments.confirm'
+      },
+      {
         href: '/admin/caixa/painel',
         icon: 'bar-chart-line',
         label: 'Painel financeiro',

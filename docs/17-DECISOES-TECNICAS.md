@@ -1381,3 +1381,25 @@ Mesmo padrão da inativação de atleta (COR-018):
 - **defeito (CDC arts. 18 e 26):** "Problema com o produto" por 90 dias depois da entrega comprovada, para qualquer item, inclusive personalizado; a diretoria analisa e resolve com troca, conserto ou estorno, sempre com resposta registrada;
 - solicitações geram aviso e bolinha no painel; os textos dos direitos aparecem na página do produto, no carrinho, no checkout e em Termos;
 - ressalva registrada: a exclusão de personalizados do arrependimento segue o entendimento usual dos tribunais, não um texto expresso do CDC; recomenda-se conferência jurídica antes da publicação.
+
+## DT-071 — PIX automático
+
+- **Estado:** Aceita
+- **Data:** 2026-10-27
+- **Aprovador:** responsável do projeto (intermediário "Mercado Pago"; alcance "pedidos e mensalidades"; "PIX com comprovante continua como alternativa"; validade "pedido: reserva; mensalidade: 24 h")
+
+### Decisão
+
+- módulo `pix` com conector trocável (`PIX_PROVIDER`): `sandbox` (modo de teste: QR com chave fictícia, pagamento só por "Simular pagamento"; proibido em produção), `mercadopago` (`/v1/payments` com `payment_method_id: pix`) ou `off`;
+- o QR vale pela reserva do pedido (mínimo de 30 minutos, exigência do Mercado Pago; com menos, a tela orienta usar o comprovante) e por 24 horas na mensalidade; QR pendente que ainda vale é reaproveitado;
+- **baixa:** o aviso do intermediário (webhook) só é aceito com assinatura válida (HMAC-SHA256 sobre `id:<data.id>;request-id:<x-request-id>;ts:<ts>;`, conforme a documentação oficial) e nunca é usado sozinho: a situação é sempre buscada no intermediário. Avisos repetidos são ignorados (`pix_webhook_events`); uma conferência a cada 2 minutos cobre avisos perdidos;
+- pago e conferido: cria o pagamento (intermediário e referência guardados), confirma e lança a entrada no Caixa sem pessoa da diretoria (auditoria com ator "sistema"), pela mesma rotina do pagamento manual;
+- pago fora do esperado (pedido cancelado ou vencido, valor diferente do saldo, mensalidade cancelada): **nada é baixado**; a cobrança fica "para revisar", a diretoria recebe aviso e bolinha em Painel → PIX automático, estorna no intermediário ou registra manualmente e marca como resolvido (com motivo);
+- a conta do Caixa que recebe é escolhida no painel (padrão: "Conta bancária / PIX");
+- o PIX com comprovante continua disponível ao lado, e o intermediário fora do ar só desliga o botão automático;
+- segredos só no ambiente; token nunca em log ou mensagem de erro; o QR guarda só o "copia e cola".
+
+### Consequências
+
+- tabelas `pix_charges` e `pix_webhook_events`; `team_settings.pix_account_id`; confirmação de pagamento aceita ator nulo (sistema);
+- testes: assinatura, CRC do BR Code e conector do Mercado Pago (unidade, com a API simulada); pedido, mensalidade, revisão e visitante (integração, modo de teste). O conector real só é exercitado com credenciais do clube (passo a passo em `docs/COMO-EXECUTAR.md`).

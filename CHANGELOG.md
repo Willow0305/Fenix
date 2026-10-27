@@ -6,6 +6,15 @@ O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) e o 
 
 ## [Não publicado]
 
+### PIX automático (2026-10-27)
+
+#### Adicionado
+
+- "Pagar com PIX" em pedidos (com conta ou visitante) e mensalidades: QR e copia e cola do Mercado Pago, tela que confirma sozinha e baixa com lançamento no Caixa sem conferência manual (DT-071);
+- modo de teste com "Simular pagamento"; o PIX com comprovante continua como alternativa;
+- Painel → PIX automático: intermediário em uso, conta que recebe e PIX recebidos fora do esperado para revisar (com bolinha e aviso);
+- passo a passo de configuração do Mercado Pago em `docs/COMO-EXECUTAR.md`.
+
 ### Entrega comprovada, desistência e defeito (2026-10-27)
 
 #### Adicionado

@@ -23,6 +23,7 @@ import { SettingsModule } from './modules/settings/settings.module';
 import { SportsModule } from './modules/sports/sports.module';
 import { StoreModule } from './modules/store/store.module';
 import { CardsModule } from './modules/cards/http/cards.controller';
+import { PixModule } from './modules/pix/http/pix.controller';
 
 @Module({
   imports: [
@@ -58,7 +59,8 @@ import { CardsModule } from './modules/cards/http/cards.controller';
     DashboardModule,
     RealtimeModule,
     SearchModule,
-    CardsModule
+    CardsModule,
+    PixModule
   ]
 })
 export class AppModule {}

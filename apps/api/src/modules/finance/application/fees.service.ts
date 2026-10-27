@@ -937,6 +937,67 @@ export class FeesService {
   }
 
   /**
+   * Baixa automática do PIX da mensalidade (DT-071), sem pessoa da diretoria. Não baixa
+   * mensalidade cancelada nem valor acima do saldo: devolve o motivo para revisão.
+   */
+  async receivePixInTx(
+    tx: PrismaTx,
+    feeId: string,
+    input: { amount: Money; paidAt: Date; accountId: string; provider: string; reference: string }
+  ): Promise<{ ok: true; paymentId: string } | { ok: false; reason: string }> {
+    await lockRow(tx, 'monthlyFee', feeId);
+    const row = await this.loadRow(tx, feeId);
+
+    if (row.status === 'CANCELLED') {
+      return { ok: false, reason: 'Mensalidade cancelada depois de gerar o PIX.' };
+    }
+
+    try {
+      this.assertCapacity(row, input.amount);
+    } catch {
+      return { ok: false, reason: 'Valor pago maior que o saldo em aberto da mensalidade.' };
+    }
+
+    const method = await tx.paymentMethod.findUniqueOrThrow({
+      where: { code: 'pix' },
+      select: { id: true }
+    });
+    const payment = await this.payments.createInTx(tx, null, {
+      paymentMethodId: method.id,
+      amount: input.amount,
+      payerUserId: row.athlete.userId,
+      paidAt: input.paidAt,
+      notes: 'PIX automático',
+      idempotencyKey: `pix:${input.provider}:${input.reference}`,
+      provider: input.provider,
+      externalReference: input.reference
+    });
+
+    if (!payment.replayed) {
+      await tx.monthlyFeePayment.create({
+        data: {
+          monthlyFeeId: feeId,
+          paymentId: payment.id,
+          allocatedAmount: input.amount,
+          currency: row.currency,
+          createdById: null
+        }
+      });
+      await this.confirmAllocated(tx, null, row, payment.id, input.accountId);
+    }
+
+    return { ok: true, paymentId: payment.id };
+  }
+
+  /** Saldo em aberto que ainda pode ser cobrado (sem contar pagamentos pendentes). */
+  async outstandingInTx(tx: PrismaTx, feeId: string): Promise<Money> {
+    const row = await this.loadRow(tx, feeId);
+    const { confirmed, pending } = paidOf(row);
+
+    return remainingAmount(row.totalAmount, confirmed.plus(pending));
+  }
+
+  /**
    * RF-013: registra pagamento manual. Com `accountId` e permissão de confirmação,
    * confirma e lança no Caixa na mesma transação; caso contrário fica pendente.
    */
@@ -1013,7 +1074,7 @@ export class FeesService {
 
   private async confirmAllocated(
     tx: PrismaTx,
-    actorId: string,
+    actorId: string | null,
     row: FeeRow,
     paymentId: string,
     accountId: string

@@ -163,6 +163,11 @@ export function personalizationOfItem(details: unknown): { label: string; value:
     : [];
 }
 
+/** Resultado da baixa automática do PIX (DT-071): baixou, ou o motivo para a diretoria revisar. */
+export type PixReceipt =
+  | { readonly ok: true; readonly paymentId: string }
+  | { readonly ok: false; readonly reason: string };
+
 type OrderRow = Prisma.OrderGetPayload<{ include: typeof ORDER_INCLUDE }>;
 
 /**
@@ -913,7 +918,7 @@ export class OrdersService implements OnModuleInit {
 
   private async confirmInTx(
     tx: PrismaTx,
-    actorId: string,
+    actorId: string | null,
     row: OrderRow,
     paymentId: string,
     accountId: string
@@ -949,6 +954,58 @@ export class OrdersService implements OnModuleInit {
     const left = row.totalAmount.minus(used);
 
     return left.lessThan(0) ? ZERO : left;
+  }
+
+  /**
+   * Baixa automática do PIX do intermediário (DT-071): cria o pagamento e confirma no Caixa,
+   * sem pessoa da diretoria. Só baixa se o pedido aguardava pagamento e o valor é o saldo;
+   * caso contrário devolve o motivo e nada muda (a cobrança vai para revisão).
+   */
+  async receivePixInTx(
+    tx: PrismaTx,
+    orderId: string,
+    input: { amount: Money; paidAt: Date; accountId: string; provider: string; reference: string }
+  ): Promise<PixReceipt> {
+    await lockRow(tx, 'order', orderId);
+    const row = await this.load(tx, orderId);
+
+    if (row.status !== 'AWAITING_PAYMENT' && row.status !== 'CREATED') {
+      return {
+        ok: false,
+        reason: `Pedido ${row.orderNumber} não aguardava pagamento (${ORDER_STATUS_LABELS[row.status]}).`
+      };
+    }
+
+    const remaining = this.remaining(row);
+
+    if (!money(input.amount).equals(remaining)) {
+      return {
+        ok: false,
+        reason: `Valor pago (R$ ${money(input.amount).toFixed(2)}) diferente do saldo do pedido (R$ ${remaining.toFixed(2)}).`
+      };
+    }
+
+    const method = await tx.paymentMethod.findUniqueOrThrow({
+      where: { code: 'pix' },
+      select: { id: true }
+    });
+    const payment = await this.payments.createInTx(tx, null, {
+      paymentMethodId: method.id,
+      amount: remaining,
+      payerUserId: row.customerUserId,
+      orderId,
+      paidAt: input.paidAt,
+      notes: 'PIX automático',
+      idempotencyKey: `pix:${input.provider}:${input.reference}`,
+      provider: input.provider,
+      externalReference: input.reference
+    });
+
+    if (!payment.replayed) {
+      await this.confirmInTx(tx, null, await this.load(tx, orderId), payment.id, input.accountId);
+    }
+
+    return { ok: true, paymentId: payment.id };
   }
 
   /** Pagamento manual pela diretoria; com conta e permissão, confirma e lança no Caixa (RF-029). */

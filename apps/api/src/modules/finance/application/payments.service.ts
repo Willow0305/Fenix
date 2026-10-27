@@ -35,6 +35,9 @@ export interface NewPayment {
   readonly paidAt: Date | null;
   readonly notes?: string | null;
   readonly idempotencyKey: string;
+  /** Intermediário e referência da cobrança (PIX automático, DT-071). */
+  readonly provider?: string | null;
+  readonly externalReference?: string | null;
 }
 
 /**
@@ -137,10 +140,11 @@ export class PaymentsService {
         amount: input.amount,
         currency: DEFAULT_CURRENCY,
         status: 'PENDING',
-        provider: 'manual',
         idempotencyKey: input.idempotencyKey,
         paidAt: input.paidAt,
         notes: input.notes?.trim() || null,
+        provider: input.provider ?? 'manual',
+        externalReference: input.externalReference ?? null,
         createdById: actorId
       },
       select: { id: true }
@@ -166,7 +170,8 @@ export class PaymentsService {
    */
   async confirmInTx(
     tx: PrismaTx,
-    actorId: string,
+    /** Nulo quando o sistema confirma sozinho (PIX automático, DT-071). */
+    actorId: string | null,
     paymentId: string,
     input: {
       accountId: string;

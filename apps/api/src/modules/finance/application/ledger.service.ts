@@ -130,6 +130,7 @@ const LOCKABLE_TABLES = {
   obligation: 'financial_obligations',
   partner: 'partners',
   settlement: 'partner_settlements',
+  pixCharge: 'pix_charges',
   professional: 'partner_professionals',
   availability: 'professional_availabilities',
   appointment: 'appointments'

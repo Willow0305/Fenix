@@ -11,6 +11,7 @@ import {
   TextField,
   useSubmit
 } from '../../../../components/ui';
+import { PixPayment } from '../../../../components/pix-payment';
 import { api } from '../../../../lib/api-client';
 import { FEE_STATUS, type Fee } from '../../../../lib/finance-types';
 import { formatDate, formatMoney, formatMonth, todayCivil } from '../../../../lib/format';
@@ -82,6 +83,7 @@ function ProofForm({ fee, onDone }: { readonly fee: Fee; readonly onDone: () => 
 
 export default function MyFeesPage() {
   const fees = useResource<Fee[]>('/me/monthly-fees');
+  const pix = useResource<{ enabled: boolean }>('/public/pix');
   const payment = useResource<{ pixKey: string | null; bankingDetails: string | null }>(
     '/team-settings/payment-info'
   );
@@ -125,7 +127,15 @@ export default function MyFeesPage() {
           </span>
           {(fee.status === 'OPEN' || fee.status === 'OVERDUE' || fee.status === 'PARTIALLY_PAID') &&
           fee.remainingAmount.amount !== fee.pendingAmount.amount ? (
-            open === fee.id ? (
+            open === `pix-${fee.id}` ? (
+              <PixPayment
+                target={{ kind: 'fee', feeId: fee.id }}
+                onPaid={() => {
+                  setNotice('Mensalidade paga por PIX. Obrigado!');
+                  void fees.reload();
+                }}
+              />
+            ) : open === fee.id ? (
               <ProofForm
                 fee={fee}
                 onDone={async () => {
@@ -135,14 +145,24 @@ export default function MyFeesPage() {
                 }}
               />
             ) : (
-              <button
-                type="button"
-                className="btn btn-secondary btn-sm"
-                style={{ justifySelf: 'start' }}
-                onClick={() => setOpen(fee.id)}
-              >
-                Informar pagamento PIX
-              </button>
+              <div className="row">
+                {pix.data?.enabled ? (
+                  <button
+                    type="button"
+                    className="btn btn-primary btn-sm"
+                    onClick={() => setOpen(`pix-${fee.id}`)}
+                  >
+                    Pagar com PIX (automático)
+                  </button>
+                ) : null}
+                <button
+                  type="button"
+                  className="btn btn-secondary btn-sm"
+                  onClick={() => setOpen(fee.id)}
+                >
+                  Enviar comprovante de PIX
+                </button>
+              </div>
             )
           ) : null}
         </article>

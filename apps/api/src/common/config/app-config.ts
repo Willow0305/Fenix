@@ -6,6 +6,17 @@ export type StorageDriver = 'local' | 's3';
 export type MailDriver = 'outbox' | 'smtp';
 /** `off` desliga o canal; `outbox` grava em arquivo (teste); `cloud` envia pela Meta (DT-048). */
 export type WhatsAppDriver = 'off' | 'outbox' | 'cloud';
+/** PIX automático (DT-071): desligado, simulado (só fora de produção) ou Mercado Pago. */
+export type PixProviderName = 'off' | 'sandbox' | 'mercadopago';
+
+export interface PixConfig {
+  readonly provider: PixProviderName;
+  /** Mercado Pago: token de acesso e segredo de assinatura do webhook. */
+  readonly accessToken: string | null;
+  readonly webhookSecret: string | null;
+  /** Endereço público do webhook enviado ao intermediário; sem ele, só a conferência periódica. */
+  readonly notificationUrl: string | null;
+}
 
 export interface S3StorageConfig {
   readonly bucket: string;
@@ -59,6 +70,7 @@ export interface AppConfigValues {
   readonly whatsappDriver: WhatsAppDriver;
   readonly whatsappOutboxDir: string;
   readonly whatsappCloud: WhatsAppCloudConfig | null;
+  readonly pix: PixConfig;
   readonly allowLocalAdaptersInProduction: boolean;
   /** Proxies confiáveis para o IP real (`trust proxy` do Express). */
   readonly trustProxy: string;
@@ -150,6 +162,33 @@ function loadSmtp(env: NodeJS.ProcessEnv): SmtpConfig {
     secure: readString(env, 'SMTP_SECURE', port === 465 ? 'true' : 'false') === 'true',
     user,
     password
+  };
+}
+
+function loadPix(env: NodeJS.ProcessEnv, isProduction: boolean): PixConfig {
+  const provider = readString(env, 'PIX_PROVIDER', isProduction ? 'off' : 'sandbox');
+
+  if (provider !== 'off' && provider !== 'sandbox' && provider !== 'mercadopago') {
+    throw new Error('PIX_PROVIDER suportado: off, sandbox ou mercadopago.');
+  }
+
+  if (provider === 'sandbox' && isProduction) {
+    throw new Error('PIX_PROVIDER=sandbox simula pagamentos e não pode ser usado em produção.');
+  }
+
+  const notificationUrl = env['PIX_NOTIFICATION_URL'] || null;
+
+  if (notificationUrl && isProduction && !notificationUrl.startsWith('https://')) {
+    throw new Error('PIX_NOTIFICATION_URL deve usar https em produção.');
+  }
+
+  return {
+    provider,
+    accessToken:
+      provider === 'mercadopago' ? readString(env, 'MERCADOPAGO_ACCESS_TOKEN', undefined) : null,
+    webhookSecret:
+      provider === 'mercadopago' ? readString(env, 'MERCADOPAGO_WEBHOOK_SECRET', undefined) : null,
+    notificationUrl
   };
 }
 
@@ -252,6 +291,7 @@ export function loadAppConfig(env: NodeJS.ProcessEnv = process.env): AppConfigVa
     whatsappDriver,
     whatsappOutboxDir: readString(env, 'WHATSAPP_OUTBOX_DIR', 'var/whatsapp-outbox'),
     whatsappCloud,
+    pix: loadPix(env, isProduction),
     siteRevalidate: env['SITE_REVALIDATE_SECRET']
       ? {
           url: `${readString(env, 'WEB_INTERNAL_URL', 'http://127.0.0.1:3000')}/api/site-revalidate`,

@@ -89,6 +89,22 @@ Para usar o brasão "Time Fênix Volleyball", salve a imagem como PNG, de prefer
 
 As versões masculina, feminina e da diretoria também podem ser enviadas no mesmo menu.
 
+## 5.1 PIX automático (Mercado Pago)
+
+Em desenvolvimento o PIX automático roda em **modo de teste** (`PIX_PROVIDER=sandbox`): o QR aparece, mas não pode ser pago de verdade; o botão "Simular pagamento (modo de teste)" faz a baixa como se o banco tivesse avisado. Em produção:
+
+1. No [painel de desenvolvedores do Mercado Pago](https://www.mercadopago.com.br/developers/panel/app), crie uma aplicação e copie o **Access Token** de produção.
+2. Em **Webhooks → Configurar notificações**, cadastre `https://SEU-DOMINIO/api/v1/payments/pix/webhook/mercadopago`, marque o evento **Pagamentos** e revele o **segredo** (assinatura).
+3. No `.env` do servidor:
+   ```
+   PIX_PROVIDER=mercadopago
+   MERCADOPAGO_ACCESS_TOKEN=...
+   MERCADOPAGO_WEBHOOK_SECRET=...
+   PIX_NOTIFICATION_URL=https://SEU-DOMINIO/api/v1/payments/pix/webhook/mercadopago
+   ```
+4. Reinicie a API. Em **Painel → PIX automático**, escolha a conta do Caixa que recebe.
+5. Teste com um pedido de valor baixo. Mesmo que um aviso se perca, a conferência automática a cada 2 minutos faz a baixa.
+
 ## 6. Comandos úteis
 
 | Comando | Para quê |

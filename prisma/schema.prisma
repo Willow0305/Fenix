@@ -682,13 +682,16 @@ model TeamSettings {
   /// Visual da carteirinha (DT-068 F).
   cardTemplate            CardTemplate @default(CLASSIC) @map("card_template")
   cardUseTeamLogo         Boolean      @default(true) @map("card_use_team_logo")
+  /// Conta do Caixa que recebe o PIX automático (DT-071).
+  pixAccountId            String?      @map("pix_account_id") @db.Uuid
   notificationSettings    Json?        @map("notification_settings") @db.JsonB
   updatedById             String?      @map("updated_by_id") @db.Uuid
   createdAt               DateTime     @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt               DateTime     @updatedAt @map("updated_at") @db.Timestamptz(6)
 
-  updatedBy   User?            @relation("TeamSettingsUpdater", fields: [updatedById], references: [id], onDelete: SetNull, onUpdate: Cascade)
+  updatedBy   User?             @relation("TeamSettingsUpdater", fields: [updatedById], references: [id], onDelete: SetNull, onUpdate: Cascade)
   brandAssets TeamBrandAsset[]
+  pixAccount  FinancialAccount? @relation("PixAccount", fields: [pixAccountId], references: [id], onDelete: SetNull, onUpdate: Cascade)
 
   @@map("team_settings")
 }
@@ -1062,6 +1065,7 @@ model MonthlyFee {
   createdBy             User?                  @relation("MonthlyFeeCreator", fields: [createdById], references: [id], onDelete: SetNull, onUpdate: Cascade)
   cancelledBy           User?                  @relation("MonthlyFeeCanceller", fields: [cancelledById], references: [id], onDelete: SetNull, onUpdate: Cascade)
   paymentAllocations    MonthlyFeePayment[]
+  pixCharges            PixCharge[]
 
   @@unique([athleteId, referenceMonth])
   @@index([status, dueDate])
@@ -1133,6 +1137,7 @@ model Payment {
   refunds               Refund[]
   attachments           FinancialTransactionAttachment[]
   financialTransaction  FinancialTransaction?
+  pixCharge             PixCharge?
 
   @@unique([provider, externalReference])
   @@index([status, createdAt])
@@ -1188,6 +1193,7 @@ model FinancialAccount {
 
   transactions      FinancialTransaction[]
   cashClosings      CashClosing[]
+  pixSettings       TeamSettings[]         @relation("PixAccount")
   outgoingTransfers FinancialTransfer[]    @relation("TransferSourceAccount")
   incomingTransfers FinancialTransfer[]    @relation("TransferDestinationAccount")
 
@@ -1703,6 +1709,7 @@ model Order {
   couponRedemption       CouponRedemption?
   deliveryProofMediaFile MediaFile?        @relation("OrderDeliveryProof", fields: [deliveryProofMediaFileId], references: [id], onDelete: SetNull, onUpdate: Cascade)
   returnRequests         ReturnRequest[]
+  pixCharges             PixCharge[]
 
   @@index([status, createdAt])
   @@index([status, paidAt])
@@ -2682,4 +2689,64 @@ model ReturnRequestItem {
   @@unique([returnRequestId, orderItemId])
   @@index([orderItemId])
   @@map("return_request_items")
+}
+
+enum PixChargeStatus {
+  PENDING
+  PAID
+  EXPIRED
+  CANCELLED
+  /// Pago, mas o pedido ou a mensalidade não aceitava mais (a diretoria decide).
+  REVIEW
+}
+
+enum PixPurpose {
+  ORDER
+  MONTHLY_FEE
+}
+
+/// Cobrança PIX no intermediário (DT-071). O QR é o "copia e cola"; nada de dado bancário.
+model PixCharge {
+  id               String          @id @default(uuid()) @db.Uuid
+  provider         String          @db.VarChar(20)
+  providerChargeId String          @map("provider_charge_id") @db.VarChar(80)
+  purpose          PixPurpose
+  orderId          String?         @map("order_id") @db.Uuid
+  monthlyFeeId     String?         @map("monthly_fee_id") @db.Uuid
+  amount           Decimal         @db.Decimal(19, 4)
+  currency         String          @db.Char(3)
+  status           PixChargeStatus @default(PENDING)
+  qrCode           String          @map("qr_code") @db.Text
+  expiresAt        DateTime        @map("expires_at") @db.Timestamptz(6)
+  paidAt           DateTime?       @map("paid_at") @db.Timestamptz(6)
+  paymentId        String?         @unique @map("payment_id") @db.Uuid
+  /// Só no modo de teste: pagamento simulado.
+  simulatedPaidAt  DateTime?       @map("simulated_paid_at") @db.Timestamptz(6)
+  lastCheckedAt    DateTime?       @map("last_checked_at") @db.Timestamptz(6)
+  reviewReason     String?         @map("review_reason") @db.Text
+  createdAt        DateTime        @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt        DateTime        @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  order      Order?      @relation(fields: [orderId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+  monthlyFee MonthlyFee? @relation(fields: [monthlyFeeId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+  payment    Payment?    @relation(fields: [paymentId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+
+  @@unique([provider, providerChargeId])
+  @@index([status, expiresAt])
+  @@index([orderId])
+  @@index([monthlyFeeId])
+  @@map("pix_charges")
+}
+
+/// Aviso recebido do intermediário: processado uma vez só (DT-071).
+model PixWebhookEvent {
+  id         String   @id @default(uuid()) @db.Uuid
+  provider   String   @db.VarChar(20)
+  eventKey   String   @map("event_key") @db.VarChar(160)
+  result     String   @db.VarChar(40)
+  receivedAt DateTime @default(now()) @map("received_at") @db.Timestamptz(6)
+
+  @@unique([provider, eventKey])
+  @@index([receivedAt])
+  @@map("pix_webhook_events")
 }

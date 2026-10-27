@@ -156,6 +156,14 @@ export class PendingBadgesService {
       ]);
     }
 
+    if (can(PERMISSIONS.paymentsConfirm)) {
+      // PIX recebido fora do esperado, esperando a diretoria (DT-071).
+      tasks.push([
+        '/admin/pix',
+        () => this.prisma.pixCharge.count({ where: { status: 'REVIEW' } })
+      ]);
+    }
+
     if (can(PERMISSIONS.ordersRead)) {
       // Desistência ou defeito aguardando a diretoria (DT-070).
       tasks.push([
