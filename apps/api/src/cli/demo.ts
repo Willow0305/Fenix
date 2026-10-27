@@ -267,8 +267,165 @@ async function main(): Promise<void> {
       });
     }
 
+    // Conteúdo de exemplo com textos e palavras longas, para conferir quebras de linha e
+    // cartões em telas pequenas (notícias, eventos e fórum).
+    const author = await prisma.user.findFirst({
+      where: { deletedAt: null, userRoles: { some: { role: { code: 'admin' } } } },
+      orderBy: { createdAt: 'asc' },
+      select: { id: true }
+    });
+    const LONG_WORD = 'Pneumoultramicroscopicossilicovulcanoconiótico';
+    const paragraph = (topic: string) =>
+      `${topic} Este parágrafo existe para testar a leitura de textos longos no site, em celular e computador, com frases compridas, vírgulas, números como 25 x 23 e 3 sets a 1, e palavras enormes como ${LONG_WORD} ou inconstitucionalissimamente, que precisam quebrar sem estourar a largura da tela. (Texto fictício de demonstração.)`;
+    const newsCategory = await prisma.newsCategory.upsert({
+      where: { slug: 'campeonatos-demo' },
+      create: { slug: 'campeonatos-demo', name: 'Campeonatos e competições regionais' },
+      update: { deletedAt: null, isActive: true }
+    });
+    const news = [
+      {
+        slug: 'fenix-conquista-titulo-estadual-demo',
+        title:
+          'Fênix conquista o título estadual depois de uma virada histórica no tie-break contra as Águias do Norte',
+        summary:
+          'Em uma final de cinco sets, a equipe feminina virou o placar e levantou a taça diante de um ginásio lotado.',
+        isFeatured: true
+      },
+      {
+        slug: 'palavras-gigantes-teste-visual-demo',
+        title: `Teste visual: ${LONG_WORD}${LONG_WORD}`,
+        summary: `Resumo com uma palavra gigante sem espaços: ${LONG_WORD}${LONG_WORD}${LONG_WORD}.`,
+        isFeatured: false
+      }
+    ];
+
+    for (const [index, item] of news.entries()) {
+      await prisma.news.upsert({
+        where: { slug: item.slug },
+        create: {
+          ...item,
+          categoryId: newsCategory.id,
+          authorUserId: author?.id ?? null,
+          content: [
+            paragraph('A partida começou equilibrada e o primeiro set terminou em 25 x 23.'),
+            paragraph('No segundo set, o saque flutuante mudou o ritmo do jogo.'),
+            paragraph('A torcida acompanhou cada ponto até o último ataque pela saída de rede.'),
+            `Linha sem espaços para testar quebra: ${'https://exemplo.test/'.repeat(6)}`
+          ].join('\n\n'),
+          status: 'PUBLISHED',
+          showOnHome: true,
+          publishedAt: new Date(now.getTime() - (index + 1) * day)
+        },
+        update: {}
+      });
+    }
+
+    const events = [
+      {
+        slug: 'final-copa-acreana-demo',
+        title:
+          'Final da Copa Acreana de Voleibol Adulto Feminino e Masculino — rodada decisiva com transmissão ao vivo',
+        type: 'MATCH' as const,
+        status: 'SCHEDULED' as const,
+        startsAt: new Date(now.getTime() + 10 * day),
+        locationName: 'Ginásio Poliesportivo Governador Jorge Kalume (quadra principal)',
+        address: `Avenida Ceará, 1234, bairro Jardim de Allah, Rio Branco — AC. Referência: ${LONG_WORD}.`,
+        opponent: 'Associação Desportiva das Águias do Norte Amazônico'
+      },
+      {
+        slug: 'amistoso-solidario-demo',
+        title: `Amistoso solidário ${LONG_WORD}`,
+        type: 'FRIENDLY' as const,
+        status: 'COMPLETED' as const,
+        startsAt: new Date(now.getTime() - 5 * day),
+        locationName: 'Quadra coberta do bairro',
+        address: 'Rua das Acácias, s/n, Rio Branco — AC.',
+        opponent: 'Seleção dos Veteranos'
+      }
+    ];
+
+    for (const item of events) {
+      const { opponent, ...data } = item;
+      const event = await prisma.event.upsert({
+        where: { slug: item.slug },
+        create: {
+          ...data,
+          description: [
+            paragraph('Traga a família e chegue com 30 minutos de antecedência.'),
+            paragraph('A entrada é gratuita, com arrecadação voluntária de alimentos.')
+          ].join('\n\n'),
+          endsAt: new Date(item.startsAt.getTime() + 3 * 3_600_000),
+          isPublic: true,
+          publishedAt: new Date(now.getTime() - 7 * day)
+        },
+        update: {}
+      });
+
+      await prisma.match.upsert({
+        where: { eventId: event.id },
+        create: {
+          eventId: event.id,
+          teamId: feminino.id,
+          opponentName: opponent,
+          competitionName: 'Copa Acreana de Voleibol — fase final',
+          ...(item.status === 'COMPLETED' ? { teamScore: 3, opponentScore: 2 } : {})
+        },
+        update: {}
+      });
+    }
+
+    const forumCategory = await prisma.forumCategory.upsert({
+      where: { slug: 'conversa-geral-demo' },
+      create: {
+        slug: 'conversa-geral-demo',
+        name: 'Conversa geral sobre treinos, jogos e a vida do clube',
+        description: 'Espaço aberto para torcedores, atletas e famílias. (demonstração)',
+        visibility: 'PUBLIC'
+      },
+      update: { deletedAt: null, isActive: true }
+    });
+    const topics = [
+      {
+        title:
+          'Qual foi o ponto mais bonito da final? Vamos relembrar os melhores lances da temporada inteira',
+        replies: [
+          'O bloqueio triplo no 14 x 13 do tie-break, sem dúvida!',
+          paragraph('Para mim foi a defesa de peixinho no segundo set.')
+        ]
+      },
+      {
+        title: `Tópico com palavra gigante: ${LONG_WORD}${LONG_WORD}`,
+        replies: [`${LONG_WORD}${LONG_WORD}${LONG_WORD}`]
+      }
+    ];
+
+    for (const item of topics) {
+      const exists = await prisma.forumTopic.findFirst({
+        where: { categoryId: forumCategory.id, title: item.title, deletedAt: null }
+      });
+
+      if (exists) {
+        continue;
+      }
+
+      await prisma.forumTopic.create({
+        data: {
+          categoryId: forumCategory.id,
+          authorUserId: author?.id ?? null,
+          title: item.title,
+          visibility: 'PUBLIC',
+          status: 'PUBLISHED',
+          posts: {
+            create: [paragraph('Abro o tópico para a comunidade comentar.'), ...item.replies].map(
+              (content) => ({ content, authorUserId: author?.id ?? null })
+            )
+          }
+        }
+      });
+    }
+
     console.log(
-      'Dados de demonstração criados (equipes, atletas, plano, seletiva, produtos e remessa).'
+      'Dados de demonstração criados (equipes, atletas, plano, seletiva, produtos, remessa, notícias, eventos e fórum).'
     );
   } finally {
     await prisma.$disconnect();

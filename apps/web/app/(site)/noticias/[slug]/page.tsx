@@ -50,7 +50,10 @@ export default async function NewsItemPage({
       </small>
       <h1 style={{ margin: 0 }}>{news.title}</h1>
       {news.summary ? <p>{news.summary}</p> : null}
-      <MediaImage src={news.coverUrl} alt="" priority className="news-cover" />
+      {/* Sem capa, o texto vem logo abaixo do título (o bloco só com o símbolo não informa nada). */}
+      {news.coverUrl ? (
+        <MediaImage src={news.coverUrl} alt="" priority className="news-cover" />
+      ) : null}
       {/* Texto simples renderizado como texto, nunca como HTML (DT-034). */}
       <div className="prose">{news.content}</div>
       {news.event ? (

@@ -6,6 +6,17 @@ O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) e o 
 
 ## [Não publicado]
 
+### Exemplos de conteúdo e ajustes visuais (2026-10-26)
+
+#### Adicionado
+
+- `npm run db:demo` cria 2 notícias, 2 eventos (um próximo e um realizado, com placar) e um fórum com 2 tópicos, com textos longos e palavras gigantes para teste visual.
+
+#### Corrigido
+
+- logo quebrada quando a imagem falhava antes de a página terminar de carregar (ex.: página "não encontrada"): agora cai para o símbolo da fênix;
+- notícia sem capa não mostra mais um bloco escuro vazio acima do texto.
+
 ### Logos dos times no site (2026-10-26)
 
 #### Adicionado
