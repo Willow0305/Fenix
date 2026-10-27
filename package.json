@@ -60,8 +60,10 @@
   },
   "devDependencies": {
     "@eslint/js": "10.0.1",
+    "@playwright/test": "1.64.0",
     "@types/jest": "30.0.0",
     "@types/node": "22.20.1",
+    "@typescript/native": "npm:typescript@7.0.2",
     "concurrently": "9.2.5",
     "dotenv-cli": "11.0.0",
     "eslint": "10.7.0",
@@ -71,7 +73,6 @@
     "prettier": "3.9.6",
     "prisma": "7.10.1",
     "ts-jest": "29.4.12",
-    "@typescript/native": "npm:typescript@7.0.2",
     "typescript": "npm:@typescript/typescript6@6.0.2",
     "typescript-eslint": "8.65.0"
   }

@@ -18,6 +18,7 @@ const ACCOUNT_LINKS: readonly AccountLink[] = [
   { href: '/minha-conta/atleta', label: 'Meus dados de atleta', athleteOnly: true },
   { href: '/minha-conta/mensalidades', label: 'Mensalidades', athleteOnly: true },
   { href: '/minha-conta/inscricoes', label: 'Inscrições' },
+  { href: '/minha-conta/carteirinhas', label: 'Carteirinhas' },
   { href: '/minha-conta/pedidos', label: 'Pedidos' },
   { href: '/minha-conta/favoritos', label: 'Favoritos' },
   { href: '/minha-conta/agendamentos', label: 'Agendamentos' },

@@ -123,6 +123,18 @@ export const ADMIN_NAV: readonly AdminGroup[] = [
     links: [
       { href: '/admin/parceiros', icon: 'shop', label: 'Parceiros', permission: 'partners.manage' },
       {
+        href: '/admin/carteirinhas',
+        icon: 'person-vcard',
+        label: 'Carteirinhas',
+        permission: 'cards.read'
+      },
+      {
+        href: '/admin/carteirinhas/beneficios',
+        icon: 'percent',
+        label: 'Benefícios',
+        permission: 'benefits.manage'
+      },
+      {
         href: '/admin/servicos',
         icon: 'briefcase',
         label: 'Profissionais e serviços',

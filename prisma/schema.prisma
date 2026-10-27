@@ -48,6 +48,7 @@ enum TeamBrandContext {
   FAVICON
   COVER
   OTHER
+  CARD_BACKGROUND
 }
 
 enum AthleteStatus {
@@ -500,6 +501,8 @@ model User {
   forumTopics                     ForumTopic[]
   forumPosts                      ForumPost[]
   forumReactions                  ForumReaction[]
+  memberCards                     MemberCard[]             @relation("MemberCardHolder")
+  memberCardsPurchased            MemberCard[]             @relation("MemberCardBuyer")
   forumReports                    ForumReport[]            @relation("ForumReportReporter")
   forumReportsReviewed            ForumReport[]            @relation("ForumReportReviewer")
   forumModerationActions          ForumModerationAction[]
@@ -645,37 +648,40 @@ model RolePermission {
 }
 
 model TeamSettings {
-  id                      String   @id @default(uuid()) @db.Uuid
-  singletonKey            String   @unique @map("singleton_key") @db.VarChar(40)
-  teamName                String   @map("team_name") @db.VarChar(160)
-  officialName            String   @map("official_name") @db.VarChar(200)
-  description             String?  @db.Text
-  history                 String?  @db.Text
-  email                   String?  @db.VarChar(180)
-  phone                   String?  @db.VarChar(30)
-  socialLinks             Json?    @map("social_links") @db.JsonB
-  addressLine1            String?  @map("address_line_1") @db.VarChar(200)
-  addressLine2            String?  @map("address_line_2") @db.VarChar(200)
-  addressCity             String?  @map("address_city") @db.VarChar(120)
-  addressState            String?  @map("address_state") @db.VarChar(80)
-  addressPostalCode       String?  @map("address_postal_code") @db.VarChar(20)
-  addressCountry          String?  @map("address_country") @db.Char(2)
-  primaryColor            String?  @map("primary_color") @db.VarChar(20)
-  secondaryColor          String?  @map("secondary_color") @db.VarChar(20)
-  defaultCurrency         String   @map("default_currency") @db.Char(3)
-  timeZone                String   @map("time_zone") @db.VarChar(100)
-  pixKeyEncrypted         String?  @map("pix_key_encrypted") @db.Text
-  bankingDetailsEncrypted String?  @map("banking_details_encrypted") @db.Text
-  encryptionKeyVersion    String?  @map("encryption_key_version") @db.VarChar(40)
-  termsOfUse              String?  @map("terms_of_use") @db.Text
-  privacyPolicy           String?  @map("privacy_policy") @db.Text
-  monthlyFeeRules         String?  @map("monthly_fee_rules") @db.Text
-  storeRules              String?  @map("store_rules") @db.Text
-  pickupInstructions      String?  @map("pickup_instructions") @db.Text
-  notificationSettings    Json?    @map("notification_settings") @db.JsonB
-  updatedById             String?  @map("updated_by_id") @db.Uuid
-  createdAt               DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
-  updatedAt               DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+  id                      String       @id @default(uuid()) @db.Uuid
+  singletonKey            String       @unique @map("singleton_key") @db.VarChar(40)
+  teamName                String       @map("team_name") @db.VarChar(160)
+  officialName            String       @map("official_name") @db.VarChar(200)
+  description             String?      @db.Text
+  history                 String?      @db.Text
+  email                   String?      @db.VarChar(180)
+  phone                   String?      @db.VarChar(30)
+  socialLinks             Json?        @map("social_links") @db.JsonB
+  addressLine1            String?      @map("address_line_1") @db.VarChar(200)
+  addressLine2            String?      @map("address_line_2") @db.VarChar(200)
+  addressCity             String?      @map("address_city") @db.VarChar(120)
+  addressState            String?      @map("address_state") @db.VarChar(80)
+  addressPostalCode       String?      @map("address_postal_code") @db.VarChar(20)
+  addressCountry          String?      @map("address_country") @db.Char(2)
+  primaryColor            String?      @map("primary_color") @db.VarChar(20)
+  secondaryColor          String?      @map("secondary_color") @db.VarChar(20)
+  defaultCurrency         String       @map("default_currency") @db.Char(3)
+  timeZone                String       @map("time_zone") @db.VarChar(100)
+  pixKeyEncrypted         String?      @map("pix_key_encrypted") @db.Text
+  bankingDetailsEncrypted String?      @map("banking_details_encrypted") @db.Text
+  encryptionKeyVersion    String?      @map("encryption_key_version") @db.VarChar(40)
+  termsOfUse              String?      @map("terms_of_use") @db.Text
+  privacyPolicy           String?      @map("privacy_policy") @db.Text
+  monthlyFeeRules         String?      @map("monthly_fee_rules") @db.Text
+  storeRules              String?      @map("store_rules") @db.Text
+  pickupInstructions      String?      @map("pickup_instructions") @db.Text
+  /// Visual da carteirinha (DT-068 F).
+  cardTemplate            CardTemplate @default(CLASSIC) @map("card_template")
+  cardUseTeamLogo         Boolean      @default(true) @map("card_use_team_logo")
+  notificationSettings    Json?        @map("notification_settings") @db.JsonB
+  updatedById             String?      @map("updated_by_id") @db.Uuid
+  createdAt               DateTime     @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt               DateTime     @updatedAt @map("updated_at") @db.Timestamptz(6)
 
   updatedBy   User?            @relation("TeamSettingsUpdater", fields: [updatedById], references: [id], onDelete: SetNull, onUpdate: Cascade)
   brandAssets TeamBrandAsset[]
@@ -796,6 +802,7 @@ model Athlete {
   monthlyFeePlans           AthleteMonthlyFeePlan[]
   monthlyFees               MonthlyFee[]
   appointments              Appointment[]
+  memberCard                MemberCard?
 
   @@index([status, deletedAt])
   @@index([fullName, deletedAt])
@@ -1711,6 +1718,7 @@ model OrderItem {
   partner              Partner?               @relation(fields: [partnerId], references: [id], onDelete: Restrict, onUpdate: Cascade)
   inventoryMovements   InventoryMovement[]
   settlementItem       PartnerSettlementItem?
+  memberCards          MemberCard[]
 
   @@index([orderId])
   @@index([productVariantId, createdAt])
@@ -1755,6 +1763,7 @@ model Partner {
   salesCampaigns       SalesCampaign[]
   orderItems           OrderItem[]
   settlements          PartnerSettlement[]
+  benefits             PartnerBenefit[]
   financialObligations FinancialObligation[]
 
   @@index([status, type, deletedAt])
@@ -2454,4 +2463,102 @@ model TrustedDevice {
 
   @@index([userId, revokedAt, expiresAt])
   @@map("trusted_devices")
+}
+
+enum MemberCardType {
+  ATHLETE
+  AFFILIATE
+}
+
+enum MemberCardStatus {
+  ACTIVE
+  SUSPENDED
+  CANCELLED
+}
+
+enum BenefitAudience {
+  ATHLETES
+  AFFILIATES
+  BOTH
+}
+
+enum CardTemplate {
+  CLASSIC
+  LIGHT
+  STRIPE
+}
+
+/// Carteirinha digital (DT-068): de atleta (gratuita, enquanto ativo) ou de afiliado (comprada).
+model MemberCard {
+  id                String           @id @default(uuid()) @db.Uuid
+  /// Número impresso e de busca, ex.: FNX-7K3M9Q.
+  code              String           @unique @db.VarChar(20)
+  type              MemberCardType
+  status            MemberCardStatus @default(ACTIVE)
+  athleteId         String?          @unique @map("athlete_id") @db.Uuid
+  holderUserId      String?          @map("holder_user_id") @db.Uuid
+  holderName        String           @map("holder_name") @db.VarChar(160)
+  /// E-mail informado na compra; liga a carteirinha à conta quando ela existir.
+  holderEmail       String?          @map("holder_email") @db.VarChar(180)
+  purchasedByUserId String?          @map("purchased_by_user_id") @db.Uuid
+  orderItemId       String?          @map("order_item_id") @db.Uuid
+  startsOn          DateTime?        @map("starts_on") @db.Date
+  endsOn            DateTime?        @map("ends_on") @db.Date
+  /// Reemitir aumenta e invalida os QR anteriores, inclusive o impresso.
+  version           Int              @default(1)
+  statusReason      String?          @map("status_reason") @db.Text
+  createdAt         DateTime         @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt         DateTime         @updatedAt @map("updated_at") @db.Timestamptz(6)
+  deletedAt         DateTime?        @map("deleted_at") @db.Timestamptz(6)
+
+  athlete     Athlete?          @relation(fields: [athleteId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+  holderUser  User?             @relation("MemberCardHolder", fields: [holderUserId], references: [id], onDelete: SetNull, onUpdate: Cascade)
+  purchasedBy User?             @relation("MemberCardBuyer", fields: [purchasedByUserId], references: [id], onDelete: SetNull, onUpdate: Cascade)
+  orderItem   OrderItem?        @relation(fields: [orderItemId], references: [id], onDelete: SetNull, onUpdate: Cascade)
+  checks      MemberCardCheck[]
+
+  @@index([type, status, deletedAt])
+  @@index([holderUserId])
+  @@index([purchasedByUserId])
+  @@index([holderEmail])
+  @@index([orderItemId])
+  @@map("member_cards")
+}
+
+/// Conferência de carteirinha (DT-068 G): sem dados de quem leu; guardada por 12 meses.
+model MemberCardCheck {
+  id        String   @id @default(uuid()) @db.Uuid
+  cardId    String   @map("card_id") @db.Uuid
+  valid     Boolean
+  reason    String?  @db.VarChar(40)
+  byStaff   Boolean  @default(false) @map("by_staff")
+  printed   Boolean  @default(false)
+  checkedAt DateTime @default(now()) @map("checked_at") @db.Timestamptz(6)
+
+  card MemberCard @relation(fields: [cardId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+
+  @@index([cardId, checkedAt])
+  @@index([checkedAt])
+  @@map("member_card_checks")
+}
+
+/// Benefício de parceiro para quem tem carteirinha (DT-068 D).
+model PartnerBenefit {
+  id              String          @id @default(uuid()) @db.Uuid
+  partnerId       String          @map("partner_id") @db.Uuid
+  title           String          @db.VarChar(120)
+  discountPercent Decimal         @map("discount_percent") @db.Decimal(5, 2)
+  conditions      String?         @db.Text
+  audience        BenefitAudience @default(BOTH)
+  startsOn        DateTime?       @map("starts_on") @db.Date
+  endsOn          DateTime?       @map("ends_on") @db.Date
+  isActive        Boolean         @default(true) @map("is_active")
+  createdAt       DateTime        @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt       DateTime        @updatedAt @map("updated_at") @db.Timestamptz(6)
+  deletedAt       DateTime?       @map("deleted_at") @db.Timestamptz(6)
+
+  partner Partner @relation(fields: [partnerId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+
+  @@index([partnerId, isActive, deletedAt])
+  @@map("partner_benefits")
 }

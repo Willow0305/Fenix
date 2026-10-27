@@ -22,6 +22,7 @@ import { ReportsModule } from './modules/reports/http/reports.controller';
 import { SettingsModule } from './modules/settings/settings.module';
 import { SportsModule } from './modules/sports/sports.module';
 import { StoreModule } from './modules/store/store.module';
+import { CardsModule } from './modules/cards/http/cards.controller';
 
 @Module({
   imports: [
@@ -56,7 +57,8 @@ import { StoreModule } from './modules/store/store.module';
     PrivacyModule,
     DashboardModule,
     RealtimeModule,
-    SearchModule
+    SearchModule,
+    CardsModule
   ]
 })
 export class AppModule {}

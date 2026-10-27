@@ -58,7 +58,8 @@ export interface MfaSetup {
   readonly qrSvg: string;
 }
 
-export type BrandContext = 'OFFICIAL' | 'MALE' | 'FEMALE' | 'BOARD' | 'FAVICON' | 'COVER' | 'OTHER';
+export type BrandContext =
+  'OFFICIAL' | 'MALE' | 'FEMALE' | 'BOARD' | 'FAVICON' | 'COVER' | 'OTHER' | 'CARD_BACKGROUND';
 
 export interface PublicTeam {
   readonly teamName: string;

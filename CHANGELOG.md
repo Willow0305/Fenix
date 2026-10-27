@@ -6,6 +6,16 @@ O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) e o 
 
 ## [Não publicado]
 
+### Carteirinha digital e benefícios de parceiros (2026-10-27)
+
+#### Adicionado
+
+- carteirinha de atleta (automática para atletas ativos) em Minha conta → Carteirinhas, com QR que muda a cada minuto, benefícios e impressão em tamanho de cartão (DT-068);
+- conferência em `/validar/…`: lojas parceiras, sem login, veem válida/inválida, nome curto, foto (menores só com autorização) e os benefícios; a diretoria logada vê os detalhes;
+- painel: Carteirinhas (busca, filtros, suspender, reativar, cancelar, reemitir, estender, corrigir nome, histórico de conferências e visual com três modelos e fundo personalizado) e Benefícios (cadastro completo de descontos por parceiro);
+- benefícios aparecem na página de Parceiros e de cada parceiro;
+- permissões novas: Conferir carteirinhas, Gerenciar carteirinhas e Gerenciar benefícios de parceiros.
+
 ### Planos, contas, seletivas e avisos de conteúdo (2026-10-27)
 
 #### Adicionado

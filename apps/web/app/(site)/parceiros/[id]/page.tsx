@@ -8,6 +8,7 @@ import { PartnerLogo } from '../../../../components/partner-logo';
 import { formatMoney, formatPhoneDisplay } from '../../../../lib/format';
 import { PARTNER_TYPE, type PublicPartner } from '../../../../lib/partner-types';
 import { serverGet } from '../../../../lib/server-api';
+import { type Benefit, BENEFIT_AUDIENCE } from '../../../../lib/card-types';
 
 async function load(id: string): Promise<PublicPartner | null> {
   return /^[0-9a-f-]{36}$/i.test(id)
@@ -33,7 +34,13 @@ export default async function PartnerPage({
 }: {
   readonly params: Promise<{ id: string }>;
 }) {
-  const partner = await load((await params).id);
+  const { id } = await params;
+  const [partner, benefits] = await Promise.all([
+    load(id),
+    serverGet<Benefit[]>(`/public/benefits?partnerId=${encodeURIComponent(id)}`, 60).then(
+      (rows) => rows ?? []
+    )
+  ]);
 
   if (partner === null) {
     notFound();
@@ -70,6 +77,28 @@ export default async function PartnerPage({
         </div>
       </header>
       {partner.description ? <p style={{ whiteSpace: 'pre-line' }}>{partner.description}</p> : null}
+
+      {benefits.length > 0 ? (
+        <section className="card stack" aria-labelledby="beneficios">
+          <h2 id="beneficios" style={{ margin: 0 }}>
+            Desconto com a carteirinha do Fênix
+          </h2>
+          <ul className="stack" style={{ gap: '0.4rem', paddingLeft: '1.1rem', margin: 0 }}>
+            {benefits.map((b) => (
+              <li key={b.id}>
+                <strong>{b.discountPercent}%</strong> · {b.title}{' '}
+                <span className="muted">
+                  ({BENEFIT_AUDIENCE[b.audience].toLowerCase()}
+                  {b.conditions ? `; ${b.conditions}` : ''})
+                </span>
+              </li>
+            ))}
+          </ul>
+          <small className="muted">
+            Mostre o QR da carteirinha (Minha conta → Carteirinhas) na hora da compra.
+          </small>
+        </section>
+      ) : null}
 
       {partner.services.length > 0 ? (
         <section className="stack" aria-labelledby="servicos">

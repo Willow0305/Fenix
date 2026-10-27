@@ -1903,3 +1903,169 @@ details.collapsible {
     animation: none;
   }
 }
+
+/* Carteirinha digital (DT-068): proporção de cartão 85,6 × 54 mm, três modelos. */
+.member-card {
+  position: relative;
+  width: 100%;
+  max-width: 26rem;
+  aspect-ratio: 85.6 / 54;
+  display: grid;
+  grid-template-rows: auto 1fr;
+  gap: 0.6rem;
+  padding: 0.9rem 1rem;
+  border-radius: 14px;
+  overflow: hidden;
+  background-size: cover;
+  background-position: center;
+  box-shadow: var(--shadow-card);
+  container-type: inline-size;
+}
+
+.member-card-classic {
+  color: #fff;
+  background-color: var(--color-ink);
+  background-image: radial-gradient(circle at 85% 15%, rgb(205 21 29 / 55%), transparent 60%);
+}
+
+.member-card-light {
+  color: var(--color-ink);
+  background-color: #fff;
+  border: 1px solid var(--color-border);
+  border-top: 6px solid var(--color-primary);
+}
+
+.member-card-stripe {
+  color: #fff;
+  background-color: var(--color-ink);
+  background-image: linear-gradient(
+    115deg,
+    transparent 0 55%,
+    var(--color-primary) 55% 70%,
+    transparent 70%
+  );
+}
+
+/* Imagem de fundo enviada: véu escuro para manter o texto legível. */
+.member-card[style*='background-image']::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: rgb(11 6 19 / 55%);
+}
+
+.member-card[style*='background-image'] {
+  color: #fff;
+}
+
+.member-card > * {
+  position: relative;
+}
+
+.member-card-head {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+
+  strong {
+    display: block;
+    font-size: 0.95rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+
+  span {
+    font-size: 0.75rem;
+    opacity: 0.85;
+  }
+}
+
+.member-card-body {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 0.75rem;
+  min-width: 0;
+}
+
+.member-card-info {
+  display: grid;
+  gap: 0.15rem;
+  min-width: 0;
+  font-size: 0.8rem;
+  overflow-wrap: anywhere;
+}
+
+.member-card-name {
+  font-size: 1rem;
+  line-height: 1.2;
+}
+
+.member-card-code {
+  font-family: ui-monospace, monospace;
+  letter-spacing: 0.08em;
+  opacity: 0.85;
+}
+
+.member-card-qr {
+  background: #fff;
+  border-radius: 8px;
+  padding: 4px;
+  width: 6.5rem;
+}
+
+.member-card-qr-img {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.member-card-state {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-weight: 700;
+}
+
+.card-check {
+  border-radius: var(--radius-md);
+  padding: 1.25rem;
+  text-align: center;
+  color: #fff;
+
+  .icon {
+    font-size: 2.5rem;
+  }
+
+  h1 {
+    margin: 0;
+    color: #fff;
+    font-size: clamp(2rem, 8vw, 3rem);
+  }
+}
+
+.card-check-valid {
+  background: #157a3c;
+}
+
+.card-check-invalid {
+  background: #b3261e;
+}
+
+@media print {
+  .no-print,
+  .whatsapp-float,
+  .toast-region {
+    display: none !important;
+  }
+
+  .member-card {
+    width: 85.6mm;
+    max-width: none;
+    height: 54mm;
+    box-shadow: none;
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+    break-inside: avoid;
+  }
+}

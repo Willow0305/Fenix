@@ -1319,3 +1319,65 @@ Mesmo padrão da inativação de atleta (COR-018):
 - notícia: ao publicar agora, ou quando a agendada fica visível (rotina a cada 5 min); evento: público, agendado e ainda por acontecer; tópico: só em categoria pública, sem avisar o autor;
 - cada conteúdo é anunciado uma vez (`announcedAt` + chave idempotente por pessoa); conteúdo com mais de 7 dias não é anunciado; o que já estava no ar na atualização foi marcado como anunciado;
 - envio em lotes de 500 pessoas pela fila de entregas existente (DT-048); falha no aviso nunca desfaz a publicação.
+
+## DT-068 — Carteirinha digital: atleta e afiliado, benefícios de parceiros
+
+- **Estado:** Aceita
+- **Data:** 2026-10-27
+- **Aprovador:** responsável do projeto (regras A a G aprovadas em 2026-10-27; "a carteirinha será usada para conseguir desconto em lojas parceiras e outras coisas"; "QR só confere"; "a diretoria faz a suspensão quando achar necessário"; menores "foto só com autorização"; afiliação "como pedido da loja", "período em meses", impressão "incluir agora")
+
+### Decisão
+
+**A. Tipos.** *Atleta:* quem faz parte do time; gratuita, existe enquanto o atleta estiver Ativo. *Afiliado:* qualquer pessoa compra um plano de afiliação na loja e ganha os benefícios dos parceiros. Diretoria só tem carteirinha se também for atleta ou afiliado.
+
+**B. Situações.** Ativa, suspensa (pela diretoria, com motivo, quando achar necessário), vencida (afiliação depois da data final) e cancelada. Nada suspende sozinho (atraso de mensalidade não afeta). Suspensa: o dono vê "Carteirinha suspensa, fale com a diretoria"; quem confere vê "inválida". Carteirinha de atleta também é inválida se o atleta não estiver Ativo.
+
+**C. QR e conferência.** O QR leva só um código assinado (sem dado pessoal) que muda a cada minuto e vale no máximo 2 minutos; print não serve. Ler o QR abre `/validar/<código>`: válida/inválida, tipo, nome curto (ex.: "Ana S."), foto, validade (afiliado) e os benefícios que valem para aquele tipo. Parceiro só confere, sem login e sem registrar uso. Quem tem a permissão **Conferir carteirinhas** (`cards.read`) vê, logado, nome completo, equipes e situação; "mensalidade em dia" só com `fees.read`. Reemitir (com motivo) cria versão nova e invalida na hora os QR anteriores, inclusive o impresso.
+
+**Menores de idade.** Para quem confere sem login, a foto só aparece se o responsável autorizou o perfil público do menor; sem autorização, só o primeiro nome e "menor de idade: confira documento". A diretoria sempre vê a foto.
+
+**D. Benefícios.** Por parceiro: título, desconto em % (1 a 100), condições opcionais (texto), para quem vale (Atletas, Afiliados ou Ambos), início e fim opcionais, ativo/inativo. Criar, editar, desativar/reativar e excluir (lógico). Só aparecem os ativos, dentro do período e de parceiro ativo; aparecem na página do parceiro no site e na carteirinha.
+
+**E. Administração** (Painel → Carteirinhas; permissões `cards.manage` e `benefits.manage`). Lista com filtro por tipo e situação; suspender/reativar e cancelar (com motivo), reemitir, estender a validade de afiliado, corrigir nome de beneficiário (só erro de digitação, com motivo) e histórico de conferências.
+
+**F. Visual.** Três modelos prontos (Clássico escuro e vermelho, Claro, Faixa), logo oficial (ou a logo da equipe, para atleta) e imagem de fundo opcional enviada pela diretoria; configuração única para todas as carteirinhas.
+
+**Impressão.** Botão Imprimir gera a carteirinha no tamanho de cartão (85,6 × 54 mm, frente e verso). O impresso tem QR fixo daquela versão (o papel não muda a cada minuto); reemitir o invalida.
+
+**G. Registro e privacidade.** Cada conferência registra carteirinha, instante e resultado, sem dados de quem leu; retenção de 12 meses. Quem confere nunca vê CPF, contato, idade ou mensalidade.
+
+**Afiliação na loja** (detalhe aprovado em 2026-10-27: "a afiliação é especial [...] quantidade de vezes comprada é preciso informar o nome do beneficiário 1, 2 [...] a diretoria informa o tempo de validade [...] podendo estender, revogar benefícios quando quiser [...] é de uso pessoal"):
+
+- produto do tipo **Afiliação**, com preço e validade em meses definidos pela diretoria;
+- comprar quantidade N exige N beneficiários (nome completo obrigatório, e-mail opcional; o beneficiário 1 vem preenchido com quem compra);
+- pagamento confirmado: nasce uma carteirinha de afiliado por beneficiário, da confirmação até a data final. Com e-mail de conta existente, aparece na conta do beneficiário; senão, em "Carteirinhas que comprei" de quem pagou, e passa para o beneficiário quando ele criar conta com aquele e-mail;
+- pessoal e intransferível; renovar (comprar de novo para a mesma carteirinha) soma ao período atual; aviso 15 dias antes de vencer;
+- enquanto houver afiliação à venda, o Início mostra o bloco "Afiliações abertas", e o painel tem o botão "Avisar todos" (uma notificação, finalidade "Avisos da diretoria").
+
+## DT-069 — Produtos personalizados
+
+- **Estado:** Aceita
+- **Data:** 2026-10-27
+- **Aprovador:** responsável do projeto ("a Fênix vende produtos personalizados com tamanho, variação de modelo e cor, nome na camisa, isso tem que entrar como um cadastro especial da loja"; ajuste: "adicione na planilha para envio tamanho")
+
+### Decisão
+
+- a diretoria marca o produto como **personalizado** e define os campos (ex.: "Nome na camisa", texto até 12 letras, maiúsculas automáticas; "Número", de 0 a 99), cada um obrigatório ou opcional e com acréscimo de preço opcional;
+- tamanho, modelo e cor continuam como variações; a página do produto os mostra como seletores por atributo, com guia de medidas opcional;
+- no carrinho, cada personalização diferente é uma linha própria, editável até fechar o pedido; depois do pagamento a personalização fica travada;
+- a planilha de produção da remessa (envio à malharia) traz, por peça, **tamanho, modelo, cor, nome e número**;
+- no checkout, item personalizado exige marcar "Este item é personalizado: não tem troca ou devolução por arrependimento".
+
+## DT-070 — Entrega comprovada, desistência e defeito
+
+- **Estado:** Aceita
+- **Data:** 2026-10-27
+- **Aprovador:** responsável do projeto ("ao comprar online qualquer item da loja o usuário tem direito a pedir reembolso com 7 dias [...] produtos feitos personalizadamente não têm reembolso"; prazo "da retirada do produto"; prova de entrega "foto ou confirmação")
+
+### Decisão
+
+- **entrega comprovada:** ao registrar a retirada, a diretoria anexa uma foto (item entregue ou documento assinado) **ou** o comprador toca em "Recebi" em Meus pedidos. Sem nenhum dos dois, a retirada fica "aguardando confirmação" e o comprador é avisado; os prazos só começam com uma das provas;
+- **arrependimento (CDC art. 49):** "Desistir da compra" em Meus pedidos até 7 dias depois da entrega comprovada, para itens não personalizados; afiliação, 7 dias a partir da ativação (a carteirinha é cancelada). Não exige motivo. Pedido ainda não retirado pode ser cancelado com estorno. Dentro do prazo, a diretoria não pode negar: registra a devolução do item e faz o estorno integral pelo fluxo do Caixa;
+- **defeito (CDC arts. 18 e 26):** "Problema com o produto" por 90 dias depois da entrega comprovada, para qualquer item, inclusive personalizado; a diretoria analisa e resolve com troca, conserto ou estorno, sempre com resposta registrada;
+- solicitações geram aviso e bolinha no painel; os textos dos direitos aparecem na página do produto, no carrinho, no checkout e em Termos;
+- ressalva registrada: a exclusão de personalizados do arrependimento segue o entendimento usual dos tribunais, não um texto expresso do CDC; recomenda-se conferência jurídica antes da publicação.
