@@ -147,7 +147,9 @@ describe('Fase 8 — relatórios, auditoria e privacidade', () => {
     const source = await ctx.prisma.orderItem.aggregate({
       where: {
         order: {
-          status: { in: ['PAID', 'PROCESSING', 'READY_FOR_PICKUP', 'DELIVERED'] },
+          status: {
+            in: ['PAID', 'PROCESSING', 'READY_FOR_PICKUP', 'OUT_FOR_DELIVERY', 'DELIVERED']
+          },
           paidAt: { gte: startOfDayInZone(today), lt: endOfDayExclusive(today) }
         }
       },

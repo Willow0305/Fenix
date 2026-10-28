@@ -9,6 +9,7 @@ import { OrderSummary } from '../../../../../components/order-summary';
 import { Alert, Loading } from '../../../../../components/ui';
 import type { Order } from '../../../../../lib/store-types';
 import { useResource } from '../../../../../lib/use-resource';
+import { DeliveryTracking } from '../../../../../components/delivery-tracking';
 
 export default function MyOrderPage() {
   const { id } = useParams<{ id: string }>();
@@ -25,9 +26,11 @@ export default function MyOrderPage() {
       {order.data.status === 'READY_FOR_PICKUP' ? (
         <Alert kind="success">Seu pedido está pronto para retirada!</Alert>
       ) : null}
-      {order.data.status === 'OUT_FOR_DELIVERY' ? (
-        <Alert kind="info">Seu pedido saiu para entrega no endereço informado.</Alert>
-      ) : null}
+      <DeliveryTracking
+        order={order.data}
+        notReceived={{ endpoint: `/me/orders/${id}/not-received` }}
+        onChanged={order.reload}
+      />
       <OrderPayment order={order.data} endpoint={`/me/orders/${id}/proof`} onDone={order.setData} />
       <OrderRightsPanel target={{ kind: 'user', orderId: id }} />
     </>

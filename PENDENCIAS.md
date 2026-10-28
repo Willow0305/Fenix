@@ -508,7 +508,7 @@ Prioridades:
 - **Prioridade:** P1
 - **Bloqueia:** conclusão da Etapa 9 (`docs/16`)
 - **Questão:** a etapa foi pausada a pedido do responsável em 27/10/2026. Estado deixado:
-  - **E2E (R-10):** estrutura pronta em `e2e/` (`npm run e2e` recria o banco `<dev>_e2e`, compila o site e roda no Edge em 390 px e 1280 px). **Em 2026-10-28 todos os 56 testes passam**: rolagem lateral do `/admin` no celular corrigida (DT-072), seletor de "Notícias do clube" ajustado e clique em "Adicionar ao carrinho" agora espera a página carregar (o clique antes do React assumir o botão se perdia).
+  - **E2E (R-10):** estrutura pronta em `e2e/` (`npm run e2e` recria o banco `<dev>_e2e`, compila o site e roda no Edge em 390 px e 1280 px). **Em 2026-10-28 todos os 56 testes (28 em cada tamanho) passam**: rolagem lateral do `/admin` no celular corrigida (DT-072), seletor de "Notícias do clube" ajustado e clique em "Adicionar ao carrinho" agora espera a página carregar (o clique antes do React assumir o botão se perdia).
   - **Logs e métricas (R-07):** ligados no código, mas sem testes nem documentação: registro de acesso por requisição (ligado com logs em JSON; `ACCESS_LOG=on|off` força), logs em JSON (`LOG_FORMAT`, padrão JSON em produção), contagem de erros 5xx e rota `/api/v1/metrics` em formato Prometheus, só com `METRICS_TOKEN` (sem ele responde 404). Faltam testes unitários de `Metrics` e `JsonLogger`, teste de integração da rota, `METRICS_TOKEN`/`LOG_FORMAT`/`ACCESS_LOG` no `.env.example` e decisão técnica.
   - **Estilos inline (R-09):** não iniciado.
 - **Recomendação:** com o E2E verde, completar R-07 (testes e documentação) e depois o R-09; registrar a decisão técnica de E2E e observabilidade e atualizar `README`/`docs/COMO-EXECUTAR.md`.

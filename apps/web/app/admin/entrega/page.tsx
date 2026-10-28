@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 
+import { CouriersManager } from '../../../components/couriers-manager';
 import { Icon } from '../../../components/icon';
 import {
   Alert,
@@ -309,6 +310,8 @@ export default function DeliveryAdminPage() {
           </div>
         )}
       </section>
+
+      <CouriersManager />
 
       <ConfirmDialog
         open={deleting !== null}

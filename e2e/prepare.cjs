@@ -45,6 +45,9 @@ async function main() {
   run('npx prisma migrate deploy');
   run('node apps/api/dist/cli/seed.js');
   run('node apps/api/dist/cli/demo.js');
+  // Build limpo: o cache de dados do Next guardaria produtos do banco anterior (ids que não
+  // existem mais no banco recriado) e o primeiro "Adicionar ao carrinho" falharia.
+  rmSync(path.join(ROOT, 'apps', 'web', '.next-e2e'), { recursive: true, force: true });
   // O build do Next exige NODE_ENV=production (React de produção).
   run('npx next build', path.join(ROOT, 'apps', 'web'), { NODE_ENV: 'production' });
 }

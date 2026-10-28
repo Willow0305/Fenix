@@ -6,6 +6,20 @@ O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) e o 
 
 ## [Não publicado]
 
+### Entrega em casa — etapa 2: comprovante de entrega (2026-10-28)
+
+#### Adicionado
+
+- quadro "Entrega" no pedido do painel: registrar a saída com entregador cadastrado ou digitado (tipo, nome, telefone, veículo, placa e observação), link do entregador com "Copiar mensagem" e "Enviar pelo WhatsApp", código informado pelo motoboy, foto com quem recebeu, "Não deu certo", troca para retirada com a taxa devolvida e histórico de saídas (DT-075);
+- código de 4 dígitos para o comprador (Meus pedidos, consulta de visitante e aviso), com o primeiro nome, o veículo e a placa de quem leva;
+- página do entregador, sem login, com endereço, mapa, ligar, código e foto;
+- "Não recebi" em até 3 dias quando a entrega só foi marcada, com bolinha em Pedidos e três desfechos; sem aviso, a entrega se confirma sozinha;
+- Painel → Entrega em casa → Entregadores.
+
+#### Corrigido
+
+- E2E: a preparação apaga o build anterior do site; o cache de dados guardava produtos do banco recriado e o primeiro "Adicionar ao carrinho" falhava.
+
 ### Entrega em casa — etapa 1: entrega no pedido (2026-10-28)
 
 #### Adicionado

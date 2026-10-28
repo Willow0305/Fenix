@@ -109,6 +109,8 @@ Em desenvolvimento o PIX automático roda em **modo de teste** (`PIX_PROVIDER=sa
 
 Em **Painel → Loja → Entrega em casa** a diretoria cadastra as **regiões** de Rio Branco (nome, taxa, prazo em dias úteis e os bairros, um por linha), o **frete grátis** (opcional, a partir de um valor em produtos) e liga a opção "Oferecer entrega em casa no checkout". Bairro fora da lista só retira. `npm run db:demo` cria duas regiões de exemplo.
 
+Quando o pedido sai, o quadro **Entrega** do pedido registra quem leva e gera o **link do entregador** (vale 24 horas; envie pelo WhatsApp). O comprador recebe um **código de 4 dígitos**; na porta, o motoboy digita o código no link (ou passa para a diretoria digitar), ou tira uma foto. Os entregadores fixos ficam em **Entrega em casa → Entregadores**.
+
 No checkout, o CEP preenche a rua pelo ViaCEP, consultado pela API (o navegador não fala com terceiros). Sem internet, ou com `POSTAL_CODE_LOOKUP=off`, a pessoa digita a rua e escolhe o bairro na lista.
 
 ## 6. Comandos úteis

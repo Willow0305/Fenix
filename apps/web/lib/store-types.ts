@@ -1,4 +1,4 @@
-import type { DeliveryAddress, OrderFulfillment } from './delivery-types';
+import type { DeliveryAddress, DeliveryProofKind, OrderFulfillment } from './delivery-types';
 import type { MoneyView, Payment } from './finance-types';
 
 export type Fulfillment = 'STOCK' | 'MADE_TO_ORDER' | 'CAMPAIGN' | 'DIGITAL' | 'MEMBERSHIP';
@@ -200,6 +200,15 @@ export interface Order {
   deliveryFee: MoneyView;
   deliveryAddress: DeliveryAddress | null;
   outForDeliveryAt: string | null;
+  deliveryProofKind: DeliveryProofKind | null;
+  /** Só primeiro nome, veículo e placa de quem leva. */
+  courier: { firstName: string | null; vehicle: string | null; plate: string | null } | null;
+  /** Só para o comprador, com o pedido a caminho. */
+  deliveryCode?: string;
+  notReceivedUntil: string | null;
+  notReceivedAt: string | null;
+  notReceivedNote: string | null;
+  notReceivedResolution: 'REDELIVER' | 'REFUND' | 'KEEP' | null;
   paymentInfo?: { pixKey: string | null; bankingDetails: string | null };
 }
 
@@ -233,7 +242,13 @@ export function orderNext(order: {
   fulfillment: OrderFulfillment;
 }): OrderStatus[] {
   return ORDER_NEXT[order.status].filter((status) =>
-    order.fulfillment === 'DELIVERY' ? status !== 'READY_FOR_PICKUP' : status !== 'OUT_FOR_DELIVERY'
+    // "Saiu para entrega" sai pelo quadro de entrega (código e link do entregador).
+    // "Não deu certo" (volta para separação) também fica no quadro, com o motivo.
+    order.fulfillment === 'DELIVERY'
+      ? status !== 'READY_FOR_PICKUP' &&
+        status !== 'OUT_FOR_DELIVERY' &&
+        !(order.status === 'OUT_FOR_DELIVERY' && status === 'PROCESSING')
+      : status !== 'OUT_FOR_DELIVERY'
   );
 }
 

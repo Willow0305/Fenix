@@ -103,3 +103,78 @@ export function addressLine(address: DeliveryAddress): string {
 
   return `${street} — ${address.neighborhood}, ${address.city}/${address.state}`;
 }
+
+// ---------- Comprovante de entrega (DT-075, etapa 2) ----------
+
+export type ProofKind = 'CODE' | 'BUYER_RECEIPT' | 'PHOTO' | 'STAFF_ONLY';
+
+/** Tentativas de código por saída; depois disso só a diretoria confirma. */
+export const DELIVERY_CODE_ATTEMPTS = 5;
+/** Validade do link do entregador. */
+export const COURIER_LINK_HOURS = 24;
+/** Prazo do "Não recebi" quando só há a marcação da diretoria (RN-ENT-006). */
+export const NOT_RECEIVED_DAYS = 3;
+
+const PROOF_RANK: Record<ProofKind, number> = {
+  CODE: 0,
+  BUYER_RECEIPT: 1,
+  PHOTO: 2,
+  STAFF_ONLY: 3
+};
+
+/** Fica a prova mais forte: um "Recebi" depois do código não rebaixa a prova. */
+export function strongerProof(current: ProofKind | null, next: ProofKind): ProofKind {
+  return current !== null && PROOF_RANK[current] <= PROOF_RANK[next] ? current : next;
+}
+
+/** Código ou foto ou "Recebi" comprovam; só a marcação da diretoria não (RN-ENT-006). */
+export function provesDelivery(kind: ProofKind | null): boolean {
+  return kind !== null && kind !== 'STAFF_ONLY';
+}
+
+/** Código de 4 dígitos ("0000" a "9999"), com o gerador recebido (criptográfico na API). */
+export function newDeliveryCode(randomInt: (max: number) => number): string {
+  return String(randomInt(10_000)).padStart(4, '0');
+}
+
+/** Só os dígitos, e só se forem 4. */
+export function cleanDeliveryCode(value: string): string | null {
+  const digits = value.replace(/\D/g, '');
+
+  return digits.length === 4 ? digits : null;
+}
+
+/** "Maria Souza Lima" → "Maria": o comprador vê só o primeiro nome do entregador. */
+export function firstName(name: string | null): string | null {
+  const first = name?.trim().split(/\s+/)[0];
+
+  return first ? first : null;
+}
+
+/** Até quando o comprador pode avisar "Não recebi" (nulo se não pode). */
+export function notReceivedDeadline(
+  order: {
+    readonly fulfillment: string;
+    readonly status: string;
+    readonly deliveredAt: Date | null;
+    readonly deliveryConfirmedAt: Date | null;
+    readonly deliveryProofKind: ProofKind | null;
+    readonly notReceivedAt: Date | null;
+  },
+  now: Date
+): Date | null {
+  if (
+    order.fulfillment !== 'DELIVERY' ||
+    order.status !== 'DELIVERED' ||
+    order.deliveredAt === null ||
+    order.deliveryConfirmedAt !== null ||
+    provesDelivery(order.deliveryProofKind) ||
+    order.notReceivedAt !== null
+  ) {
+    return null;
+  }
+
+  const deadline = new Date(order.deliveredAt.getTime() + NOT_RECEIVED_DAYS * 86_400_000);
+
+  return now < deadline ? deadline : null;
+}

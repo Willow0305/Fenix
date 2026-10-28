@@ -23,6 +23,7 @@ import { canReportDefect, canWithdraw, refundForUnits, returnDeadlines } from '.
 import { requiresStock } from '../domain/store-rules';
 import { InventoryService } from './inventory.service';
 import { personalizationOfItem } from './orders.service';
+import { strongerProof } from '../domain/delivery';
 
 /** Quem pede: conta logada ou visitante com número e código do pedido. */
 export type ReturnOwner =
@@ -91,6 +92,7 @@ const ORDER_SELECT = {
   },
   fulfillment: true,
   deliveryFeeAmount: true,
+  deliveryProofKind: true,
   // Taxa de entrega por último: estorno de item sai do pagamento dos produtos (DT-075).
   payments: {
     select: { id: true, status: true, amount: true, isDeliveryFee: true },
@@ -224,7 +226,11 @@ export class ReturnsService {
         where: { id: order.id },
         data: {
           receiptConfirmedAt: now,
-          ...(order.deliveryConfirmedAt ? {} : { deliveryConfirmedAt: now })
+          ...(order.deliveryConfirmedAt ? {} : { deliveryConfirmedAt: now }),
+          // "Recebi" é prova forte da entrega em casa (RN-ENT-006).
+          ...(order.fulfillment === 'DELIVERY'
+            ? { deliveryProofKind: strongerProof(order.deliveryProofKind, 'BUYER_RECEIPT') }
+            : {})
         }
       });
       await this.audit.record({
@@ -248,7 +254,12 @@ export class ReturnsService {
     const confirmedAt = await this.prisma.$transaction(async (tx) => {
       const order = await tx.order.findUnique({
         where: { id: orderId },
-        select: { status: true, deliveryConfirmedAt: true }
+        select: {
+          status: true,
+          deliveryConfirmedAt: true,
+          fulfillment: true,
+          deliveryProofKind: true
+        }
       });
 
       if (order === null) {
@@ -272,7 +283,13 @@ export class ReturnsService {
 
       await tx.order.update({
         where: { id: orderId },
-        data: { deliveryProofMediaFileId: stored.id, deliveryConfirmedAt: at }
+        data: {
+          deliveryProofMediaFileId: stored.id,
+          deliveryConfirmedAt: at,
+          ...(order.fulfillment === 'DELIVERY'
+            ? { deliveryProofKind: strongerProof(order.deliveryProofKind, 'PHOTO') }
+            : {})
+        }
       });
       await this.audit.record(
         {

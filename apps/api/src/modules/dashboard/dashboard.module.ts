@@ -146,13 +146,17 @@ export class PendingBadgesService {
     const tasks: [string, () => Promise<number>][] = [];
 
     if (can(PERMISSIONS.ordersRead)) {
-      // Comprovante de pedido a conferir + pedido pago a separar.
+      // Comprovante a conferir + pedido pago a separar + "Não recebi" em aberto (DT-075).
       tasks.push([
         '/admin/pedidos',
         async () =>
           (await this.prisma.payment.count({
             where: { status: 'PENDING', orderId: { not: null } }
-          })) + (await this.prisma.order.count({ where: { status: 'PAID' } }))
+          })) +
+          (await this.prisma.order.count({ where: { status: 'PAID' } })) +
+          (await this.prisma.order.count({
+            where: { notReceivedAt: { not: null }, notReceivedResolvedAt: null }
+          }))
       ]);
     }
 

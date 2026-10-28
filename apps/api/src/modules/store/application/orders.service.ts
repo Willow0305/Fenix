@@ -1,5 +1,10 @@
 import { Injectable, type OnModuleInit } from '@nestjs/common';
-import type { OrderFulfillment, OrderStatus, Prisma } from '../../../generated/prisma/client';
+import type {
+  DeliveryProofKind,
+  OrderFulfillment,
+  OrderStatus,
+  Prisma
+} from '../../../generated/prisma/client';
 
 import { AuditService } from '../../../common/audit/audit.service';
 import { generateOpaqueToken, sha256Hex } from '../../../common/crypto/tokens';
@@ -67,8 +72,12 @@ import {
   type AddressInput,
   addressLine,
   type DeliveryAddress,
-  deliveryFee
+  deliveryFee,
+  firstName,
+  notReceivedDeadline,
+  strongerProof
 } from '../domain/delivery';
+import { decryptField } from '../../../common/crypto/data-cipher';
 import { beneficiariesOf, beneficiaryProblems, resizeBeneficiaries } from '../domain/cart-details';
 
 export interface OrderItemView {
@@ -127,6 +136,21 @@ export interface OrderView {
   /** Cópia do endereço da compra (só na entrega). */
   readonly deliveryAddress: DeliveryAddress | null;
   readonly outForDeliveryAt: string | null;
+  /** Prova da entrega em casa (RN-ENT-006). */
+  readonly deliveryProofKind: DeliveryProofKind | null;
+  /** Quem está levando ou levou: só primeiro nome, veículo e placa (RN-ENT-005). */
+  readonly courier: {
+    firstName: string | null;
+    vehicle: string | null;
+    plate: string | null;
+  } | null;
+  /** Código de 4 dígitos: só para o comprador, enquanto o pedido está a caminho. */
+  readonly deliveryCode?: string;
+  /** Até quando o comprador pode avisar "Não recebi" (nulo se não pode). */
+  readonly notReceivedUntil: string | null;
+  readonly notReceivedAt: string | null;
+  readonly notReceivedNote: string | null;
+  readonly notReceivedResolution: string | null;
   /** Somente para o dono do pedido aguardando pagamento (RN-CFG-002). */
   readonly paymentInfo?: { pixKey: string | null; bankingDetails: string | null };
 }
@@ -165,7 +189,13 @@ const ORDER_INCLUDE = {
     }
   },
   payments: { select: { id: true, status: true, amount: true, isDeliveryFee: true } },
-  couponRedemption: { select: { status: true, coupon: { select: { code: true } } } }
+  couponRedemption: { select: { status: true, coupon: { select: { code: true } } } },
+  deliveryAttempts: {
+    where: { status: { in: ['OUT', 'DELIVERED'] } },
+    orderBy: { dispatchedAt: 'desc' },
+    take: 1,
+    select: { courierName: true, vehicle: true, plate: true }
+  }
 } satisfies Prisma.OrderInclude;
 
 /** Personalização travada no item do pedido, para telas e planilhas (DT-069). */
@@ -233,7 +263,8 @@ export class OrdersService implements OnModuleInit {
   /** `preloaded` evita uma consulta por pagamento nas listas (N+1). */
   private async toView(
     row: OrderRow,
-    preloaded?: ReadonlyMap<string, PaymentView>
+    preloaded?: ReadonlyMap<string, PaymentView>,
+    forBuyer = false
   ): Promise<OrderView> {
     const views = preloaded ?? (await this.payments.views(row.payments.map((p) => p.id)));
     const payments = row.payments.flatMap((payment) => views.get(payment.id) ?? []);
@@ -293,7 +324,28 @@ export class OrdersService implements OnModuleInit {
       fulfillment: row.fulfillment,
       deliveryFee: moneyView(row.deliveryFeeAmount, row.currency),
       deliveryAddress: (row.deliveryAddress as DeliveryAddress | null) ?? null,
-      outForDeliveryAt: row.outForDeliveryAt?.toISOString() ?? null
+      outForDeliveryAt: row.outForDeliveryAt?.toISOString() ?? null,
+      deliveryProofKind: row.deliveryProofKind,
+      courier: row.deliveryAttempts[0]
+        ? {
+            firstName: firstName(row.deliveryAttempts[0].courierName),
+            vehicle: row.deliveryAttempts[0].vehicle,
+            plate: row.deliveryAttempts[0].plate
+          }
+        : null,
+      // O código nunca vai para o painel: só o comprador vê, e só com o pedido a caminho.
+      ...(forBuyer && row.status === 'OUT_FOR_DELIVERY' && row.deliveryCodeEncrypted
+        ? {
+            deliveryCode: decryptField(
+              row.deliveryCodeEncrypted,
+              this.config.values.dataEncryptionKey
+            )
+          }
+        : {}),
+      notReceivedUntil: notReceivedDeadline(row, new Date())?.toISOString() ?? null,
+      notReceivedAt: row.notReceivedAt?.toISOString() ?? null,
+      notReceivedNote: row.notReceivedNote,
+      notReceivedResolution: row.notReceivedResolution
     };
   }
 
@@ -893,7 +945,7 @@ export class OrdersService implements OnModuleInit {
       throw AppError.notFound('Pedido não encontrado.');
     }
 
-    return this.withPaymentInfo(await this.toView(row));
+    return this.withPaymentInfo(await this.toView(row, undefined, true));
   }
 
   /** Consulta segura de visitante: número + código secreto, resposta idêntica para erro. */
@@ -910,7 +962,7 @@ export class OrdersService implements OnModuleInit {
       throw AppError.notFound('Pedido não encontrado. Confira o número e o código.');
     }
 
-    return this.withPaymentInfo(await this.toView(row));
+    return this.withPaymentInfo(await this.toView(row, undefined, true));
   }
 
   // ---------- Pagamento ----------
@@ -1532,11 +1584,38 @@ export class OrdersService implements OnModuleInit {
         );
       }
 
-      if (status === 'OUT_FOR_DELIVERY' && row.fulfillment !== 'DELIVERY') {
+      if (status === 'OUT_FOR_DELIVERY') {
         throw AppError.conflict(
-          'PICKUP_ORDER',
-          'Este pedido é de retirada: use "Pronto para retirada".'
+          row.fulfillment === 'DELIVERY' ? 'USE_DISPATCH' : 'PICKUP_ORDER',
+          row.fulfillment === 'DELIVERY'
+            ? 'Registre a saída no quadro "Entrega" do pedido: ele gera o código e o link do entregador.'
+            : 'Este pedido é de retirada: use "Pronto para retirada".'
         );
+      }
+
+      if (row.status === 'OUT_FOR_DELIVERY' && status === 'PROCESSING' && !input.reason) {
+        throw AppError.validation(
+          'REASON_REQUIRED',
+          'Conte o que aconteceu na entrega (ex.: ninguém em casa).'
+        );
+      }
+
+      // A saída em andamento fecha junto: entregue (só pela diretoria), sem sucesso ou cancelada.
+      if (row.status === 'OUT_FOR_DELIVERY') {
+        await tx.deliveryAttempt.updateMany({
+          where: { orderId: id, status: 'OUT' },
+          data: {
+            status:
+              status === 'DELIVERED'
+                ? 'DELIVERED'
+                : status === 'CANCELLED'
+                  ? 'CANCELLED'
+                  : 'FAILED',
+            finishedAt: new Date(),
+            failureReason: status === 'DELIVERED' ? null : (input.reason ?? null),
+            linkTokenHash: null
+          }
+        });
       }
 
       if (
@@ -1565,8 +1644,11 @@ export class OrdersService implements OnModuleInit {
         data: {
           status,
           ...(status === 'READY_FOR_PICKUP' ? { readyForPickupAt: now } : {}),
-          ...(status === 'OUT_FOR_DELIVERY' ? { outForDeliveryAt: now } : {}),
           ...(status === 'DELIVERED' ? { deliveredAt: now } : {}),
+          // Entregue marcado só pela diretoria: prova fraca, abre o "Não recebi" (RN-ENT-006).
+          ...(status === 'DELIVERED' && row.fulfillment === 'DELIVERY'
+            ? { deliveryProofKind: strongerProof(row.deliveryProofKind, 'STAFF_ONLY') }
+            : {}),
           ...(status === 'CANCELLED' || status === 'REFUNDED'
             ? { cancelledAt: now, cancellationReason: input.reason ?? null }
             : {})

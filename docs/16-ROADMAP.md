@@ -267,7 +267,7 @@ Produção com dados reais continua condicionada às pendências P0 jurídicas e
 - carteirinha digital com QR, de atleta e de afiliado, com benefícios de parceiros (`DT-068`);
 - afiliação vendida pela loja, produtos personalizados (`DT-069`) e entrega comprovada com desistência e defeito (`DT-070`), aprovados em 2026-10-27;
 - PIX com confirmação automática por intermediário de pagamento;
-- entrega em casa (`DT-075`): etapa 1, entrega no pedido, entregue em 2026-10-28; **a fazer:** etapa 2, comprovante de entrega (entregador, código, link do motoboy, provas e "Não recebi").
+- entrega em casa com comprovante de entrega (`DT-075`), entregue em 2026-10-28: retirada ou entrega por região, frete grátis, endereços, entregadores, código de 4 dígitos, link do motoboy, provas e "Não recebi".
 
 **Regra:** onde a regra de negócio não estiver definida, adota-se a recomendação registrada e a dúvida vai para `PENDENCIAS.md`, como em todo o projeto.
 

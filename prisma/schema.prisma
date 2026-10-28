@@ -329,6 +329,28 @@ enum OrderFulfillment {
   DELIVERY
 }
 
+/// Quem leva a entrega (DT-075, RN-ENT-005).
+enum CourierKind {
+  STAFF
+  OWN_COURIER
+  APP
+}
+
+/// Prova da entrega em casa, da mais forte para a mais fraca (RN-ENT-006).
+enum DeliveryProofKind {
+  CODE
+  BUYER_RECEIPT
+  PHOTO
+  STAFF_ONLY
+}
+
+enum DeliveryAttemptStatus {
+  OUT
+  DELIVERED
+  FAILED
+  CANCELLED
+}
+
 enum PartnerSettlementStatus {
   DRAFT
   PENDING
@@ -445,30 +467,31 @@ enum NotificationDeliveryStatus {
 }
 
 model User {
-  id                        String     @id @default(uuid()) @db.Uuid
-  name                      String     @db.VarChar(160)
-  email                     String     @unique @db.VarChar(180)
-  passwordHash              String     @map("password_hash") @db.Text
-  phone                     String?    @db.VarChar(30)
-  status                    UserStatus @default(PENDING)
-  emailVerifiedAt           DateTime?  @map("email_verified_at") @db.Timestamptz(6)
-  lastLoginAt               DateTime?  @map("last_login_at") @db.Timestamptz(6)
+  deliveryAttemptsDispatched DeliveryAttempt[] @relation("DeliveryAttemptDispatcher")
+  id                         String            @id @default(uuid()) @db.Uuid
+  name                       String            @db.VarChar(160)
+  email                      String            @unique @db.VarChar(180)
+  passwordHash               String            @map("password_hash") @db.Text
+  phone                      String?           @db.VarChar(30)
+  status                     UserStatus        @default(PENDING)
+  emailVerifiedAt            DateTime?         @map("email_verified_at") @db.Timestamptz(6)
+  lastLoginAt                DateTime?         @map("last_login_at") @db.Timestamptz(6)
   /// Segredo TOTP cifrado (AES-256-GCM, DATA_ENCRYPTION_KEY); nunca sai da API (DT-037).
-  mfaSecretEncrypted        String?    @map("mfa_secret_encrypted") @db.Text
+  mfaSecretEncrypted         String?           @map("mfa_secret_encrypted") @db.Text
   /// Segredo gerado e ainda não confirmado por um código válido.
-  mfaPendingSecretEncrypted String?    @map("mfa_pending_secret_encrypted") @db.Text
-  mfaEnabledAt              DateTime?  @map("mfa_enabled_at") @db.Timestamptz(6)
+  mfaPendingSecretEncrypted  String?           @map("mfa_pending_secret_encrypted") @db.Text
+  mfaEnabledAt               DateTime?         @map("mfa_enabled_at") @db.Timestamptz(6)
   /// Último passo TOTP aceito; impede reutilizar o mesmo código.
-  mfaLastUsedStep           Int?       @map("mfa_last_used_step")
+  mfaLastUsedStep            Int?              @map("mfa_last_used_step")
   /// Foto de perfil (PEN-062, DT-044). Privada até a pessoa marcar `profilePublic`.
-  avatarMediaFileId         String?    @map("avatar_media_file_id") @db.Uuid
+  avatarMediaFileId          String?           @map("avatar_media_file_id") @db.Uuid
   /// Escolha da própria pessoa de aparecer no elenco público do site com foto, nome e posição.
-  profilePublic             Boolean    @default(false) @map("profile_public")
+  profilePublic              Boolean           @default(false) @map("profile_public")
   /// Consentimento para avisos por WhatsApp (DT-048); nulo enquanto não aceito ou após retirar.
-  whatsappOptInAt           DateTime?  @map("whatsapp_opt_in_at") @db.Timestamptz(6)
-  createdAt                 DateTime   @default(now()) @map("created_at") @db.Timestamptz(6)
-  updatedAt                 DateTime   @updatedAt @map("updated_at") @db.Timestamptz(6)
-  deletedAt                 DateTime?  @map("deleted_at") @db.Timestamptz(6)
+  whatsappOptInAt            DateTime?         @map("whatsapp_opt_in_at") @db.Timestamptz(6)
+  createdAt                  DateTime          @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt                  DateTime          @updatedAt @map("updated_at") @db.Timestamptz(6)
+  deletedAt                  DateTime?         @map("deleted_at") @db.Timestamptz(6)
 
   sessions                        UserSession[]
   tokens                          UserToken[]
@@ -747,19 +770,20 @@ model MediaFile {
   updatedAt       DateTime           @updatedAt @map("updated_at") @db.Timestamptz(6)
   deletedAt       DateTime?          @map("deleted_at") @db.Timestamptz(6)
 
-  uploadedBy           User?                            @relation("MediaUploader", fields: [uploadedById], references: [id], onDelete: SetNull, onUpdate: Cascade)
-  userAvatars          User[]                           @relation("UserAvatar")
-  teamBrandAssets      TeamBrandAsset[]
-  teamLogos            Team[]                           @relation("TeamLogo")
-  orderDeliveryProofs  Order[]                          @relation("OrderDeliveryProof")
-  athleteDocuments     AthleteDocument[]
-  financialAttachments FinancialTransactionAttachment[]
-  partnerLogos         Partner[]                        @relation("PartnerLogo")
-  partnerCovers        Partner[]                        @relation("PartnerCover")
-  eventCovers          Event[]
-  partnerDocuments     PartnerDocument[]
-  productImages        ProductImage[]
-  newsCovers           News[]
+  uploadedBy            User?                            @relation("MediaUploader", fields: [uploadedById], references: [id], onDelete: SetNull, onUpdate: Cascade)
+  userAvatars           User[]                           @relation("UserAvatar")
+  teamBrandAssets       TeamBrandAsset[]
+  teamLogos             Team[]                           @relation("TeamLogo")
+  orderDeliveryProofs   Order[]                          @relation("OrderDeliveryProof")
+  deliveryAttemptProofs DeliveryAttempt[]                @relation("DeliveryAttemptProof")
+  athleteDocuments      AthleteDocument[]
+  financialAttachments  FinancialTransactionAttachment[]
+  partnerLogos          Partner[]                        @relation("PartnerLogo")
+  partnerCovers         Partner[]                        @relation("PartnerCover")
+  eventCovers           Event[]
+  partnerDocuments      PartnerDocument[]
+  productImages         ProductImage[]
+  newsCovers            News[]
 
   @@unique([storageProvider, bucket, objectKey])
   @@index([classification, kind, deletedAt])
@@ -1692,39 +1716,47 @@ model CartItem {
 }
 
 model Order {
-  id                       String           @id @default(uuid()) @db.Uuid
-  customerUserId           String?          @map("customer_user_id") @db.Uuid
-  orderNumber              String           @unique @map("order_number") @db.VarChar(40)
-  customerName             String           @map("customer_name") @db.VarChar(160)
-  customerEmail            String?          @map("customer_email") @db.VarChar(180)
-  customerPhone            String?          @map("customer_phone") @db.VarChar(30)
-  subtotalAmount           Decimal          @map("subtotal_amount") @db.Decimal(19, 4)
-  discountAmount           Decimal          @default(0) @map("discount_amount") @db.Decimal(19, 4)
-  totalAmount              Decimal          @map("total_amount") @db.Decimal(19, 4)
-  currency                 String           @db.Char(3)
-  status                   OrderStatus      @default(CREATED)
-  notes                    String?          @db.Text
-  guestAccessTokenHash     String?          @unique @map("guest_access_token_hash") @db.Char(64)
-  reservationExpiresAt     DateTime?        @map("reservation_expires_at") @db.Timestamptz(6)
-  paidAt                   DateTime?        @map("paid_at") @db.Timestamptz(6)
-  readyForPickupAt         DateTime?        @map("ready_for_pickup_at") @db.Timestamptz(6)
-  deliveredAt              DateTime?        @map("delivered_at") @db.Timestamptz(6)
+  id                       String             @id @default(uuid()) @db.Uuid
+  customerUserId           String?            @map("customer_user_id") @db.Uuid
+  orderNumber              String             @unique @map("order_number") @db.VarChar(40)
+  customerName             String             @map("customer_name") @db.VarChar(160)
+  customerEmail            String?            @map("customer_email") @db.VarChar(180)
+  customerPhone            String?            @map("customer_phone") @db.VarChar(30)
+  subtotalAmount           Decimal            @map("subtotal_amount") @db.Decimal(19, 4)
+  discountAmount           Decimal            @default(0) @map("discount_amount") @db.Decimal(19, 4)
+  totalAmount              Decimal            @map("total_amount") @db.Decimal(19, 4)
+  currency                 String             @db.Char(3)
+  status                   OrderStatus        @default(CREATED)
+  notes                    String?            @db.Text
+  guestAccessTokenHash     String?            @unique @map("guest_access_token_hash") @db.Char(64)
+  reservationExpiresAt     DateTime?          @map("reservation_expires_at") @db.Timestamptz(6)
+  paidAt                   DateTime?          @map("paid_at") @db.Timestamptz(6)
+  readyForPickupAt         DateTime?          @map("ready_for_pickup_at") @db.Timestamptz(6)
+  deliveredAt              DateTime?          @map("delivered_at") @db.Timestamptz(6)
   /// Entrega comprovada (DT-070): foto da diretoria ou "Recebi" do comprador; prazos contam daqui.
-  deliveryConfirmedAt      DateTime?        @map("delivery_confirmed_at") @db.Timestamptz(6)
-  deliveryProofMediaFileId String?          @map("delivery_proof_media_file_id") @db.Uuid
-  receiptConfirmedAt       DateTime?        @map("receipt_confirmed_at") @db.Timestamptz(6)
-  cancelledAt              DateTime?        @map("cancelled_at") @db.Timestamptz(6)
-  cancellationReason       String?          @map("cancellation_reason") @db.Text
+  deliveryConfirmedAt      DateTime?          @map("delivery_confirmed_at") @db.Timestamptz(6)
+  deliveryProofMediaFileId String?            @map("delivery_proof_media_file_id") @db.Uuid
+  receiptConfirmedAt       DateTime?          @map("receipt_confirmed_at") @db.Timestamptz(6)
+  cancelledAt              DateTime?          @map("cancelled_at") @db.Timestamptz(6)
+  cancellationReason       String?            @map("cancellation_reason") @db.Text
   /// Retirada ou entrega em casa (DT-075).
-  fulfillment              OrderFulfillment @default(PICKUP)
+  fulfillment              OrderFulfillment   @default(PICKUP)
   /// Taxa de entrega fixada na compra; zero na retirada e no frete grátis.
-  deliveryFeeAmount        Decimal          @default(0) @map("delivery_fee_amount") @db.Decimal(19, 4)
-  deliveryZoneId           String?          @map("delivery_zone_id") @db.Uuid
+  deliveryFeeAmount        Decimal            @default(0) @map("delivery_fee_amount") @db.Decimal(19, 4)
+  deliveryZoneId           String?            @map("delivery_zone_id") @db.Uuid
   /// Cópia do endereço e da região na compra (mudar o endereço salvo não altera o pedido).
-  deliveryAddress          Json?            @map("delivery_address") @db.JsonB
-  outForDeliveryAt         DateTime?        @map("out_for_delivery_at") @db.Timestamptz(6)
-  createdAt                DateTime         @default(now()) @map("created_at") @db.Timestamptz(6)
-  updatedAt                DateTime         @updatedAt @map("updated_at") @db.Timestamptz(6)
+  deliveryAddress          Json?              @map("delivery_address") @db.JsonB
+  outForDeliveryAt         DateTime?          @map("out_for_delivery_at") @db.Timestamptz(6)
+  /// Código de 4 dígitos do comprador, cifrado; nunca aparece no painel (RN-ENT-006).
+  deliveryCodeEncrypted    String?            @map("delivery_code_encrypted") @db.Text
+  deliveryProofKind        DeliveryProofKind? @map("delivery_proof_kind")
+  /// "Não recebi" do comprador (só com prova fraca, até 3 dias) e o desfecho da diretoria.
+  notReceivedAt            DateTime?          @map("not_received_at") @db.Timestamptz(6)
+  notReceivedNote          String?            @map("not_received_note") @db.Text
+  notReceivedResolvedAt    DateTime?          @map("not_received_resolved_at") @db.Timestamptz(6)
+  notReceivedResolution    String?            @map("not_received_resolution") @db.VarChar(20)
+  createdAt                DateTime           @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt                DateTime           @updatedAt @map("updated_at") @db.Timestamptz(6)
 
   customerUser           User?             @relation(fields: [customerUserId], references: [id], onDelete: SetNull, onUpdate: Cascade)
   sourceCart             Cart?
@@ -1732,6 +1764,7 @@ model Order {
   payments               Payment[]
   refunds                Refund[]
   couponRedemption       CouponRedemption?
+  deliveryAttempts       DeliveryAttempt[]
   deliveryZone           DeliveryZone?     @relation(fields: [deliveryZoneId], references: [id], onDelete: SetNull, onUpdate: Cascade)
   deliveryProofMediaFile MediaFile?        @relation("OrderDeliveryProof", fields: [deliveryProofMediaFileId], references: [id], onDelete: SetNull, onUpdate: Cascade)
   returnRequests         ReturnRequest[]
@@ -2842,4 +2875,55 @@ model UserAddress {
 
   @@index([userId])
   @@map("user_addresses")
+}
+
+/// Entregador cadastrado para reaproveitar na saída para entrega (RN-ENT-005).
+model Courier {
+  id        String      @id @default(uuid()) @db.Uuid
+  name      String      @db.VarChar(120)
+  kind      CourierKind
+  phone     String?     @db.VarChar(30)
+  vehicle   String?     @db.VarChar(60)
+  plate     String?     @db.VarChar(10)
+  isActive  Boolean     @default(true) @map("is_active")
+  createdAt DateTime    @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt DateTime    @updatedAt @map("updated_at") @db.Timestamptz(6)
+  deletedAt DateTime?   @map("deleted_at") @db.Timestamptz(6)
+
+  attempts DeliveryAttempt[]
+
+  @@index([isActive, deletedAt])
+  @@map("couriers")
+}
+
+/// Cada saída para entrega: quem levou (cópia), link do entregador e a prova (DT-075).
+model DeliveryAttempt {
+  id               String                @id @default(uuid()) @db.Uuid
+  orderId          String                @map("order_id") @db.Uuid
+  courierId        String?               @map("courier_id") @db.Uuid
+  courierKind      CourierKind?          @map("courier_kind")
+  courierName      String?               @map("courier_name") @db.VarChar(120)
+  courierPhone     String?               @map("courier_phone") @db.VarChar(30)
+  vehicle          String?               @db.VarChar(60)
+  plate            String?               @db.VarChar(10)
+  notes            String?               @db.VarChar(500)
+  status           DeliveryAttemptStatus @default(OUT)
+  /// Link sem login do entregador: só o hash; vale até `linkExpiresAt` (RN-ENT-007).
+  linkTokenHash    String?               @unique @map("link_token_hash") @db.Char(64)
+  linkExpiresAt    DateTime?             @map("link_expires_at") @db.Timestamptz(6)
+  codeAttempts     Int                   @default(0) @map("code_attempts") @db.SmallInt
+  receivedBy       String?               @map("received_by") @db.VarChar(120)
+  proofMediaFileId String?               @map("proof_media_file_id") @db.Uuid
+  failureReason    String?               @map("failure_reason") @db.Text
+  dispatchedById   String?               @map("dispatched_by_id") @db.Uuid
+  dispatchedAt     DateTime              @default(now()) @map("dispatched_at") @db.Timestamptz(6)
+  finishedAt       DateTime?             @map("finished_at") @db.Timestamptz(6)
+
+  order          Order      @relation(fields: [orderId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+  courier        Courier?   @relation(fields: [courierId], references: [id], onDelete: SetNull, onUpdate: Cascade)
+  proofMediaFile MediaFile? @relation("DeliveryAttemptProof", fields: [proofMediaFileId], references: [id], onDelete: SetNull, onUpdate: Cascade)
+  dispatchedBy   User?      @relation("DeliveryAttemptDispatcher", fields: [dispatchedById], references: [id], onDelete: SetNull, onUpdate: Cascade)
+
+  @@index([orderId, dispatchedAt])
+  @@map("delivery_attempts")
 }

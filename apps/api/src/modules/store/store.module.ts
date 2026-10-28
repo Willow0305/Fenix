@@ -11,6 +11,8 @@ import { StoreAdminController, StorefrontController } from './http/store.control
 import { CardsModule } from '../cards/http/cards.controller';
 import { ReturnsService } from './application/returns.service';
 import { DeliveryService } from './application/delivery.service';
+import { DeliveryDispatchService } from './application/delivery-dispatch.service';
+import { DispatchAdminController, DispatchPublicController } from './http/dispatch.controller';
 import { DeliveryAdminController, DeliveryController } from './http/delivery.controller';
 
 @Module({
@@ -19,7 +21,9 @@ import { DeliveryAdminController, DeliveryController } from './http/delivery.con
     StorefrontController,
     StoreAdminController,
     DeliveryController,
-    DeliveryAdminController
+    DeliveryAdminController,
+    DispatchAdminController,
+    DispatchPublicController
   ],
   providers: [
     CatalogService,
@@ -29,7 +33,8 @@ import { DeliveryAdminController, DeliveryController } from './http/delivery.con
     OrdersService,
     CouponsService,
     ReturnsService,
-    DeliveryService
+    DeliveryService,
+    DeliveryDispatchService
   ],
   exports: [OrdersService, InventoryService, CatalogService]
 })

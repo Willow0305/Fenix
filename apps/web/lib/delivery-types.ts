@@ -121,3 +121,84 @@ export function previewFee(
 
   return Number(zone.fee.amount);
 }
+
+// ---------- Comprovante de entrega (DT-075, etapa 2) ----------
+
+export type CourierKind = 'STAFF' | 'OWN_COURIER' | 'APP';
+export type DeliveryProofKind = 'CODE' | 'BUYER_RECEIPT' | 'PHOTO' | 'STAFF_ONLY';
+
+export const COURIER_KIND: Record<CourierKind, string> = {
+  STAFF: 'Diretoria',
+  OWN_COURIER: 'Motoboy',
+  APP: 'Aplicativo de entrega'
+};
+
+/** Prova da entrega, da mais forte para a mais fraca (RN-ENT-006). */
+export const PROOF_KIND: Record<DeliveryProofKind, { label: string; badge: string }> = {
+  CODE: { label: 'Código do comprador', badge: 'badge-success' },
+  BUYER_RECEIPT: { label: '"Recebi" do comprador', badge: 'badge-success' },
+  PHOTO: { label: 'Foto da entrega', badge: 'badge-info' },
+  STAFF_ONLY: { label: 'Só marcada pela diretoria', badge: 'badge-warning' }
+};
+
+export interface Courier {
+  id: string;
+  name: string;
+  kind: CourierKind;
+  phone: string | null;
+  vehicle: string | null;
+  plate: string | null;
+  isActive: boolean;
+}
+
+/** Saída para entrega (painel; nunca com o código do comprador). */
+export interface DeliveryAttempt {
+  id: string;
+  status: 'OUT' | 'DELIVERED' | 'FAILED' | 'CANCELLED';
+  courierKind: CourierKind | null;
+  courierName: string | null;
+  courierPhone: string | null;
+  vehicle: string | null;
+  plate: string | null;
+  notes: string | null;
+  linkActive: boolean;
+  linkExpiresAt: string | null;
+  codeAttempts: number;
+  receivedBy: string | null;
+  hasPhoto: boolean;
+  failureReason: string | null;
+  dispatchedBy: string | null;
+  dispatchedAt: string;
+  finishedAt: string | null;
+}
+
+export const ATTEMPT_STATUS: Record<DeliveryAttempt['status'], { label: string; badge: string }> = {
+  OUT: { label: 'A caminho', badge: 'badge-info' },
+  DELIVERED: { label: 'Entregue', badge: 'badge-success' },
+  FAILED: { label: 'Sem sucesso', badge: 'badge-warning' },
+  CANCELLED: { label: 'Cancelada', badge: '' }
+};
+
+/** O que o entregador vê pelo link. */
+export interface CourierLink {
+  orderNumber: string;
+  customerFirstName: string | null;
+  address: {
+    street: string;
+    number: string;
+    complement: string | null;
+    neighborhood: string;
+    city: string;
+    state: string;
+    reference: string | null;
+    phone: string | null;
+  } | null;
+  status: 'OUT' | 'DONE' | 'CLOSED';
+  codeAttemptsLeft: number;
+  expiresAt: string | null;
+}
+
+/** Texto pronto para mandar o link ao entregador pelo WhatsApp. */
+export function courierMessage(orderNumber: string, link: string): string {
+  return `Entrega do pedido ${orderNumber} (Fênix Vôlei). Abra o link para ver o endereço e, na entrega, digite o código que o cliente informar ou tire uma foto: ${link}`;
+}

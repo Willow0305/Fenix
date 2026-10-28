@@ -556,6 +556,25 @@ img {
   }
 }
 
+// Código de entrega do comprador (DT-075): grande e fácil de ler para o entregador.
+.delivery-code {
+  border-color: var(--color-info);
+}
+
+.delivery-code-value {
+  margin: 0;
+  font-size: 2.6rem;
+  font-weight: 800;
+  letter-spacing: 0.35em;
+  font-variant-numeric: tabular-nums;
+}
+
+// Página do entregador: estreita, para usar no celular na rua.
+.courier-page {
+  max-width: 560px;
+  padding-top: 1.5rem;
+}
+
 // Abas de uma área do painel (ex.: Afiliação): rolam para o lado sem mexer na página.
 .subnav {
   display: flex;

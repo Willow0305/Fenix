@@ -218,10 +218,21 @@ describe('Entrega em casa (DT-075)', () => {
         .set(auth(board.token))
         .send({ status: value });
 
+    const dispatch = () =>
+      ctx.http().post(`/api/v1/store/orders/${id}/dispatch`).set(auth(board.token)).send({});
+
     await status('READY_FOR_PICKUP').expect(409);
-    await status('OUT_FOR_DELIVERY').expect(200);
-    await status('PROCESSING').expect(200);
-    await status('OUT_FOR_DELIVERY').expect(200);
+    // "Saiu para entrega" só pelo registro da saída (código e link do entregador).
+    await status('OUT_FOR_DELIVERY').expect(409);
+    await dispatch().expect(201);
+    await status('PROCESSING').expect(422);
+    await ctx
+      .http()
+      .put(`/api/v1/store/orders/${id}/status`)
+      .set(auth(board.token))
+      .send({ status: 'PROCESSING', reason: 'Ninguém em casa' })
+      .expect(200);
+    await dispatch().expect(201);
     await status('DELIVERED').expect(200);
     await ctx
       .http()
