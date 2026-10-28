@@ -349,6 +349,13 @@ export class CheckoutDto {
   @IsBoolean()
   acceptPersonalized?: boolean;
   @ApiPropertyOptional({
+    enum: ['PIX', 'CARD'],
+    description: 'PIX (30 min) ou cartão com a diretoria (72 h) (DT-076).'
+  })
+  @IsOptional()
+  @IsIn(['PIX', 'CARD'])
+  paymentChoice?: 'PIX' | 'CARD';
+  @ApiPropertyOptional({
     enum: ['PICKUP', 'DELIVERY'],
     description: 'Retirada ou entrega (DT-075).'
   })

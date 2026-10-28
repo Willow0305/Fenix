@@ -66,6 +66,19 @@ export function OrderPayment({
     );
   }
 
+  // Cartão com a diretoria (DT-076): sem PIX nem comprovante; a diretoria entra em contato.
+  if (order.paymentChoice === 'CARD') {
+    return (
+      <Alert kind="info">
+        <strong>Pagamento com cartão.</strong> A diretoria vai falar com você pelo WhatsApp para
+        cobrar R$ {order.totalAmount.amount.replace('.', ',')} na maquininha ou por link.
+        {order.reservationExpiresAt
+          ? ` O pedido fica reservado até ${new Date(order.reservationExpiresAt).toLocaleString('pt-BR')}.`
+          : ''}
+      </Alert>
+    );
+  }
+
   const guest =
     extraFields['orderNumber'] && extraFields['code']
       ? { orderNumber: extraFields['orderNumber'], code: extraFields['code'] }

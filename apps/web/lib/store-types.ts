@@ -197,6 +197,8 @@ export interface Order {
   reservationExpiresAt: string | null;
   /** Retirada ou entrega em casa (DT-075). */
   fulfillment: OrderFulfillment;
+  /** PIX (30 min) ou cartão com a diretoria (72 h) (DT-076). */
+  paymentChoice: 'PIX' | 'CARD';
   deliveryFee: MoneyView;
   deliveryAddress: DeliveryAddress | null;
   outForDeliveryAt: string | null;

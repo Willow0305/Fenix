@@ -4,6 +4,7 @@ import { useState } from 'react';
 
 import { OrderPayment } from '../../../../components/payment-instructions';
 import { OrderRightsPanel } from '../../../../components/order-rights';
+import { CancelOrder } from '../../../../components/cancel-order';
 import { DeliveryTracking } from '../../../../components/delivery-tracking';
 import { OrderSummary } from '../../../../components/order-summary';
 import { ErrorSummary, PageHeader, TextField, useSubmit } from '../../../../components/ui';
@@ -72,6 +73,11 @@ export default function GuestOrderPage() {
             order={order}
             endpoint="/public/orders/proof"
             extraFields={{ orderNumber: order.orderNumber, code: code.trim() }}
+            onDone={setOrder}
+          />
+          <CancelOrder
+            order={order}
+            guest={{ orderNumber: order.orderNumber, code: code.trim() }}
             onDone={setOrder}
           />
           <OrderRightsPanel

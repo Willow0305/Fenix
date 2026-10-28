@@ -2,6 +2,7 @@ import { Injectable, type OnModuleInit } from '@nestjs/common';
 import type {
   DeliveryProofKind,
   OrderFulfillment,
+  OrderPaymentChoice,
   OrderStatus,
   Prisma
 } from '../../../generated/prisma/client';
@@ -47,6 +48,7 @@ import {
   ORDER_STATUS_LABELS,
   ORDER_TRANSITIONS,
   requiresStock,
+  PIX_RESERVATION_MINUTES_DEFAULT,
   RESERVATION_HOURS_DEFAULT
 } from '../domain/store-rules';
 import {
@@ -132,6 +134,8 @@ export interface OrderView {
   readonly reservationExpiresAt: string | null;
   /** Retirada ou entrega em casa (DT-075). */
   readonly fulfillment: OrderFulfillment;
+  /** PIX ou cartão com a diretoria (DT-076). */
+  readonly paymentChoice: OrderPaymentChoice;
   readonly deliveryFee: MoneyView;
   /** Cópia do endereço da compra (só na entrega). */
   readonly deliveryAddress: DeliveryAddress | null;
@@ -165,6 +169,8 @@ export interface CheckoutInput {
   readonly acceptPersonalized?: boolean;
   /** Retirada (padrão) ou entrega em casa (DT-075). */
   readonly fulfillment?: OrderFulfillment;
+  /** PIX (padrão, 30 min) ou cartão combinado com a diretoria (72 h) (DT-076). */
+  readonly paymentChoice?: OrderPaymentChoice;
   /** Endereço digitado, ou `addressId` de um endereço salvo da conta. */
   readonly address?: AddressInput & { neighborhoodId: string };
   readonly addressId?: string;
@@ -246,18 +252,34 @@ export class OrdersService implements OnModuleInit {
   ) {}
 
   onModuleInit(): void {
-    // Reserva vencida devolve estoque: a loja aberta no navegador se atualiza (DT-051).
-    this.jobs.every('store.orders.expire', 10 * 60_000, async () => {
+    // Reserva vencida devolve estoque: a loja aberta no navegador se atualiza (DT-051). A cada
+    // 2 minutos, porque o pedido PIX vence em 30 (DT-076).
+    this.jobs.every('store.orders.expire', 2 * 60_000, async () => {
       if ((await this.expireStale()) > 0) {
         this.site.changed(['store']);
       }
     });
   }
 
-  private reservationHours(): number {
+  /**
+   * Prazo para pagar (DT-076): PIX 30 minutos (`STORE_PIX_RESERVATION_MINUTES`); cartão com a
+   * diretoria 72 horas (`STORE_RESERVATION_HOURS`). Sem pagamento no prazo, cancela sozinho.
+   */
+  private reservationMs(choice: OrderPaymentChoice): number {
+    if (choice === 'PIX') {
+      const minutes = Number(
+        process.env['STORE_PIX_RESERVATION_MINUTES'] ?? PIX_RESERVATION_MINUTES_DEFAULT
+      );
+
+      return (
+        (Number.isFinite(minutes) && minutes > 0 ? minutes : PIX_RESERVATION_MINUTES_DEFAULT) *
+        60_000
+      );
+    }
+
     const value = Number(process.env['STORE_RESERVATION_HOURS'] ?? RESERVATION_HOURS_DEFAULT);
 
-    return Number.isFinite(value) && value > 0 ? value : RESERVATION_HOURS_DEFAULT;
+    return (Number.isFinite(value) && value > 0 ? value : RESERVATION_HOURS_DEFAULT) * 3_600_000;
   }
 
   /** `preloaded` evita uma consulta por pagamento nas listas (N+1). */
@@ -322,6 +344,7 @@ export class OrdersService implements OnModuleInit {
       cancellationReason: row.cancellationReason,
       reservationExpiresAt: row.reservationExpiresAt?.toISOString() ?? null,
       fulfillment: row.fulfillment,
+      paymentChoice: row.paymentChoice,
       deliveryFee: moneyView(row.deliveryFeeAmount, row.currency),
       deliveryAddress: (row.deliveryAddress as DeliveryAddress | null) ?? null,
       outForDeliveryAt: row.outForDeliveryAt?.toISOString() ?? null,
@@ -664,7 +687,10 @@ export class OrdersService implements OnModuleInit {
           status: total.greaterThan(0) ? 'AWAITING_PAYMENT' : 'PAID',
           notes: input.notes?.trim() || null,
           guestAccessTokenHash: guestAccessCode ? sha256Hex(`order:${guestAccessCode}`) : null,
-          reservationExpiresAt: new Date(now.getTime() + this.reservationHours() * 3_600_000),
+          paymentChoice: input.paymentChoice ?? 'PIX',
+          reservationExpiresAt: new Date(
+            now.getTime() + this.reservationMs(input.paymentChoice ?? 'PIX')
+          ),
           ...(delivery
             ? {
                 fulfillment: 'DELIVERY' as const,
@@ -808,7 +834,9 @@ export class OrdersService implements OnModuleInit {
                 `Entrega em casa: ${addressLine(order.deliveryAddress)} (taxa R$ ${order.deliveryFee.amount.replace('.', ',')}, cerca de ${order.deliveryAddress.leadDays} dia(s) útil(eis) depois do pagamento).`
               ]
             : ['Retirada com o Fênix: avisamos quando o pedido estiver pronto.']),
-          'Pague por PIX e envie o comprovante pela página do pedido.',
+          order.paymentChoice === 'CARD'
+            ? 'Pagamento com cartão: a diretoria vai falar com você para cobrar na maquininha ou por link. O pedido fica reservado por 72 horas.'
+            : 'Pague por PIX em até 30 minutos pela página do pedido (QR ou chave com comprovante). Sem pagamento no prazo, o pedido é cancelado.',
           ...(guestAccessCode
             ? [
                 '',
@@ -821,8 +849,14 @@ export class OrdersService implements OnModuleInit {
 
     await this.staffAlerts.alert(PERMISSIONS.ordersRead, {
       type: 'staff.order.created',
-      title: `Novo pedido ${order.orderNumber}`,
-      message: `${order.customerName} · R$ ${order.totalAmount.amount.replace('.', ',')}`,
+      title:
+        order.paymentChoice === 'CARD' && order.status === 'AWAITING_PAYMENT'
+          ? `Pedido ${order.orderNumber}: pagar com cartão`
+          : `Novo pedido ${order.orderNumber}`,
+      message:
+        order.paymentChoice === 'CARD' && order.status === 'AWAITING_PAYMENT'
+          ? `Fale com ${order.customerName} (${order.customerPhone ?? 'sem telefone'}) para cobrar R$ ${order.totalAmount.amount.replace('.', ',')} na maquininha ou por link.`
+          : `${order.customerName} · R$ ${order.totalAmount.amount.replace('.', ',')}`,
       link: `/admin/pedidos/${order.id}`,
       key: `staff-order:${order.id}`
     });
@@ -1813,6 +1847,73 @@ export class OrdersService implements OnModuleInit {
       tx
     );
     await this.notifyStatus(tx, row, 'DELIVERED');
+  }
+
+  /**
+   * O comprador cancela o próprio pedido enquanto não pagou (DT-076): sem comprovante em
+   * análise. Depois de pago, vale a desistência em 7 dias (DT-070).
+   */
+  async cancelByBuyer(
+    owner: { userId: string } | { orderNumber: string; code: string },
+    orderId?: string
+  ): Promise<OrderView> {
+    const found = await this.prisma.order.findFirst({
+      where:
+        'userId' in owner
+          ? { id: orderId ?? '', customerUserId: owner.userId }
+          : {
+              orderNumber: owner.orderNumber.trim().toUpperCase(),
+              guestAccessTokenHash: sha256Hex(`order:${owner.code.trim()}`)
+            },
+      select: { id: true }
+    });
+
+    if (found === null) {
+      throw AppError.notFound('Pedido não encontrado.');
+    }
+
+    const reason = 'Cancelado pelo comprador antes do pagamento';
+
+    await this.prisma.$transaction(async (tx) => {
+      await lockRow(tx, 'order', found.id);
+      const row = await this.load(tx, found.id);
+
+      if (row.status !== 'AWAITING_PAYMENT' && row.status !== 'CREATED') {
+        throw AppError.conflict(
+          'ORDER_NOT_CANCELLABLE',
+          'Pedido pago não é cancelado por aqui: use "Desistir da compra" (até 7 dias depois de receber).'
+        );
+      }
+
+      if (row.payments.some((p) => p.status === 'PENDING' || p.status === 'CONFIRMED')) {
+        throw AppError.conflict(
+          'PAYMENT_IN_REVIEW',
+          'Há um pagamento em análise neste pedido. Fale com a diretoria para cancelar.'
+        );
+      }
+
+      await this.unwind(tx, null, row, reason, false, `order-buyer-cancel:${row.id}`);
+      await tx.order.update({
+        where: { id: row.id },
+        data: { status: 'CANCELLED', cancelledAt: new Date(), cancellationReason: reason }
+      });
+      await this.audit.record(
+        {
+          actorUserId: 'userId' in owner ? owner.userId : null,
+          action: 'order.cancelled_by_buyer',
+          entityType: 'Order',
+          entityId: row.id,
+          reason,
+          before: { status: row.status },
+          after: { status: 'CANCELLED' }
+        },
+        tx
+      );
+    });
+
+    this.site.changed(['store']);
+
+    return this.toView(await this.load(this.prisma, found.id), undefined, true);
   }
 
   /** Cancela pedidos aguardando pagamento com reserva vencida e sem comprovante (PEN-027). */

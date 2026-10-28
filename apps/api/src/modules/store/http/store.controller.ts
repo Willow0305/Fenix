@@ -378,6 +378,24 @@ export class StorefrontController {
     return this.returns.rights({ userId: principal.userId }, id);
   }
 
+  /** Comprador cancela o próprio pedido enquanto não pagou (DT-076). */
+  @Post('me/orders/:id/cancel')
+  @HttpCode(200)
+  cancelOwn(
+    @CurrentPrincipal() principal: Principal,
+    @Param('id', new ParseUUIDPipe()) id: string
+  ): Promise<OrderView> {
+    return this.orders.cancelByBuyer({ userId: principal.userId }, id);
+  }
+
+  @Post('public/orders/cancel')
+  @Public()
+  @HttpCode(200)
+  @Throttle({ default: { limit: 10, ttl: 60_000 } })
+  guestCancel(@Body() body: GuestLookupDto): Promise<OrderView> {
+    return this.orders.cancelByBuyer({ orderNumber: body.orderNumber, code: body.code });
+  }
+
   @Post('me/orders/:id/receipt')
   @HttpCode(200)
   confirmReceipt(

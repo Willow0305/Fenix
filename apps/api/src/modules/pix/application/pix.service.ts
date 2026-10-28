@@ -180,13 +180,17 @@ export class PixService implements OnModuleInit {
       );
     }
 
-    const expiresAt = order.reservationExpiresAt ?? new Date(now.getTime() + FEE_TTL_MS);
+    // O intermediário exige QR de pelo menos 30 minutos: se a reserva acaba antes (pedido PIX
+    // tem 30 minutos, DT-076), ela acompanha o QR e os dois terminam juntos.
+    const reserved = order.reservationExpiresAt ?? new Date(now.getTime() + FEE_TTL_MS);
+    const minimum = new Date(now.getTime() + MIN_TTL_MS + 60_000);
+    const expiresAt = reserved < minimum ? minimum : reserved;
 
-    if (expiresAt.getTime() - now.getTime() < MIN_TTL_MS) {
-      throw AppError.conflict(
-        'RESERVATION_ENDING',
-        'A reserva do pedido termina em menos de 30 minutos. Use o PIX com comprovante.'
-      );
+    if (order.reservationExpiresAt !== null && expiresAt > order.reservationExpiresAt) {
+      await this.prisma.order.updateMany({
+        where: { id: order.id, status: 'AWAITING_PAYMENT' },
+        data: { reservationExpiresAt: expiresAt }
+      });
     }
 
     return this.reuseOrCreate(provider, {

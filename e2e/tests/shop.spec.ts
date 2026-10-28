@@ -71,3 +71,25 @@ test('visitante escolhe receber em casa e vê a taxa no total', async ({ page },
   await expect(page.getByText('Rua das Flores, 10')).toBeVisible();
   expect(watcher.problems).toEqual([]);
 });
+
+/** Cartão com a diretoria e cancelamento pelo comprador antes de pagar (DT-076). */
+test('visitante escolhe cartão e cancela o pedido', async ({ page }, info) => {
+  const watcher = watch(page);
+
+  await addToCart(page, /Garrafa/);
+  await page.goto('/loja/carrinho');
+  await page.getByText('Cartão', { exact: true }).click();
+  await page.getByLabel(/Nome completo/).fill('Visitante Cartão E2E');
+  await page.getByLabel(/^E-mail/).fill(`cartao-${info.project.name}@exemplo.test`);
+  await page.getByLabel(/Celular/).fill('68999990003');
+  await page.getByText(/Concordo com as/).click();
+  await page.getByRole('button', { name: /confirmar pedido/i }).click();
+  await expect(page.getByText(/Pagamento com cartão\./)).toBeVisible();
+  await expect(page.getByRole('button', { name: /gerar qr pix/i })).toHaveCount(0);
+
+  await page.getByRole('button', { name: 'Cancelar pedido' }).click();
+  await page.getByRole('dialog').getByRole('button', { name: 'Cancelar pedido' }).click();
+  await expect(page.getByText('Cancelado').first()).toBeVisible();
+  await expectNoHorizontalScroll(page);
+  expect(watcher.problems).toEqual([]);
+});

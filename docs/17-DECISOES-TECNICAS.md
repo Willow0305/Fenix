@@ -1505,3 +1505,21 @@ Regras `RN-ENT-001` a `RN-ENT-007` em `docs/04`. Em resumo:
 
 2. Comprovante de entrega: cadastro de entregadores, saída para entrega, código, link do entregador, provas, "Não recebi" com ocorrência e avisos.
 
+## DT-076 — Forma de pagamento no checkout e cancelamento pelo comprador
+
+- **Estado:** Aceita
+- **Data:** 2026-10-28
+- **Aprovador:** responsável do projeto ("ele deveria escolher a forma de pagamento, se for cartão então tem que falar com os membros da diretoria para finalizar a compra, aí fica 72h, se for PIX 15 minutos"; prazo do PIX ajustado para "30 minutos", o mínimo do Mercado Pago; cartão "maquininha ou link da diretoria"; comprador cancela "sim, enquanto não pagou")
+
+### Decisão
+
+- no checkout o comprador escolhe **PIX** ou **Cartão**; fica em `orders.payment_choice`;
+- **PIX:** o pedido fica reservado por **30 minutos** (`STORE_PIX_RESERVATION_MINUTES`). O QR do intermediário exige pelo menos 30 minutos a partir da geração: se a reserva acaba antes, ela é estendida até a validade do QR, e os dois terminam juntos. Comprovante enviado no prazo segura o pedido até a conferência (como antes);
+- **Cartão:** reserva de **72 horas** (`STORE_RESERVATION_HOURS`); sem PIX nem comprovante na tela; a diretoria recebe o aviso "pagar com cartão" com nome e telefone, cobra na maquininha ou por link e registra o pagamento no pedido (métodos "Cartão de débito/crédito" já existem);
+- sem pagamento no prazo o pedido é cancelado sozinho e o estoque volta; a conferência passou de 10 para 2 minutos;
+- **"Cancelar pedido"** para o comprador (conta ou visitante com número e código), só enquanto aguarda pagamento e sem pagamento em análise; depois de pago vale a desistência em 7 dias (DT-070).
+
+### Consequências
+
+- testes de integração: prazos de PIX e cartão, aviso do cartão, QR que estende a reserva e cancelamento (dono, outra pessoa, visitante e com pagamento em análise); E2E com cartão e cancelamento.
+

@@ -105,6 +105,13 @@ export function OrderSummary({ order }: { readonly order: Order }) {
           </tfoot>
         </table>
       </div>
+      {order.status === 'AWAITING_PAYMENT' || order.status === 'CREATED' ? (
+        <p className="m-0">
+          <Icon name={order.paymentChoice === 'CARD' ? 'credit-card' : 'qr-code'} />{' '}
+          <strong>Pagamento:</strong>{' '}
+          {order.paymentChoice === 'CARD' ? 'cartão, combinado com a diretoria' : 'PIX'}
+        </p>
+      ) : null}
       <p className="m-0">
         <Icon name={order.fulfillment === 'DELIVERY' ? 'truck' : 'shop'} />{' '}
         {order.deliveryAddress ? (

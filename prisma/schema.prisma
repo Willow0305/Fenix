@@ -329,6 +329,12 @@ enum OrderFulfillment {
   DELIVERY
 }
 
+/// Como o comprador vai pagar (DT-076): PIX (reserva de 30 min) ou cartão com a diretoria (72 h).
+enum OrderPaymentChoice {
+  PIX
+  CARD
+}
+
 /// Quem leva a entrega (DT-075, RN-ENT-005).
 enum CourierKind {
   STAFF
@@ -1741,6 +1747,7 @@ model Order {
   cancellationReason       String?            @map("cancellation_reason") @db.Text
   /// Retirada ou entrega em casa (DT-075).
   fulfillment              OrderFulfillment   @default(PICKUP)
+  paymentChoice            OrderPaymentChoice @default(PIX) @map("payment_choice")
   /// Taxa de entrega fixada na compra; zero na retirada e no frete grátis.
   deliveryFeeAmount        Decimal            @default(0) @map("delivery_fee_amount") @db.Decimal(19, 4)
   deliveryZoneId           String?            @map("delivery_zone_id") @db.Uuid

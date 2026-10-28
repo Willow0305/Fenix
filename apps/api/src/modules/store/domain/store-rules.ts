@@ -13,6 +13,8 @@ import type { TransitionTable } from '../../../common/domain/state-machine';
 /** Regras puras da loja (RN-LOJ-*, PEN-027..030, DT-031). */
 
 export const RESERVATION_HOURS_DEFAULT = 72;
+/** Pedido para pagar com PIX: 30 minutos, o mínimo do QR do intermediário (DT-076). */
+export const PIX_RESERVATION_MINUTES_DEFAULT = 30;
 export const MAX_ITEM_QUANTITY = 50;
 
 export interface PriceSource {

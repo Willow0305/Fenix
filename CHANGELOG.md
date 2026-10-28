@@ -6,6 +6,17 @@ O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) e o 
 
 ## [Não publicado]
 
+### Forma de pagamento e cancelamento (2026-10-28)
+
+#### Adicionado
+
+- "Como pagar" no checkout: PIX (pague em até 30 minutos) ou cartão combinado com a diretoria (pedido reservado por 72 horas, com aviso à diretoria) (DT-076);
+- "Cancelar pedido" para o comprador enquanto não pagou, em Meus pedidos, na consulta de visitante e logo depois da compra.
+
+#### Alterado
+
+- o QR do PIX estende a reserva até a validade dele (mínimo de 30 minutos do intermediário); pedidos vencidos são cancelados a cada 2 minutos.
+
 ### Ajustes de loja e site (2026-10-28)
 
 #### Alterado

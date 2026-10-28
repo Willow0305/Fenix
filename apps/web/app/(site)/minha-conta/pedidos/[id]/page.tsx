@@ -9,6 +9,7 @@ import { OrderSummary } from '../../../../../components/order-summary';
 import { Alert, Loading } from '../../../../../components/ui';
 import type { Order } from '../../../../../lib/store-types';
 import { useResource } from '../../../../../lib/use-resource';
+import { CancelOrder } from '../../../../../components/cancel-order';
 import { DeliveryTracking } from '../../../../../components/delivery-tracking';
 
 export default function MyOrderPage() {
@@ -32,6 +33,7 @@ export default function MyOrderPage() {
         onChanged={order.reload}
       />
       <OrderPayment order={order.data} endpoint={`/me/orders/${id}/proof`} onDone={order.setData} />
+      <CancelOrder order={order.data} onDone={order.setData} />
       <OrderRightsPanel target={{ kind: 'user', orderId: id }} />
     </>
   );

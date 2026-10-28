@@ -28,6 +28,7 @@ import type { CouponPreview, Order } from '../../../../lib/store-types';
 import { BeneficiariesEditor } from '../../../../components/beneficiaries-editor';
 import { CartPersonalization } from '../../../../components/cart-personalization';
 import { CouponBox } from '../../../../components/coupon-box';
+import { CancelOrder } from '../../../../components/cancel-order';
 import { ConsumerRights } from '../../../../components/consumer-rights';
 import { DeliveryChoice, type DeliveryState } from '../../../../components/delivery-choice';
 import { addressBody, EMPTY_ADDRESS } from '../../../../lib/delivery-types';
@@ -53,6 +54,8 @@ export default function CartPage() {
     saveAddress: true
   });
   const [fee, setFee] = useState<number | null>(0);
+  // PIX (30 minutos) ou cartão combinado com a diretoria (72 horas) (DT-076).
+  const [paymentChoice, setPaymentChoice] = useState<'PIX' | 'CARD'>('PIX');
   const onlyMembership =
     cart !== null &&
     cart.lines.length > 0 &&
@@ -78,6 +81,7 @@ export default function CartPage() {
           ...(form.customerPhone ? { customerPhone: form.customerPhone } : {}),
           ...(form.notes ? { notes: form.notes } : {}),
           ...(coupon ? { couponCode: coupon.code } : {}),
+          paymentChoice,
           ...(delivering
             ? {
                 fulfillment: 'DELIVERY',
@@ -148,6 +152,13 @@ export default function CartPage() {
           extraFields={
             guestAccessCode ? { orderNumber: order.orderNumber, code: guestAccessCode } : {}
           }
+          onDone={(updated) => setResult({ order: updated, guestAccessCode })}
+        />
+        <CancelOrder
+          order={order}
+          {...(guestAccessCode
+            ? { guest: { orderNumber: order.orderNumber, code: guestAccessCode } }
+            : {})}
           onDone={(updated) => setResult({ order: updated, guestAccessCode })}
         />
       </div>
@@ -299,7 +310,44 @@ export default function CartPage() {
 
           <form className="form card" onSubmit={(event) => void checkout.submit(event)}>
             <h2>Finalizar pedido</h2>
-            <p className="muted">O pagamento é feito por PIX após a confirmação do pedido.</p>
+            <fieldset className="form-section stack gap-sm">
+              <legend>Como pagar</legend>
+              <div className="choice-cards">
+                <label className="choice-card">
+                  <input
+                    type="radio"
+                    name="pagamento"
+                    checked={paymentChoice === 'PIX'}
+                    onChange={() => setPaymentChoice('PIX')}
+                  />
+                  <span>
+                    <strong>
+                      <Icon name="qr-code" /> PIX
+                    </strong>
+                    <small className="muted">
+                      Pague em até 30 minutos depois de confirmar o pedido.
+                    </small>
+                  </span>
+                </label>
+                <label className="choice-card">
+                  <input
+                    type="radio"
+                    name="pagamento"
+                    checked={paymentChoice === 'CARD'}
+                    onChange={() => setPaymentChoice('CARD')}
+                  />
+                  <span>
+                    <strong>
+                      <Icon name="credit-card" /> Cartão
+                    </strong>
+                    <small className="muted">
+                      A diretoria fala com você para cobrar na maquininha ou por link. O pedido fica
+                      reservado por 72 horas.
+                    </small>
+                  </span>
+                </label>
+              </div>
+            </fieldset>
             {onlyMembership ? null : (
               <DeliveryChoice
                 productsTotal={productsTotal}
