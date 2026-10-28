@@ -6,7 +6,17 @@ O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) e o 
 
 ## [Não publicado]
 
-### Entrega em casa — regra aprovada, a implementar (2026-10-27)
+### Entrega em casa — etapa 1: entrega no pedido (2026-10-28)
+
+#### Adicionado
+
+- checkout com "Retirar com o Fênix" ou "Receber em casa": bairro da lista, CEP que preenche a rua, taxa e prazo da região, aviso de quanto falta para o frete grátis e total com a entrega (DT-075);
+- Minha conta → Endereços: guardar, escolher o padrão e apagar; também dá para guardar no checkout;
+- Painel → Loja → Entrega em casa: ligar/desligar, cidade, frete grátis e regiões com taxa, prazo e bairros;
+- estado "Saiu para entrega" (com volta para separação em nova tentativa) e aviso ao comprador;
+- taxa lançada no Caixa como "Entregas"; desistência de todo o pedido devolve também a entrega.
+
+### Entrega em casa — regra aprovada (2026-10-27)
 
 #### Decidido
 

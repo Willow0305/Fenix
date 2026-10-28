@@ -12,6 +12,8 @@ export const SYSTEM_CATEGORY = {
   monthlyFees: 'mensalidades',
   storeSales: 'vendas-loja',
   partnerSales: 'vendas-parceiros',
+  /** Taxa de entrega em casa (DT-075). */
+  deliveryFees: 'entregas',
   partnerPayouts: 'repasses-parceiros',
   refunds: 'reembolsos',
   transfers: 'transferencias',
@@ -34,6 +36,7 @@ export const DEFAULT_CATEGORIES: readonly CategorySeed[] = [
     nature: 'INCOME',
     system: true
   },
+  { code: SYSTEM_CATEGORY.deliveryFees, name: 'Entregas', nature: 'INCOME', system: true },
   { code: SYSTEM_CATEGORY.openingBalance, name: 'Saldo inicial', nature: 'INCOME', system: true },
   { code: 'patrocinios', name: 'Patrocínios e doações', nature: 'INCOME' },
   { code: 'eventos', name: 'Eventos e rifas', nature: 'INCOME' },

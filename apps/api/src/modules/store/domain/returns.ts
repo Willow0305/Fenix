@@ -13,7 +13,7 @@ export interface ReturnFacts {
   readonly deliveryConfirmedAt: Date | null;
 }
 
-const PAID = new Set(['PAID', 'PROCESSING', 'READY_FOR_PICKUP', 'DELIVERED']);
+const PAID = new Set(['PAID', 'PROCESSING', 'READY_FOR_PICKUP', 'OUT_FOR_DELIVERY', 'DELIVERED']);
 
 /** Até quando vale cada direito; nulo = prazo ainda não começou (ou não se aplica). */
 export function returnDeadlines(order: ReturnFacts): {

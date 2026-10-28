@@ -173,3 +173,15 @@ export async function signIn(
 export async function settled(page: Page): Promise<void> {
   await expect(page.getByText(/^Carregando/)).toHaveCount(0);
 }
+
+/**
+ * Abre o primeiro produto com esse nome e põe no carrinho. Espera a página terminar de
+ * carregar: clique antes de o React assumir o botão se perde (falha vista no celular).
+ */
+export async function addToCart(page: Page, name: RegExp): Promise<void> {
+  await page.goto('/loja');
+  await page.getByRole('link', { name }).first().click();
+  await page.waitForLoadState('networkidle');
+  await page.getByRole('button', { name: /adicionar ao carrinho/i }).click();
+  await expect(page.getByText('Adicionado ao carrinho')).toBeVisible();
+}

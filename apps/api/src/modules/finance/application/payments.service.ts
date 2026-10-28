@@ -230,6 +230,66 @@ export class PaymentsService {
     return { alreadyConfirmed: false };
   }
 
+  /**
+   * Separa parte de um pagamento ainda pendente num pagamento irmão (DT-075: a taxa de
+   * entrega vai para "Entregas"). O total recebido não muda; nada confirmado é alterado.
+   */
+  async splitPendingInTx(
+    tx: PrismaTx,
+    actorId: string | null,
+    paymentId: string,
+    part: Money,
+    extra: { isDeliveryFee: boolean; notes: string }
+  ): Promise<string> {
+    await lockRow(tx, 'payment', paymentId);
+    const payment = await tx.payment.findUnique({ where: { id: paymentId } });
+
+    if (payment === null) {
+      throw AppError.notFound('Pagamento não encontrado.');
+    }
+
+    const value = round2(part);
+
+    if (payment.status !== 'PENDING' || value.lte(0) || value.gte(payment.amount)) {
+      throw AppError.conflict('PAYMENT_NOT_SPLITTABLE', 'Este pagamento não pode ser dividido.');
+    }
+
+    await tx.payment.update({
+      where: { id: paymentId },
+      data: { amount: money(payment.amount).minus(value) }
+    });
+
+    const sibling = await tx.payment.create({
+      data: {
+        orderId: payment.orderId,
+        paymentMethodId: payment.paymentMethodId,
+        payerUserId: payment.payerUserId,
+        amount: value,
+        currency: payment.currency,
+        provider: payment.provider,
+        idempotencyKey: `split:${payment.id}`,
+        paidAt: payment.paidAt,
+        notes: extra.notes,
+        isDeliveryFee: extra.isDeliveryFee,
+        createdById: actorId
+      }
+    });
+
+    await this.audit.record(
+      {
+        actorUserId: actorId,
+        action: 'payment.split',
+        entityType: 'Payment',
+        entityId: paymentId,
+        before: { amount: money(payment.amount).toFixed(2) },
+        after: { siblingId: sibling.id, siblingAmount: value.toFixed(2), notes: extra.notes }
+      },
+      tx
+    );
+
+    return sibling.id;
+  }
+
   /** Pendente: cancela. Confirmado: reembolso/estorno vinculado e saída no Caixa. */
   async reverseInTx(
     tx: PrismaTx,

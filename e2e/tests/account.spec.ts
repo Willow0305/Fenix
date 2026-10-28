@@ -44,7 +44,7 @@ test('cadastro, carteirinhas vazias e avisos de conteúdo nas preferências', as
 
   await page.goto('/minha-conta/notificacoes');
   await page.getByText('Como receber os avisos').click();
-  await expect(page.getByText('Notícias do clube')).toBeVisible();
-  await expect(page.getByText('Novos tópicos no fórum')).toBeVisible();
+  await expect(page.getByText('Notícias do clube').first()).toBeVisible();
+  await expect(page.getByText('Novos tópicos no fórum').first()).toBeVisible();
   expect(watcher.problems).toEqual([]);
 });

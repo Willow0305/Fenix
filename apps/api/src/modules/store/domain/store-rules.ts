@@ -112,6 +112,7 @@ export const ORDER_STATUS_LABELS: Record<OrderStatus, string> = {
   PAID: 'Pago',
   PROCESSING: 'Em separação',
   READY_FOR_PICKUP: 'Pronto para retirada',
+  OUT_FOR_DELIVERY: 'Saiu para entrega',
   DELIVERED: 'Entregue',
   CANCELLED: 'Cancelado',
   REFUNDED: 'Reembolsado'
@@ -121,9 +122,11 @@ export const ORDER_STATUS_LABELS: Record<OrderStatus, string> = {
 export const ORDER_TRANSITIONS: TransitionTable<OrderStatus> = {
   CREATED: ['AWAITING_PAYMENT', 'CANCELLED'],
   AWAITING_PAYMENT: ['CANCELLED'],
-  PAID: ['PROCESSING', 'READY_FOR_PICKUP', 'DELIVERED', 'CANCELLED'],
-  PROCESSING: ['READY_FOR_PICKUP', 'DELIVERED', 'CANCELLED'],
+  PAID: ['PROCESSING', 'READY_FOR_PICKUP', 'OUT_FOR_DELIVERY', 'DELIVERED', 'CANCELLED'],
+  PROCESSING: ['READY_FOR_PICKUP', 'OUT_FOR_DELIVERY', 'DELIVERED', 'CANCELLED'],
   READY_FOR_PICKUP: ['DELIVERED', 'CANCELLED'],
+  // Entrega sem sucesso volta para separação (nova tentativa) (DT-075).
+  OUT_FOR_DELIVERY: ['DELIVERED', 'PROCESSING', 'CANCELLED'],
   DELIVERED: ['REFUNDED']
 };
 
@@ -132,6 +135,7 @@ export function isPaidState(status: OrderStatus): boolean {
     status === 'PAID' ||
     status === 'PROCESSING' ||
     status === 'READY_FOR_PICKUP' ||
+    status === 'OUT_FOR_DELIVERY' ||
     status === 'DELIVERED'
   );
 }

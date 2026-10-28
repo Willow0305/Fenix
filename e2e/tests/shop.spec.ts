@@ -1,18 +1,12 @@
 import { expect, test } from '@playwright/test';
 
-import { expectNoHorizontalScroll, watch } from './helpers';
+import { addToCart, expectNoHorizontalScroll, watch } from './helpers';
 
 /** Compra de visitante até o PIX automático (modo de teste) confirmar sozinho (DT-071). */
 test('visitante compra e paga com PIX automático', async ({ page }) => {
   const watcher = watch(page);
 
-  await page.goto('/loja');
-  await page
-    .getByRole('link', { name: /Garrafa/ })
-    .first()
-    .click();
-  await page.getByRole('button', { name: /adicionar ao carrinho/i }).click();
-  await expect(page.getByText('Adicionado ao carrinho')).toBeVisible();
+  await addToCart(page, /Garrafa/);
 
   await page.goto('/loja/carrinho');
   await expect(page.locator('.cart-line')).toHaveCount(1);
@@ -38,13 +32,42 @@ test('visitante compra e paga com PIX automático', async ({ page }) => {
 });
 
 test('carrinho mostra os direitos de quem compra', async ({ page }) => {
-  await page.goto('/loja');
-  await page
-    .getByRole('link', { name: /Garrafa/ })
-    .first()
-    .click();
-  await page.getByRole('button', { name: /adicionar ao carrinho/i }).click();
-  await expect(page.getByText('Adicionado ao carrinho')).toBeVisible();
+  await addToCart(page, /Garrafa/);
   await page.goto('/loja/carrinho');
   await expect(page.getByText(/desistir em até 7 dias/)).toBeVisible();
+});
+
+/** Entrega em casa (DT-075): bairro da lista, taxa no total e endereço no pedido. */
+test('visitante escolhe receber em casa e vê a taxa no total', async ({ page }, info) => {
+  const watcher = watch(page);
+
+  await addToCart(page, /Garrafa/);
+  await page.goto('/loja/carrinho');
+
+  await page.getByText('Receber em casa').click();
+  await page.getByLabel(/^CEP/).fill('69900000');
+  await page.getByLabel(/^Rua/).fill('Rua das Flores');
+  await page.getByLabel(/^Número/).fill('10');
+  await page.getByLabel(/^Bairro/).selectOption({ label: 'Centro' });
+  await expect(page.locator('.cart-totals')).toContainText('Entrega');
+  await expect(page.locator('.cart-totals')).toContainText('8,00');
+  await expectNoHorizontalScroll(page);
+
+  await page.getByLabel(/Nome completo/).fill('Visitante Entrega E2E');
+  await page.getByLabel(/^E-mail/).fill('entrega-e2e@exemplo.test');
+  await page.getByLabel(/Celular/).fill('68999990001');
+  await page.getByText(/Concordo com as/).click();
+
+  if (process.env['SHOTS_DIR']) {
+    await page.screenshot({
+      path: `${process.env['SHOTS_DIR']}/${info.project.name}-checkout-entrega.png`,
+      fullPage: true
+    });
+  }
+
+  await page.getByRole('button', { name: /confirmar pedido/i }).click();
+  await expect(page.getByRole('heading', { name: 'Pedido realizado!' })).toBeVisible();
+  await expect(page.getByText(/Entrega em casa:/)).toBeVisible();
+  await expect(page.getByText('Rua das Flores, 10')).toBeVisible();
+  expect(watcher.problems).toEqual([]);
 });

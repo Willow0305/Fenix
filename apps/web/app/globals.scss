@@ -528,6 +528,34 @@ img {
   grid-template-columns: repeat(auto-fit, minmax(min(100%, 200px), 1fr));
 }
 
+// Escolha em cartões (ex.: retirar ou receber em casa, DT-075).
+.choice-cards {
+  display: grid;
+  gap: 0.75rem;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr));
+}
+
+.choice-card {
+  display: flex;
+  gap: 0.6rem;
+  align-items: flex-start;
+  padding: 0.85rem 1rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  cursor: pointer;
+
+  > span {
+    display: grid;
+    gap: 0.2rem;
+  }
+
+  &:has(input:checked) {
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 1px var(--color-primary);
+  }
+}
+
 // Abas de uma área do painel (ex.: Afiliação): rolam para o lado sem mexer na página.
 .subnav {
   display: flex;

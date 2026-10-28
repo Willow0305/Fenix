@@ -1,6 +1,8 @@
 import { PAYMENT_STATUS } from '../lib/finance-types';
 import { formatDateTime, formatMoney } from '../lib/format';
+import { addressLine } from '../lib/delivery-types';
 import { ORDER_STATUS, type Order } from '../lib/store-types';
+import { Icon } from './icon';
 
 /** Resumo de pedido para cliente e diretoria (itens congelados no momento da compra). */
 export function OrderSummary({ order }: { readonly order: Order }) {
@@ -64,21 +66,33 @@ export function OrderSummary({ order }: { readonly order: Order }) {
             ))}
           </tbody>
           <tfoot>
+            {order.discountAmount.amount !== '0.00' || order.fulfillment === 'DELIVERY' ? (
+              <tr>
+                <th scope="row" colSpan={3} className="num">
+                  Produtos
+                </th>
+                <td className="num">{formatMoney(order.subtotalAmount.amount)}</td>
+              </tr>
+            ) : null}
             {order.discountAmount.amount !== '0.00' ? (
-              <>
-                <tr>
-                  <th scope="row" colSpan={3} className="num">
-                    Subtotal
-                  </th>
-                  <td className="num">{formatMoney(order.subtotalAmount.amount)}</td>
-                </tr>
-                <tr>
-                  <th scope="row" colSpan={3} className="num">
-                    Desconto{order.coupon ? ` (cupom ${order.coupon.code})` : ''}
-                  </th>
-                  <td className="num">−{formatMoney(order.discountAmount.amount)}</td>
-                </tr>
-              </>
+              <tr>
+                <th scope="row" colSpan={3} className="num">
+                  Desconto{order.coupon ? ` (cupom ${order.coupon.code})` : ''}
+                </th>
+                <td className="num">−{formatMoney(order.discountAmount.amount)}</td>
+              </tr>
+            ) : null}
+            {order.fulfillment === 'DELIVERY' ? (
+              <tr>
+                <th scope="row" colSpan={3} className="num">
+                  Entrega
+                </th>
+                <td className="num">
+                  {order.deliveryFee.amount === '0.00'
+                    ? 'Grátis'
+                    : formatMoney(order.deliveryFee.amount)}
+                </td>
+              </tr>
             ) : null}
             <tr>
               <th scope="row" colSpan={3} className="num">
@@ -91,6 +105,20 @@ export function OrderSummary({ order }: { readonly order: Order }) {
           </tfoot>
         </table>
       </div>
+      <p className="m-0">
+        <Icon name={order.fulfillment === 'DELIVERY' ? 'truck' : 'shop'} />{' '}
+        {order.deliveryAddress ? (
+          <>
+            <strong>Entrega em casa:</strong> {addressLine(order.deliveryAddress)}
+            {order.deliveryAddress.reference ? ` (${order.deliveryAddress.reference})` : ''} · cerca
+            de {order.deliveryAddress.leadDays} dia(s) útil(eis) depois do pagamento
+          </>
+        ) : order.items.every((item) => item.beneficiaries.length > 0) ? (
+          <strong>Afiliação: carteirinha digital, sem retirada.</strong>
+        ) : (
+          <strong>Retirada com o Fênix.</strong>
+        )}
+      </p>
       {order.payments.length > 0 ? (
         <ul style={{ margin: 0 }}>
           {order.payments.map((payment) => (

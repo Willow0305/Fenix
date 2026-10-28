@@ -316,9 +316,17 @@ enum OrderStatus {
   PAID
   PROCESSING
   READY_FOR_PICKUP
+  /// Entrega em casa (DT-075): saiu com o entregador.
+  OUT_FOR_DELIVERY
   DELIVERED
   CANCELLED
   REFUNDED
+}
+
+/// Como o comprador recebe o pedido (DT-075).
+enum OrderFulfillment {
+  PICKUP
+  DELIVERY
 }
 
 enum PartnerSettlementStatus {
@@ -496,6 +504,7 @@ model User {
   inventoryMovementsCreated       InventoryMovement[]
   salesCampaignsCreated           SalesCampaign[]
   orders                          Order[]
+  addresses                       UserAddress[]
   partnerProfessional             PartnerProfessional?
   appointments                    Appointment[]
   partnerSettlementsCreated       PartnerSettlement[]      @relation("PartnerSettlementCreator")
@@ -679,6 +688,12 @@ model TeamSettings {
   monthlyFeeRules         String?      @map("monthly_fee_rules") @db.Text
   storeRules              String?      @map("store_rules") @db.Text
   pickupInstructions      String?      @map("pickup_instructions") @db.Text
+  /// Entrega em casa (DT-075): ligada pela diretoria, só na cidade configurada.
+  deliveryEnabled         Boolean      @default(false) @map("delivery_enabled")
+  deliveryCity            String       @default("Rio Branco") @map("delivery_city") @db.VarChar(120)
+  deliveryState           String       @default("AC") @map("delivery_state") @db.Char(2)
+  /// Produtos (já com desconto) a partir deste valor não pagam entrega; nulo = sem frete grátis.
+  freeDeliveryMinimum     Decimal?     @map("free_delivery_minimum") @db.Decimal(19, 4)
   /// Visual da carteirinha (DT-068 F).
   cardTemplate            CardTemplate @default(CLASSIC) @map("card_template")
   cardUseTeamLogo         Boolean      @default(true) @map("card_use_team_logo")
@@ -1125,6 +1140,8 @@ model Payment {
   paidAt            DateTime?     @map("paid_at") @db.Timestamptz(6)
   failureReason     String?       @map("failure_reason") @db.Text
   notes             String?       @db.Text
+  /// Parte do recebimento que é a taxa de entrega, lançada em "Entregas" (DT-075).
+  isDeliveryFee     Boolean       @default(false) @map("is_delivery_fee")
   createdById       String?       @map("created_by_id") @db.Uuid
   createdAt         DateTime      @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt         DateTime      @updatedAt @map("updated_at") @db.Timestamptz(6)
@@ -1675,31 +1692,39 @@ model CartItem {
 }
 
 model Order {
-  id                       String      @id @default(uuid()) @db.Uuid
-  customerUserId           String?     @map("customer_user_id") @db.Uuid
-  orderNumber              String      @unique @map("order_number") @db.VarChar(40)
-  customerName             String      @map("customer_name") @db.VarChar(160)
-  customerEmail            String?     @map("customer_email") @db.VarChar(180)
-  customerPhone            String?     @map("customer_phone") @db.VarChar(30)
-  subtotalAmount           Decimal     @map("subtotal_amount") @db.Decimal(19, 4)
-  discountAmount           Decimal     @default(0) @map("discount_amount") @db.Decimal(19, 4)
-  totalAmount              Decimal     @map("total_amount") @db.Decimal(19, 4)
-  currency                 String      @db.Char(3)
-  status                   OrderStatus @default(CREATED)
-  notes                    String?     @db.Text
-  guestAccessTokenHash     String?     @unique @map("guest_access_token_hash") @db.Char(64)
-  reservationExpiresAt     DateTime?   @map("reservation_expires_at") @db.Timestamptz(6)
-  paidAt                   DateTime?   @map("paid_at") @db.Timestamptz(6)
-  readyForPickupAt         DateTime?   @map("ready_for_pickup_at") @db.Timestamptz(6)
-  deliveredAt              DateTime?   @map("delivered_at") @db.Timestamptz(6)
+  id                       String           @id @default(uuid()) @db.Uuid
+  customerUserId           String?          @map("customer_user_id") @db.Uuid
+  orderNumber              String           @unique @map("order_number") @db.VarChar(40)
+  customerName             String           @map("customer_name") @db.VarChar(160)
+  customerEmail            String?          @map("customer_email") @db.VarChar(180)
+  customerPhone            String?          @map("customer_phone") @db.VarChar(30)
+  subtotalAmount           Decimal          @map("subtotal_amount") @db.Decimal(19, 4)
+  discountAmount           Decimal          @default(0) @map("discount_amount") @db.Decimal(19, 4)
+  totalAmount              Decimal          @map("total_amount") @db.Decimal(19, 4)
+  currency                 String           @db.Char(3)
+  status                   OrderStatus      @default(CREATED)
+  notes                    String?          @db.Text
+  guestAccessTokenHash     String?          @unique @map("guest_access_token_hash") @db.Char(64)
+  reservationExpiresAt     DateTime?        @map("reservation_expires_at") @db.Timestamptz(6)
+  paidAt                   DateTime?        @map("paid_at") @db.Timestamptz(6)
+  readyForPickupAt         DateTime?        @map("ready_for_pickup_at") @db.Timestamptz(6)
+  deliveredAt              DateTime?        @map("delivered_at") @db.Timestamptz(6)
   /// Entrega comprovada (DT-070): foto da diretoria ou "Recebi" do comprador; prazos contam daqui.
-  deliveryConfirmedAt      DateTime?   @map("delivery_confirmed_at") @db.Timestamptz(6)
-  deliveryProofMediaFileId String?     @map("delivery_proof_media_file_id") @db.Uuid
-  receiptConfirmedAt       DateTime?   @map("receipt_confirmed_at") @db.Timestamptz(6)
-  cancelledAt              DateTime?   @map("cancelled_at") @db.Timestamptz(6)
-  cancellationReason       String?     @map("cancellation_reason") @db.Text
-  createdAt                DateTime    @default(now()) @map("created_at") @db.Timestamptz(6)
-  updatedAt                DateTime    @updatedAt @map("updated_at") @db.Timestamptz(6)
+  deliveryConfirmedAt      DateTime?        @map("delivery_confirmed_at") @db.Timestamptz(6)
+  deliveryProofMediaFileId String?          @map("delivery_proof_media_file_id") @db.Uuid
+  receiptConfirmedAt       DateTime?        @map("receipt_confirmed_at") @db.Timestamptz(6)
+  cancelledAt              DateTime?        @map("cancelled_at") @db.Timestamptz(6)
+  cancellationReason       String?          @map("cancellation_reason") @db.Text
+  /// Retirada ou entrega em casa (DT-075).
+  fulfillment              OrderFulfillment @default(PICKUP)
+  /// Taxa de entrega fixada na compra; zero na retirada e no frete grátis.
+  deliveryFeeAmount        Decimal          @default(0) @map("delivery_fee_amount") @db.Decimal(19, 4)
+  deliveryZoneId           String?          @map("delivery_zone_id") @db.Uuid
+  /// Cópia do endereço e da região na compra (mudar o endereço salvo não altera o pedido).
+  deliveryAddress          Json?            @map("delivery_address") @db.JsonB
+  outForDeliveryAt         DateTime?        @map("out_for_delivery_at") @db.Timestamptz(6)
+  createdAt                DateTime         @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt                DateTime         @updatedAt @map("updated_at") @db.Timestamptz(6)
 
   customerUser           User?             @relation(fields: [customerUserId], references: [id], onDelete: SetNull, onUpdate: Cascade)
   sourceCart             Cart?
@@ -1707,6 +1732,7 @@ model Order {
   payments               Payment[]
   refunds                Refund[]
   couponRedemption       CouponRedemption?
+  deliveryZone           DeliveryZone?     @relation(fields: [deliveryZoneId], references: [id], onDelete: SetNull, onUpdate: Cascade)
   deliveryProofMediaFile MediaFile?        @relation("OrderDeliveryProof", fields: [deliveryProofMediaFileId], references: [id], onDelete: SetNull, onUpdate: Cascade)
   returnRequests         ReturnRequest[]
   pixCharges             PixCharge[]
@@ -2754,4 +2780,66 @@ model PixWebhookEvent {
   @@unique([provider, eventKey])
   @@index([receivedAt])
   @@map("pix_webhook_events")
+}
+
+/// Região de entrega em casa (DT-075): bairros, taxa e prazo em dias úteis.
+model DeliveryZone {
+  id        String    @id @default(uuid()) @db.Uuid
+  name      String    @db.VarChar(80)
+  fee       Decimal   @db.Decimal(19, 4)
+  currency  String    @default("BRL") @db.Char(3)
+  leadDays  Int       @map("lead_days") @db.SmallInt
+  isActive  Boolean   @default(true) @map("is_active")
+  sortOrder Int       @default(0) @map("sort_order")
+  createdAt DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt DateTime  @updatedAt @map("updated_at") @db.Timestamptz(6)
+  deletedAt DateTime? @map("deleted_at") @db.Timestamptz(6)
+
+  neighborhoods DeliveryNeighborhood[]
+  orders        Order[]
+
+  @@index([isActive, deletedAt])
+  @@map("delivery_zones")
+}
+
+/// Bairro atendido; cada bairro pertence a uma só região (único entre os não excluídos).
+model DeliveryNeighborhood {
+  id             String    @id @default(uuid()) @db.Uuid
+  zoneId         String    @map("zone_id") @db.Uuid
+  name           String    @db.VarChar(120)
+  normalizedName String    @map("normalized_name") @db.VarChar(120)
+  createdAt      DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  deletedAt      DateTime? @map("deleted_at") @db.Timestamptz(6)
+
+  zone      DeliveryZone  @relation(fields: [zoneId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+  addresses UserAddress[]
+
+  @@index([zoneId, deletedAt])
+  @@map("delivery_neighborhoods")
+}
+
+/// Endereço salvo pelo próprio usuário (DT-075); o dono pode apagar (LGPD).
+model UserAddress {
+  id             String   @id @default(uuid()) @db.Uuid
+  userId         String   @map("user_id") @db.Uuid
+  label          String?  @db.VarChar(60)
+  postalCode     String   @map("postal_code") @db.Char(8)
+  street         String   @db.VarChar(200)
+  number         String   @db.VarChar(20)
+  complement     String?  @db.VarChar(120)
+  neighborhoodId String?  @map("neighborhood_id") @db.Uuid
+  neighborhood   String   @db.VarChar(120)
+  city           String   @db.VarChar(120)
+  state          String   @db.Char(2)
+  reference      String?  @db.VarChar(200)
+  phone          String?  @db.VarChar(30)
+  isDefault      Boolean  @default(false) @map("is_default")
+  createdAt      DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt      DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  user              User                  @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  neighborhoodEntry DeliveryNeighborhood? @relation(fields: [neighborhoodId], references: [id], onDelete: SetNull, onUpdate: Cascade)
+
+  @@index([userId])
+  @@map("user_addresses")
 }

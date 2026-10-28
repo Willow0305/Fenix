@@ -133,6 +133,22 @@ export class PrivacyService {
           }
         },
         favorites: { select: { createdAt: true, product: { select: { name: true } } } },
+        // Endereços de entrega salvos pela pessoa (DT-075).
+        addresses: {
+          select: {
+            label: true,
+            postalCode: true,
+            street: true,
+            number: true,
+            complement: true,
+            neighborhood: true,
+            city: true,
+            state: true,
+            reference: true,
+            phone: true,
+            createdAt: true
+          }
+        },
         forumPosts: {
           where: { status: { not: 'DELETED' } },
           select: { createdAt: true, content: true, topic: { select: { title: true } } }
@@ -426,6 +442,7 @@ export class PrivacyService {
       });
       await tx.userToken.deleteMany({ where: { userId } });
       await tx.favorite.deleteMany({ where: { userId } });
+      await tx.userAddress.deleteMany({ where: { userId } });
       await tx.forumReaction.deleteMany({ where: { userId } });
       await tx.forumPost.updateMany({
         where: { authorUserId: userId },

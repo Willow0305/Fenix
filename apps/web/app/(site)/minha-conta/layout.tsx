@@ -20,6 +20,7 @@ const ACCOUNT_LINKS: readonly AccountLink[] = [
   { href: '/minha-conta/inscricoes', label: 'Inscrições' },
   { href: '/minha-conta/carteirinhas', label: 'Carteirinhas' },
   { href: '/minha-conta/pedidos', label: 'Pedidos' },
+  { href: '/minha-conta/enderecos', label: 'Endereços' },
   { href: '/minha-conta/favoritos', label: 'Favoritos' },
   { href: '/minha-conta/agendamentos', label: 'Agendamentos' },
   { href: '/minha-conta/notificacoes', label: 'Notificações' },

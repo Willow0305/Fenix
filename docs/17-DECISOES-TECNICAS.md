@@ -1462,7 +1462,7 @@ Mesmo padrão da inativação de atleta (COR-018):
 
 ## DT-075 — Entrega em casa com comprovante de entrega
 
-- **Estado:** Aprovada, a implementar (o responsável autoriza a implementação ao dizer "continue")
+- **Estado:** Aceita; etapa 1 (entrega no pedido) implementada em 2026-10-28; etapa 2 (comprovante) a seguir
 - **Data:** 2026-10-27
 - **Aprovador:** responsável do projeto (taxa "por bairro/região"; área "só Rio Branco"; frete grátis "acima de um valor"; código "sim, opcional"; entregador visível "primeiro nome, veículo e placa"; "não recebi" em "3 dias"; link do motoboy "sim, com as opções B e C também")
 - **Substitui:** a recomendação da `PEN-028` de deixar frete para depois.
@@ -1481,5 +1481,16 @@ Regras `RN-ENT-001` a `RN-ENT-007` em `docs/04`. Em resumo:
 ### Implementação prevista
 
 1. Entrega no pedido: configuração (regiões, bairros, valores, prazos, frete grátis, liga/desliga), escolha no checkout (com conta e visitante), endereços salvos, taxa no total/PIX/Caixa, estorno com a taxa.
+
+### Como ficou a etapa 1 (2026-10-28)
+
+- **dados:** `delivery_zones` e `delivery_neighborhoods` (bairro único entre os não excluídos, comparado sem acento e caixa), `user_addresses` (até 10 por pessoa, um padrão; o dono apaga de vez), no pedido `fulfillment`, `delivery_fee_amount`, `delivery_zone_id`, `delivery_address` (cópia em JSON com região e prazo) e `out_for_delivery_at`; configuração em `team_settings` (ligada, cidade, UF, frete grátis). Pedido com entrega sempre tem endereço (`CHECK`);
+- **estado novo** `OUT_FOR_DELIVERY` ("Saiu para entrega"): pago/em separação → saiu → entregue, ou volta para separação (nova tentativa). "Pronto para retirada" só para retirada e "Saiu para entrega" só para entrega. Na chegada da remessa, pedido com entrega vai para separação com aviso próprio;
+- **Caixa:** cada pagamento continua com um lançamento. Quando o pagamento que quita um pedido com entrega é confirmado, a taxa é separada num **pagamento irmão** (`is_delivery_fee`), lançado na categoria de sistema **"Entregas"**; o valor recebido não muda. Pagamentos parciais fora desse caso ficam como venda. Categorias e métodos de sistema que faltarem são criados ao subir a API, como as permissões (DT-073);
+- **devolução:** estorno de item sai primeiro do pagamento dos produtos; a taxa só é devolvida quando a desistência cobre **todas** as unidades do pedido (desistência parcial mantém a entrega cobrada); cancelar o pedido estorna tudo;
+- **CEP:** consultado no ViaCEP **pela API** (`GET /public/postal-codes/:cep`, com limite de requisições), para o navegador não falar com terceiros; falha ou `POSTAL_CODE_LOOKUP=off` só deixa a pessoa digitar;
+- **permissão** nova `delivery.manage` (Painel → Loja → Entrega em casa), liberada a administrador e diretoria ao subir a API;
+- **LGPD:** endereços salvos entram na exportação de dados e são apagados na eliminação da conta; o endereço do pedido segue a guarda do pedido.
+
 2. Comprovante de entrega: cadastro de entregadores, saída para entrega, código, link do entregador, provas, "Não recebi" com ocorrência e avisos.
 

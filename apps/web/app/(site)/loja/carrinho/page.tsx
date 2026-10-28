@@ -29,6 +29,8 @@ import { BeneficiariesEditor } from '../../../../components/beneficiaries-editor
 import { CartPersonalization } from '../../../../components/cart-personalization';
 import { CouponBox } from '../../../../components/coupon-box';
 import { ConsumerRights } from '../../../../components/consumer-rights';
+import { DeliveryChoice, type DeliveryState } from '../../../../components/delivery-choice';
+import { addressBody, EMPTY_ADDRESS } from '../../../../lib/delivery-types';
 
 export default function CartPage() {
   const { status, profile } = useAuth();
@@ -43,11 +45,26 @@ export default function CartPage() {
   const [accept, setAccept] = useState(false);
   const [acceptPersonalized, setAcceptPersonalized] = useState(false);
   const [coupon, setCoupon] = useState<CouponPreview | null>(null);
+  // Retirada ou entrega em casa (DT-075).
+  const [delivery, setDelivery] = useState<DeliveryState>({
+    fulfillment: 'PICKUP',
+    addressId: '',
+    address: EMPTY_ADDRESS,
+    saveAddress: true
+  });
+  const [fee, setFee] = useState<number | null>(0);
+  const onlyMembership =
+    cart !== null &&
+    cart.lines.length > 0 &&
+    cart.lines.every((line) => line.fulfillmentType === 'MEMBERSHIP');
+  const delivering = delivery.fulfillment === 'DELIVERY' && !onlyMembership;
+  const productsTotal = (coupon?.total ?? cart?.total)?.amount ?? '0';
+  const grandTotal = (Number(productsTotal) + (delivering ? (fee ?? 0) : 0)).toFixed(2);
   const [result, setResult] = useState<{ order: Order; guestAccessCode: string | null } | null>(
     null
   );
+  const authenticated = status === 'authenticated';
   const checkout = useSubmit(async () => {
-    const authenticated = status === 'authenticated';
     const created = await api<{ order: Order; guestAccessCode: string | null }>(
       '/orders/checkout',
       {
@@ -60,7 +77,18 @@ export default function CartPage() {
             : { customerName: form.customerName, customerEmail: form.customerEmail }),
           ...(form.customerPhone ? { customerPhone: form.customerPhone } : {}),
           ...(form.notes ? { notes: form.notes } : {}),
-          ...(coupon ? { couponCode: coupon.code } : {})
+          ...(coupon ? { couponCode: coupon.code } : {}),
+          ...(delivering
+            ? {
+                fulfillment: 'DELIVERY',
+                ...(delivery.addressId
+                  ? { addressId: delivery.addressId }
+                  : {
+                      address: addressBody(delivery.address),
+                      ...(authenticated ? { saveAddress: delivery.saveAddress } : {})
+                    })
+              }
+            : {})
         }
       }
     );
@@ -241,24 +269,47 @@ export default function CartPage() {
           </ul>
           <CouponBox cartTotal={cart.total.amount} applied={coupon} onChange={setCoupon} />
           <div className="cart-totals">
+            {coupon || delivering ? (
+              <>
+                <span>Produtos</span>
+                <span>{formatMoney((coupon?.subtotal ?? cart.total).amount)}</span>
+              </>
+            ) : null}
             {coupon ? (
               <>
-                <span>Subtotal</span>
-                <span>{formatMoney(coupon.subtotal.amount)}</span>
                 <span>Desconto ({coupon.code})</span>
                 <span>−{formatMoney(coupon.discount.amount)}</span>
               </>
             ) : null}
+            {delivering ? (
+              <>
+                <span>Entrega</span>
+                <span>
+                  {fee === null
+                    ? 'escolha o bairro'
+                    : fee === 0
+                      ? 'Grátis'
+                      : formatMoney(fee.toFixed(2))}
+                </span>
+              </>
+            ) : null}
             <strong>Total</strong>
-            <strong>{formatMoney((coupon?.total ?? cart.total).amount)}</strong>
+            <strong>{formatMoney(grandTotal)}</strong>
           </div>
 
           <form className="form card" onSubmit={(event) => void checkout.submit(event)}>
             <h2>Finalizar pedido</h2>
-            <p className="muted">
-              Retirada combinada com o time. O pagamento é feito por PIX após a confirmação do
-              pedido.
-            </p>
+            <p className="muted">O pagamento é feito por PIX após a confirmação do pedido.</p>
+            {onlyMembership ? null : (
+              <DeliveryChoice
+                productsTotal={productsTotal}
+                authenticated={status === 'authenticated'}
+                value={delivery}
+                onChange={setDelivery}
+                onFee={setFee}
+                fieldError={checkout.fieldError}
+              />
+            )}
             <ConsumerRights compact />
             <ErrorSummary error={checkout.error} />
             {status === 'authenticated' && profile ? (
@@ -337,11 +388,9 @@ export default function CartPage() {
               <button
                 type="submit"
                 className="btn btn-primary"
-                disabled={checkout.pending || cart.hasWarnings}
+                disabled={checkout.pending || cart.hasWarnings || (delivering && fee === null)}
               >
-                {checkout.pending
-                  ? 'Enviando…'
-                  : `Confirmar pedido · ${formatMoney((coupon?.total ?? cart.total).amount)}`}
+                {checkout.pending ? 'Enviando…' : `Confirmar pedido · ${formatMoney(grandTotal)}`}
               </button>
             </div>
           </form>

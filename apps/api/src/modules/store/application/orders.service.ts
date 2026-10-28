@@ -1,5 +1,5 @@
 import { Injectable, type OnModuleInit } from '@nestjs/common';
-import type { OrderStatus, Prisma } from '../../../generated/prisma/client';
+import type { OrderFulfillment, OrderStatus, Prisma } from '../../../generated/prisma/client';
 
 import { AuditService } from '../../../common/audit/audit.service';
 import { generateOpaqueToken, sha256Hex } from '../../../common/crypto/tokens';
@@ -62,6 +62,13 @@ import { type AppliedCoupon, CouponsService } from './coupons.service';
 import { InventoryService } from './inventory.service';
 import { StaffAlertsService } from '../../notifications/application/staff-alerts.service';
 import { CardsService } from '../../cards/application/cards.service';
+import { DeliveryService, type ResolvedDelivery } from './delivery.service';
+import {
+  type AddressInput,
+  addressLine,
+  type DeliveryAddress,
+  deliveryFee
+} from '../domain/delivery';
 import { beneficiariesOf, beneficiaryProblems, resizeBeneficiaries } from '../domain/cart-details';
 
 export interface OrderItemView {
@@ -114,6 +121,12 @@ export interface OrderView {
   readonly cancelledAt: string | null;
   readonly cancellationReason: string | null;
   readonly reservationExpiresAt: string | null;
+  /** Retirada ou entrega em casa (DT-075). */
+  readonly fulfillment: OrderFulfillment;
+  readonly deliveryFee: MoneyView;
+  /** Cópia do endereço da compra (só na entrega). */
+  readonly deliveryAddress: DeliveryAddress | null;
+  readonly outForDeliveryAt: string | null;
   /** Somente para o dono do pedido aguardando pagamento (RN-CFG-002). */
   readonly paymentInfo?: { pixKey: string | null; bankingDetails: string | null };
 }
@@ -126,6 +139,13 @@ export interface CheckoutInput {
   readonly couponCode?: string;
   /** Ciência de que item personalizado não tem troca por arrependimento (DT-069). */
   readonly acceptPersonalized?: boolean;
+  /** Retirada (padrão) ou entrega em casa (DT-075). */
+  readonly fulfillment?: OrderFulfillment;
+  /** Endereço digitado, ou `addressId` de um endereço salvo da conta. */
+  readonly address?: AddressInput & { neighborhoodId: string };
+  readonly addressId?: string;
+  /** Guardar o endereço digitado na conta. */
+  readonly saveAddress?: boolean;
 }
 
 export interface OrderFilters extends PageQueryDto {
@@ -144,7 +164,7 @@ const ORDER_INCLUDE = {
       }
     }
   },
-  payments: { select: { id: true, status: true, amount: true } },
+  payments: { select: { id: true, status: true, amount: true, isDeliveryFee: true } },
   couponRedemption: { select: { status: true, coupon: { select: { code: true } } } }
 } satisfies Prisma.OrderInclude;
 
@@ -191,7 +211,8 @@ export class OrdersService implements OnModuleInit {
     private readonly jobs: JobScheduler,
     private readonly site: SiteRevalidateService,
     private readonly staffAlerts: StaffAlertsService,
-    private readonly cards: CardsService
+    private readonly cards: CardsService,
+    private readonly delivery: DeliveryService
   ) {}
 
   onModuleInit(): void {
@@ -268,7 +289,11 @@ export class OrdersService implements OnModuleInit {
       hasDeliveryProof: row.deliveryProofMediaFileId !== null,
       cancelledAt: row.cancelledAt?.toISOString() ?? null,
       cancellationReason: row.cancellationReason,
-      reservationExpiresAt: row.reservationExpiresAt?.toISOString() ?? null
+      reservationExpiresAt: row.reservationExpiresAt?.toISOString() ?? null,
+      fulfillment: row.fulfillment,
+      deliveryFee: moneyView(row.deliveryFeeAmount, row.currency),
+      deliveryAddress: (row.deliveryAddress as DeliveryAddress | null) ?? null,
+      outForDeliveryAt: row.outForDeliveryAt?.toISOString() ?? null
     };
   }
 
@@ -547,7 +572,26 @@ export class OrdersService implements OnModuleInit {
           )
         : null;
       const discount = coupon?.discount ?? ZERO;
-      const total = subtotal.minus(discount);
+      // Entrega em casa (DT-075): pedido só de afiliação não tem o que entregar.
+      const onlyMembership = lines.every(
+        (line) => line.item.productVariant.product.fulfillmentType === 'MEMBERSHIP'
+      );
+      const delivery =
+        input.fulfillment === 'DELIVERY' && !onlyMembership
+          ? await this.delivery.resolveInTx(
+              tx,
+              await this.deliveryAddressInput(tx, principal?.userId ?? null, input)
+            )
+          : null;
+      const productsTotal = subtotal.minus(discount);
+      const fee = delivery
+        ? deliveryFee({
+            zoneFee: delivery.zoneFee,
+            productsTotal,
+            freeMinimum: delivery.freeMinimum
+          })
+        : ZERO;
+      const total = productsTotal.plus(fee);
       let orderNumber = generateOrderNumber(now);
 
       while (await tx.order.findUnique({ where: { orderNumber }, select: { id: true } })) {
@@ -568,9 +612,25 @@ export class OrdersService implements OnModuleInit {
           status: total.greaterThan(0) ? 'AWAITING_PAYMENT' : 'PAID',
           notes: input.notes?.trim() || null,
           guestAccessTokenHash: guestAccessCode ? sha256Hex(`order:${guestAccessCode}`) : null,
-          reservationExpiresAt: new Date(now.getTime() + this.reservationHours() * 3_600_000)
+          reservationExpiresAt: new Date(now.getTime() + this.reservationHours() * 3_600_000),
+          ...(delivery
+            ? {
+                fulfillment: 'DELIVERY' as const,
+                deliveryFeeAmount: fee,
+                deliveryZoneId: delivery.zoneId,
+                // Interface sem assinatura de índice: o JSON do Prisma pede o cast.
+                deliveryAddress: {
+                  ...delivery.address,
+                  phone: delivery.address.phone ?? customerPhone
+                } as unknown as Prisma.InputJsonObject
+              }
+            : {})
         }
       });
+
+      if (delivery && principal && input.saveAddress && input.address && !input.addressId) {
+        await this.saveAddressInTx(tx, principal.userId, input.address, delivery);
+      }
 
       for (const [index, line] of lines.entries()) {
         const product = line.item.productVariant.product;
@@ -654,6 +714,8 @@ export class OrdersService implements OnModuleInit {
             subtotal: subtotal.toFixed(2),
             discount: discount.toFixed(2),
             coupon: coupon?.code ?? null,
+            fulfillment: delivery ? 'DELIVERY' : 'PICKUP',
+            deliveryFee: fee.toFixed(2),
             total: total.toFixed(2),
             items: lines.length
           },
@@ -689,6 +751,11 @@ export class OrdersService implements OnModuleInit {
           `Olá, ${order.customerName}.`,
           '',
           `Recebemos seu pedido ${order.orderNumber} no valor de R$ ${order.totalAmount.amount.replace('.', ',')}.`,
+          ...(order.deliveryAddress
+            ? [
+                `Entrega em casa: ${addressLine(order.deliveryAddress)} (taxa R$ ${order.deliveryFee.amount.replace('.', ',')}, cerca de ${order.deliveryAddress.leadDays} dia(s) útil(eis) depois do pagamento).`
+              ]
+            : ['Retirada com o Fênix: avisamos quando o pedido estiver pronto.']),
           'Pague por PIX e envie o comprovante pela página do pedido.',
           ...(guestAccessCode
             ? [
@@ -923,6 +990,8 @@ export class OrdersService implements OnModuleInit {
     paymentId: string,
     accountId: string
   ): Promise<void> {
+    const feePaymentId = await this.splitDeliveryFee(tx, actorId, row, paymentId);
+
     await this.payments.confirmInTx(tx, actorId, paymentId, {
       accountId,
       categoryCode: row.items.some((item) => item.partnerId)
@@ -931,6 +1000,15 @@ export class OrdersService implements OnModuleInit {
       origin: 'ORDER',
       description: `Pedido ${row.orderNumber} — ${row.customerName}`
     });
+
+    if (feePaymentId) {
+      await this.payments.confirmInTx(tx, actorId, feePaymentId, {
+        accountId,
+        categoryCode: SYSTEM_CATEGORY.deliveryFees,
+        origin: 'ORDER',
+        description: `Entrega do pedido ${row.orderNumber} — ${row.customerName}`
+      });
+    }
 
     const refreshed = await this.load(tx, row.id);
     const confirmed = sum(
@@ -943,6 +1021,104 @@ export class OrdersService implements OnModuleInit {
     ) {
       await this.markPaid(tx, actorId, refreshed);
     }
+  }
+
+  /**
+   * Receita "Entregas" (DT-075): o pagamento que quita um pedido com entrega é dividido e a
+   * taxa vira um pagamento irmão. Pagamentos parciais fora desse caso ficam como venda.
+   */
+  private async splitDeliveryFee(
+    tx: PrismaTx,
+    actorId: string | null,
+    row: OrderRow,
+    paymentId: string
+  ): Promise<string | null> {
+    const fee = money(row.deliveryFeeAmount);
+
+    if (row.fulfillment !== 'DELIVERY' || fee.lte(0) || row.payments.some((p) => p.isDeliveryFee)) {
+      return null;
+    }
+
+    const payment = row.payments.find((p) => p.id === paymentId);
+    const confirmed = sum(
+      row.payments.filter((p) => p.status === 'CONFIRMED').map((p) => p.amount)
+    );
+
+    if (
+      !payment ||
+      payment.status !== 'PENDING' ||
+      money(payment.amount).lte(fee) ||
+      confirmed.plus(payment.amount).lt(row.totalAmount)
+    ) {
+      return null;
+    }
+
+    return this.payments.splitPendingInTx(tx, actorId, paymentId, fee, {
+      isDeliveryFee: true,
+      notes: 'Taxa de entrega'
+    });
+  }
+
+  /** Endereço do checkout: digitado ou um salvo da própria conta. */
+  private async deliveryAddressInput(
+    tx: PrismaTx,
+    userId: string | null,
+    input: CheckoutInput
+  ): Promise<AddressInput & { neighborhoodId: string }> {
+    if (input.addressId) {
+      const saved = userId ? await this.delivery.ownAddress(tx, userId, input.addressId) : null;
+
+      if (saved === null) {
+        throw AppError.notFound('Endereço não encontrado.');
+      }
+
+      return {
+        postalCode: saved.postalCode,
+        street: saved.street,
+        number: saved.number,
+        complement: saved.complement,
+        reference: saved.reference,
+        phone: saved.phone,
+        neighborhoodId: saved.neighborhoodId ?? ''
+      };
+    }
+
+    if (!input.address) {
+      throw AppError.validation('ADDRESS_REQUIRED', 'Informe o endereço de entrega.');
+    }
+
+    return input.address;
+  }
+
+  /** "Guardar na minha conta" no checkout: até 10 endereços; o primeiro vira o padrão. */
+  private async saveAddressInTx(
+    tx: PrismaTx,
+    userId: string,
+    input: AddressInput & { neighborhoodId: string },
+    delivery: ResolvedDelivery
+  ): Promise<void> {
+    const count = await tx.userAddress.count({ where: { userId } });
+
+    if (count >= 10) {
+      return;
+    }
+
+    await tx.userAddress.create({
+      data: {
+        userId,
+        postalCode: delivery.address.postalCode,
+        street: delivery.address.street,
+        number: delivery.address.number,
+        complement: delivery.address.complement,
+        neighborhoodId: input.neighborhoodId,
+        neighborhood: delivery.address.neighborhood,
+        city: delivery.address.city,
+        state: delivery.address.state,
+        reference: delivery.address.reference,
+        phone: delivery.address.phone,
+        isDefault: count === 0
+      }
+    });
   }
 
   private remaining(row: OrderRow): Money {
@@ -1223,9 +1399,13 @@ export class OrdersService implements OnModuleInit {
         message:
           status === 'READY_FOR_PICKUP'
             ? 'Seu pedido está pronto para retirada.'
-            : status === 'DELIVERED'
-              ? 'Pedido entregue. Toque em "Recebi" em Meus pedidos para confirmar; os prazos de troca contam a partir daí.'
-              : `A situação do seu pedido mudou para "${ORDER_STATUS_LABELS[status]}".`,
+            : status === 'OUT_FOR_DELIVERY'
+              ? 'Seu pedido saiu para entrega no endereço informado.'
+              : status === 'PROCESSING' && row.status === 'OUT_FOR_DELIVERY'
+                ? 'Não conseguimos entregar desta vez. Vamos combinar uma nova entrega.'
+                : status === 'DELIVERED'
+                  ? 'Pedido entregue. Toque em "Recebi" em Meus pedidos para confirmar; os prazos de troca contam a partir daí.'
+                  : `A situação do seu pedido mudou para "${ORDER_STATUS_LABELS[status]}".`,
         link: `/minha-conta/pedidos/${row.id}`,
         deduplicationKey: `order-status:${row.id}:${status}`
       },
@@ -1344,6 +1524,21 @@ export class OrdersService implements OnModuleInit {
         throw AppError.validation('REASON_REQUIRED', 'Informe o motivo.');
       }
 
+      // Retirada e entrega em casa têm caminhos próprios (DT-075).
+      if (status === 'READY_FOR_PICKUP' && row.fulfillment === 'DELIVERY') {
+        throw AppError.conflict(
+          'DELIVERY_ORDER',
+          'Este pedido é de entrega em casa: use "Saiu para entrega".'
+        );
+      }
+
+      if (status === 'OUT_FOR_DELIVERY' && row.fulfillment !== 'DELIVERY') {
+        throw AppError.conflict(
+          'PICKUP_ORDER',
+          'Este pedido é de retirada: use "Pronto para retirada".'
+        );
+      }
+
       if (
         (status === 'CANCELLED' || status === 'REFUNDED') &&
         isPaidState(row.status) &&
@@ -1370,6 +1565,7 @@ export class OrdersService implements OnModuleInit {
         data: {
           status,
           ...(status === 'READY_FOR_PICKUP' ? { readyForPickupAt: now } : {}),
+          ...(status === 'OUT_FOR_DELIVERY' ? { outForDeliveryAt: now } : {}),
           ...(status === 'DELIVERED' ? { deliveredAt: now } : {}),
           ...(status === 'CANCELLED' || status === 'REFUNDED'
             ? { cancelledAt: now, cancellationReason: input.reason ?? null }
@@ -1432,13 +1628,51 @@ export class OrdersService implements OnModuleInit {
     return true;
   }
 
-  /** Pedido pago passa a "pronto para retirada" (chegada da remessa). */
+  /**
+   * Chegada da remessa: pedido de retirada fica "pronto para retirada"; o de entrega em casa
+   * vai para separação e o comprador é avisado de que a entrega vem a seguir (DT-075).
+   */
   async markReadyInTx(tx: PrismaTx, actorId: string, orderId: string): Promise<boolean> {
     await lockRow(tx, 'order', orderId);
     const row = await this.load(tx, orderId);
 
     if (row.status !== 'PAID' && row.status !== 'PROCESSING') {
       return false;
+    }
+
+    if (row.fulfillment === 'DELIVERY') {
+      if (row.status === 'PROCESSING') {
+        return false;
+      }
+
+      await tx.order.update({ where: { id: orderId }, data: { status: 'PROCESSING' } });
+      await this.audit.record(
+        {
+          actorUserId: actorId,
+          action: 'order.status.changed',
+          entityType: 'Order',
+          entityId: orderId,
+          before: { status: row.status },
+          after: { status: 'PROCESSING' }
+        },
+        tx
+      );
+
+      if (row.customerUserId) {
+        await this.notifications.notify(
+          {
+            userId: row.customerUserId,
+            type: 'order.status',
+            title: `Pedido ${row.orderNumber}: encomenda chegou`,
+            message: 'Sua encomenda chegou e está em separação para a entrega no seu endereço.',
+            link: `/minha-conta/pedidos/${row.id}`,
+            deduplicationKey: `order-status:${row.id}:arrived-delivery`
+          },
+          tx
+        );
+      }
+
+      return true;
     }
 
     await tx.order.update({

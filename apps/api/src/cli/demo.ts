@@ -1,5 +1,6 @@
 import { Prisma } from '../generated/prisma/client';
 import { createPrismaClient } from '../common/prisma/prisma.service';
+import { normalizeNeighborhood } from '../modules/store/domain/delivery';
 
 /**
  * Dados FICTÍCIOS para demonstração local (`npm run db:demo`). Idempotente por slug/código.
@@ -424,8 +425,47 @@ async function main(): Promise<void> {
       });
     }
 
+    // Entrega em casa (DT-075): duas regiões fictícias; só se ainda não houver nenhuma.
+    if ((await prisma.deliveryZone.count({ where: { deletedAt: null } })) === 0) {
+      const zones = [
+        {
+          name: 'Centro (demonstração)',
+          fee: '8.00',
+          leadDays: 1,
+          bairros: ['Centro', 'Bosque', 'Base', 'Cadeia Velha']
+        },
+        {
+          name: 'Zona A (demonstração)',
+          fee: '12.00',
+          leadDays: 2,
+          bairros: ['Jardim Europa', 'Estação Experimental', 'Vila Ivonete', 'Floresta']
+        }
+      ];
+
+      for (const [index, zone] of zones.entries()) {
+        await prisma.deliveryZone.create({
+          data: {
+            name: zone.name,
+            fee: D(zone.fee),
+            leadDays: zone.leadDays,
+            sortOrder: index,
+            neighborhoods: {
+              create: zone.bairros.map((name) => ({
+                name,
+                normalizedName: normalizeNeighborhood(name)
+              }))
+            }
+          }
+        });
+      }
+
+      await prisma.teamSettings.updateMany({
+        data: { deliveryEnabled: true, freeDeliveryMinimum: D('250.00') }
+      });
+    }
+
     console.log(
-      'Dados de demonstração criados (equipes, atletas, plano, seletiva, produtos, remessa, notícias, eventos e fórum).'
+      'Dados de demonstração criados (equipes, atletas, plano, seletiva, produtos, remessa, notícias, eventos, fórum e entrega).'
     );
   } finally {
     await prisma.$disconnect();

@@ -35,6 +35,7 @@ import {
 
 import { IsMobilePhoneBr } from '../../../common/validation/br-fields';
 import { PageQueryDto } from '../../../common/http/pagination';
+import { AddressDto } from './delivery.controller';
 
 const AMOUNT = /^\d{1,13}(\.\d{1,2})?$/;
 const AMOUNT_MSG = { message: 'Valor inválido: use ponto e até 2 casas (ex.: 89.90).' };
@@ -347,6 +348,26 @@ export class CheckoutDto {
   @IsOptional()
   @IsBoolean()
   acceptPersonalized?: boolean;
+  @ApiPropertyOptional({
+    enum: ['PICKUP', 'DELIVERY'],
+    description: 'Retirada ou entrega (DT-075).'
+  })
+  @IsOptional()
+  @IsIn(['PICKUP', 'DELIVERY'])
+  fulfillment?: 'PICKUP' | 'DELIVERY';
+  @ApiPropertyOptional({ type: () => AddressDto })
+  @IsOptional()
+  @ValidateNested()
+  @Type(() => AddressDto)
+  address?: AddressDto;
+  @ApiPropertyOptional({ description: 'Endereço salvo na conta.' })
+  @IsOptional()
+  @IsUUID()
+  addressId?: string;
+  @ApiPropertyOptional({ description: 'Guardar o endereço digitado na conta.' })
+  @IsOptional()
+  @IsBoolean()
+  saveAddress?: boolean;
 }
 
 export class GuestLookupDto {

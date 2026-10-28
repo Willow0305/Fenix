@@ -105,6 +105,12 @@ Em desenvolvimento o PIX automático roda em **modo de teste** (`PIX_PROVIDER=sa
 4. Reinicie a API. Em **Painel → PIX automático**, escolha a conta do Caixa que recebe.
 5. Teste com um pedido de valor baixo. Mesmo que um aviso se perca, a conferência automática a cada 2 minutos faz a baixa.
 
+## 5.2 Entrega em casa
+
+Em **Painel → Loja → Entrega em casa** a diretoria cadastra as **regiões** de Rio Branco (nome, taxa, prazo em dias úteis e os bairros, um por linha), o **frete grátis** (opcional, a partir de um valor em produtos) e liga a opção "Oferecer entrega em casa no checkout". Bairro fora da lista só retira. `npm run db:demo` cria duas regiões de exemplo.
+
+No checkout, o CEP preenche a rua pelo ViaCEP, consultado pela API (o navegador não fala com terceiros). Sem internet, ou com `POSTAL_CODE_LOOKUP=off`, a pessoa digita a rua e escolhe o bairro na lista.
+
 ## 6. Comandos úteis
 
 | Comando | Para quê |

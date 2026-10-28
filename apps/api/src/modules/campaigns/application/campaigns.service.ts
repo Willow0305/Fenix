@@ -115,9 +115,16 @@ const ACTIVE_ORDER: OrderStatus[] = [
   'PAID',
   'PROCESSING',
   'READY_FOR_PICKUP',
+  'OUT_FOR_DELIVERY',
   'DELIVERED'
 ];
-const PAID_ORDER: OrderStatus[] = ['PAID', 'PROCESSING', 'READY_FOR_PICKUP', 'DELIVERED'];
+const PAID_ORDER: OrderStatus[] = [
+  'PAID',
+  'PROCESSING',
+  'READY_FOR_PICKUP',
+  'OUT_FOR_DELIVERY',
+  'DELIVERED'
+];
 
 const CAMPAIGN_INCLUDE = {
   supplierPartner: { select: { id: true, displayName: true } },

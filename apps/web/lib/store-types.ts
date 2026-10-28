@@ -1,3 +1,4 @@
+import type { DeliveryAddress, OrderFulfillment } from './delivery-types';
 import type { MoneyView, Payment } from './finance-types';
 
 export type Fulfillment = 'STOCK' | 'MADE_TO_ORDER' | 'CAMPAIGN' | 'DIGITAL' | 'MEMBERSHIP';
@@ -30,6 +31,7 @@ export type OrderStatus =
   | 'PAID'
   | 'PROCESSING'
   | 'READY_FOR_PICKUP'
+  | 'OUT_FOR_DELIVERY'
   | 'DELIVERED'
   | 'CANCELLED'
   | 'REFUNDED';
@@ -193,6 +195,11 @@ export interface Order {
   cancelledAt: string | null;
   cancellationReason: string | null;
   reservationExpiresAt: string | null;
+  /** Retirada ou entrega em casa (DT-075). */
+  fulfillment: OrderFulfillment;
+  deliveryFee: MoneyView;
+  deliveryAddress: DeliveryAddress | null;
+  outForDeliveryAt: string | null;
   paymentInfo?: { pixKey: string | null; bankingDetails: string | null };
 }
 
@@ -202,6 +209,7 @@ export const ORDER_STATUS: Record<OrderStatus, { label: string; badge: string }>
   PAID: { label: 'Pago', badge: 'badge-success' },
   PROCESSING: { label: 'Em separação', badge: 'badge-info' },
   READY_FOR_PICKUP: { label: 'Pronto para retirada', badge: 'badge-brand' },
+  OUT_FOR_DELIVERY: { label: 'Saiu para entrega', badge: 'badge-info' },
   DELIVERED: { label: 'Entregue', badge: 'badge-success' },
   CANCELLED: { label: 'Cancelado', badge: '' },
   REFUNDED: { label: 'Reembolsado', badge: 'badge-danger' }
@@ -210,13 +218,24 @@ export const ORDER_STATUS: Record<OrderStatus, { label: string; badge: string }>
 export const ORDER_NEXT: Record<OrderStatus, OrderStatus[]> = {
   CREATED: ['CANCELLED'],
   AWAITING_PAYMENT: ['CANCELLED'],
-  PAID: ['PROCESSING', 'READY_FOR_PICKUP', 'DELIVERED', 'CANCELLED'],
-  PROCESSING: ['READY_FOR_PICKUP', 'DELIVERED', 'CANCELLED'],
+  PAID: ['PROCESSING', 'READY_FOR_PICKUP', 'OUT_FOR_DELIVERY', 'DELIVERED', 'CANCELLED'],
+  PROCESSING: ['READY_FOR_PICKUP', 'OUT_FOR_DELIVERY', 'DELIVERED', 'CANCELLED'],
   READY_FOR_PICKUP: ['DELIVERED', 'CANCELLED'],
+  OUT_FOR_DELIVERY: ['DELIVERED', 'PROCESSING', 'CANCELLED'],
   DELIVERED: ['REFUNDED'],
   CANCELLED: [],
   REFUNDED: []
 };
+
+/** Próximos estados que fazem sentido para o tipo de recebimento do pedido (DT-075). */
+export function orderNext(order: {
+  status: OrderStatus;
+  fulfillment: OrderFulfillment;
+}): OrderStatus[] {
+  return ORDER_NEXT[order.status].filter((status) =>
+    order.fulfillment === 'DELIVERY' ? status !== 'READY_FOR_PICKUP' : status !== 'OUT_FOR_DELIVERY'
+  );
+}
 
 export const FULFILLMENT: Record<Fulfillment, string> = {
   STOCK: 'Pronta entrega',

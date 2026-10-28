@@ -89,7 +89,13 @@ const ORDER_SELECT = {
       product: { select: { fulfillmentType: true } }
     }
   },
-  payments: { select: { id: true, status: true, amount: true }, orderBy: { createdAt: 'asc' } }
+  fulfillment: true,
+  deliveryFeeAmount: true,
+  // Taxa de entrega por último: estorno de item sai do pagamento dos produtos (DT-075).
+  payments: {
+    select: { id: true, status: true, amount: true, isDeliveryFee: true },
+    orderBy: [{ isDeliveryFee: 'asc' }, { createdAt: 'asc' }]
+  }
 } satisfies Prisma.OrderSelect;
 
 type OrderRow = Prisma.OrderGetPayload<{ select: typeof ORDER_SELECT }>;
@@ -493,6 +499,11 @@ export class ReturnsService {
             refundForUnits(item.orderItem.totalAmount, item.orderItem.quantity, item.quantity)
           )
         );
+
+        // Desistência de tudo devolve também a entrega (CDC art. 49, RN-ENT-003).
+        if (row.kind === 'WITHDRAWAL' && (await this.withdrawsEverything(tx, row.orderId, id))) {
+          refundAmount = refundAmount.plus(row.order.deliveryFeeAmount);
+        }
         refundId = await this.refundOrder(
           tx,
           actor,
@@ -577,6 +588,32 @@ export class ReturnsService {
     });
 
     return this.view(row);
+  }
+
+  /**
+   * Esta desistência, somada às já atendidas, cobre todas as unidades do pedido? Só então a
+   * taxa de entrega é devolvida junto (desistência parcial mantém a entrega cobrada).
+   */
+  private async withdrawsEverything(
+    tx: PrismaTx,
+    orderId: string,
+    requestId: string
+  ): Promise<boolean> {
+    const [bought, withdrawn] = await Promise.all([
+      tx.orderItem.aggregate({ where: { orderId }, _sum: { quantity: true } }),
+      tx.returnRequestItem.aggregate({
+        where: {
+          returnRequest: {
+            orderId,
+            kind: 'WITHDRAWAL',
+            OR: [{ id: requestId }, { status: 'REFUNDED' }]
+          }
+        },
+        _sum: { quantity: true }
+      })
+    ]);
+
+    return (withdrawn._sum.quantity ?? 0) >= (bought._sum.quantity ?? 0);
   }
 
   /** Estorna o valor pelos pagamentos confirmados do pedido, do mais antigo ao mais novo. */

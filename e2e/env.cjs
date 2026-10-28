@@ -42,6 +42,8 @@ function e2eEnv() {
     WEB_INTERNAL_URL: `http://127.0.0.1:${WEB_PORT}`,
     API_INTERNAL_URL: `http://127.0.0.1:${API_PORT}`,
     PIX_PROVIDER: 'sandbox',
+    // Sem internet nos testes: o CEP não é consultado no ViaCEP (DT-075).
+    POSTAL_CODE_LOOKUP: 'off',
     THROTTLE_DISABLED: 'true',
     THROTTLE_STORE: 'memory',
     SCHEDULED_JOBS: 'off',

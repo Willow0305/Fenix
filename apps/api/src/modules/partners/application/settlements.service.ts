@@ -38,6 +38,7 @@ export const PAID_ORDER_STATUSES: OrderStatus[] = [
   'PAID',
   'PROCESSING',
   'READY_FOR_PICKUP',
+  'OUT_FOR_DELIVERY',
   'DELIVERED'
 ];
 

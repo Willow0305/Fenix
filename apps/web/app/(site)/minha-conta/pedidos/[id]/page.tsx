@@ -25,6 +25,9 @@ export default function MyOrderPage() {
       {order.data.status === 'READY_FOR_PICKUP' ? (
         <Alert kind="success">Seu pedido está pronto para retirada!</Alert>
       ) : null}
+      {order.data.status === 'OUT_FOR_DELIVERY' ? (
+        <Alert kind="info">Seu pedido saiu para entrega no endereço informado.</Alert>
+      ) : null}
       <OrderPayment order={order.data} endpoint={`/me/orders/${id}/proof`} onDone={order.setData} />
       <OrderRightsPanel target={{ kind: 'user', orderId: id }} />
     </>

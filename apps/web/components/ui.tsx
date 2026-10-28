@@ -254,6 +254,26 @@ export function CpfCnpjField(props: MaskedProps) {
   );
 }
 
+/** CEP `00000-000` (entrega em casa, DT-075). */
+export function PostalCodeField(props: MaskedProps) {
+  return (
+    <MaskedField
+      inputMode="numeric"
+      autoComplete="postal-code"
+      placeholder="00000-000"
+      maxLength={9}
+      {...props}
+      format={(value) => {
+        const digits = onlyDigits(value).slice(0, 8);
+
+        return digits.length > 5 ? `${digits.slice(0, 5)}-${digits.slice(5)}` : digits;
+      }}
+      isValid={(value) => onlyDigits(value).length === 8}
+      invalidMessage="CEP deve ter 8 números."
+    />
+  );
+}
+
 /** Telefone `(00) 00000-0000`; `allowLandline` aceita também fixo (PEN-057). */
 export function PhoneField({
   allowLandline = false,

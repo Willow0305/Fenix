@@ -111,6 +111,12 @@ export const ADMIN_NAV: readonly AdminGroup[] = [
       { href: '/admin/produtos', icon: 'bag', label: 'Produtos', permission: 'products.manage' },
       { href: '/admin/pedidos', icon: 'receipt', label: 'Pedidos', permission: 'orders.read' },
       {
+        href: '/admin/entrega',
+        icon: 'truck',
+        label: 'Entrega em casa',
+        permission: 'delivery.manage'
+      },
+      {
         href: '/admin/devolucoes',
         icon: 'arrow-counterclockwise',
         label: 'Trocas e devoluções',

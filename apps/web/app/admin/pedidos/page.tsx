@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { useState } from 'react';
 
+import { Icon } from '../../../components/icon';
 import { Alert, Empty, Loading, PageHeader, Pagination } from '../../../components/ui';
 import type { Page } from '../../../lib/api-types';
 import { formatDateTime, formatMoney } from '../../../lib/format';
@@ -88,6 +89,11 @@ export default function OrdersAdminPage() {
                 <tr key={order.id}>
                   <td data-label="Pedido">
                     <Link href={`/admin/pedidos/${order.id}`}>{order.orderNumber}</Link>
+                    {order.fulfillment === 'DELIVERY' ? (
+                      <span className="badge badge-info" title="Entrega em casa">
+                        <Icon name="truck" /> entrega
+                      </span>
+                    ) : null}
                   </td>
                   <td data-label="Cliente">
                     {order.customerName}

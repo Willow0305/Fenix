@@ -21,12 +21,7 @@ import { openProtectedFile } from '../../../../lib/download';
 import type { Payment } from '../../../../lib/finance-types';
 import { formatPhoneDisplay, todayCivil } from '../../../../lib/format';
 import { useIdempotencyKey } from '../../../../lib/idempotency';
-import {
-  ORDER_NEXT,
-  ORDER_STATUS,
-  type Order,
-  type OrderStatus
-} from '../../../../lib/store-types';
+import { orderNext, ORDER_STATUS, type Order, type OrderStatus } from '../../../../lib/store-types';
 import { useResource } from '../../../../lib/use-resource';
 import { ContactActions } from '../../../../components/contact-actions';
 import { Icon } from '../../../../components/icon';
@@ -166,10 +161,10 @@ export default function OrderAdminPage() {
         </form>
       ) : null}
 
-      {can('orders.status.change') && ORDER_NEXT[o.status].length > 0 ? (
+      {can('orders.status.change') && orderNext(o).length > 0 ? (
         <section className="card row">
           <strong>Avançar pedido:</strong>
-          {ORDER_NEXT[o.status].map((status) => (
+          {orderNext(o).map((status) => (
             <button
               key={status}
               type="button"

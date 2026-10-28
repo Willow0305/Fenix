@@ -10,10 +10,17 @@ import { OrdersService } from './application/orders.service';
 import { StoreAdminController, StorefrontController } from './http/store.controller';
 import { CardsModule } from '../cards/http/cards.controller';
 import { ReturnsService } from './application/returns.service';
+import { DeliveryService } from './application/delivery.service';
+import { DeliveryAdminController, DeliveryController } from './http/delivery.controller';
 
 @Module({
   imports: [FinanceModule, SettingsModule, CardsModule],
-  controllers: [StorefrontController, StoreAdminController],
+  controllers: [
+    StorefrontController,
+    StoreAdminController,
+    DeliveryController,
+    DeliveryAdminController
+  ],
   providers: [
     CatalogService,
     InventoryService,
@@ -21,7 +28,8 @@ import { ReturnsService } from './application/returns.service';
     FavoritesService,
     OrdersService,
     CouponsService,
-    ReturnsService
+    ReturnsService,
+    DeliveryService
   ],
   exports: [OrdersService, InventoryService, CatalogService]
 })

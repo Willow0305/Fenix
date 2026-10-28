@@ -3,6 +3,7 @@ import { Module } from '@nestjs/common';
 import { ClosingsService } from './application/closings.service';
 import { FeeRemindersService } from './application/fee-reminders.service';
 import { FeesService } from './application/fees.service';
+import { FinanceCatalogSync } from './application/finance-catalog-sync';
 import { FinanceReportsService } from './application/finance-reports.service';
 import { FinanceSetupService } from './application/finance-setup.service';
 import { LedgerService } from './application/ledger.service';
@@ -20,7 +21,8 @@ import { FeesController, FinanceController } from './http/finance.controller';
     FeeRemindersService,
     ObligationsService,
     ClosingsService,
-    FinanceReportsService
+    FinanceReportsService,
+    FinanceCatalogSync
   ],
   exports: [LedgerService, PaymentsService, FeesService, FinanceReportsService]
 })
