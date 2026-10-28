@@ -11,7 +11,7 @@ import { type Page, pageArgs, type PageQueryDto, toPage } from '../../../common/
 import type { Principal, RequestMeta } from '../../../common/http/request-context';
 import { JobScheduler } from '../../../common/jobs/job-scheduler';
 import { PrismaService, type PrismaTx } from '../../../common/prisma/prisma.service';
-import { PERMISSIONS } from '../../access/domain/permission-catalog';
+import { PERMISSIONS, SYSTEM_ROLES } from '../../access/domain/permission-catalog';
 import { MediaService, mediaUrl } from '../../media/application/media.service';
 import { NotificationsService } from '../../notifications/application/notifications.service';
 import {
@@ -22,7 +22,8 @@ import {
   newCardCode,
   publicStateLabel,
   renewedPeriod,
-  shortName
+  shortName,
+  type CardKind
 } from '../domain/card-rules';
 import {
   cardKey,
@@ -49,7 +50,7 @@ export interface CardDesign {
 export interface CardView {
   readonly id: string;
   readonly code: string;
-  readonly type: 'ATHLETE' | 'AFFILIATE';
+  readonly type: CardKind;
   readonly state: CardState;
   readonly stateLabel: string;
   readonly holderName: string;
@@ -79,7 +80,7 @@ export interface PublicValidation {
   readonly label: string;
   readonly checkedAt: string;
   readonly card: {
-    readonly type: 'ATHLETE' | 'AFFILIATE';
+    readonly type: CardKind;
     readonly name: string;
     readonly photo: string | null;
     /** Menor sem autorização do responsável: confira documento. */
@@ -100,7 +101,7 @@ export interface StaffValidation {
 export interface CardAdminRow {
   readonly id: string;
   readonly code: string;
-  readonly type: 'ATHLETE' | 'AFFILIATE';
+  readonly type: CardKind;
   readonly state: CardState;
   readonly stateLabel: string;
   readonly holderName: string;
@@ -134,6 +135,8 @@ export interface MembershipPlanRow {
 
 export interface CardsOverview {
   readonly athletes: { readonly valid: number };
+  /** Carteirinhas de diretoria com status ativo (a saída da diretoria é conferida ao abrir). */
+  readonly board: { readonly valid: number };
   readonly affiliates: {
     readonly valid: number;
     readonly suspended: number;
@@ -146,6 +149,7 @@ export interface CardsOverview {
     /** Valendo hoje para cada tipo de carteirinha. */
     readonly athlete: number;
     readonly affiliate: number;
+    readonly board: number;
   };
   readonly plans: readonly MembershipPlanRow[];
 }
@@ -174,11 +178,34 @@ const CARD_INCLUDE = {
       }
     }
   },
-  holderUser: { select: { avatarMediaFileId: true } },
+  holderUser: {
+    select: {
+      avatarMediaFileId: true,
+      status: true,
+      deletedAt: true,
+      // Papel Diretoria da pessoa (DT-077): a validade é conferida em `boardActive`.
+      userRoles: {
+        where: { role: { code: SYSTEM_ROLES.board, deletedAt: null } },
+        select: { expiresAt: true }
+      }
+    }
+  },
   orderItem: { select: { productName: true } }
 } satisfies Prisma.MemberCardInclude;
 
 type CardRow = Prisma.MemberCardGetPayload<{ include: typeof CARD_INCLUDE }>;
+
+/** A pessoa ainda é da diretoria? Conta ativa e papel Diretoria sem validade vencida. */
+function boardActive(user: CardRow['holderUser']): boolean {
+  const now = new Date();
+
+  return (
+    user !== null &&
+    user.status === 'ACTIVE' &&
+    user.deletedAt === null &&
+    user.userRoles.some((role) => role.expiresAt === null || role.expiresAt > now)
+  );
+}
 
 /** Carteirinha digital (DT-068): emissão, QR, conferência e administração. */
 @Injectable()
@@ -276,6 +303,51 @@ export class CardsService implements OnModuleInit {
   // ---------- Emissão ----------
 
   /** Atleta ativo sem carteirinha ganha uma (gratuita, DT-068 A). */
+  /** Carteirinhas gratuitas: atletas ativos e quem tem o papel Diretoria (DT-068, DT-077). */
+  async ensureFreeCards(): Promise<void> {
+    await this.ensureAthleteCards();
+    await this.ensureBoardCards();
+  }
+
+  /**
+   * Diretoria (DT-077): uma carteirinha por pessoa com o papel Diretoria e conta ativa, criada
+   * na primeira vez; se a pessoa sai da diretoria ela deixa de valer (e volta se o papel voltar).
+   */
+  async ensureBoardCards(): Promise<number> {
+    const missing = await this.prisma.user.findMany({
+      where: {
+        status: 'ACTIVE',
+        deletedAt: null,
+        memberCards: { none: { type: 'BOARD' } },
+        userRoles: {
+          some: {
+            role: { code: SYSTEM_ROLES.board, deletedAt: null },
+            OR: [{ expiresAt: null }, { expiresAt: { gt: new Date() } }]
+          }
+        }
+      },
+      select: { id: true, name: true, email: true },
+      take: 200
+    });
+
+    if (missing.length === 0) {
+      return 0;
+    }
+
+    const { count } = await this.prisma.memberCard.createMany({
+      data: missing.map((user) => ({
+        code: newCardCode(),
+        type: 'BOARD' as const,
+        holderUserId: user.id,
+        holderName: user.name,
+        holderEmail: user.email
+      })),
+      skipDuplicates: true
+    });
+
+    return count;
+  }
+
   async ensureAthleteCards(tx: PrismaTx | PrismaService = this.prisma): Promise<number> {
     const missing = await tx.athlete.findMany({
       where: { status: 'ACTIVE', deletedAt: null, memberCard: null },
@@ -332,7 +404,8 @@ export class CardsService implements OnModuleInit {
         deleted: row.deletedAt !== null,
         startsOn: optionalCivil(row.startsOn),
         endsOn: optionalCivil(row.endsOn),
-        athleteStatus: row.athlete?.status ?? null
+        athleteStatus: row.athlete?.status ?? null,
+        boardActive: boardActive(row.holderUser)
       },
       today
     );
@@ -402,6 +475,8 @@ export class CardsService implements OnModuleInit {
     if (own) {
       await this.ensureAthleteCards();
     }
+
+    await this.ensureBoardCards();
 
     await this.linkByEmail(userId);
 
@@ -957,7 +1032,7 @@ export class CardsService implements OnModuleInit {
 
   /** Visão geral da aba Afiliação: números, planos e benefícios (DT-072). */
   async overview(): Promise<CardsOverview> {
-    await this.ensureAthleteCards();
+    await this.ensureFreeCards();
 
     const today = todayIn();
     const todayDate = civilToDate(today);
@@ -968,43 +1043,52 @@ export class CardsService implements OnModuleInit {
       OR: [{ endsOn: null }, { endsOn: { gte: todayDate } }]
     };
     const affiliate = { type: 'AFFILIATE' as const };
-    const [athletes, affiliates, suspended, expiringSoon, expired, benefitsTotal, products] =
-      await this.prisma.$transaction([
-        this.prisma.memberCard.count({ where: { ...valid, type: 'ATHLETE' } }),
-        this.prisma.memberCard.count({ where: { ...valid, ...affiliate } }),
-        this.prisma.memberCard.count({
-          where: { ...affiliate, status: 'SUSPENDED', deletedAt: null }
-        }),
-        this.prisma.memberCard.count({
-          where: {
-            ...affiliate,
-            status: 'ACTIVE',
-            deletedAt: null,
-            endsOn: { gte: todayDate, lte: in15 }
-          }
-        }),
-        this.prisma.memberCard.count({
-          where: { ...affiliate, status: 'ACTIVE', deletedAt: null, endsOn: { lt: todayDate } }
-        }),
-        this.prisma.partnerBenefit.count({ where: { deletedAt: null } }),
-        this.prisma.product.findMany({
-          where: { fulfillmentType: 'MEMBERSHIP', deletedAt: null, status: { not: 'ARCHIVED' } },
-          orderBy: [{ status: 'asc' }, { name: 'asc' }],
-          select: {
-            id: true,
-            name: true,
-            slug: true,
-            status: true,
-            basePrice: true,
-            promotionalPrice: true,
-            currency: true,
-            membershipMonths: true,
-            availableFrom: true,
-            availableUntil: true,
-            membershipAnnouncedAt: true
-          }
-        })
-      ]);
+    const [
+      athletes,
+      boardCards,
+      affiliates,
+      suspended,
+      expiringSoon,
+      expired,
+      benefitsTotal,
+      products
+    ] = await this.prisma.$transaction([
+      this.prisma.memberCard.count({ where: { ...valid, type: 'ATHLETE' } }),
+      this.prisma.memberCard.count({ where: { ...valid, type: 'BOARD' } }),
+      this.prisma.memberCard.count({ where: { ...valid, ...affiliate } }),
+      this.prisma.memberCard.count({
+        where: { ...affiliate, status: 'SUSPENDED', deletedAt: null }
+      }),
+      this.prisma.memberCard.count({
+        where: {
+          ...affiliate,
+          status: 'ACTIVE',
+          deletedAt: null,
+          endsOn: { gte: todayDate, lte: in15 }
+        }
+      }),
+      this.prisma.memberCard.count({
+        where: { ...affiliate, status: 'ACTIVE', deletedAt: null, endsOn: { lt: todayDate } }
+      }),
+      this.prisma.partnerBenefit.count({ where: { deletedAt: null } }),
+      this.prisma.product.findMany({
+        where: { fulfillmentType: 'MEMBERSHIP', deletedAt: null, status: { not: 'ARCHIVED' } },
+        orderBy: [{ status: 'asc' }, { name: 'asc' }],
+        select: {
+          id: true,
+          name: true,
+          slug: true,
+          status: true,
+          basePrice: true,
+          promotionalPrice: true,
+          currency: true,
+          membershipMonths: true,
+          availableFrom: true,
+          availableUntil: true,
+          membershipAnnouncedAt: true
+        }
+      })
+    ]);
     const benefitsInEffect = await this.benefits.countInEffect(today);
     const byType = await this.benefits.countInEffectByType(today);
     const plans = await Promise.all(
@@ -1036,6 +1120,7 @@ export class CardsService implements OnModuleInit {
 
     return {
       athletes: { valid: athletes },
+      board: { valid: boardCards },
       affiliates: { valid: affiliates, suspended, expiringSoon, expired },
       benefits: { inEffect: benefitsInEffect, total: benefitsTotal, ...byType },
       plans
@@ -1044,12 +1129,12 @@ export class CardsService implements OnModuleInit {
 
   async list(
     query: PageQueryDto & {
-      type?: 'ATHLETE' | 'AFFILIATE';
+      type?: CardKind;
       situation?: 'valid' | 'suspended' | 'expired' | 'cancelled';
       planId?: string;
     }
   ): Promise<Page<CardAdminRow>> {
-    await this.ensureAthleteCards();
+    await this.ensureFreeCards();
 
     const { skip, take, page, pageSize } = pageArgs(query);
     const today = civilToDate(todayIn());

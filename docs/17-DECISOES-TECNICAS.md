@@ -1523,3 +1523,20 @@ Regras `RN-ENT-001` a `RN-ENT-007` em `docs/04`. Em resumo:
 
 - testes de integração: prazos de PIX e cartão, aviso do cartão, QR que estende a reserva e cancelamento (dono, outra pessoa, visitante e com pagamento em análise); E2E com cartão e cancelamento.
 
+## DT-077 — Carteirinha gratuita da diretoria e benefícios por público
+
+- **Estado:** Aceita
+- **Data:** 2026-10-28
+- **Aprovador:** responsável do projeto ("seria bom adicionar os membros da diretoria também a essa carteirinha gratuita"; benefícios "os mesmos dos atletas, mas a diretoria decide, podendo editar os benefícios da diretoria, atletas e afiliados")
+
+### Decisão
+
+- tipo novo de carteirinha **Diretoria**, gratuita e automática: uma por pessoa com o papel Diretoria (vigente) e conta ativa, criada na primeira vez que a lista, a visão geral ou "Minhas carteirinhas" é aberta. Vale enquanto a pessoa tiver o papel; sem ele, aparece como "Não faz mais parte da diretoria" (a mesma carteirinha volta a valer se o papel voltar). Suspender, reemitir e cancelar funcionam como nas outras;
+- o benefício deixa de ter "atletas / afiliados / ambos" e passa a marcar **Diretoria, Atletas e Afiliados** em qualquer combinação (ao menos um). Os benefícios que já existiam passaram a valer para a diretoria quando valiam para atletas;
+- a visão geral da Afiliação mostra os três tipos, com os benefícios de cada um e atalho para configurá-los.
+
+### Consequências
+
+- `member_cards.type` aceita `BOARD` (uma por pessoa, índice único parcial); `partner_benefits` troca `audience` por `for_board`, `for_athletes` e `for_affiliates` (`CHECK` de ao menos um), com migração dos dados;
+- testes: regras (estado da diretoria e público do benefício) e integração (emissão, benefício só da diretoria, saída do papel e volta).
+

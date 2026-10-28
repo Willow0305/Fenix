@@ -2569,18 +2569,14 @@ model TrustedDevice {
 enum MemberCardType {
   ATHLETE
   AFFILIATE
+  /// Gratuita para quem tem o papel Diretoria (DT-077).
+  BOARD
 }
 
 enum MemberCardStatus {
   ACTIVE
   SUSPENDED
   CANCELLED
-}
-
-enum BenefitAudience {
-  ATHLETES
-  AFFILIATES
-  BOTH
 }
 
 enum CardTemplate {
@@ -2645,23 +2641,26 @@ model MemberCardCheck {
 
 /// Benefício de parceiro para quem tem carteirinha (DT-068 D).
 model PartnerBenefit {
-  id              String          @id @default(uuid()) @db.Uuid
+  id              String    @id @default(uuid()) @db.Uuid
   /// Parceiro cadastrado no site; nulo quando o parceiro é só de boca a boca (DT-074).
-  partnerId       String?         @map("partner_id") @db.Uuid
+  partnerId       String?   @map("partner_id") @db.Uuid
   /// Nome do parceiro sem cadastro (exatamente um: partnerId ou partnerName).
-  partnerName     String?         @map("partner_name") @db.VarChar(120)
+  partnerName     String?   @map("partner_name") @db.VarChar(120)
   /// Onde fica ou como falar com o parceiro sem cadastro (texto livre, opcional).
-  partnerDetails  String?         @map("partner_details") @db.VarChar(500)
-  title           String          @db.VarChar(120)
-  discountPercent Decimal         @map("discount_percent") @db.Decimal(5, 2)
-  conditions      String?         @db.Text
-  audience        BenefitAudience @default(BOTH)
-  startsOn        DateTime?       @map("starts_on") @db.Date
-  endsOn          DateTime?       @map("ends_on") @db.Date
-  isActive        Boolean         @default(true) @map("is_active")
-  createdAt       DateTime        @default(now()) @map("created_at") @db.Timestamptz(6)
-  updatedAt       DateTime        @updatedAt @map("updated_at") @db.Timestamptz(6)
-  deletedAt       DateTime?       @map("deleted_at") @db.Timestamptz(6)
+  partnerDetails  String?   @map("partner_details") @db.VarChar(500)
+  title           String    @db.VarChar(120)
+  discountPercent Decimal   @map("discount_percent") @db.Decimal(5, 2)
+  conditions      String?   @db.Text
+  /// Para quem vale (DT-077): diretoria, atletas e afiliados, em qualquer combinação.
+  forBoard        Boolean   @default(true) @map("for_board")
+  forAthletes     Boolean   @default(true) @map("for_athletes")
+  forAffiliates   Boolean   @default(true) @map("for_affiliates")
+  startsOn        DateTime? @map("starts_on") @db.Date
+  endsOn          DateTime? @map("ends_on") @db.Date
+  isActive        Boolean   @default(true) @map("is_active")
+  createdAt       DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt       DateTime  @updatedAt @map("updated_at") @db.Timestamptz(6)
+  deletedAt       DateTime? @map("deleted_at") @db.Timestamptz(6)
 
   partner Partner? @relation(fields: [partnerId], references: [id], onDelete: Restrict, onUpdate: Cascade)
 

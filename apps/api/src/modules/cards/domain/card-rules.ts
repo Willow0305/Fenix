@@ -4,8 +4,18 @@ import { randomInt } from 'node:crypto';
  * Regras da carteirinha (DT-068): quando ela vale, o que quem confere vê e o número
  * impresso. Funções puras, sem banco.
  */
+/** Atleta e diretoria são gratuitas e automáticas; afiliado é comprado (DT-068, DT-077). */
+export type CardKind = 'ATHLETE' | 'AFFILIATE' | 'BOARD';
+
 export type CardState =
-  'VALID' | 'SUSPENDED' | 'CANCELLED' | 'EXPIRED' | 'NOT_STARTED' | 'ATHLETE_INACTIVE' | 'REPLACED';
+  | 'VALID'
+  | 'SUSPENDED'
+  | 'CANCELLED'
+  | 'EXPIRED'
+  | 'NOT_STARTED'
+  | 'ATHLETE_INACTIVE'
+  | 'BOARD_INACTIVE'
+  | 'REPLACED';
 
 export const CARD_STATE_LABELS: Record<CardState, string> = {
   VALID: 'Válida',
@@ -14,16 +24,19 @@ export const CARD_STATE_LABELS: Record<CardState, string> = {
   EXPIRED: 'Vencida',
   NOT_STARTED: 'Ainda não começou',
   ATHLETE_INACTIVE: 'Atleta não está ativo',
+  BOARD_INACTIVE: 'Não faz mais parte da diretoria',
   REPLACED: 'Substituída por uma reemissão'
 };
 
 export interface CardFacts {
-  readonly type: 'ATHLETE' | 'AFFILIATE';
+  readonly type: CardKind;
   readonly status: 'ACTIVE' | 'SUSPENDED' | 'CANCELLED';
   readonly deleted: boolean;
   readonly startsOn: string | null;
   readonly endsOn: string | null;
   readonly athleteStatus: string | null;
+  /** Diretoria: a pessoa ainda tem o papel Diretoria (conta ativa). */
+  readonly boardActive?: boolean;
 }
 
 /** Situação da carteirinha numa data civil (fuso do time). */
@@ -38,6 +51,11 @@ export function cardState(card: CardFacts, today: string): CardState {
 
   if (card.type === 'ATHLETE') {
     return card.athleteStatus === 'ACTIVE' ? 'VALID' : 'ATHLETE_INACTIVE';
+  }
+
+  // Diretoria: vale enquanto a pessoa tiver o papel (DT-077).
+  if (card.type === 'BOARD') {
+    return card.boardActive ? 'VALID' : 'BOARD_INACTIVE';
   }
 
   if (card.startsOn !== null && card.startsOn > today) {
@@ -85,12 +103,24 @@ export function newCardCode(): string {
   return `FNX-${code}`;
 }
 
-/** Benefício vale para este tipo de carteirinha? */
-export function benefitApplies(
-  audience: 'ATHLETES' | 'AFFILIATES' | 'BOTH',
-  type: 'ATHLETE' | 'AFFILIATE'
-): boolean {
-  return audience === 'BOTH' || (audience === 'ATHLETES') === (type === 'ATHLETE');
+export interface BenefitAudiences {
+  readonly forBoard: boolean;
+  readonly forAthletes: boolean;
+  readonly forAffiliates: boolean;
+}
+
+/** Benefício vale para este tipo de carteirinha? (públicos marcados, DT-077) */
+export function benefitApplies(audiences: BenefitAudiences, type: CardKind): boolean {
+  return type === 'BOARD'
+    ? audiences.forBoard
+    : type === 'ATHLETE'
+      ? audiences.forAthletes
+      : audiences.forAffiliates;
+}
+
+/** Filtro do banco para os benefícios de um tipo de carteirinha. */
+export function audienceField(type: CardKind): keyof BenefitAudiences {
+  return type === 'BOARD' ? 'forBoard' : type === 'ATHLETE' ? 'forAthletes' : 'forAffiliates';
 }
 
 /** Renovação soma ao período: começa no fim atual (se ainda vale) ou hoje. */

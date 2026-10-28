@@ -6,6 +6,13 @@ O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) e o 
 
 ## [Não publicado]
 
+### Carteirinha da diretoria (2026-10-28)
+
+#### Adicionado
+
+- carteirinha gratuita e automática para a diretoria, válida enquanto a pessoa tiver o papel (DT-077);
+- benefícios marcados por público: diretoria, atletas e afiliados, juntos ou separados; os atuais de atletas passaram a valer também para a diretoria.
+
 ### Forma de pagamento e cancelamento (2026-10-28)
 
 #### Adicionado

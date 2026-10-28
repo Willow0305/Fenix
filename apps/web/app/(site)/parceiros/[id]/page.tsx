@@ -8,7 +8,7 @@ import { PartnerLogo } from '../../../../components/partner-logo';
 import { formatMoney, formatPhoneDisplay } from '../../../../lib/format';
 import { PARTNER_TYPE, type PublicPartner } from '../../../../lib/partner-types';
 import { serverGet } from '../../../../lib/server-api';
-import { type Benefit, BENEFIT_AUDIENCE } from '../../../../lib/card-types';
+import { audienceLabel, type Benefit } from '../../../../lib/card-types';
 
 async function load(id: string): Promise<PublicPartner | null> {
   return /^[0-9a-f-]{36}$/i.test(id)
@@ -88,7 +88,7 @@ export default async function PartnerPage({
               <li key={b.id}>
                 <strong>{b.discountPercent}%</strong> · {b.title}{' '}
                 <span className="muted">
-                  ({BENEFIT_AUDIENCE[b.audience].toLowerCase()}
+                  ({audienceLabel(b).toLowerCase()}
                   {b.conditions ? `; ${b.conditions}` : ''})
                 </span>
               </li>

@@ -73,6 +73,26 @@ export default function AffiliationOverviewPage() {
             <div className="card-grid">
               <article className="card stack">
                 <div className="row">
+                  <Icon name="person-badge-fill" />
+                  <strong>Diretoria</strong>
+                  <span className="badge badge-success">Gratuita</span>
+                </div>
+                <p className="muted m-0">
+                  Criada automaticamente para quem tem o papel Diretoria. Deixa de valer se a pessoa
+                  sair da diretoria.
+                </p>
+                <p className="m-0">
+                  {o.board.valid} ativa(s) · {o.benefits.board} benefício(s) valendo
+                </p>
+                <div className="row">
+                  <Link href="/admin/afiliacao/beneficios?publico=BOARD">
+                    Configurar benefícios
+                  </Link>
+                  <Link href="/admin/afiliacao/carteirinhas?tipo=BOARD">Ver carteirinhas</Link>
+                </div>
+              </article>
+              <article className="card stack">
+                <div className="row">
                   <Icon name="person-badge" />
                   <strong>Atleta</strong>
                   <span className="badge badge-success">Gratuita</span>
@@ -85,7 +105,7 @@ export default function AffiliationOverviewPage() {
                   {o.athletes.valid} válida(s) · {o.benefits.athlete} benefício(s) valendo
                 </p>
                 <div className="row">
-                  <Link href="/admin/afiliacao/beneficios?publico=ATHLETES">
+                  <Link href="/admin/afiliacao/beneficios?publico=ATHLETE">
                     Configurar benefícios
                   </Link>
                   <Link href="/admin/afiliacao/carteirinhas?tipo=ATHLETE">Ver carteirinhas</Link>
@@ -105,7 +125,7 @@ export default function AffiliationOverviewPage() {
                   {o.affiliates.valid} válida(s) · {o.benefits.affiliate} benefício(s) valendo
                 </p>
                 <div className="row">
-                  <Link href="/admin/afiliacao/beneficios?publico=AFFILIATES">
+                  <Link href="/admin/afiliacao/beneficios?publico=AFFILIATE">
                     Configurar benefícios
                   </Link>
                   <Link href="/admin/afiliacao/carteirinhas?tipo=AFFILIATE">Ver carteirinhas</Link>
@@ -194,8 +214,8 @@ export default function AffiliationOverviewPage() {
                 aparece na loja; o período de venda é opcional.
               </li>
               <li>
-                <strong>Benefícios:</strong> cadastre os descontos de cada parceiro. Eles valem para
-                todas as carteirinhas do público escolhido (atletas, afiliados ou ambos).
+                <strong>Benefícios:</strong> cadastre os descontos de cada parceiro e marque para
+                quem valem: diretoria, atletas e afiliados.
               </li>
               <li>
                 <strong>Venda:</strong> quem compra informa o nome de cada beneficiário. Com o

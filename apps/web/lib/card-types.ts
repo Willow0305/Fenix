@@ -1,16 +1,23 @@
 import type { MoneyView } from './finance-types';
 import type { ProductStatus } from './store-types';
 
-/** Carteirinha digital (DT-068). */
-export type CardType = 'ATHLETE' | 'AFFILIATE';
+/** Carteirinha digital (DT-068); diretoria gratuita (DT-077). */
+export type CardType = 'ATHLETE' | 'AFFILIATE' | 'BOARD';
 export type CardTemplate = 'CLASSIC' | 'LIGHT' | 'STRIPE';
 export type CardState =
-  'VALID' | 'SUSPENDED' | 'CANCELLED' | 'EXPIRED' | 'NOT_STARTED' | 'ATHLETE_INACTIVE' | 'REPLACED';
-export type BenefitAudience = 'ATHLETES' | 'AFFILIATES' | 'BOTH';
+  | 'VALID'
+  | 'SUSPENDED'
+  | 'CANCELLED'
+  | 'EXPIRED'
+  | 'NOT_STARTED'
+  | 'ATHLETE_INACTIVE'
+  | 'BOARD_INACTIVE'
+  | 'REPLACED';
 
 export const CARD_TYPE: Record<CardType, string> = {
   ATHLETE: 'Atleta',
-  AFFILIATE: 'Afiliado'
+  AFFILIATE: 'Afiliado',
+  BOARD: 'Diretoria'
 };
 
 export const CARD_TEMPLATES: { value: CardTemplate; label: string }[] = [
@@ -19,11 +26,25 @@ export const CARD_TEMPLATES: { value: CardTemplate; label: string }[] = [
   { value: 'STRIPE', label: 'Faixa' }
 ];
 
-export const BENEFIT_AUDIENCE: Record<BenefitAudience, string> = {
-  ATHLETES: 'Atletas',
-  AFFILIATES: 'Afiliados',
-  BOTH: 'Atletas e afiliados'
-};
+/** Públicos do benefício (DT-077), na ordem em que aparecem. */
+export const BENEFIT_AUDIENCES = [
+  { key: 'forBoard', label: 'Diretoria', card: 'BOARD' },
+  { key: 'forAthletes', label: 'Atletas', card: 'ATHLETE' },
+  { key: 'forAffiliates', label: 'Afiliados', card: 'AFFILIATE' }
+] as const;
+
+export type AudienceKey = (typeof BENEFIT_AUDIENCES)[number]['key'];
+
+/** "Diretoria, atletas e afiliados" a partir dos públicos marcados. */
+export function audienceLabel(benefit: Record<AudienceKey, boolean>): string {
+  const names = BENEFIT_AUDIENCES.filter((a) => benefit[a.key]).map((a, index) =>
+    index === 0 ? a.label : a.label.toLowerCase()
+  );
+
+  return names.length > 1
+    ? `${names.slice(0, -1).join(', ')} e ${names[names.length - 1]}`
+    : (names[0] ?? '—');
+}
 
 export interface CardDesign {
   template: CardTemplate;
@@ -40,7 +61,9 @@ export interface Benefit {
   title: string;
   discountPercent: string;
   conditions: string | null;
-  audience: BenefitAudience;
+  forBoard: boolean;
+  forAthletes: boolean;
+  forAffiliates: boolean;
 }
 
 export interface BenefitAdmin extends Benefit {
@@ -128,8 +151,15 @@ export interface MembershipPlanRow {
 
 export interface CardsOverview {
   athletes: { valid: number };
+  board: { valid: number };
   affiliates: { valid: number; suspended: number; expiringSoon: number; expired: number };
-  benefits: { inEffect: number; total: number; athlete: number; affiliate: number };
+  benefits: {
+    inEffect: number;
+    total: number;
+    athlete: number;
+    affiliate: number;
+    board: number;
+  };
   plans: MembershipPlanRow[];
 }
 

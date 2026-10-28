@@ -206,7 +206,7 @@ function CardsList() {
     <>
       <PageHeader
         title="Carteirinhas"
-        description="Atletas ativos recebem a de atleta automaticamente; a de afiliado vem da compra na loja."
+        description="Atletas ativos e a diretoria recebem a carteirinha automaticamente; a de afiliado vem da compra na loja."
       />
       <AffiliationNav />
       <form
@@ -232,6 +232,7 @@ function CardsList() {
             <option value="">Todos</option>
             <option value="ATHLETE">Atleta</option>
             <option value="AFFILIATE">Afiliado</option>
+            <option value="BOARD">Diretoria</option>
           </select>
         </label>
         <label className="field">

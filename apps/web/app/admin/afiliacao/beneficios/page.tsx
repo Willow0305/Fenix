@@ -19,11 +19,7 @@ import {
 } from '../../../../components/ui';
 import { api } from '../../../../lib/api-client';
 import type { Page } from '../../../../lib/api-types';
-import {
-  BENEFIT_AUDIENCE,
-  type BenefitAdmin,
-  type BenefitAudience
-} from '../../../../lib/card-types';
+import { audienceLabel, BENEFIT_AUDIENCES, type BenefitAdmin } from '../../../../lib/card-types';
 import { formatDate } from '../../../../lib/format';
 import { useResource } from '../../../../lib/use-resource';
 
@@ -42,7 +38,10 @@ interface FormState {
   title: string;
   discountPercent: string;
   conditions: string;
-  audience: BenefitAudience;
+  /** Públicos (DT-077): diretoria, atletas e afiliados. */
+  forBoard: boolean;
+  forAthletes: boolean;
+  forAffiliates: boolean;
   startsOn: string;
   endsOn: string;
 }
@@ -55,7 +54,9 @@ const EMPTY: FormState = {
   title: '',
   discountPercent: '',
   conditions: '',
-  audience: 'BOTH',
+  forBoard: true,
+  forAthletes: true,
+  forAffiliates: true,
   startsOn: '',
   endsOn: ''
 };
@@ -69,7 +70,9 @@ function formOf(b: BenefitAdmin): FormState {
     title: b.title,
     discountPercent: b.discountPercent,
     conditions: b.conditions ?? '',
-    audience: b.audience,
+    forBoard: b.forBoard,
+    forAthletes: b.forAthletes,
+    forAffiliates: b.forAffiliates,
     startsOn: b.startsOn ?? '',
     endsOn: b.endsOn ?? ''
   };
@@ -78,13 +81,11 @@ function formOf(b: BenefitAdmin): FormState {
 function BenefitsAdmin() {
   const params = useSearchParams();
   const router = useRouter();
-  // Filtro por tipo de carteirinha: "ATHLETES" mostra os de atleta e os de ambos.
+  // Filtro por tipo de carteirinha: mostra os benefícios que valem para ela.
   const publico = params.get('publico');
-  const audience = publico === 'ATHLETES' || publico === 'AFFILIATES' ? publico : null;
+  const audience = BENEFIT_AUDIENCES.find((a) => a.card === publico) ?? null;
   const benefits = useResource<BenefitAdmin[]>('/partner-benefits');
-  const shown = (benefits.data ?? []).filter(
-    (b) => audience === null || b.audience === 'BOTH' || b.audience === audience
-  );
+  const shown = (benefits.data ?? []).filter((b) => audience === null || b[audience.key]);
   const partners = useResource<Page<PartnerOption>>('/partners', { pageSize: 100 });
   const [editing, setEditing] = useState<BenefitAdmin | 'new' | null>(null);
   const [form, setForm] = useState<FormState>(EMPTY);
@@ -97,7 +98,9 @@ function BenefitsAdmin() {
       title: form.title,
       discountPercent: form.discountPercent,
       conditions: form.conditions,
-      audience: form.audience,
+      forBoard: form.forBoard,
+      forAthletes: form.forAthletes,
+      forAffiliates: form.forAffiliates,
       startsOn: form.startsOn,
       endsOn: form.endsOn
     };
@@ -151,7 +154,17 @@ function BenefitsAdmin() {
                 type="button"
                 className="btn btn-primary"
                 onClick={() => {
-                  setForm({ ...EMPTY, audience: audience ?? 'BOTH' });
+                  setForm(
+                    audience
+                      ? {
+                          ...EMPTY,
+                          forBoard: false,
+                          forAthletes: false,
+                          forAffiliates: false,
+                          [audience.key]: true
+                        }
+                      : EMPTY
+                  );
                   setEditing('new');
                 }}
               >
@@ -246,12 +259,19 @@ function BenefitsAdmin() {
               onChange={set('discountPercent')}
               hint="De 1 a 100."
             />
-            <SelectField
-              label="Vale para"
-              value={form.audience}
-              onChange={set('audience')}
-              options={Object.entries(BENEFIT_AUDIENCE).map(([value, label]) => ({ value, label }))}
-            />
+            <fieldset className="form-section">
+              <legend>Vale para</legend>
+              {BENEFIT_AUDIENCES.map((option) => (
+                <label key={option.key} className="checkbox">
+                  <input
+                    type="checkbox"
+                    checked={form[option.key]}
+                    onChange={(e) => setForm({ ...form, [option.key]: e.target.checked })}
+                  />
+                  <span>Carteirinha de {option.label.toLowerCase()}</span>
+                </label>
+              ))}
+            </fieldset>
             <TextField
               label="Início (opcional)"
               type="date"
@@ -289,15 +309,16 @@ function BenefitsAdmin() {
         {(
           [
             [null, 'Todos'],
-            ['ATHLETES', 'Carteirinha de atleta'],
-            ['AFFILIATES', 'Carteirinha de afiliado']
+            ['BOARD', 'Diretoria'],
+            ['ATHLETE', 'Atletas'],
+            ['AFFILIATE', 'Afiliados']
           ] as const
         ).map(([value, label]) => (
           <button
             key={label}
             type="button"
-            className={`btn btn-sm ${audience === value ? 'btn-primary' : 'btn-secondary'}`}
-            aria-pressed={audience === value}
+            className={`btn btn-sm ${(audience?.card ?? null) === value ? 'btn-primary' : 'btn-secondary'}`}
+            aria-pressed={(audience?.card ?? null) === value}
             onClick={() =>
               router.replace(
                 value
@@ -345,7 +366,7 @@ function BenefitsAdmin() {
                   <td data-label="Desconto" className="num">
                     {b.discountPercent}%
                   </td>
-                  <td data-label="Vale para">{BENEFIT_AUDIENCE[b.audience]}</td>
+                  <td data-label="Vale para">{audienceLabel(b)}</td>
                   <td data-label="Período">
                     {b.startsOn || b.endsOn
                       ? `${b.startsOn ? formatDate(b.startsOn) : '…'} a ${b.endsOn ? formatDate(b.endsOn) : '…'}`

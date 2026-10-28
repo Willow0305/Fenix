@@ -15,7 +15,7 @@ import {
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiProperty, ApiPropertyOptional, ApiTags } from '@nestjs/swagger';
 import { Throttle } from '@nestjs/throttler';
-import { BenefitAudience, CardTemplate } from '../../../generated/prisma/client';
+import { CardTemplate } from '../../../generated/prisma/client';
 import {
   IsBoolean,
   IsEnum,
@@ -69,10 +69,10 @@ const CARD_ACTIONS = {
 } as const;
 
 class CardListQueryDto extends PageQueryDto {
-  @ApiPropertyOptional({ enum: ['ATHLETE', 'AFFILIATE'] })
+  @ApiPropertyOptional({ enum: ['ATHLETE', 'AFFILIATE', 'BOARD'] })
   @IsOptional()
-  @IsIn(['ATHLETE', 'AFFILIATE'])
-  type?: 'ATHLETE' | 'AFFILIATE';
+  @IsIn(['ATHLETE', 'AFFILIATE', 'BOARD'])
+  type?: 'ATHLETE' | 'AFFILIATE' | 'BOARD';
 
   @ApiPropertyOptional({ enum: ['valid', 'suspended', 'expired', 'cancelled'] })
   @IsOptional()
@@ -118,7 +118,9 @@ class BenefitDto {
   @Matches(PERCENT, { message: 'Percentual inválido.' })
   discountPercent!: string;
   @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(1000) conditions?: string;
-  @ApiProperty({ enum: BenefitAudience }) @IsEnum(BenefitAudience) audience!: BenefitAudience;
+  @ApiProperty({ description: 'Vale para a diretoria (DT-077).' }) @IsBoolean() forBoard!: boolean;
+  @ApiProperty() @IsBoolean() forAthletes!: boolean;
+  @ApiProperty() @IsBoolean() forAffiliates!: boolean;
   @ApiPropertyOptional() @IsOptional() @Matches(DATE, DATE_MSG) startsOn?: string;
   @ApiPropertyOptional() @IsOptional() @Matches(DATE, DATE_MSG) endsOn?: string;
 }
@@ -136,10 +138,9 @@ class UpdateBenefitDto {
   @Matches(PERCENT, { message: 'Percentual inválido.' })
   discountPercent?: string;
   @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(1000) conditions?: string;
-  @ApiPropertyOptional({ enum: BenefitAudience })
-  @IsOptional()
-  @IsEnum(BenefitAudience)
-  audience?: BenefitAudience;
+  @ApiPropertyOptional() @IsOptional() @IsBoolean() forBoard?: boolean;
+  @ApiPropertyOptional() @IsOptional() @IsBoolean() forAthletes?: boolean;
+  @ApiPropertyOptional() @IsOptional() @IsBoolean() forAffiliates?: boolean;
   @ApiPropertyOptional({ description: 'Vazio remove o início.' })
   @IsOptional()
   @Matches(/^(\d{4}-\d{2}-\d{2})?$/, DATE_MSG)

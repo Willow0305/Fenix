@@ -86,21 +86,37 @@ describe('Carteirinha digital e benefícios (DT-068)', () => {
         partnerId,
         title: 'Desconto em calçados',
         discountPercent: '15',
-        audience: 'ATHLETES'
+        forBoard: false,
+        forAthletes: true,
+        forAffiliates: false
       })
       .expect(201);
     const onlyAffiliates = await ctx
       .http()
       .post('/api/v1/partner-benefits')
       .set(auth(board.token))
-      .send({ partnerId, title: 'Só afiliados', discountPercent: '5', audience: 'AFFILIATES' })
+      .send({
+        partnerId,
+        title: 'Só afiliados',
+        discountPercent: '5',
+        forBoard: false,
+        forAthletes: false,
+        forAffiliates: true
+      })
       .expect(201);
 
     await ctx
       .http()
       .post('/api/v1/partner-benefits')
       .set(auth(board.token))
-      .send({ partnerId, title: 'Inválido', discountPercent: '150', audience: 'BOTH' })
+      .send({
+        partnerId,
+        title: 'Inválido',
+        discountPercent: '150',
+        forBoard: true,
+        forAthletes: true,
+        forAffiliates: true
+      })
       .expect(422);
 
     let titles = (await myCards()).cards
@@ -142,7 +158,13 @@ describe('Carteirinha digital e benefícios (DT-068)', () => {
   it('benefício de parceiro sem cadastro no site: só nome e contato (DT-074)', async () => {
     const send = (body: Record<string, unknown>) =>
       ctx.http().post('/api/v1/partner-benefits').set(auth(board.token)).send(body);
-    const base = { title: 'Desconto em óculos', discountPercent: '12', audience: 'BOTH' };
+    const base = {
+      title: 'Desconto em óculos',
+      discountPercent: '12',
+      forBoard: true,
+      forAthletes: true,
+      forAffiliates: true
+    };
 
     await send(base).expect(422);
     await send({ ...base, partnerId, partnerName: 'Os dois' }).expect(422);
@@ -206,7 +228,9 @@ describe('Carteirinha digital e benefícios (DT-068)', () => {
         partnerName: 'Academia Só Afiliados',
         title: 'Mensalidade com desconto',
         discountPercent: '25',
-        audience: 'AFFILIATES'
+        forBoard: false,
+        forAthletes: false,
+        forAffiliates: true
       })
       .expect(201);
 
@@ -214,6 +238,84 @@ describe('Carteirinha digital e benefícios (DT-068)', () => {
       athlete: before.athlete,
       affiliate: before.affiliate + 1
     });
+  });
+
+  it('diretoria: carteirinha gratuita automática, benefícios próprios e perde ao sair (DT-077)', async () => {
+    const member = await tokenFor(ctx, ['board']);
+    const benefit = await ctx
+      .http()
+      .post('/api/v1/partner-benefits')
+      .set(auth(board.token))
+      .send({
+        partnerName: 'Restaurante da Diretoria',
+        title: 'Só para a diretoria',
+        discountPercent: '30',
+        forBoard: true,
+        forAthletes: false,
+        forAffiliates: false
+      })
+      .expect(201);
+
+    expect(benefit.body).toMatchObject({
+      forBoard: true,
+      forAthletes: false,
+      forAffiliates: false
+    });
+    await ctx
+      .http()
+      .post('/api/v1/partner-benefits')
+      .set(auth(board.token))
+      .send({
+        partnerName: 'Ninguém',
+        title: 'Sem público',
+        discountPercent: '5',
+        forBoard: false,
+        forAthletes: false,
+        forAffiliates: false
+      })
+      .expect(422);
+
+    const mine = await myCards(member.token);
+    const card = mine.cards.find((c) => c.type === 'BOARD');
+
+    expect(card?.state).toBe('VALID');
+    expect(card?.benefits.map((b) => b.title)).toContain('Só para a diretoria');
+
+    // O benefício só da diretoria não aparece para atletas.
+    const athleteCard = (await myCards()).cards.find((c) => c.type === 'ATHLETE');
+
+    expect(athleteCard?.benefits.map((b) => b.title)).not.toContain('Só para a diretoria');
+
+    // Saiu da diretoria: a carteirinha deixa de valer.
+    await ctx.prisma.userRole.deleteMany({
+      where: { userId: member.id, role: { code: 'board' } }
+    });
+
+    const after = await ctx
+      .http()
+      .get(`/api/v1/cards/${card?.id ?? ''}`)
+      .set(auth(board.token))
+      .expect(200);
+
+    expect(after.body.state).toBe('BOARD_INACTIVE');
+
+    // Uma só por pessoa: voltar ao papel reativa a mesma.
+    const role = await ctx.prisma.role.findUniqueOrThrow({ where: { code: 'board' } });
+
+    await ctx.prisma.userRole.create({ data: { userId: member.id, roleId: role.id } });
+    await ctx.http().get('/api/v1/cards?type=BOARD').set(auth(board.token)).expect(200);
+    await expect(
+      ctx.prisma.memberCard.count({ where: { holderUserId: member.id, type: 'BOARD' } })
+    ).resolves.toBe(1);
+    expect(
+      (
+        await ctx
+          .http()
+          .get(`/api/v1/cards/${card?.id ?? ''}`)
+          .set(auth(board.token))
+          .expect(200)
+      ).body.state
+    ).toBe('VALID');
   });
 
   it('parceiro confere sem login: nome curto, foto conforme a regra e benefícios', async () => {

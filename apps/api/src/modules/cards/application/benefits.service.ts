@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import type { BenefitAudience, Prisma } from '../../../generated/prisma/client';
+import type { Prisma } from '../../../generated/prisma/client';
 
 import { AuditService } from '../../../common/audit/audit.service';
 import { civilToDate, optionalCivil, todayIn } from '../../../common/domain/civil-date';
@@ -8,6 +8,7 @@ import { AppError } from '../../../common/errors/app-error';
 import type { Principal, RequestMeta } from '../../../common/http/request-context';
 import { PrismaService } from '../../../common/prisma/prisma.service';
 import { mediaUrl } from '../../media/application/media.service';
+import { audienceField, type CardKind } from '../domain/card-rules';
 
 export interface BenefitView {
   readonly id: string;
@@ -21,7 +22,10 @@ export interface BenefitView {
   readonly title: string;
   readonly discountPercent: string;
   readonly conditions: string | null;
-  readonly audience: BenefitAudience;
+  /** Para quem vale (DT-077). */
+  readonly forBoard: boolean;
+  readonly forAthletes: boolean;
+  readonly forAffiliates: boolean;
 }
 
 export interface BenefitAdminView extends BenefitView {
@@ -40,7 +44,9 @@ export interface BenefitInput {
   readonly title: string;
   readonly discountPercent: string;
   readonly conditions?: string | null;
-  readonly audience: BenefitAudience;
+  readonly forBoard: boolean;
+  readonly forAthletes: boolean;
+  readonly forAffiliates: boolean;
   readonly startsOn?: string | null;
   readonly endsOn?: string | null;
 }
@@ -101,17 +107,16 @@ export class BenefitsService {
       title: row.title,
       discountPercent: row.discountPercent.toFixed(0),
       conditions: row.conditions,
-      audience: row.audience
+      forBoard: row.forBoard,
+      forAthletes: row.forAthletes,
+      forAffiliates: row.forAffiliates
     };
   }
 
   /** Benefícios valendo hoje para um tipo de carteirinha. */
-  async forCard(type: 'ATHLETE' | 'AFFILIATE', today: string = todayIn()): Promise<BenefitView[]> {
+  async forCard(type: CardKind, today: string = todayIn()): Promise<BenefitView[]> {
     const rows = await this.prisma.partnerBenefit.findMany({
-      where: {
-        ...inEffectWhere(today),
-        audience: { in: ['BOTH', type === 'ATHLETE' ? 'ATHLETES' : 'AFFILIATES'] }
-      },
+      where: { ...inEffectWhere(today), [audienceField(type)]: true },
       include: INCLUDE,
       orderBy: BENEFIT_ORDER
     });
@@ -124,18 +129,18 @@ export class BenefitsService {
     return this.prisma.partnerBenefit.count({ where: inEffectWhere(today) });
   }
 
-  /** Benefícios valendo para cada tipo de carteirinha (inclui os de "ambos"). */
-  async countInEffectByType(today: string): Promise<{ athlete: number; affiliate: number }> {
-    const [athlete, affiliate] = await this.prisma.$transaction([
-      this.prisma.partnerBenefit.count({
-        where: { ...inEffectWhere(today), audience: { in: ['BOTH', 'ATHLETES'] } }
-      }),
-      this.prisma.partnerBenefit.count({
-        where: { ...inEffectWhere(today), audience: { in: ['BOTH', 'AFFILIATES'] } }
-      })
+  /** Benefícios valendo para cada tipo de carteirinha (DT-077). */
+  async countInEffectByType(
+    today: string
+  ): Promise<{ athlete: number; affiliate: number; board: number }> {
+    const where = inEffectWhere(today);
+    const [athlete, affiliate, board] = await this.prisma.$transaction([
+      this.prisma.partnerBenefit.count({ where: { ...where, forAthletes: true } }),
+      this.prisma.partnerBenefit.count({ where: { ...where, forAffiliates: true } }),
+      this.prisma.partnerBenefit.count({ where: { ...where, forBoard: true } })
     ]);
 
-    return { athlete, affiliate };
+    return { athlete, affiliate, board };
   }
 
   /** Todos os benefícios valendo hoje (site: página de benefícios e dos parceiros). */
@@ -174,6 +179,10 @@ export class BenefitsService {
   }
 
   private validate(input: Partial<BenefitInput>): void {
+    if (input.forBoard === false && input.forAthletes === false && input.forAffiliates === false) {
+      throw AppError.validation('AUDIENCE_REQUIRED', 'Marque ao menos um público.');
+    }
+
     if (input.discountPercent !== undefined) {
       const value = money(input.discountPercent);
 
@@ -241,7 +250,9 @@ export class BenefitsService {
         title: input.title.trim(),
         discountPercent: input.discountPercent,
         conditions: input.conditions?.trim() || null,
-        audience: input.audience,
+        forBoard: input.forBoard,
+        forAthletes: input.forAthletes,
+        forAffiliates: input.forAffiliates,
         startsOn: input.startsOn ? civilToDate(input.startsOn) : null,
         endsOn: input.endsOn ? civilToDate(input.endsOn) : null
       }
@@ -288,6 +299,9 @@ export class BenefitsService {
 
     this.validate({
       ...input,
+      forBoard: input.forBoard ?? before.forBoard,
+      forAthletes: input.forAthletes ?? before.forAthletes,
+      forAffiliates: input.forAffiliates ?? before.forAffiliates,
       startsOn: input.startsOn === undefined ? optionalCivil(before.startsOn) : input.startsOn,
       endsOn: input.endsOn === undefined ? optionalCivil(before.endsOn) : input.endsOn
     });
@@ -302,7 +316,9 @@ export class BenefitsService {
         ...(input.title === undefined ? {} : { title: input.title.trim() }),
         ...(input.discountPercent === undefined ? {} : { discountPercent: input.discountPercent }),
         ...(input.conditions === undefined ? {} : { conditions: input.conditions?.trim() || null }),
-        ...(input.audience === undefined ? {} : { audience: input.audience }),
+        ...(input.forBoard === undefined ? {} : { forBoard: input.forBoard }),
+        ...(input.forAthletes === undefined ? {} : { forAthletes: input.forAthletes }),
+        ...(input.forAffiliates === undefined ? {} : { forAffiliates: input.forAffiliates }),
         ...(input.startsOn === undefined
           ? {}
           : { startsOn: input.startsOn ? civilToDate(input.startsOn) : null }),

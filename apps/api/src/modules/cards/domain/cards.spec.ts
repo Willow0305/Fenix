@@ -113,10 +113,35 @@ describe('apoio', () => {
     expect(newCardCode()).toMatch(/^FNX-[2-9A-HJKMNP-Z]{6}$/);
   });
 
-  it('benefício por público', () => {
-    expect(benefitApplies('BOTH', 'ATHLETE')).toBe(true);
-    expect(benefitApplies('ATHLETES', 'AFFILIATE')).toBe(false);
-    expect(benefitApplies('AFFILIATES', 'AFFILIATE')).toBe(true);
+  it('benefício por público marcado (diretoria, atletas, afiliados)', () => {
+    const only = (key: 'forBoard' | 'forAthletes' | 'forAffiliates') => ({
+      forBoard: false,
+      forAthletes: false,
+      forAffiliates: false,
+      [key]: true
+    });
+
+    expect(benefitApplies(only('forBoard'), 'BOARD')).toBe(true);
+    expect(benefitApplies(only('forBoard'), 'ATHLETE')).toBe(false);
+    expect(benefitApplies(only('forAthletes'), 'AFFILIATE')).toBe(false);
+    expect(benefitApplies(only('forAffiliates'), 'AFFILIATE')).toBe(true);
+  });
+
+  it('diretoria vale enquanto a pessoa tiver o papel', () => {
+    const board = {
+      type: 'BOARD' as const,
+      status: 'ACTIVE' as const,
+      deleted: false,
+      startsOn: null,
+      endsOn: null,
+      athleteStatus: null
+    };
+
+    expect(cardState({ ...board, boardActive: true }, '2026-06-01')).toBe('VALID');
+    expect(cardState({ ...board, boardActive: false }, '2026-06-01')).toBe('BOARD_INACTIVE');
+    expect(cardState({ ...board, boardActive: true, status: 'SUSPENDED' }, '2026-06-01')).toBe(
+      'SUSPENDED'
+    );
   });
 
   it('renovação soma ao período que ainda vale; vencida recomeça hoje', () => {
