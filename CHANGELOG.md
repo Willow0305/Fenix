@@ -6,6 +6,17 @@ O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) e o 
 
 ## [Não publicado]
 
+### Ajustes de loja e site (2026-10-28)
+
+#### Alterado
+
+- troca de entrega para retirada não devolve a taxa: ela é paga uma vez por pedido (DT-075);
+- carrinho no topo do site igual ao sino: só o ícone e a quantidade.
+
+#### Adicionado
+
+- página de cada evento para ler por inteiro (data, local, mapa, placar, texto, seletiva e notícias), aberta pelo cartão e pela notícia relacionada.
+
 ### Entrega em casa — etapa 2: comprovante de entrega (2026-10-28)
 
 #### Adicionado

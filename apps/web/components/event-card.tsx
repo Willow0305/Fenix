@@ -29,19 +29,23 @@ export function EventCard({
 
   return (
     <article id={event.slug} className="content-card">
-      <MediaImage src={event.coverUrl} alt="">
-        <span className="date-chip" aria-hidden="true">
-          <strong>{day.format(start)}</strong>
-          <span>{month.format(start).replace('.', '')}</span>
-        </span>
-        <span className="media-tag">{EVENT_TYPE[event.type]}</span>
-        {event.status !== 'SCHEDULED' ? (
-          <span className="media-status">{EVENT_STATUS[event.status].label}</span>
-        ) : null}
-      </MediaImage>
+      <Link href={`/eventos/${event.slug}`} tabIndex={-1} aria-hidden="true">
+        <MediaImage src={event.coverUrl} alt="">
+          <span className="date-chip" aria-hidden="true">
+            <strong>{day.format(start)}</strong>
+            <span>{month.format(start).replace('.', '')}</span>
+          </span>
+          <span className="media-tag">{EVENT_TYPE[event.type]}</span>
+          {event.status !== 'SCHEDULED' ? (
+            <span className="media-status">{EVENT_STATUS[event.status].label}</span>
+          ) : null}
+        </MediaImage>
+      </Link>
       <div className="content-card-body">
         <h3 className="content-card-title line-clamp-2">
-          {event.match ? scoreLabel(event.match) : event.title}
+          <Link href={`/eventos/${event.slug}`}>
+            {event.match ? scoreLabel(event.match) : event.title}
+          </Link>
         </h3>
         <span className="muted">
           <Icon name="calendar-event" /> <time dateTime={event.startsAt}>{time.format(start)}</time>

@@ -361,7 +361,7 @@ describe('Comprovante de entrega (DT-075)', () => {
     expect(confirmed.deliveryConfirmedAt).not.toBeNull();
   });
 
-  it('"Não recebi" com estorno devolve tudo; entrega sem sucesso vira retirada com a taxa devolvida', async () => {
+  it('"Não recebi" com estorno devolve tudo; entrega sem sucesso vira retirada sem devolver a taxa', async () => {
     const refundId = await paidDeliveryOrder();
 
     await dispatch(refundId).expect(201);
@@ -405,18 +405,14 @@ describe('Comprovante de entrega (DT-075)', () => {
       .http()
       .post(`/api/v1/store/orders/${pickupId}/switch-to-pickup`)
       .set(auth(board.token))
-      .send({ reason: 'Combinado com o comprador.', refundFee: true })
+      .send({ reason: 'Combinado com o comprador.' })
       .expect(200);
 
     const switched = await myOrder(pickupId);
-    const feeRefund = await ctx.prisma.refund.findFirstOrThrow({
-      where: { orderId: pickupId },
-      include: { payment: { select: { isDeliveryFee: true } } }
-    });
 
-    expect(switched.fulfillment).toBe('PICKUP');
-    expect(feeRefund.amount.toFixed(2)).toBe('10.00');
-    expect(feeRefund.payment.isDeliveryFee).toBe(true);
+    // A taxa de entrega é paga uma vez e não volta na troca para retirada.
+    expect(switched).toMatchObject({ fulfillment: 'PICKUP', deliveryFee: { amount: '10.00' } });
+    await expect(ctx.prisma.refund.count({ where: { orderId: pickupId } })).resolves.toBe(0);
 
     const attempts = await ctx
       .http()

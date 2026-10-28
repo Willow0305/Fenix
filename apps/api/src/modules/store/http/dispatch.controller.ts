@@ -125,7 +125,6 @@ class ResolveNotReceivedDto {
 
 class SwitchToPickupDto {
   @ApiProperty() @IsString() @MinLength(5) @MaxLength(1000) reason!: string;
-  @ApiProperty() @IsBoolean() refundFee!: boolean;
 }
 
 /** Comprovante de entrega no painel: entregadores, saída, código, foto e "Não recebi". */

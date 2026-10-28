@@ -41,6 +41,11 @@ export function SiteHeader({
 }) {
   const { status, profile, can } = useAuth();
   const { cart } = useCart();
+  const itemCount = cart?.itemCount ?? 0;
+  const cartLabel =
+    itemCount > 0
+      ? `Carrinho: ${itemCount} ${itemCount === 1 ? 'item' : 'itens'}`
+      : 'Carrinho vazio';
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
   const isAdmin = can('dashboard.read');
@@ -83,15 +88,6 @@ export function SiteHeader({
             ))}
           </ul>
           <div className={styles.account}>
-            {cart && cart.itemCount > 0 ? (
-              <Link
-                href="/loja/carrinho"
-                className="btn btn-secondary btn-sm"
-                onClick={() => setOpen(false)}
-              >
-                <Icon name="cart3" /> Carrinho ({cart.itemCount})
-              </Link>
-            ) : null}
             {status === 'authenticated' && profile ? (
               <>
                 {isAdmin ? (
@@ -103,6 +99,21 @@ export function SiteHeader({
                     <Icon name="speedometer2" /> Painel
                   </Link>
                 ) : null}
+                {/* Carrinho como o sino: só o ícone e a quantidade. */}
+                <Link
+                  href="/loja/carrinho"
+                  className="btn btn-secondary btn-sm notification-bell"
+                  aria-label={cartLabel}
+                  title={cartLabel}
+                  onClick={() => setOpen(false)}
+                >
+                  <Icon name={itemCount > 0 ? 'cart-fill' : 'cart3'} />
+                  {itemCount > 0 ? (
+                    <span className="notification-count" aria-hidden="true">
+                      {itemCount > 99 ? '99+' : itemCount}
+                    </span>
+                  ) : null}
+                </Link>
                 <NotificationBell onNavigate={() => setOpen(false)} />
                 <Link
                   href="/minha-conta"
@@ -118,13 +129,30 @@ export function SiteHeader({
                 </Link>
               </>
             ) : status === 'anonymous' ? (
-              <Link
-                href="/entrar"
-                className="btn btn-primary btn-sm"
-                onClick={() => setOpen(false)}
-              >
-                <Icon name="box-arrow-in-right" /> Entrar
-              </Link>
+              <>
+                {/* Carrinho como o sino: só o ícone e a quantidade. */}
+                <Link
+                  href="/loja/carrinho"
+                  className="btn btn-secondary btn-sm notification-bell"
+                  aria-label={cartLabel}
+                  title={cartLabel}
+                  onClick={() => setOpen(false)}
+                >
+                  <Icon name={itemCount > 0 ? 'cart-fill' : 'cart3'} />
+                  {itemCount > 0 ? (
+                    <span className="notification-count" aria-hidden="true">
+                      {itemCount > 99 ? '99+' : itemCount}
+                    </span>
+                  ) : null}
+                </Link>
+                <Link
+                  href="/entrar"
+                  className="btn btn-primary btn-sm"
+                  onClick={() => setOpen(false)}
+                >
+                  <Icon name="box-arrow-in-right" /> Entrar
+                </Link>
+              </>
             ) : null}
           </div>
         </nav>

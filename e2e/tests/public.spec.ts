@@ -36,12 +36,19 @@ for (const path of PAGES) {
   });
 }
 
-test('detalhe de notícia, produto, parceiro e tópico do fórum', async ({ page }) => {
+test('detalhe de notícia, evento, produto, parceiro e tópico do fórum', async ({ page }) => {
   const watcher = watch(page);
 
   await page.goto('/noticias');
   await page.locator('a[href^="/noticias/"]').first().click();
   await expect(page.locator('h1')).toBeVisible();
+  await expectNoHorizontalScroll(page);
+
+  // Evento abre para ler por inteiro, como a notícia.
+  await page.goto('/eventos');
+  await page.locator('h3 a[href^="/eventos/"]').first().click();
+  await expect(page.locator('h1')).toBeVisible();
+  await expect(page.getByRole('link', { name: /Eventos/ }).first()).toBeVisible();
   await expectNoHorizontalScroll(page);
 
   await page.goto('/loja');

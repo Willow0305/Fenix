@@ -7,7 +7,6 @@ import { AuditService } from '../../../common/audit/audit.service';
 import { AppConfig } from '../../../common/config/app-config';
 import { decryptField, encryptField } from '../../../common/crypto/data-cipher';
 import { generateOpaqueToken, sha256Hex } from '../../../common/crypto/tokens';
-import { money } from '../../../common/domain/money';
 import { AppError } from '../../../common/errors/app-error';
 import type { Principal, RequestMeta } from '../../../common/http/request-context';
 import { JobScheduler } from '../../../common/jobs/job-scheduler';
@@ -15,7 +14,6 @@ import { MailSender } from '../../../common/mail/mail.service';
 import { PrismaService, type PrismaTx } from '../../../common/prisma/prisma.service';
 import { PERMISSIONS } from '../../access/domain/permission-catalog';
 import { lockRow } from '../../finance/application/ledger.service';
-import { PaymentsService } from '../../finance/application/payments.service';
 import {
   IMAGE_POLICY,
   type IncomingFile,
@@ -138,7 +136,6 @@ export class DeliveryDispatchService implements OnModuleInit {
     private readonly staffAlerts: StaffAlertsService,
     private readonly mail: MailSender,
     private readonly jobs: JobScheduler,
-    private readonly payments: PaymentsService,
     private readonly orders: OrdersService
   ) {}
 
@@ -980,27 +977,18 @@ export class DeliveryDispatchService implements OnModuleInit {
   }
 
   /**
-   * Entrega que não deu certo vira retirada (RN-ENT-001): a diretoria escolhe se devolve a
-   * taxa de entrega já paga (estorno parcial do pagamento da taxa).
+   * Entrega que não deu certo vira retirada (RN-ENT-001). A taxa de entrega não é devolvida:
+   * é paga uma vez por pedido (decisão do responsável, 2026-10-28).
    */
   async switchToPickup(
     actor: Principal,
     orderId: string,
-    input: { reason: string; refundFee: boolean },
+    input: { reason: string },
     meta: RequestMeta
   ): Promise<OrderView> {
-    if (input.refundFee && !actor.permissions.has(PERMISSIONS.paymentsCorrect)) {
-      throw AppError.forbidden('Devolver a taxa exige permissão de estorno.');
-    }
-
     await this.prisma.$transaction(async (tx) => {
       await lockRow(tx, 'order', orderId);
-      const row = await tx.order.findUnique({
-        where: { id: orderId },
-        include: {
-          payments: { where: { isDeliveryFee: true, status: 'CONFIRMED' }, select: { id: true } }
-        }
-      });
+      const row = await tx.order.findUnique({ where: { id: orderId } });
 
       if (row === null) {
         throw AppError.notFound('Pedido não encontrado.');
@@ -1016,27 +1004,6 @@ export class DeliveryDispatchService implements OnModuleInit {
         );
       }
 
-      let refunded = money(0);
-
-      if (input.refundFee && money(row.deliveryFeeAmount).gt(0)) {
-        for (const payment of row.payments) {
-          const left = await tx.payment.findUniqueOrThrow({
-            where: { id: payment.id },
-            select: { amount: true }
-          });
-
-          await this.payments.partialRefundInTx(
-            tx,
-            actor.userId,
-            payment.id,
-            money(left.amount),
-            `Entrega virou retirada: ${input.reason}`,
-            `switch-pickup:${orderId}:${payment.id}`
-          );
-          refunded = refunded.plus(left.amount);
-        }
-      }
-
       await tx.order.update({ where: { id: orderId }, data: { fulfillment: 'PICKUP' } });
       await this.audit.record(
         {
@@ -1046,7 +1013,7 @@ export class DeliveryDispatchService implements OnModuleInit {
           entityId: orderId,
           reason: input.reason,
           before: { fulfillment: 'DELIVERY' },
-          after: { fulfillment: 'PICKUP', feeRefunded: refunded.toFixed(2) },
+          after: { fulfillment: 'PICKUP' },
           meta
         },
         tx
@@ -1058,7 +1025,7 @@ export class DeliveryDispatchService implements OnModuleInit {
             userId: row.customerUserId,
             type: 'order.status',
             title: `Pedido ${row.orderNumber}: vai ser retirado`,
-            message: `${input.reason}${refunded.gt(0) ? ` A taxa de entrega (R$ ${refunded.toFixed(2).replace('.', ',')}) foi devolvida.` : ''} Avisamos quando estiver pronto para retirada.`,
+            message: `${input.reason} Avisamos quando estiver pronto para retirada.`,
             link: `/minha-conta/pedidos/${orderId}`,
             deduplicationKey: `order-switch-pickup:${orderId}`
           },

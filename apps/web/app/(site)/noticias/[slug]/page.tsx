@@ -59,7 +59,7 @@ export default async function NewsItemPage({
       {news.event ? (
         <aside className="card">
           <Icon name="calendar-event" /> Evento relacionado:{' '}
-          <Link href={`/eventos#${news.event.slug}`}>{news.event.title}</Link> —{' '}
+          <Link href={`/eventos/${news.event.slug}`}>{news.event.title}</Link> —{' '}
           {formatDateTime(news.event.startsAt)}
         </aside>
       ) : null}

@@ -569,6 +569,12 @@ img {
   font-variant-numeric: tabular-nums;
 }
 
+// Página do evento: largura de leitura, como a notícia.
+.event-page {
+  max-width: 50rem;
+  padding-top: 2rem;
+}
+
 // Página do entregador: estreita, para usar no celular na rua.
 .courier-page {
   max-width: 560px;

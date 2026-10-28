@@ -109,7 +109,6 @@ export function DispatchPanel({
   const [dialog, setDialog] = useState<
     'failed' | 'pickup' | 'REDELIVER' | 'REFUND' | 'KEEP' | null
   >(null);
-  const [refundFee, setRefundFee] = useState(true);
   const [notice, setNotice] = useState<string | null>(null);
   const current = attempts.data?.find((attempt) => attempt.status === 'OUT') ?? null;
   const refresh = async () => {
@@ -485,30 +484,19 @@ export function DispatchPanel({
       <ConfirmDialog
         open={dialog === 'pickup'}
         title="Trocar para retirada"
-        description="O pedido passa a ser retirado com o Fênix. O comprador é avisado."
+        description="O pedido passa a ser retirado com o Fênix e o comprador é avisado. A taxa de entrega não é devolvida (é paga uma vez por pedido)."
         confirmLabel="Trocar"
         requireReason
         onClose={() => setDialog(null)}
         onConfirm={async (reason) => {
           await api(`/store/orders/${order.id}/switch-to-pickup`, {
             method: 'POST',
-            body: { reason, refundFee }
+            body: { reason }
           });
           setNotice('Pedido trocado para retirada.');
           await refresh();
         }}
-      >
-        {can('payments.correct') && order.deliveryFee.amount !== '0.00' ? (
-          <label className="checkbox">
-            <input
-              type="checkbox"
-              checked={refundFee}
-              onChange={(e) => setRefundFee(e.target.checked)}
-            />
-            <span>Devolver a taxa de entrega já paga</span>
-          </label>
-        ) : null}
-      </ConfirmDialog>
+      ></ConfirmDialog>
       <ConfirmDialog
         open={dialog === 'REDELIVER' || dialog === 'REFUND' || dialog === 'KEEP'}
         title={
