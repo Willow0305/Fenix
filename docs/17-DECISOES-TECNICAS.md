@@ -1559,3 +1559,21 @@ Regras `RN-ENT-001` a `RN-ENT-007` em `docs/04`. Em resumo:
 - "resposta no WhatsApp": o sistema não tem caixa de entrada de WhatsApp (DT-048: contato direto pelo aplicativo de quem clica); um papel de atendimento recebe as permissões das telas onde estão os botões de WhatsApp (pedidos, interessados, inscrições, atletas);
 - testes: áreas de todas as permissões (unidade) e criar, copiar, renomear, atribuir, impedir exclusão em uso e excluir (integração).
 
+## DT-079 — Cartão de crédito e débito pelo Mercado Pago (aprovado, a implementar)
+
+- **Estado:** Aprovada, a implementar
+- **Data:** 2026-10-28
+- **Aprovador:** responsável do projeto ("12 (deixar uma configuração para colocar sem juros em algumas parcelas e produtos específicos, depois fica com juros)"; juros "cliente"; recebimento "na hora", podendo mudar)
+
+### Decisão
+
+- pagamento com cartão dentro do site pelo Mercado Pago (formulário do próprio intermediário; os dados do cartão não passam pelo servidor do clube), ao lado do PIX e de "cartão ou dinheiro com a diretoria";
+- crédito em até **12 parcelas**; os juros do parcelamento são **pagos pelo cliente** (padrão do intermediário);
+- configuração para **"sem juros" até N parcelas em produtos específicos**; acima de N, com juros pagos pelo cliente;
+- recebimento **na hora** (taxa maior); a opção de prazo fica nas Configurações para mudar no futuro sem mexer no sistema;
+- estorno integrado ao Caixa e aos estornos do pedido, como no PIX automático (DT-071).
+
+### Restrição conhecida
+
+O "sem juros" do Mercado Pago é configurado para a conta inteira no painel dele; por produto, só com "preço diferenciado" (`differential_pricing`), cujos códigos são criados pela equipe comercial do Mercado Pago para a conta. Ver `PEN-067`.
+

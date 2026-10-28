@@ -269,6 +269,8 @@ Produção com dados reais continua condicionada às pendências P0 jurídicas e
 - PIX com confirmação automática por intermediário de pagamento;
 - entrega em casa com comprovante de entrega (`DT-075`), entregue em 2026-10-28: retirada ou entrega por região, frete grátis, endereços, entregadores, código de 4 dígitos, link do motoboy, provas e "Não recebi".
 
+**A fazer (aprovado em 2026-10-28):** cartão de crédito e débito pelo Mercado Pago (`DT-079`), até 12x com juros pagos pelo cliente, sem juros por produto conforme `PEN-067`, recebimento na hora.
+
 **Regra:** onde a regra de negócio não estiver definida, adota-se a recomendação registrada e a dúvida vai para `PENDENCIAS.md`, como em todo o projeto.
 
 ## Gates obrigatórios de cada fase
