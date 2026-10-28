@@ -8,11 +8,47 @@ import { useIdempotencyKey } from '../lib/idempotency';
 import type { Order } from '../lib/store-types';
 import { PixPayment } from './pix-payment';
 import { Alert, ErrorSummary, TextField, useSubmit } from './ui';
+import { whatsappLink } from '../lib/contact-links';
+import type { PublicTeam } from '../lib/api-types';
+import { useResource } from '../lib/use-resource';
+import { Icon } from './icon';
 
 /**
  * Instruções de PIX e envio de comprovante de um pedido aguardando pagamento.
  * `endpoint` recebe multipart; visitantes enviam também número e código.
  */
+/** Cartão ou dinheiro: a diretoria combina com o comprador; botão de WhatsApp com o pedido. */
+function CardOrCashPayment({ order }: { readonly order: Order }) {
+  const team = useResource<PublicTeam>('/public/team');
+  const link = whatsappLink(
+    team.data?.phone,
+    `Olá! Quero pagar o pedido ${order.orderNumber} (R$ ${order.totalAmount.amount.replace('.', ',')}) com cartão ou dinheiro.`
+  );
+
+  return (
+    <Alert kind="info">
+      <div className="stack gap-sm">
+        <span>
+          <strong>Pagamento com cartão ou dinheiro.</strong> Combine com a diretoria: maquininha,
+          link de pagamento ou dinheiro na retirada ou entrega.
+          {order.reservationExpiresAt
+            ? ` O pedido fica reservado até ${new Date(order.reservationExpiresAt).toLocaleString('pt-BR')}.`
+            : ''}
+        </span>
+        {link ? (
+          <div>
+            <a className="btn btn-primary btn-sm" href={link} target="_blank" rel="noreferrer">
+              <Icon name="whatsapp" /> Falar com a diretoria no WhatsApp
+            </a>
+          </div>
+        ) : (
+          <span className="muted">A diretoria vai entrar em contato pelo seu telefone.</span>
+        )}
+      </div>
+    </Alert>
+  );
+}
+
 export function OrderPayment({
   order,
   endpoint,
@@ -66,17 +102,9 @@ export function OrderPayment({
     );
   }
 
-  // Cartão com a diretoria (DT-076): sem PIX nem comprovante; a diretoria entra em contato.
+  // Cartão ou dinheiro com a diretoria (DT-076): sem PIX nem comprovante; combina pelo WhatsApp.
   if (order.paymentChoice === 'CARD') {
-    return (
-      <Alert kind="info">
-        <strong>Pagamento com cartão.</strong> A diretoria vai falar com você pelo WhatsApp para
-        cobrar R$ {order.totalAmount.amount.replace('.', ',')} na maquininha ou por link.
-        {order.reservationExpiresAt
-          ? ` O pedido fica reservado até ${new Date(order.reservationExpiresAt).toLocaleString('pt-BR')}.`
-          : ''}
-      </Alert>
-    );
+    return <CardOrCashPayment order={order} />;
   }
 
   const guest =

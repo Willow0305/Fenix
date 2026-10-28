@@ -96,7 +96,7 @@ describe('Forma de pagamento e cancelamento pelo comprador (DT-076)', () => {
       where: { deduplicationKey: `staff-order:${card.body.order.id}` }
     });
 
-    expect(alert?.title).toContain('pagar com cartão');
+    expect(alert?.title).toContain('pagar com cartão ou dinheiro');
   });
 
   it('QR do PIX vale 30 minutos ou mais e a reserva acompanha o QR', async () => {

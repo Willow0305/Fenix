@@ -35,6 +35,8 @@ async function main(): Promise<void> {
               'O Fênix nasceu da vontade de um grupo de amigos de manter o vôlei vivo na cidade.\n\nHoje reúne equipes masculina e feminina, treinos semanais e participação em campeonatos regionais.\n\n(Texto fictício de demonstração.)'
           }),
       ...(settings?.addressCity ? {} : { addressCity: 'Rio Branco', addressState: 'AC' }),
+      // Telefone fictício: o botão "Falar com a diretoria no WhatsApp" precisa de um número.
+      ...(settings?.phone ? {} : { phone: '68999990000' }),
       ...(settings?.pickupInstructions
         ? {}
         : { pickupInstructions: 'Retirada no ginásio, às terças e quintas, das 18h às 20h.' })

@@ -17,7 +17,7 @@ O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) e o 
 
 #### Adicionado
 
-- "Como pagar" no checkout: PIX (pague em até 30 minutos) ou cartão combinado com a diretoria (pedido reservado por 72 horas, com aviso à diretoria) (DT-076);
+- "Como pagar" no checkout: PIX (pague em até 30 minutos) ou cartão ou dinheiro combinado com a diretoria (pedido reservado por 72 horas, com aviso à diretoria e botão "Falar com a diretoria no WhatsApp") (DT-076);
 - "Cancelar pedido" para o comprador enquanto não pagou, em Meus pedidos, na consulta de visitante e logo depois da compra.
 
 #### Alterado

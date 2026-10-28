@@ -169,7 +169,7 @@ export interface CheckoutInput {
   readonly acceptPersonalized?: boolean;
   /** Retirada (padrão) ou entrega em casa (DT-075). */
   readonly fulfillment?: OrderFulfillment;
-  /** PIX (padrão, 30 min) ou cartão combinado com a diretoria (72 h) (DT-076). */
+  /** PIX (padrão, 30 min) ou `CARD` = cartão ou dinheiro, combinado com a diretoria (72 h) (DT-076). */
   readonly paymentChoice?: OrderPaymentChoice;
   /** Endereço digitado, ou `addressId` de um endereço salvo da conta. */
   readonly address?: AddressInput & { neighborhoodId: string };
@@ -835,7 +835,7 @@ export class OrdersService implements OnModuleInit {
               ]
             : ['Retirada com o Fênix: avisamos quando o pedido estiver pronto.']),
           order.paymentChoice === 'CARD'
-            ? 'Pagamento com cartão: a diretoria vai falar com você para cobrar na maquininha ou por link. O pedido fica reservado por 72 horas.'
+            ? 'Pagamento com cartão ou dinheiro: combine com a diretoria (maquininha, link de pagamento ou dinheiro na retirada/entrega). O pedido fica reservado por 72 horas.'
             : 'Pague por PIX em até 30 minutos pela página do pedido (QR ou chave com comprovante). Sem pagamento no prazo, o pedido é cancelado.',
           ...(guestAccessCode
             ? [
@@ -851,11 +851,11 @@ export class OrdersService implements OnModuleInit {
       type: 'staff.order.created',
       title:
         order.paymentChoice === 'CARD' && order.status === 'AWAITING_PAYMENT'
-          ? `Pedido ${order.orderNumber}: pagar com cartão`
+          ? `Pedido ${order.orderNumber}: pagar com cartão ou dinheiro`
           : `Novo pedido ${order.orderNumber}`,
       message:
         order.paymentChoice === 'CARD' && order.status === 'AWAITING_PAYMENT'
-          ? `Fale com ${order.customerName} (${order.customerPhone ?? 'sem telefone'}) para cobrar R$ ${order.totalAmount.amount.replace('.', ',')} na maquininha ou por link.`
+          ? `Fale com ${order.customerName} (${order.customerPhone ?? 'sem telefone'}) para cobrar R$ ${order.totalAmount.amount.replace('.', ',')}: maquininha, link ou dinheiro.`
           : `${order.customerName} · R$ ${order.totalAmount.amount.replace('.', ',')}`,
       link: `/admin/pedidos/${order.id}`,
       key: `staff-order:${order.id}`

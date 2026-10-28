@@ -338,11 +338,11 @@ export default function CartPage() {
                   />
                   <span>
                     <strong>
-                      <Icon name="credit-card" /> Cartão
+                      <Icon name="credit-card" /> Cartão ou dinheiro
                     </strong>
                     <small className="muted">
-                      A diretoria fala com você para cobrar na maquininha ou por link. O pedido fica
-                      reservado por 72 horas.
+                      Combine com a diretoria pelo WhatsApp: maquininha, link de pagamento ou
+                      dinheiro na retirada ou entrega. O pedido fica reservado por 72 horas.
                     </small>
                   </span>
                 </label>

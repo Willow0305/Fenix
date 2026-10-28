@@ -109,7 +109,7 @@ export function OrderSummary({ order }: { readonly order: Order }) {
         <p className="m-0">
           <Icon name={order.paymentChoice === 'CARD' ? 'credit-card' : 'qr-code'} />{' '}
           <strong>Pagamento:</strong>{' '}
-          {order.paymentChoice === 'CARD' ? 'cartão, combinado com a diretoria' : 'PIX'}
+          {order.paymentChoice === 'CARD' ? 'cartão ou dinheiro, combinado com a diretoria' : 'PIX'}
         </p>
       ) : null}
       <p className="m-0">

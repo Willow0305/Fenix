@@ -78,13 +78,14 @@ test('visitante escolhe cartão e cancela o pedido', async ({ page }, info) => {
 
   await addToCart(page, /Garrafa/);
   await page.goto('/loja/carrinho');
-  await page.getByText('Cartão', { exact: true }).click();
+  await page.getByText('Cartão ou dinheiro', { exact: true }).click();
   await page.getByLabel(/Nome completo/).fill('Visitante Cartão E2E');
   await page.getByLabel(/^E-mail/).fill(`cartao-${info.project.name}@exemplo.test`);
   await page.getByLabel(/Celular/).fill('68999990003');
   await page.getByText(/Concordo com as/).click();
   await page.getByRole('button', { name: /confirmar pedido/i }).click();
-  await expect(page.getByText(/Pagamento com cartão\./)).toBeVisible();
+  await expect(page.getByText(/Pagamento com cartão ou dinheiro\./)).toBeVisible();
+  await expect(page.getByRole('link', { name: /Falar com a diretoria no WhatsApp/ })).toBeVisible();
   await expect(page.getByRole('button', { name: /gerar qr pix/i })).toHaveCount(0);
 
   await page.getByRole('button', { name: 'Cancelar pedido' }).click();
