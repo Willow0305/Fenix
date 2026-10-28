@@ -1540,3 +1540,22 @@ Regras `RN-ENT-001` a `RN-ENT-007` em `docs/04`. Em resumo:
 - `member_cards.type` aceita `BOARD` (uma por pessoa, índice único parcial); `partner_benefits` troca `audience` por `for_board`, `for_athletes` e `for_affiliates` (`CHECK` de ao menos um), com migração dos dados;
 - testes: regras (estado da diretoria e público do benefício) e integração (emissão, benefício só da diretoria, saída do papel e volta).
 
+## DT-078 — Papéis criados pela administração (CRUD)
+
+- **Estado:** Aceita
+- **Data:** 2026-10-28
+- **Aprovador:** responsável do projeto ("seria bom o adm criar os papéis (com CRUD) para gerenciar as permissões e os trabalhos de cada um deles, podendo dar acesso a finanças, resposta no WhatsApp, atendimento, cadastro etc.")
+
+### Decisão
+
+- quem tem `permissions.manage` (administrador) cria papéis com nome, descrição e permissões, podendo começar copiando as de outro papel; edita nome, descrição e permissões (com motivo na auditoria); exclui papel sem pessoas (exclusão lógica). O código do papel é gerado do nome e não muda;
+- papéis do sistema (Administrador, Diretoria, Atleta, Usuário) continuam fixos: não são renomeados nem excluídos; o Administrador mantém todas as permissões;
+- a tela agrupa as permissões por área (Pessoas e acesso; Atletas, equipes e seletivas; Mensalidades e pagamentos; Caixa e finanças; Loja e entregas; Parceiros e carteirinhas; Comunicação; Configurações e arquivos; Painel, relatórios e privacidade), com "marcar a área inteira";
+- o papel é dado às pessoas em Usuários, como antes. O sistema continua conferindo a permissão de cada ação, nunca o nome do papel.
+
+### Consequências
+
+- rotas `POST /roles`, `PATCH /roles/:code`, `DELETE /roles/:code`; `GET /permissions` traz a área;
+- "resposta no WhatsApp": o sistema não tem caixa de entrada de WhatsApp (DT-048: contato direto pelo aplicativo de quem clica); um papel de atendimento recebe as permissões das telas onde estão os botões de WhatsApp (pedidos, interessados, inscrições, atletas);
+- testes: áreas de todas as permissões (unidade) e criar, copiar, renomear, atribuir, impedir exclusão em uso e excluir (integração).
+

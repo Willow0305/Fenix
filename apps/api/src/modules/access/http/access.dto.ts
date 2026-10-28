@@ -83,6 +83,28 @@ export class SetPermissionsDto extends AccessReasonDto {
   permissions!: string[];
 }
 
+/** Papel criado pela administração (DT-078). */
+export class RoleDto {
+  @ApiProperty({ example: 'Financeiro' }) @IsString() @MinLength(3) @MaxLength(80) name!: string;
+  @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(500) description?: string;
+  @ApiPropertyOptional({ type: [String] })
+  @IsOptional()
+  @IsArray()
+  @ArrayMaxSize(200)
+  @IsString({ each: true })
+  permissions?: string[];
+  @ApiPropertyOptional({ description: 'Copiar as permissões deste papel (código).' })
+  @IsOptional()
+  @IsString()
+  @MaxLength(60)
+  copyFrom?: string;
+}
+
+export class UpdateRoleDto {
+  @ApiPropertyOptional() @IsOptional() @IsString() @MinLength(3) @MaxLength(80) name?: string;
+  @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(500) description?: string;
+}
+
 export class AuditQueryDto extends PageQueryDto {
   @ApiPropertyOptional()
   @IsOptional()

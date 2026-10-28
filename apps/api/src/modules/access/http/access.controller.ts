@@ -1,15 +1,19 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
   HttpCode,
   Param,
   ParseUUIDPipe,
+  Patch,
   Post,
   Put,
   Query
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
+
+import { DeleteReasonDto } from '../../../common/http/delete-reason.dto';
 
 import type { Page } from '../../../common/http/pagination';
 import {
@@ -28,8 +32,10 @@ import {
   AuditQueryDto,
   CreateUserDto,
   AccessReasonDto,
+  RoleDto,
   SetPermissionsDto,
   SetRolesDto,
+  UpdateRoleDto,
   SetStatusDto,
   UserListQueryDto
 } from './access.dto';
@@ -136,8 +142,41 @@ export class RolesController {
 
   @Get('permissions')
   @RequirePermissions(PERMISSIONS.usersRead)
-  permissions(): { code: string; name: string }[] {
+  permissions(): { code: string; name: string; area: string }[] {
     return this.roles.permissions();
+  }
+
+  @Post('roles')
+  @RequirePermissions(PERMISSIONS.permissionsManage)
+  create(
+    @CurrentPrincipal() actor: Principal,
+    @Body() body: RoleDto,
+    @ReqMeta() meta: RequestMeta
+  ): Promise<RoleView> {
+    return this.roles.create(actor, body, meta);
+  }
+
+  @Patch('roles/:code')
+  @RequirePermissions(PERMISSIONS.permissionsManage)
+  update(
+    @CurrentPrincipal() actor: Principal,
+    @Param('code') code: string,
+    @Body() body: UpdateRoleDto,
+    @ReqMeta() meta: RequestMeta
+  ): Promise<RoleView> {
+    return this.roles.update(actor, code, body, meta);
+  }
+
+  @Delete('roles/:code')
+  @HttpCode(204)
+  @RequirePermissions(PERMISSIONS.permissionsManage)
+  async remove(
+    @CurrentPrincipal() actor: Principal,
+    @Param('code') code: string,
+    @Body() body: DeleteReasonDto,
+    @ReqMeta() meta: RequestMeta
+  ): Promise<void> {
+    await this.roles.remove(actor, code, body.reason, meta);
   }
 
   @Put('roles/:code/permissions')

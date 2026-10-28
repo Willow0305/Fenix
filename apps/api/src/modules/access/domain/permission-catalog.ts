@@ -207,3 +207,49 @@ export const SYSTEM_ROLE_DEFINITIONS: readonly SystemRoleDefinition[] = [
 export function isPermissionCode(value: string): value is PermissionCode {
   return (ALL_PERMISSIONS as readonly string[]).includes(value);
 }
+
+/**
+ * Áreas para agrupar as permissões na tela de papéis (DT-078). A ordem é a da tela; cada
+ * permissão cai na primeira área cujo prefixo combina.
+ */
+export const PERMISSION_AREAS: readonly {
+  readonly name: string;
+  readonly prefixes: readonly string[];
+}[] = [
+  { name: 'Pessoas e acesso', prefixes: ['users.', 'roles.', 'permissions.', 'sessions.'] },
+  {
+    name: 'Atletas, equipes e seletivas',
+    prefixes: ['athletes.', 'teams.', 'registrations.', 'tryouts.']
+  },
+  { name: 'Mensalidades e pagamentos', prefixes: ['fees.', 'payments.'] },
+  { name: 'Caixa e finanças', prefixes: ['finance.', 'transactions.', 'refunds.', 'cash.'] },
+  {
+    name: 'Loja e entregas',
+    prefixes: ['products.', 'inventory.', 'orders.', 'campaigns.', 'coupons.', 'delivery.']
+  },
+  {
+    name: 'Parceiros e carteirinhas',
+    prefixes: [
+      'partners.',
+      'partner.',
+      'services.',
+      'appointments.',
+      'settlements.',
+      'cards.',
+      'benefits.'
+    ]
+  },
+  { name: 'Comunicação', prefixes: ['news.', 'events.', 'forum.', 'notifications.'] },
+  { name: 'Configurações e arquivos', prefixes: ['settings.', 'logos.', 'files.'] },
+  {
+    name: 'Painel, relatórios e privacidade',
+    prefixes: ['dashboard.', 'reports.', 'audit.', 'privacy.']
+  }
+];
+
+export function permissionArea(code: string): string {
+  return (
+    PERMISSION_AREAS.find((area) => area.prefixes.some((prefix) => code.startsWith(prefix)))
+      ?.name ?? 'Outras'
+  );
+}

@@ -64,7 +64,7 @@ O sistema deve combinar papéis (RBAC) com permissões granulares. `DT-007` acei
 
 ## Papéis implementados
 
-O catálogo executável está em `apps/api/src/modules/access/domain/permission-catalog.ts` e é sincronizado por `npm run db:seed` (`DT-022`).
+O catálogo executável está em `apps/api/src/modules/access/domain/permission-catalog.ts` e é sincronizado ao subir a API e por `npm run db:seed` (`DT-022`, `DT-073`).
 
 | Papel | Código | Permissões padrão |
 |---|---|---|
@@ -73,7 +73,7 @@ O catálogo executável está em `apps/api/src/modules/access/domain/permission-
 | Atleta | `athlete` | nenhuma administrativa; acesso aos próprios dados por titularidade |
 | Usuário | `user` | nenhuma administrativa; loja, favoritos, pedidos, inscrições e notificações próprias |
 
-O administrador pode ajustar as permissões dos papéis não fixos e criar novas atribuições. Ninguém altera os próprios papéis nem o próprio status, e o sistema sempre mantém ao menos um administrador ativo. Permissões adicionadas no código posteriormente: `teams.manage`, `fees.plans.manage`, `fees.adjust`, `finance.setup` e `dashboard.read`.
+O administrador pode ajustar as permissões dos papéis não fixos, **criar, renomear e excluir papéis próprios** para cada trabalho (ex.: Financeiro, Atendimento, Cadastro), com as permissões agrupadas por área (`DT-078`), e criar novas atribuições. Ninguém altera os próprios papéis nem o próprio status, e o sistema sempre mantém ao menos um administrador ativo. Permissões adicionadas no código posteriormente: `teams.manage`, `fees.plans.manage`, `fees.adjust`, `finance.setup` e `dashboard.read`.
 
 ## Catálogo inicial de permissões
 

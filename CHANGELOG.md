@@ -6,6 +6,12 @@ O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) e o 
 
 ## [Não publicado]
 
+### Papéis e permissões (2026-10-28)
+
+#### Adicionado
+
+- Painel → Papéis e permissões: criar papéis para cada trabalho (financeiro, atendimento, cadastro…), copiar permissões de outro papel, editar, excluir e marcar permissões por área (DT-078).
+
 ### Carteirinha da diretoria (2026-10-28)
 
 #### Adicionado

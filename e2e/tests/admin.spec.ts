@@ -34,6 +34,33 @@ test('administração: todas as telas do menu abrem sem erro', async ({ page, re
   expect(watcher.problems).toEqual([]);
 });
 
+test('administração cria um papel com permissões por área (DT-078)', async ({
+  page,
+  request
+}, info) => {
+  const secret = await adminMfaSecret(request);
+
+  await signIn(page, ADMIN.email, ADMIN.password, secret);
+  await page.goto('/admin/papeis');
+  await page.getByRole('button', { name: /Novo papel/ }).click();
+  await page.getByLabel(/^Nome/).fill(`Atendimento ${info.project.name}`);
+  await page.getByRole('checkbox', { name: /Loja e entregas/ }).check();
+  await expectNoHorizontalScroll(page);
+
+  if (process.env['SHOTS_DIR']) {
+    await page.screenshot({
+      path: `${process.env['SHOTS_DIR']}/${info.project.name}-papel-novo.png`,
+      fullPage: true
+    });
+  }
+
+  await page.getByRole('button', { name: 'Criar papel' }).click();
+  await expect(page.getByText('Papel criado.')).toBeVisible();
+  await expect(
+    page.getByRole('heading', { name: `Atendimento ${info.project.name}` })
+  ).toBeVisible();
+});
+
 test('diretoria confere carteirinha inválida com detalhe', async ({ page, request }) => {
   const secret = await adminMfaSecret(request);
 
