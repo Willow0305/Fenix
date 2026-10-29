@@ -129,6 +129,8 @@ export interface ProductDetail extends ProductSummary {
   readonly pickupInstructions: string | null;
   /** Guia de medidas (DT-069). */
   readonly sizeGuide: string | null;
+  /** Cartão (DT-079): parcelas sem juros até N; nulo = só com juros. */
+  readonly interestFreeInstallments: number | null;
   /** Campos de personalização ativos (na visão do painel, todos). */
   readonly personalizationFields: PersonalizationFieldView[];
   readonly isPersonalized: boolean;
@@ -163,6 +165,7 @@ export interface ProductInput {
   readonly productionLeadDays?: number | null;
   readonly membershipMonths?: number | null;
   readonly sizeGuide?: string | null;
+  readonly interestFreeInstallments?: number | null;
   readonly pickupInstructions?: string | null;
   readonly partnerId?: string | null;
   readonly commissionTypeOverride?: CommissionType | null;
@@ -217,6 +220,11 @@ const PRODUCT_INCLUDE = {
 } satisfies Prisma.ProductInclude;
 
 type ProductRow = Prisma.ProductGetPayload<{ include: typeof PRODUCT_INCLUDE }>;
+
+/** "Sem juros até N" do produto: 0, 1 ou vazio = só com juros (DT-079). */
+function interestFree(value: number | null | undefined): number | null {
+  return value && value >= 2 ? Math.min(value, 12) : null;
+}
 
 function iso(value: string | null | undefined): Date | null {
   return value ? new Date(value) : null;
@@ -568,6 +576,7 @@ export class CatalogService {
       membershipAnnouncedAt: row.membershipAnnouncedAt?.toISOString() ?? null,
       pickupInstructions: row.pickupInstructions,
       sizeGuide: row.sizeGuide,
+      interestFreeInstallments: row.interestFreeInstallments,
       personalizationFields: fields,
       isPersonalized: fields.some((field) => field.isActive),
       availableFrom: row.availableFrom?.toISOString() ?? null,
@@ -897,6 +906,7 @@ export class CatalogService {
         availableUntil: iso(input.availableUntil),
         productionLeadDays: input.productionLeadDays ?? null,
         sizeGuide: input.sizeGuide?.trim() || null,
+        interestFreeInstallments: interestFree(input.interestFreeInstallments),
         membershipMonths:
           input.fulfillmentType === 'MEMBERSHIP' ? (input.membershipMonths ?? null) : null,
         pickupInstructions: input.pickupInstructions ?? null,
@@ -977,6 +987,9 @@ export class CatalogService {
           ? {}
           : { membershipMonths: input.membershipMonths }),
         ...(input.sizeGuide === undefined ? {} : { sizeGuide: input.sizeGuide?.trim() || null }),
+        ...(input.interestFreeInstallments === undefined
+          ? {}
+          : { interestFreeInstallments: interestFree(input.interestFreeInstallments) }),
         ...(input.pickupInstructions === undefined
           ? {}
           : { pickupInstructions: input.pickupInstructions }),

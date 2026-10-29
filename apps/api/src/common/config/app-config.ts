@@ -9,6 +9,16 @@ export type WhatsAppDriver = 'off' | 'outbox' | 'cloud';
 /** PIX automático (DT-071): desligado, simulado (só fora de produção) ou Mercado Pago. */
 export type PixProviderName = 'off' | 'sandbox' | 'mercadopago';
 
+/** Cartão pelo site (DT-079): mesmo intermediário do PIX, com chave pública para o formulário. */
+export interface CardConfig {
+  readonly provider: PixProviderName;
+  readonly accessToken: string | null;
+  /** Chave pública do Mercado Pago (vai para o navegador; não é segredo). */
+  readonly publicKey: string | null;
+  readonly webhookSecret: string | null;
+  readonly notificationUrl: string | null;
+}
+
 export interface PixConfig {
   readonly provider: PixProviderName;
   /** Mercado Pago: token de acesso e segredo de assinatura do webhook. */
@@ -71,6 +81,7 @@ export interface AppConfigValues {
   readonly whatsappOutboxDir: string;
   readonly whatsappCloud: WhatsAppCloudConfig | null;
   readonly pix: PixConfig;
+  readonly card: CardConfig;
   readonly allowLocalAdaptersInProduction: boolean;
   /** Proxies confiáveis para o IP real (`trust proxy` do Express). */
   readonly trustProxy: string;
@@ -192,6 +203,34 @@ function loadPix(env: NodeJS.ProcessEnv, isProduction: boolean): PixConfig {
   };
 }
 
+function loadCard(env: NodeJS.ProcessEnv, isProduction: boolean): CardConfig {
+  const provider = readString(env, 'CARD_PROVIDER', isProduction ? 'off' : 'sandbox');
+
+  if (provider !== 'off' && provider !== 'sandbox' && provider !== 'mercadopago') {
+    throw new Error('CARD_PROVIDER suportado: off, sandbox ou mercadopago.');
+  }
+
+  if (provider === 'sandbox' && isProduction) {
+    throw new Error('CARD_PROVIDER=sandbox simula pagamentos e não pode ser usado em produção.');
+  }
+
+  const notificationUrl = env['CARD_NOTIFICATION_URL'] || null;
+
+  if (notificationUrl && isProduction && !notificationUrl.startsWith('https://')) {
+    throw new Error('CARD_NOTIFICATION_URL deve usar https em produção.');
+  }
+
+  const real = provider === 'mercadopago';
+
+  return {
+    provider,
+    accessToken: real ? readString(env, 'MERCADOPAGO_ACCESS_TOKEN', undefined) : null,
+    publicKey: real ? readString(env, 'MERCADOPAGO_PUBLIC_KEY', undefined) : null,
+    webhookSecret: real ? readString(env, 'MERCADOPAGO_WEBHOOK_SECRET', undefined) : null,
+    notificationUrl
+  };
+}
+
 function loadWhatsAppCloud(env: NodeJS.ProcessEnv): WhatsAppCloudConfig {
   const phoneNumberId = readString(env, 'WHATSAPP_PHONE_NUMBER_ID', undefined);
   const apiVersion = readString(env, 'WHATSAPP_API_VERSION', 'v23.0');
@@ -292,6 +331,7 @@ export function loadAppConfig(env: NodeJS.ProcessEnv = process.env): AppConfigVa
     whatsappOutboxDir: readString(env, 'WHATSAPP_OUTBOX_DIR', 'var/whatsapp-outbox'),
     whatsappCloud,
     pix: loadPix(env, isProduction),
+    card: loadCard(env, isProduction),
     siteRevalidate: env['SITE_REVALIDATE_SECRET']
       ? {
           url: `${readString(env, 'WEB_INTERNAL_URL', 'http://127.0.0.1:3000')}/api/site-revalidate`,

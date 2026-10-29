@@ -24,6 +24,7 @@ import { SportsModule } from './modules/sports/sports.module';
 import { StoreModule } from './modules/store/store.module';
 import { CardsModule } from './modules/cards/http/cards.controller';
 import { PixModule } from './modules/pix/http/pix.controller';
+import { CardModule } from './modules/card/http/card.controller';
 
 @Module({
   imports: [
@@ -60,7 +61,8 @@ import { PixModule } from './modules/pix/http/pix.controller';
     RealtimeModule,
     SearchModule,
     CardsModule,
-    PixModule
+    PixModule,
+    CardModule
   ]
 })
 export class AppModule {}

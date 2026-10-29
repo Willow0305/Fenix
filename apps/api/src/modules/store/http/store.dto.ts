@@ -99,6 +99,14 @@ export class ProductDto extends ProductCommissionFields {
   @IsString()
   @MaxLength(4000)
   sizeGuide?: string;
+  @ApiPropertyOptional({
+    description: 'Cartão (DT-079): parcelas sem juros até N (2 a 12); 0 = só com juros.'
+  })
+  @IsOptional()
+  @IsInt()
+  @Min(0)
+  @Max(12)
+  interestFreeInstallments?: number;
   @ApiPropertyOptional() @IsOptional() @IsUUID() partnerId?: string;
 }
 
@@ -145,6 +153,14 @@ export class UpdateProductDto extends ProductCommissionFields {
   @IsString()
   @MaxLength(4000)
   sizeGuide?: string;
+  @ApiPropertyOptional({
+    description: 'Cartão (DT-079): parcelas sem juros até N (2 a 12); 0 = só com juros.'
+  })
+  @IsOptional()
+  @IsInt()
+  @Min(0)
+  @Max(12)
+  interestFreeInstallments?: number;
   @ApiPropertyOptional({ description: 'String vazia remove o vínculo com o parceiro.' })
   @IsOptional()
   @ValidateIf((_, value) => value !== '')
@@ -349,12 +365,13 @@ export class CheckoutDto {
   @IsBoolean()
   acceptPersonalized?: boolean;
   @ApiPropertyOptional({
-    enum: ['PIX', 'CARD'],
-    description: 'PIX (30 min) ou cartão com a diretoria (72 h) (DT-076).'
+    enum: ['PIX', 'CARD', 'ONLINE_CARD'],
+    description:
+      'PIX (30 min), cartão ou dinheiro com a diretoria (72 h) ou cartão pelo site (30 min) (DT-076, DT-079).'
   })
   @IsOptional()
-  @IsIn(['PIX', 'CARD'])
-  paymentChoice?: 'PIX' | 'CARD';
+  @IsIn(['PIX', 'CARD', 'ONLINE_CARD'])
+  paymentChoice?: 'PIX' | 'CARD' | 'ONLINE_CARD';
   @ApiPropertyOptional({
     enum: ['PICKUP', 'DELIVERY'],
     description: 'Retirada ou entrega (DT-075).'

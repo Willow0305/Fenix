@@ -332,7 +332,10 @@ enum OrderFulfillment {
 /// Como o comprador vai pagar (DT-076): PIX (reserva de 30 min) ou cartão com a diretoria (72 h).
 enum OrderPaymentChoice {
   PIX
+  /// Cartão ou dinheiro, combinado com a diretoria (DT-076).
   CARD
+  /// Cartão de crédito ou débito pelo site, no Mercado Pago (DT-079).
+  ONLINE_CARD
 }
 
 /// Quem leva a entrega (DT-075, RN-ENT-005).
@@ -728,6 +731,8 @@ model TeamSettings {
   cardUseTeamLogo         Boolean      @default(true) @map("card_use_team_logo")
   /// Conta do Caixa que recebe o PIX automático (DT-071).
   pixAccountId            String?      @map("pix_account_id") @db.Uuid
+  /// Cartão (DT-079): códigos de "preço diferenciado" do Mercado Pago por N parcelas sem juros.
+  cardDifferentialPricing Json?        @map("card_differential_pricing") @db.JsonB
   notificationSettings    Json?        @map("notification_settings") @db.JsonB
   updatedById             String?      @map("updated_by_id") @db.Uuid
   createdAt               DateTime     @default(now()) @map("created_at") @db.Timestamptz(6)
@@ -1185,6 +1190,7 @@ model Payment {
   attachments           FinancialTransactionAttachment[]
   financialTransaction  FinancialTransaction?
   pixCharge             PixCharge?
+  cardCharge            CardCharge?
 
   @@unique([provider, externalReference])
   @@index([status, createdAt])
@@ -1194,22 +1200,26 @@ model Payment {
 }
 
 model Refund {
-  id                String       @id @default(uuid()) @db.Uuid
-  paymentId         String       @map("payment_id") @db.Uuid
-  orderId           String?      @map("order_id") @db.Uuid
-  amount            Decimal      @db.Decimal(19, 4)
-  currency          String       @db.Char(3)
-  status            RefundStatus @default(REQUESTED)
-  reason            String       @db.Text
-  idempotencyKey    String       @unique @map("idempotency_key") @db.VarChar(160)
-  requestedById     String?      @map("requested_by_id") @db.Uuid
-  approvedById      String?      @map("approved_by_id") @db.Uuid
-  approvedAt        DateTime?    @map("approved_at") @db.Timestamptz(6)
-  processedAt       DateTime?    @map("processed_at") @db.Timestamptz(6)
-  providerReference String?      @map("provider_reference") @db.VarChar(200)
-  rejectionReason   String?      @map("rejection_reason") @db.Text
-  createdAt         DateTime     @default(now()) @map("created_at") @db.Timestamptz(6)
-  updatedAt         DateTime     @updatedAt @map("updated_at") @db.Timestamptz(6)
+  id                   String       @id @default(uuid()) @db.Uuid
+  paymentId            String       @map("payment_id") @db.Uuid
+  orderId              String?      @map("order_id") @db.Uuid
+  amount               Decimal      @db.Decimal(19, 4)
+  currency             String       @db.Char(3)
+  status               RefundStatus @default(REQUESTED)
+  reason               String       @db.Text
+  idempotencyKey       String       @unique @map("idempotency_key") @db.VarChar(160)
+  requestedById        String?      @map("requested_by_id") @db.Uuid
+  approvedById         String?      @map("approved_by_id") @db.Uuid
+  approvedAt           DateTime?    @map("approved_at") @db.Timestamptz(6)
+  processedAt          DateTime?    @map("processed_at") @db.Timestamptz(6)
+  /// Cartão (DT-079): estorno enviado ao intermediário pela fila (nunca dentro do Caixa).
+  providerRefundStatus String?      @map("provider_refund_status") @db.VarChar(20)
+  providerRefundId     String?      @map("provider_refund_id") @db.VarChar(100)
+  providerRefundError  String?      @map("provider_refund_error") @db.Text
+  providerReference    String?      @map("provider_reference") @db.VarChar(200)
+  rejectionReason      String?      @map("rejection_reason") @db.Text
+  createdAt            DateTime     @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt            DateTime     @updatedAt @map("updated_at") @db.Timestamptz(6)
 
   payment              Payment               @relation(fields: [paymentId], references: [id], onDelete: Restrict, onUpdate: Cascade)
   order                Order?                @relation(fields: [orderId], references: [id], onDelete: Restrict, onUpdate: Cascade)
@@ -1512,6 +1522,8 @@ model Product {
   productionLeadDays           Int?                   @map("production_lead_days")
   /// Validade da afiliação em meses (só para MEMBERSHIP; DT-068).
   membershipMonths             Int?                   @map("membership_months")
+  /// Cartão (DT-079): parcelas sem juros até N neste produto; nulo = só com juros.
+  interestFreeInstallments     Int?                   @map("interest_free_installments") @db.SmallInt
   /// Aviso "afiliações abertas" já enviado a todos (uma vez por produto).
   membershipAnnouncedAt        DateTime?              @map("membership_announced_at") @db.Timestamptz(6)
   /// Guia de medidas mostrado na página do produto (DT-069).
@@ -1771,6 +1783,7 @@ model Order {
   payments               Payment[]
   refunds                Refund[]
   couponRedemption       CouponRedemption?
+  cardCharges            CardCharge[]
   deliveryAttempts       DeliveryAttempt[]
   deliveryZone           DeliveryZone?     @relation(fields: [deliveryZoneId], references: [id], onDelete: SetNull, onUpdate: Cascade)
   deliveryProofMediaFile MediaFile?        @relation("OrderDeliveryProof", fields: [deliveryProofMediaFileId], references: [id], onDelete: SetNull, onUpdate: Cascade)
@@ -2932,4 +2945,45 @@ model DeliveryAttempt {
 
   @@index([orderId, dispatchedAt])
   @@map("delivery_attempts")
+}
+
+enum CardChargeStatus {
+  PENDING
+  PAID
+  REJECTED
+  REVIEW
+  CANCELLED
+}
+
+/// Pagamento com cartão pelo site (DT-079): o que o intermediário respondeu e a baixa.
+model CardCharge {
+  id                String           @id @default(uuid()) @db.Uuid
+  provider          String           @db.VarChar(30)
+  providerPaymentId String           @map("provider_payment_id") @db.VarChar(100)
+  orderId           String           @map("order_id") @db.Uuid
+  amount            Decimal          @db.Decimal(19, 4)
+  currency          String           @db.Char(3)
+  installments      Int              @db.SmallInt
+  /// `credit_card` ou `debit_card`.
+  paymentType       String           @map("payment_type") @db.VarChar(20)
+  brand             String?          @db.VarChar(30)
+  /// Só os 4 últimos dígitos, para a pessoa reconhecer o cartão.
+  lastFour          String?          @map("last_four") @db.Char(4)
+  interestFree      Boolean          @default(false) @map("interest_free")
+  status            CardChargeStatus @default(PENDING)
+  statusDetail      String?          @map("status_detail") @db.VarChar(80)
+  paymentId         String?          @unique @map("payment_id") @db.Uuid
+  reviewReason      String?          @map("review_reason") @db.Text
+  paidAt            DateTime?        @map("paid_at") @db.Timestamptz(6)
+  lastCheckedAt     DateTime?        @map("last_checked_at") @db.Timestamptz(6)
+  createdAt         DateTime         @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt         DateTime         @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  order   Order    @relation(fields: [orderId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+  payment Payment? @relation(fields: [paymentId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+
+  @@unique([provider, providerPaymentId])
+  @@index([status, createdAt])
+  @@index([orderId])
+  @@map("card_charges")
 }

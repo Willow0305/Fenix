@@ -266,7 +266,8 @@ export class OrdersService implements OnModuleInit {
    * diretoria 72 horas (`STORE_RESERVATION_HOURS`). Sem pagamento no prazo, cancela sozinho.
    */
   private reservationMs(choice: OrderPaymentChoice): number {
-    if (choice === 'PIX') {
+    // Cartão pelo site paga na hora: mesmo prazo do PIX (DT-079).
+    if (choice === 'PIX' || choice === 'ONLINE_CARD') {
       const minutes = Number(
         process.env['STORE_PIX_RESERVATION_MINUTES'] ?? PIX_RESERVATION_MINUTES_DEFAULT
       );
@@ -451,6 +452,13 @@ export class OrdersService implements OnModuleInit {
             ? [{ field: 'customerPhone', code: 'REQUIRED', message: 'Informe o telefone.' }]
             : [])
         ]
+      );
+    }
+
+    if (input.paymentChoice === 'ONLINE_CARD' && this.config.values.card.provider === 'off') {
+      throw AppError.validation(
+        'CARD_DISABLED',
+        'O pagamento com cartão pelo site está desligado. Escolha PIX ou cartão com a diretoria.'
       );
     }
 
@@ -1226,7 +1234,16 @@ export class OrdersService implements OnModuleInit {
   async receivePixInTx(
     tx: PrismaTx,
     orderId: string,
-    input: { amount: Money; paidAt: Date; accountId: string; provider: string; reference: string }
+    input: {
+      amount: Money;
+      paidAt: Date;
+      accountId: string;
+      provider: string;
+      reference: string;
+      /** Cartão pelo site (DT-079): método do Caixa e observação; padrão é o PIX. */
+      methodCode?: 'pix' | 'cartao-credito' | 'cartao-debito';
+      notes?: string;
+    }
   ): Promise<PixReceipt> {
     await lockRow(tx, 'order', orderId);
     const row = await this.load(tx, orderId);
@@ -1248,7 +1265,7 @@ export class OrdersService implements OnModuleInit {
     }
 
     const method = await tx.paymentMethod.findUniqueOrThrow({
-      where: { code: 'pix' },
+      where: { code: input.methodCode ?? 'pix' },
       select: { id: true }
     });
     const payment = await this.payments.createInTx(tx, null, {
@@ -1257,8 +1274,8 @@ export class OrdersService implements OnModuleInit {
       payerUserId: row.customerUserId,
       orderId,
       paidAt: input.paidAt,
-      notes: 'PIX automático',
-      idempotencyKey: `pix:${input.provider}:${input.reference}`,
+      notes: input.notes ?? 'PIX automático',
+      idempotencyKey: `${input.methodCode ? 'card' : 'pix'}:${input.provider}:${input.reference}`,
       provider: input.provider,
       externalReference: input.reference
     });
