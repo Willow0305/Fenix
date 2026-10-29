@@ -32,6 +32,7 @@ import { CancelOrder } from '../../../../components/cancel-order';
 import { ConsumerRights } from '../../../../components/consumer-rights';
 import { DeliveryChoice, type DeliveryState } from '../../../../components/delivery-choice';
 import { addressBody, EMPTY_ADDRESS } from '../../../../lib/delivery-types';
+import { useResource } from '../../../../lib/use-resource';
 
 export default function CartPage() {
   const { status, profile } = useAuth();
@@ -55,7 +56,9 @@ export default function CartPage() {
   });
   const [fee, setFee] = useState<number | null>(0);
   // PIX (30 minutos) ou cartão combinado com a diretoria (72 horas) (DT-076).
-  const [paymentChoice, setPaymentChoice] = useState<'PIX' | 'CARD'>('PIX');
+  const [paymentChoice, setPaymentChoice] = useState<'PIX' | 'CARD' | 'ONLINE_CARD'>('PIX');
+  // Cartão pelo site só aparece com o intermediário ligado (DT-079).
+  const cardOnline = useResource<{ enabled: boolean; maxInstallments: number }>('/public/card');
   const onlyMembership =
     cart !== null &&
     cart.lines.length > 0 &&
@@ -329,6 +332,25 @@ export default function CartPage() {
                     </small>
                   </span>
                 </label>
+                {cardOnline.data?.enabled ? (
+                  <label className="choice-card">
+                    <input
+                      type="radio"
+                      name="pagamento"
+                      checked={paymentChoice === 'ONLINE_CARD'}
+                      onChange={() => setPaymentChoice('ONLINE_CARD')}
+                    />
+                    <span>
+                      <strong>
+                        <Icon name="credit-card-2-front" /> Cartão pelo site
+                      </strong>
+                      <small className="muted">
+                        Crédito em até {cardOnline.data.maxInstallments}x ou débito, no formulário
+                        seguro do Mercado Pago. Pague em até 30 minutos.
+                      </small>
+                    </span>
+                  </label>
+                ) : null}
                 <label className="choice-card">
                   <input
                     type="radio"

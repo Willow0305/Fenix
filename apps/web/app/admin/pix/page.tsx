@@ -15,6 +15,7 @@ import { useAuth } from '../../../lib/auth-context';
 import type { Account } from '../../../lib/finance-types';
 import { formatDateTime, formatMoney } from '../../../lib/format';
 import { useResource } from '../../../lib/use-resource';
+import { CardAdminPanel } from '../../../components/card-admin-panel';
 
 interface PixAdmin {
   provider: 'off' | 'sandbox' | 'mercadopago';
@@ -63,7 +64,7 @@ export default function PixAdminPage() {
   return (
     <>
       <PageHeader
-        title="PIX automático"
+        title="PIX e cartão"
         description="Pagamentos de pedidos e mensalidades confirmados sozinhos pelo intermediário."
       />
       {notice ? <Alert kind="success">{notice}</Alert> : null}
@@ -129,6 +130,8 @@ export default function PixAdminPage() {
           </article>
         ))}
       </section>
+
+      <CardAdminPanel />
 
       <ConfirmDialog
         open={resolving !== null}

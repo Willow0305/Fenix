@@ -1559,9 +1559,9 @@ Regras `RN-ENT-001` a `RN-ENT-007` em `docs/04`. Em resumo:
 - "resposta no WhatsApp": o sistema não tem caixa de entrada de WhatsApp (DT-048: contato direto pelo aplicativo de quem clica); um papel de atendimento recebe as permissões das telas onde estão os botões de WhatsApp (pedidos, interessados, inscrições, atletas);
 - testes: áreas de todas as permissões (unidade) e criar, copiar, renomear, atribuir, impedir exclusão em uso e excluir (integração).
 
-## DT-079 — Cartão de crédito e débito pelo Mercado Pago (aprovado, a implementar)
+## DT-079 — Cartão de crédito e débito pelo Mercado Pago
 
-- **Estado:** Aprovada, a implementar
+- **Estado:** Aceita; implementada em 2026-10-28 (modo de teste verificado; conector real aguarda credenciais)
 - **Data:** 2026-10-28
 - **Aprovador:** responsável do projeto ("12 (deixar uma configuração para colocar sem juros em algumas parcelas e produtos específicos, depois fica com juros)"; juros "cliente"; recebimento "na hora", podendo mudar)
 
@@ -1576,4 +1576,14 @@ Regras `RN-ENT-001` a `RN-ENT-007` em `docs/04`. Em resumo:
 ### Restrição conhecida
 
 O "sem juros" do Mercado Pago é configurado para a conta inteira no painel dele; por produto, só com "preço diferenciado" (`differential_pricing`), cujos códigos são criados pela equipe comercial do Mercado Pago para a conta. Ver `PEN-067`.
+
+### Como ficou (2026-10-28)
+
+- módulo `card`, com conector trocável (`CARD_PROVIDER`: `off`, `sandbox` ou `mercadopago`; modo de teste proibido em produção). O real usa o **Card Payment Brick** do Mercado Pago no navegador (o cartão vira token lá) e `POST /v1/payments` na API, com chave de idempotência; a CSP libera só os domínios do Mercado Pago (iframes dos campos do cartão, chamadas e imagens das bandeiras);
+- nova forma de pagamento **"Cartão pelo site"** no checkout (aparece só com o cartão ligado), com reserva de 30 minutos como o PIX; o PIX fica como alternativa na tela;
+- **aprovado:** baixa na hora, no Caixa, como "Cartão de crédito" ou "Cartão de débito" (mesma conta do PIX automático), pela rotina de baixa automática do pedido. **Em análise:** a tela confere a cada 5 s e a API a cada 2 min (e pelo aviso do Mercado Pago, com assinatura conferida). **Recusado:** motivo em português; dá para tentar outro cartão. Débito só à vista. Pago fora do esperado vai para revisão da diretoria (como no PIX);
+- **sem juros:** campo "Cartão: sem juros até N" no produto; o pedido usa a **menor regra entre os itens** (produto sem regra deixa o pedido só com juros) — recomendação adotada até a confirmação em `PEN-067`; o código do Mercado Pago para o N é colado em Painel → PIX e cartão (usa o maior código que não passa do limite). No modo de teste, o limite vale sem código;
+- **estorno:** todo reembolso do Caixa ligado a um pagamento com cartão vai ao Mercado Pago por uma fila (a cada 2 minutos, fora da transação do Caixa, idempotente pelo id do reembolso). Falha avisa a diretoria e aparece em "Estornos de cartão não enviados", com "Estornei no Mercado Pago";
+- guardamos só bandeira, os 4 últimos dígitos, parcelas e situação; nunca o número do cartão;
+- **recebimento na hora** é configurado na conta do Mercado Pago (não no sistema); mudar para 14 ou 30 dias é só lá.
 

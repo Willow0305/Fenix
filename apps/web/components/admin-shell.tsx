@@ -76,7 +76,7 @@ export const ADMIN_NAV: readonly AdminGroup[] = [
       {
         href: '/admin/pix',
         icon: 'qr-code',
-        label: 'PIX automático',
+        label: 'PIX e cartão',
         permission: 'payments.confirm'
       },
       {

@@ -519,7 +519,7 @@ Prioridades:
 - **Prioridade:** P2
 - **Bloqueia:** o "sem juros" por produto do pagamento com cartão (`DT-079`); o restante do cartão (até 12x com juros pagos pelo cliente) não depende disto
 - **Questão:** o Mercado Pago só oferece "sem juros" para a conta inteira (painel dele) ou por "preço diferenciado" (`differential_pricing`), com códigos criados pela equipe comercial do Mercado Pago. Falta (1) o clube pedir esses códigos ao Mercado Pago, um por regra (ex.: "até 3x sem juros", "até 6x sem juros"), e (2) definir a regra do carrinho com produtos de regras diferentes.
-- **Recomendação:** cada produto escolhe uma regra cadastrada ("sem juros até N"); num carrinho misturado vale a **menor** regra entre os itens (o clube nunca paga juros que não ofereceu); sem código do Mercado Pago, o produto fica só "com juros".
+- **Recomendação (já implementada em 2026-10-28, a confirmar):** cada produto escolhe uma regra cadastrada ("sem juros até N"); num carrinho misturado vale a **menor** regra entre os itens (o clube nunca paga juros que não ofereceu); sem código do Mercado Pago, o produto fica só "com juros". Falta confirmar com o Mercado Pago o nome do campo do código na criação do pagamento (`differential_pricing_id`) com as credenciais de teste.
 - **Impacto:** `DT-079`, cadastro de produto, checkout e custos (o clube paga a taxa do parcelamento sem juros).
 
 ## 11. Critério de resolução

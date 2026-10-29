@@ -105,6 +105,21 @@ Em desenvolvimento o PIX automático roda em **modo de teste** (`PIX_PROVIDER=sa
 4. Reinicie a API. Em **Painel → PIX automático**, escolha a conta do Caixa que recebe.
 5. Teste com um pedido de valor baixo. Mesmo que um aviso se perca, a conferência automática a cada 2 minutos faz a baixa.
 
+## 5.1.1 Cartão pelo site (Mercado Pago)
+
+Em desenvolvimento roda em **modo de teste** (`CARD_PROVIDER=sandbox`): a tela de pagamento mostra "Simular cartão aprovado" e "Simular recusado". Em produção:
+
+1. No painel de desenvolvedores do Mercado Pago, na mesma aplicação do PIX, copie a **Public Key** de produção.
+2. Em **Webhooks**, cadastre também `https://SEU-DOMINIO/api/v1/payments/card/webhook/mercadopago` (evento **Pagamentos**).
+3. No `.env` do servidor (o token e o segredo são os mesmos do PIX):
+   ```
+   CARD_PROVIDER=mercadopago
+   MERCADOPAGO_PUBLIC_KEY=...
+   CARD_NOTIFICATION_URL=https://SEU-DOMINIO/api/v1/payments/card/webhook/mercadopago
+   ```
+4. Na conta do Mercado Pago, confira o prazo de recebimento (na hora, 14 ou 30 dias) e, se for oferecer "sem juros" em produtos, peça à equipe comercial os códigos de "preço diferenciado" e cole em **Painel → PIX e cartão**.
+5. Teste primeiro com as **credenciais de teste** e os cartões de teste do Mercado Pago.
+
 ## 5.2 Entrega em casa
 
 Em **Painel → Loja → Entrega em casa** a diretoria cadastra as **regiões** de Rio Branco (nome, taxa, prazo em dias úteis e os bairros, um por linha), o **frete grátis** (opcional, a partir de um valor em produtos) e liga a opção "Oferecer entrega em casa no checkout". Bairro fora da lista só retira. `npm run db:demo` cria duas regiões de exemplo.

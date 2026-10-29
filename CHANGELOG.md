@@ -6,6 +6,15 @@ O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) e o 
 
 ## [Não publicado]
 
+### Cartão pelo site (2026-10-28)
+
+#### Adicionado
+
+- "Cartão pelo site" no checkout: crédito em até 12x (juros do parcelado pagos pelo comprador) ou débito, no formulário seguro do Mercado Pago, com o PIX como alternativa (DT-079);
+- "Cartão: sem juros até N" no cadastro do produto; no carrinho vale a menor regra; códigos de "preço diferenciado" do Mercado Pago em Painel → PIX e cartão (PEN-067);
+- baixa automática no Caixa como cartão de crédito ou débito; estorno do pedido enviado ao Mercado Pago pela fila, com aviso se falhar;
+- modo de teste com "Simular cartão aprovado" e "Simular recusado".
+
 ### Papéis e permissões (2026-10-28)
 
 #### Adicionado

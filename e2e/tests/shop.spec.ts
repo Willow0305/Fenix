@@ -94,3 +94,35 @@ test('visitante escolhe cartão e cancela o pedido', async ({ page }, info) => {
   await expectNoHorizontalScroll(page);
   expect(watcher.problems).toEqual([]);
 });
+
+/** Cartão pelo site em modo de teste (DT-079): recusado mostra o motivo; aprovado em 3x baixa. */
+test('visitante paga com cartão pelo site', async ({ page }, info) => {
+  const watcher = watch(page);
+
+  await addToCart(page, /Garrafa/);
+  await page.goto('/loja/carrinho');
+  await page.getByText('Cartão pelo site', { exact: true }).click();
+  await page.getByLabel(/Nome completo/).fill('Visitante Cartão Site');
+  await page.getByLabel(/^E-mail/).fill(`cartao-site-${info.project.name}@exemplo.test`);
+  await page.getByLabel(/Celular/).fill('68999990004');
+  await page.getByText(/Concordo com as/).click();
+  await page.getByRole('button', { name: /confirmar pedido/i }).click();
+  await expect(page.getByRole('heading', { name: /Pagar com cartão/ })).toBeVisible();
+
+  await page.getByRole('button', { name: 'Simular recusado' }).click();
+  await expect(page.getByText('Limite insuficiente no cartão.')).toBeVisible();
+  await page.getByLabel(/^Parcelas/).selectOption('3');
+  await expectNoHorizontalScroll(page);
+
+  if (process.env['SHOTS_DIR']) {
+    await page.screenshot({
+      path: `${process.env['SHOTS_DIR']}/${info.project.name}-cartao.png`,
+      fullPage: true
+    });
+  }
+
+  await page.getByRole('button', { name: 'Simular cartão aprovado' }).click();
+  await expect(page.getByText('Pagamento confirmado. Obrigado!')).toBeVisible();
+  await expect(page.getByText(/Pagamento:/)).toHaveCount(0);
+  expect(watcher.problems).toEqual([]);
+});

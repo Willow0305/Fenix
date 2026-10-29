@@ -85,6 +85,8 @@ export interface ProductDetail extends ProductSummary {
   productionLeadDays: number | null;
   membershipMonths: number | null;
   membershipAnnouncedAt: string | null;
+  /** Cartão (DT-079): parcelas sem juros até N; nulo = só com juros. */
+  interestFreeInstallments: number | null;
   sizeGuide: string | null;
   personalizationFields: PersonalizationField[];
   isPersonalized: boolean;
@@ -198,7 +200,7 @@ export interface Order {
   /** Retirada ou entrega em casa (DT-075). */
   fulfillment: OrderFulfillment;
   /** PIX (30 min) ou cartão com a diretoria (72 h) (DT-076). */
-  paymentChoice: 'PIX' | 'CARD';
+  paymentChoice: 'PIX' | 'CARD' | 'ONLINE_CARD';
   deliveryFee: MoneyView;
   deliveryAddress: DeliveryAddress | null;
   outForDeliveryAt: string | null;

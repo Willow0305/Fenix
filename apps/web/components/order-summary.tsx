@@ -107,9 +107,13 @@ export function OrderSummary({ order }: { readonly order: Order }) {
       </div>
       {order.status === 'AWAITING_PAYMENT' || order.status === 'CREATED' ? (
         <p className="m-0">
-          <Icon name={order.paymentChoice === 'CARD' ? 'credit-card' : 'qr-code'} />{' '}
+          <Icon name={order.paymentChoice === 'PIX' ? 'qr-code' : 'credit-card'} />{' '}
           <strong>Pagamento:</strong>{' '}
-          {order.paymentChoice === 'CARD' ? 'cartão ou dinheiro, combinado com a diretoria' : 'PIX'}
+          {order.paymentChoice === 'CARD'
+            ? 'cartão ou dinheiro, combinado com a diretoria'
+            : order.paymentChoice === 'ONLINE_CARD'
+              ? 'cartão pelo site'
+              : 'PIX'}
         </p>
       ) : null}
       <p className="m-0">

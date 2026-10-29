@@ -171,6 +171,9 @@ export default function ProductAdminPage() {
         buyerLimit: p.buyerLimit ? String(p.buyerLimit) : '',
         productionLeadDays: p.productionLeadDays ? String(p.productionLeadDays) : '',
         sizeGuide: p.sizeGuide ?? '',
+        interestFreeInstallments: p.interestFreeInstallments
+          ? String(p.interestFreeInstallments)
+          : '0',
         pickupInstructions: p.pickupInstructions ?? '',
         isFeatured: p.isFeatured ? 'true' : 'false',
         partnerId: p.partner?.id ?? '',
@@ -202,6 +205,7 @@ export default function ProductAdminPage() {
             : {}),
           pickupInstructions: form['pickupInstructions'] ?? '',
           sizeGuide: form['sizeGuide'] ?? '',
+          interestFreeInstallments: Number(form['interestFreeInstallments'] ?? '0'),
           isFeatured: form['isFeatured'] === 'true',
           partnerId: form['partnerId'] ?? '',
           commissionTypeOverride: form['partnerId'] ? (form['commissionTypeOverride'] ?? '') : '',
@@ -396,6 +400,19 @@ export default function ProductAdminPage() {
             min={0}
             value={form['productionLeadDays'] ?? ''}
             onChange={set('productionLeadDays')}
+          />
+          <SelectField
+            label="Cartão: sem juros até"
+            value={form['interestFreeInstallments'] ?? '0'}
+            onChange={set('interestFreeInstallments')}
+            hint="Acima disso, os juros do parcelado são do comprador. Num carrinho com vários produtos vale a menor regra."
+            options={[
+              { value: '0', label: 'Só com juros (até 12x)' },
+              ...Array.from({ length: 11 }, (_, i) => i + 2).map((n) => ({
+                value: String(n),
+                label: `${n}x sem juros`
+              }))
+            ]}
           />
           <SelectField
             label="Destaque na loja"

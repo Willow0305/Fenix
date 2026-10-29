@@ -12,6 +12,7 @@ import { whatsappLink } from '../lib/contact-links';
 import type { PublicTeam } from '../lib/api-types';
 import { useResource } from '../lib/use-resource';
 import { Icon } from './icon';
+import { CardPayment } from './card-payment';
 
 /**
  * Instruções de PIX e envio de comprovante de um pedido aguardando pagamento.
@@ -121,7 +122,7 @@ export function OrderPayment({
     );
   }
 
-  return (
+  const pixAndProof = (
     <>
       <PixPayment
         target={guest ? { kind: 'guest', ...guest } : { kind: 'order', orderId: order.id }}
@@ -176,4 +177,22 @@ export function OrderPayment({
       </section>
     </>
   );
+
+  // Cartão pelo site (DT-079): o cartão primeiro; o PIX continua como alternativa.
+  if (order.paymentChoice === 'ONLINE_CARD') {
+    return (
+      <>
+        <CardPayment
+          target={guest ? { kind: 'guest', ...guest } : { kind: 'order', orderId: order.id }}
+          onPaid={() => void refreshPaid()}
+        />
+        <details className="collapsible">
+          <summary>Prefere pagar com PIX?</summary>
+          {pixAndProof}
+        </details>
+      </>
+    );
+  }
+
+  return pixAndProof;
 }
