@@ -174,7 +174,8 @@ export class StorefrontController {
     private readonly favorites: FavoritesService,
     private readonly config: AppConfig,
     private readonly coupons: CouponsService,
-    private readonly returns: ReturnsService
+    private readonly returns: ReturnsService,
+    private readonly inventory: InventoryService
   ) {}
 
   private cookieOptions(): CookieOptions {
@@ -504,6 +505,42 @@ export class StorefrontController {
     @Param('productId', new ParseUUIDPipe()) productId: string
   ): Promise<void> {
     await this.favorites.remove(principal.userId, productId);
+  }
+
+  /** "Avise-me quando chegar" (DT-081): variações em que a pessoa pediu aviso. */
+  @Get('me/stock-alerts')
+  @ApiBearerAuth()
+  async myStockAlerts(
+    @CurrentPrincipal() principal: Principal,
+    @Query('variantIds') variantIds?: string
+  ): Promise<{ variantIds: string[] }> {
+    const ids = (variantIds ?? '')
+      .split(',')
+      .map((id) => id.trim())
+      .filter((id) => /^[0-9a-f-]{36}$/i.test(id))
+      .slice(0, 100);
+
+    return { variantIds: await this.inventory.alertsOf(principal.userId, ids) };
+  }
+
+  @Put('me/stock-alerts/:variantId')
+  @ApiBearerAuth()
+  @HttpCode(204)
+  async requestStockAlert(
+    @CurrentPrincipal() principal: Principal,
+    @Param('variantId', new ParseUUIDPipe()) variantId: string
+  ): Promise<void> {
+    await this.inventory.requestAlert(principal.userId, variantId);
+  }
+
+  @Delete('me/stock-alerts/:variantId')
+  @ApiBearerAuth()
+  @HttpCode(204)
+  async cancelStockAlert(
+    @CurrentPrincipal() principal: Principal,
+    @Param('variantId', new ParseUUIDPipe()) variantId: string
+  ): Promise<void> {
+    await this.inventory.cancelAlert(principal.userId, variantId);
   }
 }
 

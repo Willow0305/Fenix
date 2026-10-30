@@ -10,7 +10,8 @@ import {
   ORDER_TRANSITIONS,
   orderTotal,
   reservedStock,
-  signedDelta
+  signedDelta,
+  stockCameBack
 } from './store-rules';
 
 describe('regras da loja', () => {
@@ -111,5 +112,18 @@ describe('regras da loja', () => {
     );
     expect(buyerLimitExceeded(2, 1, 2)).toBe(true);
     expect(buyerLimitExceeded(null, 10, 10)).toBe(false);
+  });
+});
+
+describe('avise-me quando chegar', () => {
+  it('avisa quando a variação estava zerada e passou a ter', () => {
+    expect(stockCameBack(0, 3)).toBe(true);
+    expect(stockCameBack(-1, 2)).toBe(true);
+  });
+
+  it('não avisa entrada em estoque que já tinha nem saída', () => {
+    expect(stockCameBack(2, 5)).toBe(false);
+    expect(stockCameBack(0, -1)).toBe(false);
+    expect(stockCameBack(-2, 1)).toBe(false);
   });
 });

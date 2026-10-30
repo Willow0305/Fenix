@@ -6,7 +6,8 @@ import { AppError } from '../../../common/errors/app-error';
 import type { Principal, RequestMeta } from '../../../common/http/request-context';
 import { PrismaService, type PrismaTx } from '../../../common/prisma/prisma.service';
 import { lockRow } from '../../finance/application/ledger.service';
-import { signedDelta } from '../domain/store-rules';
+import { NotificationsService } from '../../notifications/application/notifications.service';
+import { requiresStock, signedDelta, stockCameBack } from '../domain/store-rules';
 
 export interface StockLevel {
   readonly available: number;
@@ -32,7 +33,8 @@ export interface MovementView {
 export class InventoryService {
   constructor(
     private readonly prisma: PrismaService,
-    private readonly audit: AuditService
+    private readonly audit: AuditService,
+    private readonly notifications: NotificationsService
   ) {}
 
   async levels(variantIds: readonly string[], tx?: PrismaTx): Promise<Map<string, StockLevel>> {
@@ -74,16 +76,100 @@ export class InventoryService {
       actorId: string | null;
     }
   ): Promise<void> {
+    const delta = signedDelta(input.type, input.quantity);
+    // Só consulta o saldo anterior quando alguém pediu aviso desta variação.
+    const waiting =
+      delta > 0 ? await tx.stockAlert.count({ where: { productVariantId: input.variantId } }) : 0;
+    const before =
+      waiting > 0 ? (await this.levels([input.variantId], tx)).get(input.variantId) : undefined;
+
     await tx.inventoryMovement.create({
       data: {
         productVariantId: input.variantId,
         type: input.type,
-        quantityDelta: signedDelta(input.type, input.quantity),
+        quantityDelta: delta,
         reason: input.reason ?? null,
         orderItemId: input.orderItemId ?? null,
         createdById: input.actorId
       }
     });
+
+    if (before && stockCameBack(before.available, delta)) {
+      await this.notifyStockBack(tx, input.variantId);
+    }
+  }
+
+  /**
+   * "Avise-me quando chegar" (DT-081): avisa quem pediu e apaga os pedidos na mesma transação.
+   * Se o movimento for desfeito (rollback), nem o aviso nem a exclusão acontecem.
+   */
+  private async notifyStockBack(tx: PrismaTx, variantId: string): Promise<void> {
+    const alerts = await tx.stockAlert.findMany({
+      where: { productVariantId: variantId },
+      select: {
+        id: true,
+        userId: true,
+        productVariant: { select: { name: true, product: { select: { name: true, slug: true } } } }
+      }
+    });
+
+    if (alerts.length === 0) {
+      return;
+    }
+
+    await this.notifications.notify(
+      alerts.map((alert) => ({
+        userId: alert.userId,
+        type: 'store.stock_back',
+        title: `Chegou: ${alert.productVariant.product.name}`,
+        message: `${alert.productVariant.product.name} (${alert.productVariant.name}) voltou ao estoque.`,
+        link: `/loja/${alert.productVariant.product.slug}`,
+        deduplicationKey: `stock-back:${alert.id}`
+      })),
+      tx
+    );
+    await tx.stockAlert.deleteMany({ where: { id: { in: alerts.map((alert) => alert.id) } } });
+  }
+
+  /** Variações desta lista em que a pessoa pediu aviso. */
+  async alertsOf(userId: string, variantIds: readonly string[]): Promise<string[]> {
+    const rows = await this.prisma.stockAlert.findMany({
+      where: { userId, productVariantId: { in: [...variantIds] } },
+      select: { productVariantId: true }
+    });
+
+    return rows.map((row) => row.productVariantId);
+  }
+
+  /** Pede o aviso: só variação esgotada de produto vendido com estoque. */
+  async requestAlert(userId: string, variantId: string): Promise<void> {
+    const variant = await this.prisma.productVariant.findFirst({
+      where: {
+        id: variantId,
+        deletedAt: null,
+        product: { deletedAt: null, status: { in: ['ACTIVE', 'SOLD_OUT'] } }
+      },
+      select: { product: { select: { fulfillmentType: true } } }
+    });
+
+    if (variant === null || !requiresStock(variant.product.fulfillmentType)) {
+      throw AppError.notFound('Produto não encontrado.');
+    }
+
+    const level = (await this.levels([variantId])).get(variantId);
+
+    if ((level?.available ?? 0) > 0) {
+      throw AppError.conflict('IN_STOCK', 'Este produto já está disponível. Adicione ao carrinho.');
+    }
+
+    await this.prisma.stockAlert.createMany({
+      data: [{ userId, productVariantId: variantId }],
+      skipDuplicates: true
+    });
+  }
+
+  async cancelAlert(userId: string, variantId: string): Promise<void> {
+    await this.prisma.stockAlert.deleteMany({ where: { userId, productVariantId: variantId } });
   }
 
   /** Entrada, perda ou ajuste manual: exige permissão, motivo e fica auditado (RN-LOJ-006). */

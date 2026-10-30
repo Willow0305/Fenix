@@ -133,6 +133,13 @@ export class PrivacyService {
           }
         },
         favorites: { select: { createdAt: true, product: { select: { name: true } } } },
+        // "Avise-me quando chegar" pendentes (DT-081).
+        stockAlerts: {
+          select: {
+            createdAt: true,
+            productVariant: { select: { name: true, product: { select: { name: true } } } }
+          }
+        },
         // Endereços de entrega salvos pela pessoa (DT-075).
         addresses: {
           select: {
@@ -442,6 +449,7 @@ export class PrivacyService {
       });
       await tx.userToken.deleteMany({ where: { userId } });
       await tx.favorite.deleteMany({ where: { userId } });
+      await tx.stockAlert.deleteMany({ where: { userId } });
       await tx.userAddress.deleteMany({ where: { userId } });
       await tx.forumReaction.deleteMany({ where: { userId } });
       await tx.forumPost.updateMany({

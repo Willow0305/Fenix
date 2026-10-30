@@ -189,3 +189,11 @@ export function isSameImageSet(current: readonly string[], requested: readonly s
 
 /** A partir de quantas unidades a loja mostra "últimas unidades". */
 export const LOW_STOCK_THRESHOLD = 3;
+
+/**
+ * "Avise-me quando chegar" (DT-081): avisa só quando a variação estava sem nada disponível e
+ * passou a ter. Entradas em estoque que já tinha não repetem o aviso.
+ */
+export function stockCameBack(availableBefore: number, delta: number): boolean {
+  return availableBefore <= 0 && availableBefore + delta > 0;
+}

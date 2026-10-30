@@ -1634,3 +1634,10 @@ Manter paleta, layout e componentes, e trocar os sinais de interface genérica p
 - a avaliação de produto é diferente das "avaliações de profissionais", que continuam fora de fase;
 - abrangência dos eventos externos decidida em 2026-10-29 (`PEN-069`): qualquer lugar, com Rio Branco e o Acre em destaque e filtro "Acre" e "Outros lugares".
 
+### Implementação: avise-me quando chegar (2026-10-30)
+
+- tabela `stock_alerts` (pedido por pessoa e variação, único); rotas `me/stock-alerts`;
+- o aviso nasce dentro de `InventoryService.record`, na mesma transação do movimento, só quando o disponível passa de 0 para mais de 0 (`stockCameBack`); o pedido é apagado em seguida, então ninguém é avisado duas vezes e não fica histórico de interesse;
+- notificação do tipo `store.stock_back`, na finalidade "Pedidos da loja" (e-mail ligado por padrão);
+- apagado na anonimização e incluído na exportação de dados do titular.
+

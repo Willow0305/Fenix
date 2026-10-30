@@ -36,7 +36,7 @@ O modelo consolida o PDF de requisitos, o briefing técnico, `AGENTS.md` e as de
 | Esportivo e inscrições | `Athlete`, `AthleteDocument`, `Category`, `Team`, `TeamAthlete`, `InterestedPerson`, `Tryout`, `TryoutRegistration` |
 | Mensalidades | `MonthlyFeePlan`, `AthleteMonthlyFeePlan`, `MonthlyFee`, `MonthlyFeePayment` |
 | Caixa Fênix | `FinancialAccount`, `FinancialCategory`, `CostCenter`, `FinancialObligation`, `FinancialTransaction`, `FinancialTransfer`, `FinancialTransactionAttachment`, `CashClosing`, `PaymentMethod` |
-| Loja e estoque | `ProductCategory`, `Product`, `ProductImage`, `ProductVariant`, `InventoryMovement`, `Favorite`, `Cart`, `CartItem`, `Order`, `OrderItem`, `Payment`, `Refund` |
+| Loja e estoque | `ProductCategory`, `Product`, `ProductImage`, `ProductVariant`, `InventoryMovement`, `Favorite`, `StockAlert`, `Cart`, `CartItem`, `Order`, `OrderItem`, `Payment`, `Refund` |
 | Campanhas | `SalesCampaign`, `SalesCampaignProduct` |
 | Parceiros e agenda | `Partner`, `PartnerDocument`, `PartnerProfessional`, `PartnerService`, `ProfessionalAvailability`, `Appointment`, `PartnerSettlement`, `PartnerSettlementItem` |
 | Conteúdo e comunidade | `NewsCategory`, `News`, `Event`, `Match`, `ForumCategory`, `ForumTopic`, `ForumPost`, `ForumReaction`, `ForumReport`, `ForumModerationAction`, `Notification` |

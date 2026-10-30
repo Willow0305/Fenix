@@ -557,6 +557,7 @@ model User {
   trustedDevices                  TrustedDevice[]
   auditLogs                       AuditLog[]
   favorites                       Favorite[]
+  stockAlerts                     StockAlert[]
   carts                           Cart[]
   privacyRequests                 PrivacyRequest[]         @relation("PrivacyRequestSubject")
   privacyRequestsHandled          PrivacyRequest[]         @relation("PrivacyRequestHandler")
@@ -1595,6 +1596,7 @@ model ProductVariant {
   inventoryMovements InventoryMovement[]
   cartItems          CartItem[]
   orderItems         OrderItem[]
+  stockAlerts        StockAlert[]
 
   @@index([productId, isActive, deletedAt])
   @@index([minimumStock, isActive])
@@ -1690,6 +1692,22 @@ model Favorite {
   @@unique([userId, productId])
   @@index([productId])
   @@map("favorites")
+}
+
+/// "Avise-me quando chegar" (DT-081): só com conta. Apagado ao avisar, então não guarda
+/// histórico de interesse; também some na anonimização da conta.
+model StockAlert {
+  id               String   @id @default(uuid()) @db.Uuid
+  userId           String   @map("user_id") @db.Uuid
+  productVariantId String   @map("product_variant_id") @db.Uuid
+  createdAt        DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  user           User           @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  productVariant ProductVariant @relation(fields: [productVariantId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+
+  @@unique([userId, productVariantId])
+  @@index([productVariantId])
+  @@map("stock_alerts")
 }
 
 model Cart {

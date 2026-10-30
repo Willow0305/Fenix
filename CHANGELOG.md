@@ -18,6 +18,7 @@ O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) e o 
 - pedido realizado: título com o número do pedido e pagamento antes do resumo.
 - loja: destaque da pré-venda aberta no topo, com prazo ("faltam N dias") e o mínimo de unidades pagas para a encomenda acontecer.
 - página de venda da afiliação (`/afiliacao`): descontos reais dos parceiros, como funciona, perguntas frequentes e um único botão; o convite do Início leva para ela.
+- "Avise-me quando chegar" em opção esgotada (só com conta): a pessoa recebe o aviso quando a variação volta ao estoque, e o pedido é apagado em seguida (DT-081).
 
 #### Corrigido
 

@@ -11,7 +11,7 @@ import {
   PersonalizationInputs
 } from '../../../../components/variant-attributes';
 import { Alert, ErrorSummary, useSubmit } from '../../../../components/ui';
-import { api } from '../../../../lib/api-client';
+import { api, errorMessage } from '../../../../lib/api-client';
 import { useAuth } from '../../../../lib/auth-context';
 import { useCart } from '../../../../lib/cart-context';
 import { formatMoney, plural } from '../../../../lib/format';
@@ -39,6 +39,14 @@ export function ProductPurchase({ product }: { readonly product: ProductDetail }
     status === 'authenticated' ? '/me/favorites' : null
   );
   const isFavorite = favorites.data?.some((f) => f.productId === product.id) ?? false;
+  // "Avise-me quando chegar" (DT-081): só para produto com estoque e com conta.
+  const stockBased = product.fulfillmentType === 'STOCK';
+  const stockAlerts = useResource<{ variantIds: string[] }>(
+    status === 'authenticated' && stockBased
+      ? `/me/stock-alerts?variantIds=${active.map((v) => v.id).join(',')}`
+      : null
+  );
+  const [alertError, setAlertError] = useState<string | null>(null);
   const variant = active.find((v) => v.id === variantId);
   const fields = product.personalizationFields;
   const [values, setValues] = useState<Record<string, string>>({});
@@ -70,6 +78,19 @@ export function ProductPurchase({ product }: { readonly product: ProductDetail }
     card.data?.enabled && card.data.maxInstallments > 1 && product.fulfillmentType !== 'MEMBERSHIP'
       ? card.data.maxInstallments
       : null;
+
+  const alerted = variantId ? (stockAlerts.data?.variantIds.includes(variantId) ?? false) : false;
+
+  async function toggleStockAlert() {
+    setAlertError(null);
+
+    try {
+      await api(`/me/stock-alerts/${variantId}`, { method: alerted ? 'DELETE' : 'PUT' });
+      await stockAlerts.reload();
+    } catch (error) {
+      setAlertError(errorMessage(error));
+    }
+  }
 
   async function toggleFavorite() {
     await api(`/me/favorites/${product.id}`, { method: isFavorite ? 'DELETE' : 'PUT' });
@@ -175,6 +196,29 @@ export function ProductPurchase({ product }: { readonly product: ProductDetail }
             <Icon name="cart-plus" /> {add.pending ? 'Adicionando…' : 'Adicionar ao carrinho'}
           </button>
         </form>
+      ) : product.purchasable && stockBased && variant ? (
+        <div className="stock-alert" role="status">
+          <p className="m-0">
+            <Icon name="hourglass" /> {active.length > 1 ? 'Esta opção esgotou.' : 'Esgotado.'}{' '}
+            {alerted ? 'Você será avisado quando chegar.' : 'Quer saber quando chegar?'}
+          </p>
+          {status === 'authenticated' ? (
+            <button
+              type="button"
+              className={`btn ${alerted ? 'btn-secondary' : 'btn-primary'}`}
+              onClick={() => void toggleStockAlert()}
+              aria-pressed={alerted}
+            >
+              <Icon name={alerted ? 'bell-slash' : 'bell'} />{' '}
+              {alerted ? 'Cancelar aviso' : 'Avise-me quando chegar'}
+            </button>
+          ) : (
+            <Link href={`/entrar?next=/loja/${product.slug}`} className="btn btn-primary">
+              <Icon name="bell" /> Entre para ser avisado
+            </Link>
+          )}
+          {alertError ? <span className="field-error">{alertError}</span> : null}
+        </div>
       ) : (
         <Alert kind="info">
           {product.purchasable

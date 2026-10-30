@@ -38,6 +38,7 @@ export const CATEGORIES = Object.keys(CATEGORY_LABELS) as NotificationCategory[]
 const PREFIX_CATEGORY: readonly (readonly [string, NotificationCategory])[] = [
   ['fee.', 'FINANCE'],
   ['order.', 'STORE'],
+  ['store.', 'STORE'],
   ['campaign.', 'STORE'],
   ['card.', 'STORE'],
   ['tryout', 'SPORTS'],

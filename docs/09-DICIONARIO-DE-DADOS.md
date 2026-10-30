@@ -558,6 +558,15 @@ Enums de estados descrevem o vocabulário inicial; transições e responsáveis 
 - Índices/restrições: UK `(userId, productId)`; IX `productId`.
 - Exclusão/auditoria: desfavoritar remove a associação; não é fato financeiro/sensível.
 
+### `StockAlert` — grupo A
+
+- Finalidade: "avise-me quando chegar" de uma variação esgotada (`DT-081`), só com conta.
+- Campos O: `userId`, `productVariantId`.
+- Campos P: nenhum.
+- FKs: `userId -> User` (C); `productVariantId -> ProductVariant` (C).
+- Índices/restrições: UK `(userId, productVariantId)`; IX `productVariantId`. Só aceita variação de produto com estoque (`STOCK`) e sem unidade disponível.
+- Exclusão/auditoria: apagado na mesma transação em que a pessoa é avisada (entrada que leva o disponível de 0 para mais de 0), ao cancelar e na anonimização da conta; não guarda histórico de interesse. Aparece na exportação de dados do titular.
+
 ### `Cart` — grupo T
 
 - Finalidade: carrinho autenticado ou anônimo convertido no máximo uma vez.
