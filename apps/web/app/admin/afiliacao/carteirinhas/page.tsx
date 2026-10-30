@@ -292,7 +292,13 @@ function CardsList() {
           ))}
         </div>
       ) : null}
-      {list.data ? <Pagination {...list.data.meta} onChange={filters.setPage} /> : null}
+      {list.data ? (
+        <Pagination
+          {...list.data.meta}
+          onChange={filters.setPage}
+          noun={['carteirinha', 'carteirinhas']}
+        />
+      ) : null}
     </>
   );
 }

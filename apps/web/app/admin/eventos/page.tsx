@@ -614,6 +614,7 @@ export default function EventsAdminPage() {
             pageSize={list.data.meta.pageSize}
             total={list.data.meta.total}
             onChange={setPage}
+            noun={['evento', 'eventos']}
           />
         </>
       ) : null}

@@ -98,7 +98,9 @@ export default function NotificationsPage() {
           </div>
         </article>
       ))}
-      {list.data ? <Pagination {...list.data.meta} onChange={setPage} /> : null}
+      {list.data ? (
+        <Pagination {...list.data.meta} onChange={setPage} noun={['aviso', 'avisos']} />
+      ) : null}
       <NotificationPreferencesSection />
     </>
   );

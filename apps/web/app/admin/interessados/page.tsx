@@ -207,7 +207,13 @@ function InterestedList() {
           ) : null}
         </article>
       ))}
-      {list.data ? <Pagination {...list.data.meta} onChange={filters.setPage} /> : null}
+      {list.data ? (
+        <Pagination
+          {...list.data.meta}
+          onChange={filters.setPage}
+          noun={['interessado', 'interessados']}
+        />
+      ) : null}
       <ConfirmDialog
         open={change !== null}
         title={`Marcar como "${change ? INTERESTED_STATUS[change.status].label : ''}"`}

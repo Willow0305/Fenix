@@ -164,7 +164,13 @@ function AthletesList() {
           </div>
         </>
       ) : null}
-      {athletes.data ? <Pagination {...athletes.data.meta} onChange={filters.setPage} /> : null}
+      {athletes.data ? (
+        <Pagination
+          {...athletes.data.meta}
+          onChange={filters.setPage}
+          noun={['atleta', 'atletas']}
+        />
+      ) : null}
     </>
   );
 }

@@ -266,6 +266,7 @@ export default function NewsAdminPage() {
             pageSize={list.data.meta.pageSize}
             total={list.data.meta.total}
             onChange={setPage}
+            noun={['notícia', 'notícias']}
           />
         </>
       ) : null}

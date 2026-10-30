@@ -252,7 +252,9 @@ export default function ObligationsPage() {
           </table>
         </div>
       ) : null}
-      {list.data ? <Pagination {...list.data.meta} onChange={setPage} /> : null}
+      {list.data ? (
+        <Pagination {...list.data.meta} onChange={setPage} noun={['conta', 'contas']} />
+      ) : null}
 
       <ConfirmDialog
         open={settling !== null}

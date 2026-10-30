@@ -269,7 +269,9 @@ export default function ProductsAdminPage() {
           </table>
         </div>
       ) : null}
-      {products.data ? <Pagination {...products.data.meta} onChange={setPage} /> : null}
+      {products.data ? (
+        <Pagination {...products.data.meta} onChange={setPage} noun={['produto', 'produtos']} />
+      ) : null}
     </>
   );
 }

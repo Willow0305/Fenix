@@ -157,6 +157,7 @@ export default function AppointmentsAdminPage() {
             pageSize={list.data.meta.pageSize}
             total={list.data.meta.total}
             onChange={setPage}
+            noun={['agendamento', 'agendamentos']}
           />
         </>
       ) : null}

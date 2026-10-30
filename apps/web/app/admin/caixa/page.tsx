@@ -385,7 +385,9 @@ export default function CashPage() {
             </table>
           </div>
         ) : null}
-        {list.data ? <Pagination {...list.data.meta} onChange={setPage} /> : null}
+        {list.data ? (
+          <Pagination {...list.data.meta} onChange={setPage} noun={['lançamento', 'lançamentos']} />
+        ) : null}
       </section>
 
       <ConfirmDialog

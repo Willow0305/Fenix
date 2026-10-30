@@ -120,7 +120,9 @@ export default function OrdersAdminPage() {
           </table>
         </div>
       ) : null}
-      {orders.data ? <Pagination {...orders.data.meta} onChange={setPage} /> : null}
+      {orders.data ? (
+        <Pagination {...orders.data.meta} onChange={setPage} noun={['pedido', 'pedidos']} />
+      ) : null}
     </>
   );
 }

@@ -142,8 +142,6 @@ h3,
 p,
 li,
 dd,
-td,
-th,
 .card,
 .alert,
 .prose,
@@ -151,6 +149,16 @@ th,
 .field-error,
 .empty {
   overflow-wrap: anywhere;
+}
+
+// Célula quebra onde precisar; o cabeçalho não quebra e assim garante a largura mínima de
+// cada coluna (sem "PUBLICAÇÃ O" nem "Iníci o"). A tabela rola na horizontal se faltar espaço.
+td {
+  overflow-wrap: anywhere;
+}
+
+th {
+  white-space: nowrap;
 }
 
 // Filhos de flex/grid encolhem e quebram em vez de esticar a linha.
@@ -1047,28 +1055,40 @@ dialog {
       border-bottom: 0;
     }
 
+    // Rótulo à esquerda e o conteúdo em fluxo normal ao lado: nome com selo, botões e
+    // textos longos ficam juntos na coluna do valor, sem cair debaixo do rótulo.
     td {
-      display: grid;
-      grid-template-columns: minmax(6.5rem, 38%) minmax(0, 1fr);
-      gap: 0.75rem;
-      padding: 0;
+      position: relative;
+      display: block;
+      min-height: 1.4em;
+      padding: 0 0 0 min(38%, 8.5rem);
       border: 0;
       text-align: left;
 
       &::before {
         content: attr(data-label);
+        position: absolute;
+        inset-inline-start: 0;
+        top: 0.1em;
+        width: calc(min(38%, 8.5rem) - 0.75rem);
         color: var(--color-text-muted);
         font-size: 0.8rem;
         font-weight: 600;
+        line-height: 1.3;
       }
 
       &.num {
         text-align: left;
       }
 
+      // Célula sem conteúdo útil não ocupa uma linha inteira só com o rótulo.
+      &:empty {
+        display: none;
+      }
+
       // Primeira coluna (nome) em destaque, sem rótulo.
       &:first-child {
-        grid-template-columns: minmax(0, 1fr);
+        padding-inline-start: 0;
         font-weight: 700;
 
         &::before {

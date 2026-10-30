@@ -220,6 +220,7 @@ function Reports() {
           pageSize={reports.data.meta.pageSize}
           total={reports.data.meta.total}
           onChange={setPage}
+          noun={['denúncia', 'denúncias']}
         />
       ) : null}
       <ConfirmDialog
@@ -289,6 +290,7 @@ function History() {
           pageSize={history.data.meta.pageSize}
           total={history.data.meta.total}
           onChange={setPage}
+          noun={['ação de moderação', 'ações de moderação']}
         />
       ) : null}
     </section>

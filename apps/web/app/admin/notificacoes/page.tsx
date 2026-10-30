@@ -163,7 +163,9 @@ export default function BroadcastPage() {
             </table>
           </div>
         ) : null}
-        {history.data ? <Pagination {...history.data.meta} onChange={setHistoryPage} /> : null}
+        {history.data ? (
+          <Pagination {...history.data.meta} onChange={setHistoryPage} noun={['envio', 'envios']} />
+        ) : null}
       </section>
     </>
   );

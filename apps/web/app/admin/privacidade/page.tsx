@@ -129,6 +129,7 @@ export default function PrivacyAdminPage() {
           pageSize={list.data.meta.pageSize}
           total={list.data.meta.total}
           onChange={setPage}
+          noun={['solicitação', 'solicitações']}
         />
       ) : null}
       <ConfirmDialog

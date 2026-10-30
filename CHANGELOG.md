@@ -11,6 +11,8 @@ O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) e o 
 #### Alterado
 
 - início do painel com "Para fazer agora": as pendências das bolinhas do menu em ordem de urgência (PIX, pedidos, mensalidades, LGPD, devoluções, inscrições, interessados, agendamentos, fórum, avaliações), cada uma com link para resolver.
+- tabelas do painel: cabeçalhos não quebram mais no meio da palavra ("PUBLICAÇÃ O") e garantem a largura mínima da coluna; no celular, cada linha vira cartão com o rótulo à esquerda e o conteúdo junto (nome com selo, botões e situação compactos), em vez de empilhar cada pedaço numa linha;
+- paginação diz o que conta em todas as listas ("187 pedidos", "12 atletas", "3 denúncias") no lugar de "registros".
 
 #### Corrigido
 

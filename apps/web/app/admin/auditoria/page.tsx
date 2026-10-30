@@ -245,7 +245,9 @@ export default function AuditPage() {
           </table>
         </div>
       ) : null}
-      {logs.data ? <Pagination {...logs.data.meta} onChange={setPage} /> : null}
+      {logs.data ? (
+        <Pagination {...logs.data.meta} onChange={setPage} noun={['registro', 'registros']} />
+      ) : null}
     </>
   );
 }

@@ -211,7 +211,13 @@ function FeesList() {
           ) : null}
         </>
       ) : null}
-      {fees.data ? <Pagination {...fees.data.meta} onChange={filters.setPage} /> : null}
+      {fees.data ? (
+        <Pagination
+          {...fees.data.meta}
+          onChange={filters.setPage}
+          noun={['mensalidade', 'mensalidades']}
+        />
+      ) : null}
     </>
   );
 }

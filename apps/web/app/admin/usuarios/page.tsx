@@ -209,7 +209,9 @@ export default function UsersPage() {
           </table>
         </div>
       ) : null}
-      {users.data ? <Pagination {...users.data.meta} onChange={setPage} /> : null}
+      {users.data ? (
+        <Pagination {...users.data.meta} onChange={setPage} noun={['conta', 'contas']} />
+      ) : null}
 
       {can('users.create', 'roles.assign') ? (
         <form className="form card" onSubmit={(event) => void create.submit(event)}>

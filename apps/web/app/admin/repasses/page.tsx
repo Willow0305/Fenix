@@ -138,7 +138,13 @@ function SalesReport({ partnerId }: { readonly partnerId: string }) {
         </div>
       ) : null}
       {report.data && report.data.lines.length > 0 ? (
-        <Pagination page={page} pageSize={20} total={report.data.lines.length} onChange={setPage} />
+        <Pagination
+          page={page}
+          pageSize={20}
+          total={report.data.lines.length}
+          onChange={setPage}
+          noun={['parceiro', 'parceiros']}
+        />
       ) : null}
     </section>
   );
@@ -335,6 +341,7 @@ function SettlementsAdmin() {
             pageSize={list.data.meta.pageSize}
             total={list.data.meta.total}
             onChange={setPage}
+            noun={['repasse', 'repasses']}
           />
         </>
       ) : null}

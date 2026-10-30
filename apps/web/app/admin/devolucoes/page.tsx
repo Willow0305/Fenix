@@ -112,7 +112,9 @@ export default function ReturnsAdminPage() {
           ) : null}
         </article>
       ))}
-      {list.data ? <Pagination {...list.data.meta} onChange={setPage} /> : null}
+      {list.data ? (
+        <Pagination {...list.data.meta} onChange={setPage} noun={['solicitação', 'solicitações']} />
+      ) : null}
 
       <ConfirmDialog
         open={deciding !== null}

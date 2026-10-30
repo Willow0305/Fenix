@@ -270,7 +270,13 @@ export default function ClosingsPage() {
             </table>
           </div>
         ) : null}
-        {closings.data ? <Pagination {...closings.data.meta} onChange={setPage} /> : null}
+        {closings.data ? (
+          <Pagination
+            {...closings.data.meta}
+            onChange={setPage}
+            noun={['fechamento', 'fechamentos']}
+          />
+        ) : null}
       </section>
 
       <ConfirmDialog

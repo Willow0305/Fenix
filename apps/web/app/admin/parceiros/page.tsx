@@ -190,6 +190,7 @@ export default function PartnersAdminPage() {
             pageSize={partners.data.meta.pageSize}
             total={partners.data.meta.total}
             onChange={setPage}
+            noun={['parceiro', 'parceiros']}
           />
         </>
       ) : null}

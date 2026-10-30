@@ -123,7 +123,9 @@ export default function TryoutsAdminPage() {
           </table>
         </div>
       ) : null}
-      {tryouts.data ? <Pagination {...tryouts.data.meta} onChange={setPage} /> : null}
+      {tryouts.data ? (
+        <Pagination {...tryouts.data.meta} onChange={setPage} noun={['seletiva', 'seletivas']} />
+      ) : null}
     </>
   );
 }

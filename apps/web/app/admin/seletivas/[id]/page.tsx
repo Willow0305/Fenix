@@ -254,7 +254,13 @@ export default function TryoutDetailPage() {
             ) : null}
           </article>
         ))}
-        {registrations.data ? <Pagination {...registrations.data.meta} onChange={setPage} /> : null}
+        {registrations.data ? (
+          <Pagination
+            {...registrations.data.meta}
+            onChange={setPage}
+            noun={['inscrição', 'inscrições']}
+          />
+        ) : null}
       </section>
 
       <ConfirmDialog

@@ -132,6 +132,7 @@ export default function ReviewsAdminPage() {
           pageSize={list.data.meta.pageSize}
           total={list.data.meta.total}
           onChange={setPage}
+          noun={['avaliação', 'avaliações']}
         />
       ) : null}
       <ConfirmDialog
