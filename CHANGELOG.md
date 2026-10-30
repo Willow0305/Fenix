@@ -13,6 +13,8 @@ O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) e o 
 - capa de notícias em formato de portal: manchete com foto grande, duas secundárias e lista com capa pequena; categorias como botões; chapéu da categoria e data relativa ("há 2 horas");
 - página da notícia para leitura: uma coluna, texto em 18 px, linha fina destacada, autor e data, "Compartilhar" (WhatsApp e copiar link, D4) e "Leia também" da mesma categoria;
 - dados estruturados de notícia (`NewsArticle`) e cartão de compartilhamento do tipo artigo.
+- agenda de eventos agrupada em "Hoje", "Nos próximos 7 dias" e "Mais para frente", no fuso de Rio Branco, com filtro por tipo (`/eventos?tipo=MATCH`; a API pública aceita `type`);
+- página do evento com a data grande, quando e onde no mesmo bloco, "Adicionar à agenda" (arquivo `.ics`, D4) até o fim do evento, "Compartilhar" e dados estruturados (`SportsEvent`).
 
 ### Plano de experiência: Onda 1, produto e carrinho (2026-10-29)
 

@@ -152,6 +152,16 @@ describe('Fase 7 — comunicação', () => {
 
     expect(await publicIds()).toContain(event.body.id);
 
+    // Filtro por tipo na agenda pública (docs/31, Onda 3).
+    const onlyTraining = await ctx.http().get('/api/v1/public/events?type=TRAINING').expect(200);
+
+    expect(onlyTraining.body.map((e: { id: string }) => e.id)).not.toContain(event.body.id);
+    expect(
+      (await ctx.http().get('/api/v1/public/events?type=MATCH').expect(200)).body.map(
+        (e: { id: string }) => e.id
+      )
+    ).toContain(event.body.id);
+
     const news = await draftNews({ eventId: event.body.id });
     let detail = await ctx.http().get(`/api/v1/public/events/${event.body.slug}`).expect(200);
 

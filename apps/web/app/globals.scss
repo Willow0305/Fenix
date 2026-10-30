@@ -677,10 +677,36 @@ img {
   font-variant-numeric: tabular-nums;
 }
 
-// Página do evento: largura de leitura, como a notícia.
-.event-page {
-  max-width: 50rem;
-  padding-top: 2rem;
+// Página do evento: data grande ao lado de quando e onde.
+.event-when {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  gap: 1.25rem;
+}
+
+.event-date {
+  display: grid;
+  justify-items: center;
+  min-width: 4.5rem;
+  padding: 0.5rem 0.75rem;
+  border-radius: var(--radius-sm);
+  background: var(--color-ink);
+  color: #fff;
+  line-height: 1;
+
+  strong {
+    font-family: var(--font-display);
+    font-size: 2.5rem;
+    font-variant-numeric: tabular-nums;
+  }
+
+  span {
+    font-size: 0.8125rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
 }
 
 // Página do entregador: estreita, para usar no celular na rua.

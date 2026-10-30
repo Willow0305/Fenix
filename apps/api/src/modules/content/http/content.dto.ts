@@ -178,6 +178,7 @@ export class PublicEventQueryDto {
   @IsOptional()
   @IsIn(['upcoming', 'past'])
   scope?: 'upcoming' | 'past';
+  @ApiPropertyOptional({ enum: EventType }) @IsOptional() @IsEnum(EventType) type?: EventType;
   @ApiPropertyOptional()
   @IsOptional()
   @Type(() => Number)

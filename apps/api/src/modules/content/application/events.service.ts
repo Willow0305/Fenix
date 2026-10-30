@@ -479,7 +479,11 @@ export class EventsService {
   }
 
   /** Calendário público: só eventos públicos já publicados (próximos ou recentes). */
-  async publicList(query: { scope?: 'upcoming' | 'past'; limit?: number }): Promise<EventView[]> {
+  async publicList(query: {
+    scope?: 'upcoming' | 'past';
+    type?: EventType;
+    limit?: number;
+  }): Promise<EventView[]> {
     const now = new Date();
     const upcoming = query.scope !== 'past';
     const rows = await this.prisma.event.findMany({
@@ -487,6 +491,7 @@ export class EventsService {
         deletedAt: null,
         isPublic: true,
         publishedAt: { lte: now },
+        ...(query.type ? { type: query.type } : {}),
         status: upcoming ? { in: ['SCHEDULED', 'CANCELLED'] } : { in: ['COMPLETED', 'SCHEDULED'] },
         ...(upcoming
           ? { startsAt: { gte: new Date(now.getTime() - 6 * 3_600_000) } }
