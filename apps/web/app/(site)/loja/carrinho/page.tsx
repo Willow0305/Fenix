@@ -136,7 +136,7 @@ export default function CartPage() {
     return (
       <div className="container stack" style={{ paddingTop: '2rem', maxWidth: 860 }}>
         <PageHeader
-          title="Pedido realizado!"
+          title={`Pedido ${order.orderNumber} realizado`}
           description="Enviamos os detalhes para o seu e-mail."
         />
         {guestAccessCode ? (
@@ -150,7 +150,6 @@ export default function CartPage() {
             Acompanhe em <Link href={`/minha-conta/pedidos/${order.id}`}>Meus pedidos</Link>.
           </Alert>
         )}
-        <OrderSummary order={order} />
         <OrderPayment
           order={order}
           endpoint={guestAccessCode ? '/public/orders/proof' : `/me/orders/${order.id}/proof`}
@@ -159,6 +158,8 @@ export default function CartPage() {
           }
           onDone={(updated) => setResult({ order: updated, guestAccessCode })}
         />
+        {/* O próximo passo (pagar) vem antes do resumo, que é consulta. */}
+        <OrderSummary order={order} />
         <CancelOrder
           order={order}
           {...(guestAccessCode

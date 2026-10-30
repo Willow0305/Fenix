@@ -20,7 +20,7 @@ test('visitante compra e paga com PIX automático', async ({ page }) => {
   }
 
   await page.getByRole('button', { name: /confirmar pedido/i }).click();
-  await expect(page.getByRole('heading', { name: 'Pedido realizado!' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: /^Pedido .+ realizado$/ })).toBeVisible();
   await expect(page.getByText(/código de acesso/i)).toBeVisible();
 
   await page.getByRole('button', { name: /gerar qr pix/i }).click();
@@ -66,7 +66,7 @@ test('visitante escolhe receber em casa e vê a taxa no total', async ({ page },
   }
 
   await page.getByRole('button', { name: /confirmar pedido/i }).click();
-  await expect(page.getByRole('heading', { name: 'Pedido realizado!' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: /^Pedido .+ realizado$/ })).toBeVisible();
   await expect(page.getByText(/Entrega em casa:/)).toBeVisible();
   await expect(page.getByText('Rua das Flores, 10')).toBeVisible();
   expect(watcher.problems).toEqual([]);

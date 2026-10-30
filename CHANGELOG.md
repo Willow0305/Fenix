@@ -15,6 +15,7 @@ O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) e o 
 - busca sem resultado na loja diz o que foi buscado e leva a todos os produtos.
 - finalização na ordem de quem compra: dados, entrega, pagamento, garantias e confirmar;
 - "ou em até 12x no cartão" no produto quando o cartão pelo site está ligado.
+- pedido realizado: título com o número do pedido e pagamento antes do resumo.
 
 #### Corrigido
 

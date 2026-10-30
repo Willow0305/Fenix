@@ -37,7 +37,7 @@ test('entrega em casa do pedido ao código do motoboy', async ({ page, browser, 
   await page.getByLabel(/Celular/).fill('68999990002');
   await page.getByText(/Concordo com as/).click();
   await page.getByRole('button', { name: /confirmar pedido/i }).click();
-  await expect(page.getByRole('heading', { name: 'Pedido realizado!' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: /^Pedido .+ realizado$/ })).toBeVisible();
 
   const notice = page.locator('.alert', { hasText: 'Guarde o código de acesso' });
   const [guestCode, orderNumber] = await notice.locator('strong').allInnerTexts();
