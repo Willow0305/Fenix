@@ -1392,6 +1392,105 @@ a.news-kicker {
   color: var(--color-warning);
 }
 
+// ---- Fórum (Onda 4) ----
+.forum-topics {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.forum-topic {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: start;
+  gap: 0.75rem 1rem;
+  padding: 1rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+
+  &.is-pinned {
+    border-color: var(--color-primary);
+  }
+
+  @media (hover: hover) and (pointer: fine) {
+    &:hover .forum-topic-title a {
+      color: var(--color-primary-dark);
+      text-decoration: underline;
+    }
+  }
+}
+
+.forum-topic-body {
+  display: grid;
+  gap: 0.35rem;
+  min-width: 0;
+
+  > .row:empty {
+    display: none;
+  }
+}
+
+.forum-topic-title {
+  margin: 0;
+  font-family: inherit;
+  font-size: 1.0625rem;
+  font-weight: 700;
+  line-height: 1.3;
+
+  a {
+    color: var(--color-text);
+    text-decoration: none;
+  }
+}
+
+.forum-topic-count {
+  display: grid;
+  justify-items: center;
+  min-width: 4.5rem;
+  line-height: 1.1;
+  color: var(--color-text-muted);
+  font-size: 0.75rem;
+
+  strong {
+    color: var(--color-text);
+    font-family: var(--font-display);
+    font-size: 1.5rem;
+    font-variant-numeric: tabular-nums;
+  }
+
+  @media (max-width: 560px) {
+    display: none;
+  }
+}
+
+// No computador a contagem já aparece na coluna da direita.
+.forum-topic-replies {
+  @media (min-width: 561px) {
+    display: none;
+  }
+}
+
+.forum-board-badge {
+  margin-inline-start: 0.4rem;
+  vertical-align: 0.1em;
+}
+
+.join-forum {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  border-inline-start: 0;
+  background: var(--color-ink);
+  background-image: var(--brand-stripes-soft);
+  color: #fff;
+
+  .list-title {
+    color: #fff;
+  }
+}
+
 .share-buttons {
   display: flex;
   flex-wrap: wrap;

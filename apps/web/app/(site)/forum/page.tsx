@@ -6,7 +6,9 @@ import { Alert, Empty, Loading } from '../../../components/ui';
 import type { Page } from '../../../lib/api-types';
 import { useAuth } from '../../../lib/auth-context';
 import type { ForumCategory, NewsSummary } from '../../../lib/content-types';
-import { formatDateTime, plural } from '../../../lib/format';
+import { plural } from '../../../lib/format';
+import { NewsTime } from '../../../components/news-card';
+import { JoinForumCard } from './join-forum-card';
 import { useResource } from '../../../lib/use-resource';
 
 const VISIBILITY_BADGE: Record<string, string> = {
@@ -27,29 +29,28 @@ export default function ForumPage() {
 
   return (
     <div className="container stack" style={{ paddingTop: '2.5rem' }}>
-      <h1>Fórum</h1>
-      <p className="muted">
-        Espaço da comunidade Fênix. Leia as regras de convivência nos{' '}
-        <Link href="/termos">termos de uso</Link>; conteúdo inadequado pode ser denunciado e é
-        moderado pela diretoria.
-        {status === 'anonymous' ? (
-          <>
-            {' '}
-            <Link href="/entrar?next=/forum">Entre</Link> para participar.
-          </>
-        ) : null}
-      </p>
+      <header className="stack gap-sm">
+        <h1 className="m-0">Fórum</h1>
+        <p className="muted m-0">
+          A conversa da torcida, das famílias e do time. Combinados de convivência nos{' '}
+          <Link href="/termos">termos de uso</Link>; a diretoria modera e responde com o selo
+          "Diretoria".
+        </p>
+      </header>
+      {status === 'anonymous' ? <JoinForumCard next="/forum" /> : null}
 
       {notices.data && notices.data.data.length > 0 ? (
         <section className="card stack" aria-labelledby="comunicados">
-          <h2 id="comunicados" style={{ margin: 0 }}>
-            Comunicados
+          <h2 id="comunicados" className="list-title">
+            Comunicados da diretoria
           </h2>
-          <ul style={{ margin: 0 }}>
+          <ul className="list-plain stack gap-sm">
             {notices.data.data.map((news) => (
               <li key={news.id}>
                 <Link href={`/noticias/${news.slug}`}>{news.title}</Link>{' '}
-                <small className="muted">{formatDateTime(news.publishedAt)}</small>
+                <small className="muted">
+                  <NewsTime iso={news.publishedAt} />
+                </small>
               </li>
             ))}
           </ul>
@@ -72,6 +73,17 @@ export default function ForumPage() {
             <span className="muted">{plural(category.topicCount, 'tópico', 'tópicos')}</span>
           </div>
           {category.description ? <p className="m-0">{category.description}</p> : null}
+          {category.lastTopic ? (
+            <p className="muted m-0">
+              Última conversa:{' '}
+              <Link href={`/forum/topicos/${category.lastTopic.id}`}>
+                {category.lastTopic.title}
+              </Link>{' '}
+              · <NewsTime iso={category.lastTopic.lastActivityAt} />
+            </p>
+          ) : (
+            <p className="muted m-0">Nenhuma conversa ainda. Que tal começar?</p>
+          )}
         </article>
       ))}
     </div>

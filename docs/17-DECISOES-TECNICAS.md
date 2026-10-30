@@ -1670,3 +1670,9 @@ Manter paleta, layout e componentes, e trocar os sinais de interface genérica p
 - `POST /public/news/:slug/view` responde 204 sempre, mesmo para notícia inexistente ou oculta (não revela nada e não conta); limite de 30 por minuto por IP;
 - `GET /public/news-most-read` soma os últimos 7 dias, só entre notícias ainda públicas, desempata pela mais recente; a capa mostra o bloco só com 3 ou mais notícias lidas.
 
+### Implementação: selo "Diretoria" no fórum (2026-10-30)
+
+- o selo sai para quem tem o papel de sistema `board` ("Diretoria") ativo e não vencido, consultado na hora de montar a resposta; não é gravado na mensagem, então tirar o papel tira o selo das mensagens antigas também;
+- "Administrador" não ganha selo: é papel técnico, não cargo do clube; "Atleta" continua sem selo (D7);
+- a lista de tópicos passa a trazer quem respondeu por último e a categoria, o tópico com a mensagem mais recente; respostas = mensagens publicadas menos a que abriu o tópico.
+

@@ -14,7 +14,7 @@ import { AppError } from '../../../common/errors/app-error';
 import { type Page, pageArgs, type PageQueryDto, toPage } from '../../../common/http/pagination';
 import type { Principal, RequestMeta } from '../../../common/http/request-context';
 import { PrismaService, type PrismaTx } from '../../../common/prisma/prisma.service';
-import { PERMISSIONS } from '../../access/domain/permission-catalog';
+import { PERMISSIONS, SYSTEM_ROLES } from '../../access/domain/permission-catalog';
 import { NotificationsService } from '../../notifications/application/notifications.service';
 import { slugify } from '../../sports/domain/sports-rules';
 import {
@@ -42,6 +42,8 @@ export interface ForumCategoryView {
   readonly isActive: boolean;
   readonly topicCount: number;
   readonly canPost: boolean;
+  /** Tópico com a mensagem mais recente que quem lê pode ver (Onda 4). */
+  readonly lastTopic?: { id: string; title: string; lastActivityAt: string } | null;
 }
 
 export interface TopicSummary {
@@ -51,14 +53,18 @@ export interface TopicSummary {
   readonly visibility: ForumVisibility;
   readonly isPinned: boolean;
   readonly author: string | null;
+  /** Autor tem papel da diretoria (selo "Diretoria", D7, DT-081). */
+  readonly authorIsBoard: boolean;
   readonly postCount: number;
   readonly lastActivityAt: string;
+  /** Quem escreveu a mensagem mais recente. */
+  readonly lastAuthor: string | null;
   readonly createdAt: string;
 }
 
 export interface PostView {
   readonly id: string;
-  readonly author: { id: string; name: string } | null;
+  readonly author: { id: string; name: string; isBoard: boolean } | null;
   readonly parentPostId: string | null;
   /** `null` quando removida ou oculta para quem não modera. */
   readonly content: string | null;
@@ -133,6 +139,31 @@ export class ForumService {
   }
 
   /** Mensagens que o leitor vê na contagem e na lista (moderação vê ocultas). */
+  /**
+   * Quem tem o papel "Diretoria" ativo (selo público, D7, DT-081). É papel público do clube;
+   * "Atleta" não aparece porque envolve menores (LGPD).
+   */
+  private async boardMembers(
+    userIds: readonly (string | null | undefined)[]
+  ): Promise<Set<string>> {
+    const ids = [...new Set(userIds.filter((id): id is string => Boolean(id)))];
+
+    if (ids.length === 0) {
+      return new Set();
+    }
+
+    const rows = await this.prisma.userRole.findMany({
+      where: {
+        userId: { in: ids },
+        role: { code: SYSTEM_ROLES.board, deletedAt: null },
+        OR: [{ expiresAt: null }, { expiresAt: { gt: new Date() } }]
+      },
+      select: { userId: true }
+    });
+
+    return new Set(rows.map((row) => row.userId));
+  }
+
   private visiblePostStatuses(viewer: ForumViewer): ForumPostStatus[] {
     return viewer.staff ? ['PUBLISHED', 'HIDDEN', 'DELETED'] : ['PUBLISHED', 'DELETED'];
   }
@@ -162,16 +193,35 @@ export class ForumService {
       }
     });
 
-    return rows.map<ForumCategoryView>((row) => ({
-      id: row.id,
-      name: row.name,
-      slug: row.slug,
-      description: row.description,
-      visibility: row.visibility,
-      isActive: row.isActive,
-      topicCount: row._count.topics,
-      canPost: viewer.authenticated && row.isActive && (row.visibility !== 'STAFF' || viewer.staff)
-    }));
+    const latest = await Promise.all(
+      rows.map((row) =>
+        this.prisma.forumPost.findFirst({
+          where: {
+            status: 'PUBLISHED',
+            topic: { ...this.topicWhere(viewer), categoryId: row.id }
+          },
+          orderBy: { createdAt: 'desc' },
+          select: { createdAt: true, topic: { select: { id: true, title: true } } }
+        })
+      )
+    );
+
+    return rows.map<ForumCategoryView>((row, index) => {
+      const last = latest[index];
+
+      return {
+        id: row.id,
+        name: row.name,
+        slug: row.slug,
+        description: row.description,
+        visibility: row.visibility,
+        isActive: row.isActive,
+        topicCount: row._count.topics,
+        canPost:
+          viewer.authenticated && row.isActive && (row.visibility !== 'STAFF' || viewer.staff),
+        lastTopic: last ? { ...last.topic, lastActivityAt: last.createdAt.toISOString() } : null
+      };
+    });
   }
 
   async createCategory(
@@ -306,7 +356,12 @@ export class ForumService {
         include: {
           authorUser: { select: { name: true } },
           _count: { select: { posts: { where: { status: 'PUBLISHED' } } } },
-          posts: { orderBy: { createdAt: 'desc' }, take: 1, select: { createdAt: true } }
+          posts: {
+            where: { status: 'PUBLISHED' },
+            orderBy: { createdAt: 'desc' },
+            take: 1,
+            select: { createdAt: true, authorUser: { select: { name: true } } }
+          }
         },
         orderBy: [{ isPinned: 'desc' }, { updatedAt: 'desc' }],
         skip,
@@ -314,6 +369,7 @@ export class ForumService {
       }),
       this.prisma.forumTopic.count({ where })
     ]);
+    const board = await this.boardMembers(rows.map((row) => row.authorUserId));
 
     return {
       category: {
@@ -337,8 +393,10 @@ export class ForumService {
           visibility: row.visibility,
           isPinned: row.isPinned,
           author: row.authorUser?.name ?? null,
+          authorIsBoard: row.authorUserId !== null && board.has(row.authorUserId),
           postCount: row._count.posts,
           lastActivityAt: (row.posts[0]?.createdAt ?? row.createdAt).toISOString(),
+          lastAuthor: row.posts[0]?.authorUser?.name ?? null,
           createdAt: row.createdAt.toISOString()
         })),
         total,
@@ -498,6 +556,11 @@ export class ForumService {
       this.prisma.forumPost.count({ where: { topicId: id, status: 'PUBLISHED' } })
     ]);
     const now = new Date();
+    const board = await this.boardMembers([
+      topic.authorUserId,
+      ...rows.map((post) => post.authorUserId)
+    ]);
+    const lastPost = rows[rows.length - 1];
 
     return {
       id: topic.id,
@@ -506,8 +569,10 @@ export class ForumService {
       visibility: topic.visibility,
       isPinned: topic.isPinned,
       author: topic.authorUser?.name ?? null,
+      authorIsBoard: topic.authorUserId !== null && board.has(topic.authorUserId),
       postCount: published,
-      lastActivityAt: (rows[rows.length - 1]?.createdAt ?? topic.createdAt).toISOString(),
+      lastActivityAt: (lastPost?.createdAt ?? topic.createdAt).toISOString(),
+      lastAuthor: lastPost?.authorUser?.name ?? null,
       createdAt: topic.createdAt.toISOString(),
       category: { id: topic.category.id, name: topic.category.name, slug: topic.category.slug },
       canReply: viewer.authenticated && topic.status === 'PUBLISHED' && topic.category.isActive,
@@ -526,7 +591,9 @@ export class ForumService {
 
           return {
             id: post.id,
-            author: post.authorUser,
+            author: post.authorUser
+              ? { ...post.authorUser, isBoard: board.has(post.authorUser.id) }
+              : null,
             parentPostId: post.parentPostId,
             content: showContent ? post.content : null,
             status: post.status,
@@ -631,9 +698,13 @@ export class ForumService {
       reactions[reaction.type] += 1;
     }
 
+    const board = await this.boardMembers([post.authorUserId]);
+
     return {
       id: post.id,
-      author: post.authorUser,
+      author: post.authorUser
+        ? { ...post.authorUser, isBoard: board.has(post.authorUser.id) }
+        : null,
       parentPostId: post.parentPostId,
       content: post.status === 'PUBLISHED' ? post.content : null,
       status: post.status,

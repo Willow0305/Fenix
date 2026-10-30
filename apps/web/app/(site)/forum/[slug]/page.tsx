@@ -17,8 +17,16 @@ import {
 import { api } from '../../../../lib/api-client';
 import type { Page } from '../../../../lib/api-types';
 import { useAuth } from '../../../../lib/auth-context';
-import type { ForumCategory, TopicDetail, TopicSummary } from '../../../../lib/content-types';
-import { formatDateTime } from '../../../../lib/format';
+import {
+  type ForumCategory,
+  replyCount,
+  type TopicDetail,
+  type TopicSummary
+} from '../../../../lib/content-types';
+import { plural } from '../../../../lib/format';
+import { Avatar } from '../../../../components/avatar';
+import { NewsTime } from '../../../../components/news-card';
+import { BoardBadge, JoinForumCard } from '../join-forum-card';
 import { useResource } from '../../../../lib/use-resource';
 import { Icon } from '../../../../components/icon';
 
@@ -73,13 +81,10 @@ export default function ForumCategoryPage() {
           <button type="button" className="btn btn-primary" onClick={() => setWriting((v) => !v)}>
             {writing ? 'Fechar' : 'Novo tópico'}
           </button>
-        ) : status === 'anonymous' ? (
-          <Link href={`/entrar?next=/forum/${slug}`} className="btn btn-secondary">
-            Entrar para participar
-          </Link>
         ) : null}
       </div>
-      {category.description ? <p>{category.description}</p> : null}
+      {category.description ? <p className="m-0">{category.description}</p> : null}
+      {status === 'anonymous' ? <JoinForumCard next={`/forum/${slug}`} /> : null}
 
       {writing ? (
         <form className="form card" onSubmit={(event) => void create.submit(event)}>
@@ -119,26 +124,62 @@ export default function ForumCategoryPage() {
         </form>
       ) : null}
 
-      {topics.data.length === 0 ? <Empty>Nenhum tópico ainda.</Empty> : null}
+      {topics.data.length === 0 ? (
+        <Empty>
+          <p className="m-0">Nenhuma conversa aqui ainda.</p>
+          {category.canPost && !writing ? (
+            <button type="button" className="btn btn-primary" onClick={() => setWriting(true)}>
+              Seja o primeiro a abrir um tópico
+            </button>
+          ) : null}
+        </Empty>
+      ) : null}
       {topics.data.length > 0 ? (
-        <ul className="stack" style={{ listStyle: 'none', padding: 0 }}>
-          {topics.data.map((topic) => (
-            <li key={topic.id} className="card row">
-              {topic.isPinned ? <span className="badge badge-brand">Fixado</span> : null}
-              {topic.status === 'CLOSED' ? <span className="badge">Fechado</span> : null}
-              {topic.status === 'HIDDEN' ? (
-                <span className="badge badge-warning">Oculto</span>
-              ) : null}
-              <Link href={`/forum/topicos/${topic.id}`}>
-                <strong>{topic.title}</strong>
-              </Link>
-              <span className="spacer" />
-              <small className="muted">
-                {topic.author ?? 'Conta removida'} · {topic.postCount} mensagem(ns) · última em{' '}
-                {formatDateTime(topic.lastActivityAt)}
-              </small>
-            </li>
-          ))}
+        <ul className="forum-topics list-plain">
+          {topics.data.map((topic) => {
+            const replies = replyCount(topic);
+
+            return (
+              <li key={topic.id} className={`forum-topic${topic.isPinned ? ' is-pinned' : ''}`}>
+                <Avatar src={null} name={topic.author ?? '?'} size={40} />
+                <div className="forum-topic-body">
+                  <div className="row gap-sm">
+                    {topic.isPinned ? (
+                      <span className="badge badge-brand">
+                        <Icon name="pin-angle-fill" /> Fixado
+                      </span>
+                    ) : null}
+                    {topic.status === 'CLOSED' ? <span className="badge">Fechado</span> : null}
+                    {topic.status === 'HIDDEN' ? (
+                      <span className="badge badge-warning">Oculto</span>
+                    ) : null}
+                  </div>
+                  <h2 className="forum-topic-title">
+                    <Link href={`/forum/topicos/${topic.id}`}>{topic.title}</Link>
+                  </h2>
+                  <p className="news-meta m-0">
+                    <span>
+                      {topic.author ?? 'Conta removida'}
+                      {topic.authorIsBoard ? <BoardBadge /> : null}
+                    </span>
+                    <span className="forum-topic-replies">
+                      {replies === 0 ? 'sem respostas' : plural(replies, 'resposta', 'respostas')}
+                    </span>
+                    <span>
+                      {replies > 0 && topic.lastAuthor
+                        ? `última de ${topic.lastAuthor}, `
+                        : 'aberto '}
+                      <NewsTime iso={topic.lastActivityAt} />
+                    </span>
+                  </p>
+                </div>
+                <span className="forum-topic-count" aria-hidden="true">
+                  <strong>{replies}</strong>
+                  <span>{replies === 1 ? 'resposta' : 'respostas'}</span>
+                </span>
+              </li>
+            );
+          })}
         </ul>
       ) : null}
       <Pagination
@@ -146,6 +187,7 @@ export default function ForumCategoryPage() {
         pageSize={topics.meta.pageSize}
         total={topics.meta.total}
         onChange={setPage}
+        noun={['tópico', 'tópicos']}
       />
     </div>
   );

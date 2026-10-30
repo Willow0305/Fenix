@@ -20,9 +20,13 @@ import {
   type ForumPost,
   REACTIONS,
   type ReactionType,
+  replyCount,
   type TopicDetail
 } from '../../../../../lib/content-types';
-import { formatDateTime } from '../../../../../lib/format';
+import { plural } from '../../../../../lib/format';
+import { Avatar } from '../../../../../components/avatar';
+import { NewsTime } from '../../../../../components/news-card';
+import { BoardBadge, JoinForumCard } from '../../join-forum-card';
 import { useResource } from '../../../../../lib/use-resource';
 import { Icon } from '../../../../../components/icon';
 
@@ -88,9 +92,13 @@ function PostItem({
       aria-label={`Mensagem de ${post.author?.name ?? 'conta removida'}`}
     >
       <div className="row">
-        <strong>{post.author?.name ?? 'Conta removida'}</strong>
+        <Avatar src={null} name={post.author?.name ?? '?'} size={36} />
+        <strong>
+          {post.author?.name ?? 'Conta removida'}
+          {post.author?.isBoard ? <BoardBadge /> : null}
+        </strong>
         <small className="muted">
-          {formatDateTime(post.createdAt)}
+          <NewsTime iso={post.createdAt} />
           {post.editedAt ? ' · editada' : ''}
         </small>
         {post.status === 'HIDDEN' ? (
@@ -237,12 +245,25 @@ export default function TopicPage() {
           <Icon name="chevron-left" /> {t.category.name}
         </Link>
       </p>
-      <div className="row">
-        <h1 style={{ margin: 0 }}>{t.title}</h1>
-        {t.isPinned ? <span className="badge badge-brand">Fixado</span> : null}
-        {t.status === 'CLOSED' ? <span className="badge">Fechado</span> : null}
-        {t.status === 'HIDDEN' ? <span className="badge badge-warning">Oculto</span> : null}
-      </div>
+      <header className="stack gap-sm">
+        <div className="row">
+          {t.isPinned ? <span className="badge badge-brand">Fixado</span> : null}
+          {t.status === 'CLOSED' ? <span className="badge">Fechado</span> : null}
+          {t.status === 'HIDDEN' ? <span className="badge badge-warning">Oculto</span> : null}
+        </div>
+        <h1 className="m-0">{t.title}</h1>
+        <p className="news-meta m-0">
+          <span>
+            Aberto por {t.author ?? 'conta removida'}
+            {t.authorIsBoard ? <BoardBadge /> : null}
+          </span>
+          <span>
+            {replyCount(t) === 0
+              ? 'sem respostas ainda'
+              : plural(replyCount(t), 'resposta', 'respostas')}
+          </span>
+        </p>
+      </header>
       {notice ? <Alert kind="success">{notice}</Alert> : null}
       {t.canModerate ? (
         <div className="card row">
@@ -279,30 +300,30 @@ export default function TopicPage() {
         pageSize={t.posts.meta.pageSize}
         total={t.posts.meta.total}
         onChange={setPage}
+        noun={['mensagem', 'mensagens']}
       />
 
       {t.canReply ? (
         <form className="form card" onSubmit={(event) => void send.submit(event)}>
           <ErrorSummary error={send.error} />
           <TextArea
-            label="Responder"
+            label={replyCount(t) === 0 ? 'Seja o primeiro a responder' : 'Sua resposta'}
             required
             rows={4}
             maxLength={10000}
             value={reply}
+            placeholder="Conte o que você acha, tire uma dúvida ou mande um recado para o time."
             onChange={(e) => setReply(e.target.value)}
-            hint="Seja respeitoso. Não publique dados pessoais, de saúde ou de menores."
+            hint="Com respeito. Não publique dados pessoais, de saúde ou de menores."
           />
           <div className="form-actions">
             <button type="submit" className="btn btn-primary" disabled={send.pending}>
-              Enviar
+              Publicar resposta
             </button>
           </div>
         </form>
       ) : status === 'anonymous' ? (
-        <p>
-          <Link href={`/entrar?next=/forum/topicos/${id}`}>Entre</Link> para responder.
-        </p>
+        <JoinForumCard next={`/forum/topicos/${id}`} />
       ) : t.status !== 'PUBLISHED' ? (
         <p className="muted">Este tópico não aceita novas mensagens.</p>
       ) : null}

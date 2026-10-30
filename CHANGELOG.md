@@ -6,6 +6,21 @@ O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) e o 
 
 ## [Não publicado]
 
+### Plano de experiência: Onda 4, fórum (2026-10-30)
+
+#### Alterado
+
+- selo "Diretoria" ao lado do nome de quem tem esse papel, nas mensagens e na lista de tópicos (D7, DT-081);
+- lista de tópicos com iniciais do autor, fixados destacados no topo, número de respostas e "última de [nome], há 2 horas"; lista vazia com "Seja o primeiro a abrir um tópico";
+- categorias mostram a última conversa; comunicados da diretoria com data relativa;
+- tópico com "Aberto por", número de respostas e caixa de resposta convidativa ("Sua resposta", "Publicar resposta");
+- quem não entrou vê um cartão "Participe da conversa" com Entrar e Criar conta, no lugar da frase solta;
+- paginação diz o que conta ("2 tópicos", "5 mensagens") em vez de "registros".
+
+#### Corrigido
+
+- script de capturas não encontrava o primeiro tópico do fórum e ganhou a tela de edição da notícia.
+
 ### Plano de experiência: Ondas 2 e 3, notícias e eventos (2026-10-30)
 
 #### Alterado

@@ -150,6 +150,10 @@ Tamanhos relativos: **P** (pequeno), **M** (médio) e **G** (grande). Cada onda 
 
 **Depende de decisão:** agenda do vôlei acreano com eventos de terceiros (**D3**); "adicionar à agenda" e compartilhar (**D4**).
 
+### Onda 4 — Fórum · concluída em 2026-10-30
+
+**Entregue:** selo "Diretoria" (D7); lista de tópicos com autor, fixados, respostas e última atividade; categorias com a última conversa; tópico com caixa de resposta convidativa; cartão "Participe da conversa" para quem não entrou; estados vazios com ação; paginação com o nome do que conta. Revisão: rodar `/interface-review` sobre os commits da Onda 4.
+
 ### Onda 4 — Fórum (M)
 
 **Referências:** fóruns de comunidade (lista com última atividade e número de respostas, fixados no topo) e seções de comentários de portais esportivos (resposta rápida e reações).

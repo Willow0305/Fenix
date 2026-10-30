@@ -454,12 +454,15 @@ export function Pagination({
   page,
   pageSize,
   total,
-  onChange
+  onChange,
+  noun = ['registro', 'registros']
 }: {
   readonly page: number;
   readonly pageSize: number;
   readonly total: number;
   readonly onChange: (page: number) => void;
+  /** O que está sendo contado, no singular e no plural ("tópico", "tópicos"). */
+  readonly noun?: readonly [string, string];
 }) {
   const pages = Math.max(1, Math.ceil(total / pageSize));
 
@@ -469,7 +472,7 @@ export function Pagination({
   }
 
   if (pages <= 1) {
-    return <p className="muted">{plural(total, 'registro', 'registros')}</p>;
+    return <p className="muted">{plural(total, noun[0], noun[1])}</p>;
   }
 
   return (
@@ -483,7 +486,7 @@ export function Pagination({
         Anterior
       </button>
       <span>
-        Página {page} de {pages} · {plural(total, 'registro', 'registros')}
+        Página {page} de {pages} · {plural(total, noun[0], noun[1])}
       </span>
       <button
         type="button"

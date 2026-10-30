@@ -81,7 +81,7 @@ async function dynamicRoutes() {
     routes.push(`/forum/${category.slug}`);
 
     const topics = await getJson(`/api/v1/forum/categories/${category.slug}/topics?pageSize=1`);
-    const topic = Array.isArray(topics) ? topics[0] : topics?.data?.[0];
+    const topic = topics?.topics?.data?.[0];
 
     if (topic?.id) routes.push(`/forum/topicos/${topic.id}`);
   }

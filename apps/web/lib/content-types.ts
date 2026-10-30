@@ -105,6 +105,8 @@ export interface ForumCategory {
   isActive: boolean;
   topicCount: number;
   canPost: boolean;
+  /** Tópico com a mensagem mais recente (Onda 4). */
+  lastTopic?: { id: string; title: string; lastActivityAt: string } | null;
 }
 
 export interface TopicSummary {
@@ -114,14 +116,17 @@ export interface TopicSummary {
   visibility: ForumVisibility;
   isPinned: boolean;
   author: string | null;
+  /** Selo "Diretoria" (D7, DT-081). */
+  authorIsBoard: boolean;
   postCount: number;
   lastActivityAt: string;
+  lastAuthor: string | null;
   createdAt: string;
 }
 
 export interface ForumPost {
   id: string;
-  author: { id: string; name: string } | null;
+  author: { id: string; name: string; isBoard: boolean } | null;
   parentPostId: string | null;
   content: string | null;
   status: ForumPostStatus;
@@ -255,6 +260,11 @@ export function admissionLabel(event: Pick<TeamEvent, 'admission'>): string | nu
   return admission?.price
     ? `Entrada: ${formatMoney(admission.price.amount, admission.price.currency)}`
     : null;
+}
+
+/** Respostas de um tópico: as mensagens publicadas menos a que abriu o tópico. */
+export function replyCount(topic: Pick<TopicSummary, 'postCount'>): number {
+  return Math.max(0, topic.postCount - 1);
 }
 
 /** Placar de partida: "Fênix 3 x 1 Adversário" (ou "a definir"). */
