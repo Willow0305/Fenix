@@ -1632,5 +1632,5 @@ Manter paleta, layout e componentes, e trocar os sinais de interface genérica p
 
 - funcionalidades novas entram na Fase 9 (`docs/16-ROADMAP.md`); cada uma tem modelo, API, permissões, auditoria e testes próprios, com `DT` de implementação quando houver escolha técnica;
 - a avaliação de produto é diferente das "avaliações de profissionais", que continuam fora de fase;
-- a abrangência geográfica dos eventos fica em `PEN-069` para confirmação.
+- abrangência dos eventos externos decidida em 2026-10-29 (`PEN-069`): qualquer lugar, com Rio Branco e o Acre em destaque e filtro "Acre" e "Outros lugares".
 
