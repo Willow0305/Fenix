@@ -14,6 +14,7 @@ import {
   useSubmit
 } from '../../../components/ui';
 import { api } from '../../../lib/api-client';
+import { ImageGalleryManager } from '../../../components/image-gallery-manager';
 import type { AdminTeam, BrandContext } from '../../../lib/api-types';
 import { useAuth } from '../../../lib/auth-context';
 import { formatDateTime } from '../../../lib/format';
@@ -354,6 +355,20 @@ export default function SettingsPage() {
               />
             ))}
           </div>
+          {settings.data ? (
+            <ImageGalleryManager<AdminTeam>
+              basePath="/team-settings/photos"
+              images={settings.data.photos ?? []}
+              onChange={settings.setData}
+              max={20}
+              title="Fotos do clube"
+              noun="no clube"
+              intro="Passam sozinhas, uma de cada vez, na página Sobre, na ordem daqui. Arraste ou use as setas para ordenar. A descrição vira a legenda e ajuda quem usa leitor de tela. Use só fotos com autorização de imagem."
+              emptyText="Nenhuma foto ainda. Sem fotos, a página Sobre mostra a imagem de capa."
+              placeholder="Ex.: elencos masculino e feminino reunidos"
+              removeDescription="A foto sai da página Sobre."
+            />
+          ) : null}
         </section>
       ) : null}
     </>

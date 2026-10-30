@@ -126,6 +126,7 @@ const LOCKABLE_TABLES = {
   variant: 'product_variants',
   product: 'products',
   news: 'news',
+  teamSettings: 'team_settings',
   campaign: 'sales_campaigns',
   coupon: 'coupons',
   obligation: 'financial_obligations',

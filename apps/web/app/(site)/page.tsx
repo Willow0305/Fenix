@@ -21,14 +21,13 @@ export default async function HomePage() {
   ]);
   const membership = memberships?.data[0];
   const logo = team.brandAssets.OFFICIAL;
-  const cover = team.brandAssets.COVER;
   const male = firstTeamLogo(teams, 'MALE') ?? logo?.url;
   const female = firstTeamLogo(teams, 'FEMALE') ?? logo?.url;
 
   return (
     <>
       <section className={styles.hero} aria-labelledby="hero-title">
-        <div className={`container ${styles.heroInner}${cover ? ` ${styles.withPhoto}` : ''}`}>
+        <div className={`container ${styles.heroInner}`}>
           <div className={styles.heroText}>
             <p className={styles.eyebrow}>{team.officialName}</p>
             <h1 id="hero-title">Renascer a cada jogo.</h1>
@@ -44,19 +43,9 @@ export default async function HomePage() {
               </Link>
             </div>
           </div>
-          {cover ? (
-            // Foto do time enviada em Configurações › Imagem de capa (D2, DT-081).
-            <img
-              className={styles.heroPhoto}
-              src={cover.url}
-              alt={cover.altText ?? team.officialName}
-              fetchPriority="high"
-            />
-          ) : (
-            <div className={styles.heroLogo}>
-              <BrandLogo src={logo?.url} alt={logo?.altText ?? undefined} size={320} />
-            </div>
-          )}
+          <div className={styles.heroLogo}>
+            <BrandLogo src={logo?.url} alt={logo?.altText ?? undefined} size={320} />
+          </div>
         </div>
       </section>
 

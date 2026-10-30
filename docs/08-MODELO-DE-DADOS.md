@@ -32,7 +32,7 @@ O modelo consolida o PDF de requisitos, o briefing técnico, `AGENTS.md` e as de
 | Domínio | Agregados e entidades |
 |---|---|
 | Identidade e acesso | `User`, `UserSession`, `UserToken`, `Role`, `Permission`, `UserRole`, `RolePermission` |
-| Configurações e arquivos | `TeamSettings`, `TeamBrandAsset`, `MediaFile`, `AuditLog` |
+| Configurações e arquivos | `TeamSettings`, `TeamBrandAsset`, `ClubPhoto`, `MediaFile`, `AuditLog` |
 | Esportivo e inscrições | `Athlete`, `AthleteDocument`, `Category`, `Team`, `TeamAthlete`, `InterestedPerson`, `Tryout`, `TryoutRegistration` |
 | Mensalidades | `MonthlyFeePlan`, `AthleteMonthlyFeePlan`, `MonthlyFee`, `MonthlyFeePayment` |
 | Caixa Fênix | `FinancialAccount`, `FinancialCategory`, `CostCenter`, `FinancialObligation`, `FinancialTransaction`, `FinancialTransfer`, `FinancialTransactionAttachment`, `CashClosing`, `PaymentMethod` |

@@ -1,10 +1,13 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
   Param,
   ParseEnumPipe,
+  ParseUUIDPipe,
   Patch,
+  Post,
   Put,
   UploadedFile,
   UseInterceptors
@@ -30,6 +33,7 @@ import {
 } from '../application/settings.service';
 import {
   BrandAssetBodyDto,
+  ClubPhotoOrderDto,
   UpdateFinancialSettingsDto,
   UpdatePublicSettingsDto
 } from './settings.dto';
@@ -96,6 +100,55 @@ export class SettingsController {
       },
       meta
     );
+  }
+
+  /** Fotos do clube na página Sobre (DT-081): mesmo padrão das fotos do produto. */
+  @Post('team-settings/photos')
+  @ApiBearerAuth()
+  @ApiConsumes('multipart/form-data')
+  @RequirePermissions(PERMISSIONS.logosManage)
+  @UseInterceptors(FileInterceptor('file', UPLOAD_LIMITS))
+  addPhoto(
+    @CurrentPrincipal() principal: Principal,
+    @UploadedFile() file: IncomingFile | undefined,
+    @Body() body: BrandAssetBodyDto,
+    @ReqMeta() meta: RequestMeta
+  ): Promise<AdminTeamSettings> {
+    return this.settings.addPhoto(principal, file, body.altText ?? null, meta);
+  }
+
+  @Put('team-settings/photos/order')
+  @ApiBearerAuth()
+  @RequirePermissions(PERMISSIONS.logosManage)
+  reorderPhotos(
+    @CurrentPrincipal() principal: Principal,
+    @Body() body: ClubPhotoOrderDto,
+    @ReqMeta() meta: RequestMeta
+  ): Promise<AdminTeamSettings> {
+    return this.settings.reorderPhotos(principal, body.imageIds, meta);
+  }
+
+  @Patch('team-settings/photos/:id')
+  @ApiBearerAuth()
+  @RequirePermissions(PERMISSIONS.logosManage)
+  describePhoto(
+    @CurrentPrincipal() principal: Principal,
+    @Param('id', new ParseUUIDPipe()) id: string,
+    @Body() body: BrandAssetBodyDto,
+    @ReqMeta() meta: RequestMeta
+  ): Promise<AdminTeamSettings> {
+    return this.settings.describePhoto(principal, id, body.altText ?? null, meta);
+  }
+
+  @Delete('team-settings/photos/:id')
+  @ApiBearerAuth()
+  @RequirePermissions(PERMISSIONS.logosManage)
+  removePhoto(
+    @CurrentPrincipal() principal: Principal,
+    @Param('id', new ParseUUIDPipe()) id: string,
+    @ReqMeta() meta: RequestMeta
+  ): Promise<AdminTeamSettings> {
+    return this.settings.removePhoto(principal, id, meta);
   }
 
   @Put('team-settings/brand-assets/:context')

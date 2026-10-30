@@ -79,34 +79,6 @@
   }
 }
 
-// Foto do time no lugar da logo, ao lado do texto: o grupo inteiro aparece, sem texto
-// por cima dos rostos.
-.withPhoto {
-  grid-template-columns: minmax(0, 1fr) minmax(0, 1.25fr);
-}
-
-.heroPhoto {
-  display: block;
-  width: 100%;
-  aspect-ratio: 3 / 2;
-  object-fit: cover;
-  border-radius: var(--radius-lg);
-  outline: 1px solid rgb(255 255 255 / 10%);
-  outline-offset: -1px;
-  box-shadow: 0 24px 60px rgb(0 0 0 / 50%);
-
-  @media (prefers-reduced-motion: no-preference) {
-    animation: heroPhotoIn 600ms var(--ease-out) both;
-  }
-}
-
-@keyframes heroPhotoIn {
-  from {
-    opacity: 0;
-    transform: translateY(12px) scale(0.98);
-  }
-}
-
 .section {
   padding: 3rem 0 0;
 }
@@ -228,10 +200,6 @@
   .heroInner {
     grid-template-columns: 1fr;
     gap: 1rem;
-  }
-
-  .withPhoto {
-    grid-template-columns: 1fr;
   }
 
   // No celular a logo fica menor, para o convite caber na primeira tela.

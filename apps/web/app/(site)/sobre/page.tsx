@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 
 import { BrandLogo } from '../../../components/brand-logo';
+import { PhotoCarousel } from '../../../components/photo-carousel';
 import { getPublicTeam } from '../../../lib/server-api';
 
 export const metadata: Metadata = { title: 'Sobre' };
@@ -9,10 +10,13 @@ export default async function AboutPage() {
   const team = await getPublicTeam();
   const logo = team.brandAssets.OFFICIAL;
   const cover = team.brandAssets.COVER;
+  const photos = team.photos ?? [];
 
   return (
     <div className="container stack" style={{ paddingTop: '2.5rem' }}>
-      {cover ? (
+      {photos.length > 0 ? (
+        <PhotoCarousel photos={photos} />
+      ) : cover ? (
         <img className="about-cover" src={cover.url} alt={cover.altText ?? ''} loading="eager" />
       ) : null}
       <div className="row">

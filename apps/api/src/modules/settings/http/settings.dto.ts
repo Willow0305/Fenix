@@ -1,8 +1,10 @@
-import { ApiPropertyOptional } from '@nestjs/swagger';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
 import {
   ArrayMaxSize,
+  ArrayMinSize,
   IsArray,
+  IsUUID,
   IsEmail,
   IsOptional,
   IsString,
@@ -98,4 +100,13 @@ export class BrandAssetBodyDto {
   @IsString()
   @MaxLength(180)
   altText?: string;
+}
+
+export class ClubPhotoOrderDto {
+  @ApiProperty({ type: [String], description: 'Todas as fotos do clube na nova ordem.' })
+  @IsArray()
+  @ArrayMinSize(1)
+  @ArrayMaxSize(20)
+  @IsUUID('all', { each: true })
+  imageIds!: string[];
 }

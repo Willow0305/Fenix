@@ -743,9 +743,29 @@ model TeamSettings {
 
   updatedBy   User?             @relation("TeamSettingsUpdater", fields: [updatedById], references: [id], onDelete: SetNull, onUpdate: Cascade)
   brandAssets TeamBrandAsset[]
+  photos      ClubPhoto[]
   pixAccount  FinancialAccount? @relation("PixAccount", fields: [pixAccountId], references: [id], onDelete: SetNull, onUpdate: Cascade)
 
   @@map("team_settings")
+}
+
+/// Fotos do clube na página Sobre, passando em sequência (DT-081); a descrição é a legenda.
+model ClubPhoto {
+  id             String    @id @default(uuid()) @db.Uuid
+  teamSettingsId String    @map("team_settings_id") @db.Uuid
+  mediaFileId    String    @map("media_file_id") @db.Uuid
+  altText        String?   @map("alt_text") @db.VarChar(180)
+  sortOrder      Int       @default(0) @map("sort_order")
+  createdAt      DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt      DateTime  @updatedAt @map("updated_at") @db.Timestamptz(6)
+  deletedAt      DateTime? @map("deleted_at") @db.Timestamptz(6)
+
+  teamSettings TeamSettings @relation(fields: [teamSettingsId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+  mediaFile    MediaFile    @relation(fields: [mediaFileId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+
+  @@unique([teamSettingsId, mediaFileId])
+  @@index([teamSettingsId, sortOrder, deletedAt])
+  @@map("club_photos")
 }
 
 model TeamBrandAsset {
@@ -798,6 +818,7 @@ model MediaFile {
   partnerDocuments      PartnerDocument[]
   productImages         ProductImage[]
   newsImages            NewsImage[]
+  clubPhotos            ClubPhoto[]
   newsCovers            News[]
 
   @@unique([storageProvider, bucket, objectKey])

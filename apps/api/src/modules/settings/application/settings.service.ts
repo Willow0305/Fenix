@@ -8,6 +8,8 @@ import { AppError } from '../../../common/errors/app-error';
 import type { Principal, RequestMeta } from '../../../common/http/request-context';
 import { PrismaService, type PrismaTx } from '../../../common/prisma/prisma.service';
 import { PERMISSIONS } from '../../access/domain/permission-catalog';
+import { lockRow } from '../../finance/application/ledger.service';
+import { isSameImageSet } from '../../store/domain/store-rules';
 import {
   IMAGE_POLICY,
   type IncomingFile,
@@ -48,6 +50,8 @@ export interface PublicTeamSettings {
   readonly storeRules: string | null;
   readonly pickupInstructions: string | null;
   readonly brandAssets: Partial<Record<TeamBrandContext, { url: string; altText: string | null }>>;
+  /** Fotos do clube na página Sobre, na ordem da diretoria (DT-081). */
+  readonly photos: readonly { id: string; url: string; altText: string | null }[];
 }
 
 export interface AdminTeamSettings extends PublicTeamSettings {
@@ -85,6 +89,11 @@ export type PublicSettingsPatch = Partial<{
 
 const SETTINGS_INCLUDE = {
   brandAssets: { select: { context: true, altText: true, mediaFileId: true } },
+  photos: {
+    where: { deletedAt: null },
+    orderBy: { sortOrder: 'asc' },
+    select: { id: true, mediaFileId: true, altText: true }
+  },
   updatedBy: { select: { name: true } }
 } satisfies Prisma.TeamSettingsInclude;
 
@@ -121,6 +130,9 @@ export function defaultSettingsData(): Prisma.TeamSettingsCreateInput {
     timeZone: 'America/Rio_Branco'
   };
 }
+
+/** Fotos do clube: o bastante para a página Sobre sem virar álbum. */
+export const MAX_CLUB_PHOTOS = 20;
 
 const TEAM_LEVEL_CONTEXTS: ReadonlySet<TeamBrandContext> = new Set(['MALE', 'FEMALE']);
 
@@ -175,7 +187,12 @@ export class SettingsService {
           asset.context,
           { url: mediaUrl(asset.mediaFileId), altText: asset.altText }
         ])
-      )
+      ),
+      photos: row.photos.map((photo) => ({
+        id: photo.id,
+        url: mediaUrl(photo.mediaFileId),
+        altText: photo.altText
+      }))
     };
   }
 
@@ -340,6 +357,177 @@ export class SettingsService {
           entityId: settings.id,
           before: { context, mediaFileId: previous?.mediaFileId ?? null },
           after: { context, mediaFileId: stored.id },
+          meta
+        },
+        tx
+      );
+    });
+
+    return this.getAdmin(principal);
+  }
+
+  // ---------- Fotos do clube (página Sobre, DT-081) ----------
+
+  private static caption(value: string | null): string | null {
+    const clean = value?.trim() ?? '';
+
+    return clean === '' ? null : clean.slice(0, 180);
+  }
+
+  async addPhoto(
+    principal: Principal,
+    file: IncomingFile | undefined,
+    altText: string | null,
+    meta: RequestMeta
+  ): Promise<AdminTeamSettings> {
+    await this.prisma.$transaction(async (tx) => {
+      const settings = await this.load(tx);
+
+      await lockRow(tx, 'teamSettings', settings.id);
+
+      const count = await tx.clubPhoto.count({
+        where: { teamSettingsId: settings.id, deletedAt: null }
+      });
+
+      if (count >= MAX_CLUB_PHOTOS) {
+        throw AppError.validation(
+          'TOO_MANY_IMAGES',
+          `O clube pode ter até ${MAX_CLUB_PHOTOS} fotos. Remova uma antes de enviar outra.`
+        );
+      }
+
+      const stored = await this.media.store(
+        file,
+        { ...IMAGE_POLICY, kind: 'IMAGE', classification: 'PUBLIC' },
+        principal.userId,
+        tx
+      );
+
+      await tx.clubPhoto.create({
+        data: {
+          teamSettingsId: settings.id,
+          mediaFileId: stored.id,
+          altText: SettingsService.caption(altText),
+          sortOrder: count
+        }
+      });
+      await this.audit.record(
+        {
+          actorUserId: principal.userId,
+          action: 'settings.photo.added',
+          entityType: 'ClubPhoto',
+          entityId: settings.id,
+          after: { mediaFileId: stored.id },
+          meta
+        },
+        tx
+      );
+    });
+
+    return this.getAdmin(principal);
+  }
+
+  async reorderPhotos(
+    principal: Principal,
+    photoIds: readonly string[],
+    meta: RequestMeta
+  ): Promise<AdminTeamSettings> {
+    await this.prisma.$transaction(async (tx) => {
+      const settings = await this.load(tx);
+
+      await lockRow(tx, 'teamSettings', settings.id);
+
+      const current = await tx.clubPhoto.findMany({
+        where: { teamSettingsId: settings.id, deletedAt: null },
+        orderBy: { sortOrder: 'asc' },
+        select: { id: true }
+      });
+
+      if (
+        !isSameImageSet(
+          current.map((photo) => photo.id),
+          photoIds
+        )
+      ) {
+        throw AppError.conflict(
+          'IMAGES_CHANGED',
+          'As fotos mudaram enquanto você reorganizava. Recarregue a página e tente de novo.'
+        );
+      }
+
+      for (const [index, id] of photoIds.entries()) {
+        await tx.clubPhoto.update({ where: { id }, data: { sortOrder: index } });
+      }
+
+      await this.audit.record(
+        {
+          actorUserId: principal.userId,
+          action: 'settings.photo.reordered',
+          entityType: 'ClubPhoto',
+          entityId: settings.id,
+          before: { order: current.map((photo) => photo.id) },
+          after: { order: photoIds },
+          meta
+        },
+        tx
+      );
+    });
+
+    return this.getAdmin(principal);
+  }
+
+  private async photo(id: string) {
+    const photo = await this.prisma.clubPhoto.findFirst({ where: { id, deletedAt: null } });
+
+    if (photo === null) {
+      throw AppError.notFound('Foto não encontrada.');
+    }
+
+    return photo;
+  }
+
+  async describePhoto(
+    principal: Principal,
+    id: string,
+    altText: string | null,
+    meta: RequestMeta
+  ): Promise<AdminTeamSettings> {
+    const photo = await this.photo(id);
+    const next = SettingsService.caption(altText);
+
+    await this.prisma.$transaction(async (tx) => {
+      await tx.clubPhoto.update({ where: { id }, data: { altText: next } });
+      await this.audit.record(
+        {
+          actorUserId: principal.userId,
+          action: 'settings.photo.updated',
+          entityType: 'ClubPhoto',
+          entityId: id,
+          before: { altText: photo.altText },
+          after: { altText: next },
+          meta
+        },
+        tx
+      );
+    });
+
+    return this.getAdmin(principal);
+  }
+
+  async removePhoto(
+    principal: Principal,
+    id: string,
+    meta: RequestMeta
+  ): Promise<AdminTeamSettings> {
+    await this.photo(id);
+    await this.prisma.$transaction(async (tx) => {
+      await tx.clubPhoto.update({ where: { id }, data: { deletedAt: new Date() } });
+      await this.audit.record(
+        {
+          actorUserId: principal.userId,
+          action: 'settings.photo.removed',
+          entityType: 'ClubPhoto',
+          entityId: id,
           meta
         },
         tx
