@@ -373,3 +373,46 @@ export interface OrderRights {
   items: { orderItemId: string; productName: string; personalized: boolean; available: number }[];
   returns: ReturnView[];
 }
+
+/** Avaliações de produto (DT-081). */
+export type ReviewStatus = 'PENDING' | 'APPROVED' | 'REJECTED';
+
+export const REVIEW_STATUS: Record<ReviewStatus, { label: string; badge: string }> = {
+  PENDING: { label: 'Aguardando aprovação', badge: 'badge-warning' },
+  APPROVED: { label: 'Publicada', badge: 'badge-success' },
+  REJECTED: { label: 'Não publicada', badge: 'badge-danger' }
+};
+
+export interface ProductReviews {
+  average: number | null;
+  count: number;
+  reviews: {
+    id: string;
+    rating: number;
+    comment: string | null;
+    author: string;
+    createdAt: string;
+  }[];
+}
+
+export interface MyReview {
+  canReview: boolean;
+  review: {
+    rating: number;
+    comment: string | null;
+    status: ReviewStatus;
+    moderationReason: string | null;
+  } | null;
+}
+
+export interface AdminReview {
+  id: string;
+  rating: number;
+  comment: string | null;
+  status: ReviewStatus;
+  author: string;
+  product: { id: string; name: string; slug: string };
+  createdAt: string;
+  moderatedAt: string | null;
+  moderationReason: string | null;
+}

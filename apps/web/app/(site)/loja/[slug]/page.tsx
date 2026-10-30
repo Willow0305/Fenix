@@ -12,6 +12,7 @@ import { formatDate, formatDateTime } from '../../../../lib/format';
 import { serverGet } from '../../../../lib/server-api';
 import { FULFILLMENT, type ProductDetail, type ProductSummary } from '../../../../lib/store-types';
 import { ProductPurchase } from './product-purchase';
+import { ProductReviewsSection } from './product-reviews';
 
 async function load(slug: string): Promise<ProductDetail | null> {
   return serverGet<ProductDetail>(`/public/products/${encodeURIComponent(slug)}`, 30);
@@ -164,6 +165,7 @@ export default async function ProductPage({
           ) : null}
         </div>
       </div>
+      {physical ? <ProductReviewsSection productId={product.id} slug={product.slug} /> : null}
       {related.length > 0 ? (
         <section className="related-products" aria-labelledby="relacionados">
           <h2 id="relacionados">Mais em {product.category.name}</h2>

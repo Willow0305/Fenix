@@ -130,6 +130,12 @@ export const ADMIN_NAV: readonly AdminGroup[] = [
         permission: 'campaigns.manage'
       },
       {
+        href: '/admin/avaliacoes',
+        icon: 'star',
+        label: 'Avaliações',
+        permission: 'reviews.moderate'
+      },
+      {
         href: '/admin/cupons',
         icon: 'ticket-perforated',
         label: 'Cupons',

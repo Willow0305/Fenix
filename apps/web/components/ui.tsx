@@ -463,6 +463,11 @@ export function Pagination({
 }) {
   const pages = Math.max(1, Math.ceil(total / pageSize));
 
+  // Lista vazia já mostra o próprio aviso; "0 registros" só repetiria a informação.
+  if (total === 0) {
+    return null;
+  }
+
   if (pages <= 1) {
     return <p className="muted">{plural(total, 'registro', 'registros')}</p>;
   }

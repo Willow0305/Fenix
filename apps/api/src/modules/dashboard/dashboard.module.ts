@@ -177,6 +177,14 @@ export class PendingBadgesService {
       ]);
     }
 
+    if (can(PERMISSIONS.reviewsModerate)) {
+      // Avaliações de produto esperando aprovação (DT-081).
+      tasks.push([
+        '/admin/avaliacoes',
+        () => this.prisma.productReview.count({ where: { status: 'PENDING', deletedAt: null } })
+      ]);
+    }
+
     if (can(PERMISSIONS.feesRead)) {
       tasks.push([
         '/admin/mensalidades',
