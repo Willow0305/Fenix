@@ -5,8 +5,10 @@ import { Icon } from '../../../components/icon';
 import { LiveRefresh } from '../../../components/live-refresh';
 import { ProductCard } from '../../../components/product-card';
 import type { Page } from '../../../lib/api-types';
+import type { Campaign } from '../../../lib/campaign-types';
 import { serverGet } from '../../../lib/server-api';
 import type { ProductSummary, StoreCategory } from '../../../lib/store-types';
+import { CampaignHighlight } from './campaign-highlight';
 import { StoreToolbar } from './store-toolbar';
 
 export const metadata: Metadata = { title: 'Loja' };
@@ -37,10 +39,16 @@ export default async function StorePage({
     query.set('campaign', 'true');
   }
 
-  const [products, categories] = await Promise.all([
+  const browsing = !params.categoria && !params.busca && !params.prevenda && page === 1;
+  const [products, categories, campaigns] = await Promise.all([
     serverGet<Page<ProductSummary>>(`/public/products?${query.toString()}`, 30),
-    serverGet<StoreCategory[]>('/public/product-categories', 60)
+    serverGet<StoreCategory[]>('/public/product-categories', 60),
+    // Só na vitrine (sem filtro): a pré-venda aberta que termina primeiro.
+    browsing ? serverGet<Campaign[]>('/public/campaigns', 30) : Promise.resolve(null)
   ]);
+  const campaign = [...(campaigns ?? [])].sort((a, b) =>
+    a.salesEndAt.localeCompare(b.salesEndAt)
+  )[0];
   const totalPages = products ? Math.ceil(products.meta.total / products.meta.pageSize) : 1;
   const link = (overrides: Record<string, string | undefined>) => {
     const next = new URLSearchParams();
@@ -70,6 +78,7 @@ export default async function StorePage({
         </div>
         <StoreToolbar />
       </div>
+      {campaign ? <CampaignHighlight campaign={campaign} /> : null}
       <nav aria-label="Categorias" className="row">
         <Link
           href={link({ categoria: undefined, prevenda: undefined, pagina: undefined })}

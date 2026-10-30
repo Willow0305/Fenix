@@ -2709,3 +2709,87 @@ details.collapsible {
 .price-installments {
   margin-top: -0.75rem;
 }
+
+// Destaque da pré-venda aberta no topo da loja (Onda 1).
+.campaign-highlight {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 1.25rem 2rem;
+  padding: clamp(1.25rem, 3vw, 2rem);
+  border-radius: var(--radius-md);
+  color: #fff;
+  background: var(--brand-stripes-soft), var(--color-ink);
+
+  h2 {
+    margin: 0.35rem 0;
+    color: #fff;
+    font-size: clamp(1.6rem, 1.2rem + 1.4vw, 2.2rem);
+    text-transform: uppercase;
+  }
+
+  p {
+    margin: 0;
+    color: #e4e1ea;
+  }
+}
+
+.campaign-highlight-text {
+  flex: 1 1 22rem;
+  display: grid;
+  gap: 0.35rem;
+}
+
+.campaign-highlight-tag {
+  display: inline-flex;
+  gap: 0.35rem;
+  align-items: center;
+  justify-self: start;
+  padding: 0.15rem 0.6rem;
+  border-radius: 999px;
+  background: var(--color-primary);
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+
+.campaign-highlight-deadline {
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.campaign-highlight-side {
+  flex: 0 1 20rem;
+  display: grid;
+  gap: 0.75rem;
+}
+
+.campaign-progress {
+  display: grid;
+  gap: 0.35rem;
+  font-size: 0.9rem;
+  color: #e4e1ea;
+  font-variant-numeric: tabular-nums;
+
+  progress {
+    width: 100%;
+    height: 0.5rem;
+    border: 0;
+    border-radius: 999px;
+    background: rgb(255 255 255 / 15%);
+    accent-color: var(--color-primary);
+    overflow: hidden;
+
+    &::-webkit-progress-bar {
+      background: rgb(255 255 255 / 15%);
+    }
+
+    &::-webkit-progress-value {
+      background: var(--color-primary);
+    }
+
+    &::-moz-progress-bar {
+      background: var(--color-primary);
+    }
+  }
+}
