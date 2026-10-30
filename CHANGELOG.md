@@ -6,6 +6,14 @@ O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) e o 
 
 ## [Não publicado]
 
+### Plano de experiência: Ondas 2 e 3, notícias e eventos (2026-10-30)
+
+#### Alterado
+
+- capa de notícias em formato de portal: manchete com foto grande, duas secundárias e lista com capa pequena; categorias como botões; chapéu da categoria e data relativa ("há 2 horas");
+- página da notícia para leitura: uma coluna, texto em 18 px, linha fina destacada, autor e data, "Compartilhar" (WhatsApp e copiar link, D4) e "Leia também" da mesma categoria;
+- dados estruturados de notícia (`NewsArticle`) e cartão de compartilhamento do tipo artigo.
+
 ### Plano de experiência: Onda 1, produto e carrinho (2026-10-29)
 
 #### Alterado

@@ -64,3 +64,50 @@ export function formatPhoneDisplay(value: string | null | undefined): string {
 export function plural(count: number, singular: string, pluralForm: string): string {
   return `${count.toLocaleString('pt-BR')} ${count === 1 ? singular : pluralForm}`;
 }
+
+const RELATIVE = new Intl.RelativeTimeFormat('pt-BR', { numeric: 'auto' });
+
+/**
+ * Data relativa de conteúdo ("há 2 horas", "ontem", "há 3 dias"); depois de uma semana, a
+ * data no fuso do time (docs/31, Onda 2). Instante futuro ou ausente cai na data completa.
+ */
+export function formatRelative(iso: string | null | undefined, now: Date = new Date()): string {
+  if (!iso) {
+    return '—';
+  }
+
+  const minutes = Math.floor((now.getTime() - new Date(iso).getTime()) / 60_000);
+
+  if (minutes < 0) {
+    return formatDateTime(iso);
+  }
+
+  if (minutes < 1) {
+    return 'agora há pouco';
+  }
+
+  if (minutes < 60) {
+    return RELATIVE.format(-minutes, 'minute');
+  }
+
+  if (minutes < 24 * 60) {
+    return RELATIVE.format(-Math.floor(minutes / 60), 'hour');
+  }
+
+  const days = calendarDaysBetween(iso, now);
+
+  return days < 7
+    ? RELATIVE.format(-days, 'day')
+    : new Intl.DateTimeFormat('pt-BR', { dateStyle: 'short', timeZone: TEAM_TIME_ZONE }).format(
+        new Date(iso)
+      );
+}
+
+/** Dias de calendário entre dois instantes, contados no fuso do time. */
+export function calendarDaysBetween(iso: string, now: Date, timeZone = TEAM_TIME_ZONE): number {
+  const civil = (date: Date) => new Intl.DateTimeFormat('en-CA', { timeZone }).format(date);
+
+  return Math.round(
+    (Date.parse(civil(now)) - Date.parse(civil(new Date(iso)))) / (24 * 60 * 60 * 1000)
+  );
+}

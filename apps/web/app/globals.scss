@@ -1161,6 +1161,9 @@ dialog {
 @media (min-width: 1024px) {
   .card-grid > .content-card.is-featured {
     grid-column: 1 / -1;
+  }
+
+  .content-card.is-featured {
     grid-template-columns: minmax(0, 3fr) minmax(0, 2fr);
     grid-template-rows: none;
 
@@ -1173,6 +1176,127 @@ dialog {
       font-size: 1.6rem;
     }
   }
+}
+
+.news-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.25rem 0.5rem;
+  color: var(--color-text-muted);
+  font-size: 0.8125rem;
+
+  > * + :not(.visually-hidden)::before {
+    content: '·';
+    margin-inline-end: 0.5rem;
+  }
+}
+
+// Chapéu da notícia (categoria), como nos portais esportivos.
+.news-kicker {
+  color: var(--color-primary-dark);
+  font-size: 0.8125rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+a.news-kicker {
+  justify-self: start;
+  text-decoration: none;
+
+  @media (hover: hover) and (pointer: fine) {
+    &:hover {
+      text-decoration: underline;
+    }
+  }
+}
+
+// Página de leitura (notícia): uma coluna, texto em 18 px e até ~70 caracteres por linha.
+.reading {
+  display: grid;
+  gap: 1.5rem;
+  max-width: 46rem;
+  padding-top: 2rem;
+}
+
+.reading-header {
+  display: grid;
+  gap: 0.75rem;
+
+  h1 {
+    margin: 0;
+    font-size: clamp(1.875rem, 4vw, 2.5rem);
+    line-height: 1.15;
+    text-wrap: balance;
+  }
+}
+
+.reading-lede {
+  margin: 0;
+  color: var(--color-text-muted);
+  font-size: 1.25rem;
+  line-height: 1.45;
+  text-wrap: pretty;
+}
+
+.reading-body {
+  max-width: 70ch;
+  font-size: 1.125rem;
+  line-height: 1.7;
+}
+
+.reading-more {
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--color-border);
+}
+
+// Linha da lista de notícias: capa pequena à esquerda, chapéu, título e linha fina.
+.news-row {
+  display: grid;
+  grid-template-columns: minmax(0, 8rem) minmax(0, 1fr);
+  align-items: start;
+  gap: 1rem;
+  min-width: 0;
+  padding-block: 1rem;
+  border-top: 1px solid var(--color-border);
+
+  &:first-child {
+    border-top: 0;
+    padding-top: 0;
+  }
+
+  > a {
+    display: block;
+  }
+
+  .media-frame {
+    border-radius: var(--radius-sm);
+  }
+
+  @media (min-width: 720px) {
+    grid-template-columns: minmax(0, 14rem) minmax(0, 1fr);
+  }
+
+  @media (hover: hover) and (pointer: fine) {
+    &:hover .content-card-title a {
+      color: var(--color-primary-dark);
+      text-decoration: underline;
+    }
+  }
+}
+
+.news-row-body {
+  display: grid;
+  gap: 0.35rem;
+  min-width: 0;
+}
+
+.share-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
 }
 
 .date-chip {

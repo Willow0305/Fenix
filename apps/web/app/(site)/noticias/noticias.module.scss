@@ -1,0 +1,19 @@
+// Capa de notícias (docs/31, Onda 2): manchete na linha inteira e duas secundárias abaixo.
+.top {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 1.25rem;
+
+  @media (min-width: 720px) {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+
+    > :first-child {
+      grid-column: 1 / -1;
+    }
+  }
+}
+
+.list {
+  display: grid;
+  max-width: 56rem;
+}
