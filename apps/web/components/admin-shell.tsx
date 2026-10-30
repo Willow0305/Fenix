@@ -2,9 +2,10 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { type ReactNode, useState } from 'react';
+import { type ReactNode, useCallback, useRef, useState } from 'react';
 
 import { useAuth } from '../lib/auth-context';
+import { useMenuDismiss } from '../lib/use-menu-dismiss';
 import { useResource } from '../lib/use-resource';
 import styles from './admin-shell.module.scss';
 import type { PublicTeam } from '../lib/api-types';
@@ -256,6 +257,12 @@ export function AdminShell({ children }: { readonly children: ReactNode }) {
   const { profile, can, logout } = useAuth();
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
+  const menuButton = useRef<HTMLButtonElement>(null);
+  const sidebar = useRef<HTMLElement>(null);
+  const close = useCallback(() => setOpen(false), []);
+
+  // Menu lateral no celular: foco entra nele, Esc fecha e o conteúdo atrás fica inativo.
+  useMenuDismiss({ open, onClose: close, trigger: menuButton, panel: sidebar, focusInside: true });
   // Pendências por item do menu (DT-061); atualizam sozinhas pelo tempo real.
   const badges = useResource<Record<string, number>>(
     can('dashboard.read') ? '/dashboard/badges' : null
@@ -268,6 +275,7 @@ export function AdminShell({ children }: { readonly children: ReactNode }) {
   return (
     <div className={styles.shell}>
       <aside
+        ref={sidebar}
         className={`${styles.sidebar} ${open ? styles.open : ''}`}
         aria-label="Navegação administrativa"
       >
@@ -321,9 +329,10 @@ export function AdminShell({ children }: { readonly children: ReactNode }) {
           onClick={() => setOpen(false)}
         />
       ) : null}
-      <div className={styles.main}>
+      <div className={styles.main} inert={open}>
         <header className={styles.topbar}>
           <button
+            ref={menuButton}
             type="button"
             className={`btn btn-secondary btn-sm ${styles.menu}`}
             aria-expanded={open}

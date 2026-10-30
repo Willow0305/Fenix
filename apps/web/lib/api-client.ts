@@ -45,7 +45,7 @@ export async function parseProblem(response: Response): Promise<ApiError> {
           detail:
             response.status >= 500
               ? 'O serviço está indisponível no momento. Tente novamente.'
-              : 'Não foi possível concluir a operação.'
+              : 'Não foi possível concluir a operação. Confira os dados e tente de novo; se continuar, fale com a diretoria.'
         }
   );
 }

@@ -83,9 +83,12 @@ export function AttributePicker({
                   <button
                     key={option}
                     type="button"
-                    className={`btn btn-sm ${selected ? 'btn-primary' : 'btn-secondary'}`}
-                    style={{ opacity: available || selected ? 1 : 0.5 }}
+                    className={`btn btn-sm ${selected ? 'btn-primary' : 'btn-secondary'}${
+                      available || selected ? '' : ' is-unavailable'
+                    }`}
                     aria-pressed={selected}
+                    // Indisponível não pode ser só "mais apagado" (WCAG 1.4.1).
+                    aria-label={available || selected ? undefined : `${option}, indisponível`}
                     onClick={() => pick(key, option)}
                   >
                     {option}

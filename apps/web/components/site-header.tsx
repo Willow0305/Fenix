@@ -2,10 +2,11 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { useState } from 'react';
+import { useCallback, useRef, useState } from 'react';
 
 import { useAuth } from '../lib/auth-context';
 import { useCart } from '../lib/cart-context';
+import { useMenuDismiss } from '../lib/use-menu-dismiss';
 import { BrandLogo } from './brand-logo';
 import styles from './site-header.module.scss';
 import { Avatar } from './avatar';
@@ -48,6 +49,11 @@ export function SiteHeader({
       : 'Carrinho vazio';
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
+  const menuButton = useRef<HTMLButtonElement>(null);
+  const nav = useRef<HTMLElement>(null);
+  const close = useCallback(() => setOpen(false), []);
+
+  useMenuDismiss({ open, onClose: close, trigger: menuButton, panel: nav });
   const isAdmin = can('dashboard.read');
 
   return (
@@ -59,6 +65,7 @@ export function SiteHeader({
         </Link>
 
         <button
+          ref={menuButton}
           type="button"
           className={styles.menuButton}
           aria-expanded={open}
@@ -69,6 +76,7 @@ export function SiteHeader({
         </button>
 
         <nav
+          ref={nav}
           id="main-nav"
           aria-label="Principal"
           className={`${styles.nav} ${open ? styles.open : ''}`}
