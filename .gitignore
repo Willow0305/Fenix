@@ -39,3 +39,6 @@ uploads/*
 .DS_Store
 Thumbs.db
 Desktop.ini
+
+# Fotos originais de atletas (dado pessoal, possivelmente de menores): nunca versionar (DT-081).
+referencias/fotos/

@@ -1608,3 +1608,29 @@ Manter paleta, layout e componentes, e trocar os sinais de interface genérica p
 - nenhuma regra de negócio, permissão ou rota mudou; regras que o usuário precisa saber antes de agir continuam nos diálogos de confirmação e nas dicas dos campos;
 - o build do site baixa as fontes uma vez (precisa de acesso à internet na hora do `next build`).
 
+## DT-081 — Decisões do plano de experiência e conversão
+
+- **Estado:** Aceita em 2026-10-29; implementação por ondas (`docs/31-PLANO-DE-EXPERIENCIA.md`)
+- **Data:** 2026-10-29
+- **Aprovador:** responsável do projeto (respostas às decisões D1 a D9 do plano)
+
+### Decisão
+
+- **Animação:** só CSS; sem GSAP e sem rolagem suave (substitui a sugestão da skill de vitrine).
+- **Fotos reais** do clube fornecidas pelo responsável, com autorização de imagem (menores com autorização do responsável legal), originais em `referencias/fotos/`; o site usa versões otimizadas cadastradas pelo painel.
+- **Paleta mantida** (vermelho, preto e branco). O verde do uniforme não entra na interface.
+- **Grafismo:** listras verticais da camisa substituem a faixa diagonal de `DT-080`.
+- **Eventos externos:** novo tipo de evento de outros clubes e federações, com organizador, link oficial, times e placar, preço ou entrada gratuita e cidade livre. Notícias e eventos não ficam limitados ao Acre.
+- **Compartilhar** em notícias e eventos e **adicionar à agenda** (arquivo de calendário) nos eventos, sem coleta de dados.
+- **Medição própria:** contagem agregada de visitas e leituras, sem dado pessoal, sem cookies de terceiros; regra registrada em `docs/13`.
+- **Conta de teste local** com segunda etapa, só para capturas automatizadas; bloqueada fora do ambiente local.
+- **Fórum:** selo "Diretoria" nas mensagens de quem tem papel da diretoria.
+- **Notícias:** assuntos em lista controlada pela diretoria, galeria de fotos e "mais lidas" (a partir da medição própria).
+- **Loja:** "avise-me quando chegar" só para quem tem conta, pela notificação existente; avaliações com estrelas de 1 a 5 e comentário, só de quem comprou e recebeu, uma por produto por pessoa, publicadas depois de aprovação da diretoria e exibidas com o primeiro nome.
+
+### Consequências
+
+- funcionalidades novas entram na Fase 9 (`docs/16-ROADMAP.md`); cada uma tem modelo, API, permissões, auditoria e testes próprios, com `DT` de implementação quando houver escolha técnica;
+- a avaliação de produto é diferente das "avaliações de profissionais", que continuam fora de fase;
+- a abrangência geográfica dos eventos fica em `PEN-069` para confirmação.
+

@@ -530,6 +530,14 @@ Prioridades:
 - **Recomendação (já implementada, a confirmar):** manter Barlow Condensed nos títulos e Inter no texto. Ambas têm licença SIL Open Font License. Trocar é uma linha em `apps/web/app/layout.tsx` (token `--font-display`).
 - **Impacto:** `DT-080`, `docs/12-IDENTIDADE-VISUAL.md`.
 
+### PEN-069 — Abrangência dos eventos externos
+
+- **Prioridade:** P2
+- **Bloqueia:** nada; a implementação não limita a cidade
+- **Questão:** o responsável quer noticiar o vôlei do mundo todo, mas ainda não sabe se a agenda de eventos externos fica restrita ao Acre e seus municípios.
+- **Recomendação (adotada até confirmação):** cidade e estado livres no cadastro; a agenda mostra primeiro os eventos de Rio Branco e do Acre, com filtro "Acre" e "Outros lugares".
+- **Impacto:** `DT-081`, agenda de eventos.
+
 ## 11. Critério de resolução
 
 Ao resolver uma pendência:

@@ -44,6 +44,7 @@ Quando as fontes divergirem, a divergência é mantida em [`PENDENCIAS.md`](../P
 | [24-RELATORIO-FASE-5](./24-RELATORIO-FASE-5.md) | remessas e pré-vendas |
 | [29-CORRECAO-DE-TELAS](./29-CORRECAO-DE-TELAS.md) | padrão de correção de telas e registro das correções |
 | [30-REVISAO-GERAL](./30-REVISAO-GERAL.md) | revisão geral: versões, escala, segurança, operação e próximas funcionalidades |
+| [31-PLANO-DE-EXPERIENCIA](./31-PLANO-DE-EXPERIENCIA.md) | plano de experiência e conversão com as skills de design, por ondas |
 | [diagramas/ERD](./diagramas/ERD.md) | relacionamentos Mermaid |
 
 ## Governança

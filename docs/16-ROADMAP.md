@@ -271,6 +271,8 @@ Produção com dados reais continua condicionada às pendências P0 jurídicas e
 
 - cartão de crédito e débito pelo site com Mercado Pago (`DT-079`), entregue em 2026-10-28 em modo de teste: até 12x com juros pagos pelo cliente, sem juros por produto (códigos do Mercado Pago, `PEN-067`), estorno pela fila. O conector real aguarda as credenciais do clube.
 
+- plano de experiência e conversão (`docs/31-PLANO-DE-EXPERIENCIA.md`, `DT-081`), aprovado em 2026-10-29: compartilhar e adicionar à agenda, eventos externos, medição própria agregada, selo "Diretoria" no fórum, assuntos, galeria e "mais lidas" nas notícias, "avise-me quando chegar" e avaliações de produto com estrelas.
+
 **Regra:** onde a regra de negócio não estiver definida, adota-se a recomendação registrada e a dúvida vai para `PENDENCIAS.md`, como em todo o projeto.
 
 ## Gates obrigatórios de cada fase
