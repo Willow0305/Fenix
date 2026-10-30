@@ -97,7 +97,11 @@ Tamanhos relativos: **P** (pequeno), **M** (médio) e **G** (grande). Cada onda 
 - auditoria geral com **better-interface** (escopo: repositório) para ter a linha de base;
 - conta de teste do painel (**D6**).
 
-### Onda 1 — Vender (G) · já iniciada
+### Onda 1 — Vender (G) · concluída em 2026-10-30
+
+**Entregue:** correção dos 5 achados altos e dos médios da auditoria de base; produto (desconto, garantias, parcelas, ações depois de adicionar, "Mais em", avise-me, avaliações); carrinho em duas colunas com "Desfazer"; finalização na ordem natural; pedido realizado com o pagamento primeiro; destaque da pré-venda na loja; página de venda da afiliação (`/afiliacao`); mensagens da API com plural por extenso; fila de avaliações no painel. Pendência aberta: `PEN-070`.
+
+**Revisão final da onda:** rodar `/interface-review` sobre os commits da Onda 1 (a skill só roda chamada pelo responsável).
 
 **Referências:** lojas oficiais de clubes brasileiros (vitrine por categoria, pré-venda em destaque), páginas de produto de marcas esportivas (galeria grande, tamanho em botões, garantia ao lado do botão) e finalizações de grandes varejistas brasileiras (resumo fixo, poucos campos, PIX em destaque).
 
