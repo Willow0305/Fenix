@@ -17,6 +17,7 @@ O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) e o 
 - "ou em até 12x no cartão" no produto quando o cartão pelo site está ligado.
 - pedido realizado: título com o número do pedido e pagamento antes do resumo.
 - loja: destaque da pré-venda aberta no topo, com prazo ("faltam N dias") e o mínimo de unidades pagas para a encomenda acontecer.
+- página de venda da afiliação (`/afiliacao`): descontos reais dos parceiros, como funciona, perguntas frequentes e um único botão; o convite do Início leva para ela.
 
 #### Corrigido
 

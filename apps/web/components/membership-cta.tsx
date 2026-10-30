@@ -22,7 +22,7 @@ export function MembershipCta({
         </p>
       </div>
       <div className="join-cta-actions">
-        <Link href={`/loja/${product.slug}`} className="btn btn-primary">
+        <Link href="/afiliacao" className="btn btn-primary">
           Quero ser afiliado
         </Link>
         <Link href="/parceiros" className="btn join-cta-ghost">

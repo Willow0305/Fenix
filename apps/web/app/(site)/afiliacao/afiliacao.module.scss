@@ -1,0 +1,219 @@
+.hero {
+  background: var(--brand-stripes-soft), var(--color-ink);
+  color: #fff;
+  padding: clamp(2.5rem, 7vw, 5rem) 0;
+}
+
+.heroInner {
+  display: grid;
+  justify-items: start;
+  gap: 1rem;
+
+  h1 {
+    max-width: 680px;
+    margin: 0;
+    font-size: clamp(2.5rem, 1.5rem + 4.5vw, 4.25rem);
+    font-weight: 800;
+    line-height: 0.98;
+    text-transform: uppercase;
+  }
+}
+
+.eyebrow {
+  margin: 0;
+  padding: 0.2rem 0.65rem;
+  border-radius: 999px;
+  background: var(--color-primary);
+  font-size: 0.85rem;
+  font-weight: 700;
+}
+
+.lead {
+  max-width: 680px;
+  margin: 0;
+  color: #e4e1ea;
+  font-size: 1.15rem;
+}
+
+.cta {
+  min-height: 52px;
+  padding-inline: 1.5rem;
+  font-size: 1.05rem;
+}
+
+.proof {
+  margin: 0;
+  color: #e4e1ea;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.closed {
+  margin: 0;
+  color: #e4e1ea;
+}
+
+.body {
+  display: grid;
+  gap: clamp(2.5rem, 6vw, 4rem);
+  padding-top: clamp(2.5rem, 6vw, 4rem);
+}
+
+.section {
+  display: grid;
+  gap: 1rem;
+
+  h2 {
+    margin: 0;
+  }
+}
+
+.benefits {
+  display: grid;
+  gap: 0.75rem;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 18rem), 1fr));
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.benefit {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+  padding: 1rem 1.1rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  box-shadow: var(--shadow-card);
+
+  > div {
+    display: grid;
+    gap: 0.15rem;
+    min-width: 0;
+  }
+
+  small {
+    color: var(--color-text-muted);
+  }
+}
+
+// Desconto grande, como placar.
+.discount {
+  flex: none;
+  color: var(--color-primary-dark);
+  font-family: var(--font-display);
+  font-size: 2.4rem;
+  font-weight: 700;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+
+.steps {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 15rem), 1fr));
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  counter-reset: passo;
+
+  li {
+    display: grid;
+    align-content: start;
+    gap: 0.3rem;
+    padding: 1.1rem;
+    border-radius: var(--radius-md);
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    counter-increment: passo;
+
+    &::before {
+      content: counter(passo);
+      color: var(--color-primary);
+      font-family: var(--font-display);
+      font-size: 2rem;
+      font-weight: 700;
+      line-height: 1;
+    }
+  }
+
+  span {
+    color: var(--color-text-subtle);
+  }
+}
+
+// Frase revelada palavra por palavra ao rolar (só CSS, DT-081). Sem suporte ou com
+// "reduzir movimento", aparece inteira na cor cheia.
+.tagline {
+  p {
+    max-width: 680px;
+    margin: 0;
+    font-family: var(--font-display);
+    font-size: clamp(2.25rem, 1.5rem + 3vw, 3.75rem);
+    font-weight: 700;
+    line-height: 1.05;
+    text-transform: uppercase;
+    text-wrap: balance;
+  }
+}
+
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+    .tagline span {
+      animation: word-on cubic-bezier(0.22, 1, 0.36, 1) both;
+      animation-timeline: view();
+      animation-range: entry calc(30% + var(--i) * 5%) entry calc(45% + var(--i) * 5%);
+    }
+  }
+}
+
+@keyframes word-on {
+  from {
+    color: rgb(11 6 19 / 28%);
+  }
+
+  to {
+    color: var(--color-text);
+  }
+}
+
+.faq {
+  display: grid;
+  gap: 0.5rem;
+  max-width: 50rem;
+
+  details {
+    padding: 0.9rem 1.1rem;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    background: var(--color-surface);
+  }
+
+  summary {
+    cursor: pointer;
+    font-weight: 600;
+  }
+
+  p {
+    margin: 0.6rem 0 0;
+    color: var(--color-text-subtle);
+  }
+}
+
+.final {
+  display: grid;
+  justify-items: center;
+  gap: 1rem;
+  padding: clamp(2rem, 5vw, 3rem) 1.25rem;
+  border-radius: var(--radius-lg);
+  background: var(--brand-stripes-soft), var(--color-ink);
+  color: #fff;
+  text-align: center;
+
+  h2 {
+    margin: 0;
+    color: #fff;
+    text-transform: uppercase;
+  }
+}
