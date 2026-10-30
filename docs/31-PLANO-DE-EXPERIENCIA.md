@@ -165,6 +165,10 @@ Tamanhos relativos: **P** (pequeno), **M** (médio) e **G** (grande). Cada onda 
 
 **Depende de decisão:** selo "Diretoria" (**D7**).
 
+### Onda 5 — Painel da diretoria · concluída em 2026-10-30
+
+**Entregue:** "Para fazer agora" no início do painel (pendências do menu em ordem de urgência); valores em reais com separador de milhar (formatados a partir do decimal) e plural por extenso nas mensagens; padrão de tabela sem palavras partidas e com cartão compacto no celular; paginação com o nome do que conta; botão de salvar fixo em formulário longo; campos que não esticam; Caixa com saldo por conta compacto. Revisão no celular: nenhuma das 43 telas passa da largura de 390 px; as mais altas são listas paginadas. A revisão com `/interface-review` fica para o fim de todas as ondas.
+
 ### Onda 5 — Painel da diretoria (G)
 
 **Referências:** painéis administrativos de lojas virtuais e de gestão esportiva (tela inicial com "o que fazer hoje", tabelas com ação no fim da linha, formulários em seções).

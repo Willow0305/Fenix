@@ -14,6 +14,7 @@ O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) e o 
 - tabelas do painel: cabeçalhos não quebram mais no meio da palavra ("PUBLICAÇÃ O") e garantem a largura mínima da coluna; no celular, cada linha vira cartão com o rótulo à esquerda e o conteúdo junto (nome com selo, botões e situação compactos), em vez de empilhar cada pedaço numa linha;
 - paginação diz o que conta em todas as listas ("187 pedidos", "12 atletas", "3 denúncias") no lugar de "registros".
 - formulários longos do painel mantêm o botão de salvar visível no rodapé enquanto se rola.
+- Caixa Fênix: saldo por conta numa tabela compacta (recolhida quando há mais de 6 contas), no lugar de um cartão por conta.
 
 #### Corrigido
 

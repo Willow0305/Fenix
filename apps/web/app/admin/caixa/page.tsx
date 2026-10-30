@@ -168,12 +168,6 @@ export default function CashPage() {
             </div>
           </div>
           <div className="stat-grid">
-            {s.balances.map((b) => (
-              <div key={b.accountId} className="card">
-                <div className="muted">{b.accountName}</div>
-                <strong>{formatMoney(b.balance.amount)}</strong>
-              </div>
-            ))}
             <div className="card">
               <div className="muted">Pendências</div>
               <span>
@@ -189,6 +183,22 @@ export default function CashPage() {
               </span>
             </div>
           </div>
+          {s.balances.length > 0 ? (
+            // Muitas contas viram uma lista recolhida, para a tela não crescer sem limite.
+            <details className="card" open={s.balances.length <= 6}>
+              <summary>Saldo por conta ({plural(s.balances.length, 'conta', 'contas')})</summary>
+              <table className="table">
+                <tbody>
+                  {s.balances.map((b) => (
+                    <tr key={b.accountId}>
+                      <td>{b.accountName}</td>
+                      <td className="num">{formatMoney(b.balance.amount)}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </details>
+          ) : null}
           {s.byCategory.length > 0 ? (
             <details className="card">
               <summary>Por categoria no período</summary>
