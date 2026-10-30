@@ -15,6 +15,8 @@ import {
   TextField,
   useSubmit
 } from '../../../../components/ui';
+import { Icon } from '../../../../components/icon';
+import { NewsCard } from '../../../../components/news-card';
 import { ImageGalleryManager } from '../../../../components/image-gallery-manager';
 import { ImageUpload } from '../../../../components/image-upload';
 import { api } from '../../../../lib/api-client';
@@ -118,6 +120,17 @@ export default function NewsEditPage() {
 
   const n = news.data;
   const status = n.status ?? 'DRAFT';
+  // O que deixa a notícia boa de ler e de compartilhar (docs/31, Onda 2). É aviso, não trava.
+  const checklist = [
+    { label: 'Capa (aparece no cartão e no compartilhamento)', done: n.coverUrl !== null },
+    { label: 'Resumo (linha fina abaixo do título)', done: Boolean(n.summary?.trim()) },
+    {
+      label: 'Categoria ativa',
+      done: (categories.data ?? []).some((c) => c.id === n.category.id && c.isActive)
+    },
+    { label: 'Pelo menos um assunto', done: n.tags.length > 0 }
+  ];
+  const missing = checklist.filter((item) => !item.done);
   const canPublish = status === 'DRAFT' || status === 'SCHEDULED' || status === 'HIDDEN';
   const check = (key: 'showOnHome' | 'showOnForum' | 'isFeatured', label: string) => (
     <label className="row">
@@ -144,6 +157,35 @@ export default function NewsEditPage() {
         }
       />
       {notice ? <Alert kind="success">{notice}</Alert> : null}
+      <section className="card stack" aria-labelledby="como-vai-aparecer">
+        <h2 id="como-vai-aparecer" className="m-0">
+          Como vai aparecer
+        </h2>
+        <div className="news-preview">
+          <NewsCard news={n} headingLevel="h3" />
+          <div className="stack gap-sm">
+            <p className="m-0">
+              {missing.length === 0
+                ? 'Tudo certo: capa, resumo, categoria e assunto.'
+                : n.isPublic
+                  ? 'Já está no site. Para ficar mais completa, falta:'
+                  : 'Antes de publicar, vale completar o que falta. Dá para publicar mesmo assim.'}
+            </p>
+            <ul className="list-plain stack gap-sm">
+              {checklist.map((item) => (
+                <li key={item.label} className={item.done ? 'check-done' : 'check-missing'}>
+                  <Icon
+                    name={item.done ? 'check-circle-fill' : 'exclamation-circle'}
+                    label={item.done ? 'Feito' : 'Falta'}
+                  />{' '}
+                  {item.label}
+                </li>
+              ))}
+            </ul>
+            <p className="muted m-0">A prévia mostra a versão salva.</p>
+          </div>
+        </div>
+      </section>
       <section className="card stack" aria-label="Publicação">
         <div className="row">
           <span className={`badge ${NEWS_STATUS[status].badge}`}>{NEWS_STATUS[status].label}</span>

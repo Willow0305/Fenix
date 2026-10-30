@@ -1373,6 +1373,25 @@ a.news-kicker {
   text-align: center;
 }
 
+// Painel: prévia do cartão da notícia ao lado do que falta antes de publicar.
+.news-preview {
+  display: grid;
+  gap: 1.25rem;
+
+  @media (min-width: 900px) {
+    grid-template-columns: minmax(0, 22rem) minmax(0, 1fr);
+    align-items: start;
+  }
+}
+
+.check-done .icon {
+  color: var(--color-success);
+}
+
+.check-missing .icon {
+  color: var(--color-warning);
+}
+
 .share-buttons {
   display: flex;
   flex-wrap: wrap;

@@ -75,7 +75,7 @@ async function dynamicRoutes() {
   const category = Array.isArray(categories) ? categories[0] : undefined;
 
   if (product) routes.push(`/loja/${product.slug}`);
-  if (item) routes.push(`/noticias/${item.slug}`);
+  if (item) routes.push(`/noticias/${item.slug}`, `/admin/noticias/${item.id}`);
   if (event) routes.push(`/eventos/${event.slug}`);
   if (category?.slug) {
     routes.push(`/forum/${category.slug}`);
