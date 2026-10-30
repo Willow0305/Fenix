@@ -63,6 +63,14 @@ export function ProductPurchase({ product }: { readonly product: ProductDetail }
     setAdded(true);
   });
 
+  // Parcelas só quando o cartão pelo site está ligado (DT-079). Sem "sem juros": depende do
+  // código do Mercado Pago (PEN-067), que pode não existir para este produto.
+  const card = useResource<{ enabled: boolean; maxInstallments: number }>('/public/card');
+  const installments =
+    card.data?.enabled && card.data.maxInstallments > 1 && product.fulfillmentType !== 'MEMBERSHIP'
+      ? card.data.maxInstallments
+      : null;
+
   async function toggleFavorite() {
     await api(`/me/favorites/${product.id}`, { method: isFavorite ? 'DELETE' : 'PUT' });
     await favorites.reload();
@@ -85,6 +93,9 @@ export function ProductPurchase({ product }: { readonly product: ProductDetail }
           </>
         ) : null}
       </div>
+      {installments ? (
+        <small className="muted price-installments">ou em até {installments}x no cartão</small>
+      ) : null}
       {hasAttributes(active) ? (
         <AttributePicker
           variants={active}

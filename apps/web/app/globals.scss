@@ -2704,3 +2704,8 @@ details.collapsible {
   min-width: 32px;
   min-height: 32px;
 }
+
+// Parcelas logo abaixo do preço, sem o espaço inteiro entre blocos.
+.price-installments {
+  margin-top: -0.75rem;
+}

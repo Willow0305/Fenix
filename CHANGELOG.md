@@ -13,6 +13,8 @@ O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) e o 
 - página do produto: informações sem espaços vazios, selo de desconto ("-11%"), garantias ao lado do botão (PIX, 7 dias para desistir, 90 dias contra defeito), "Finalizar compra" e "Continuar comprando" depois de adicionar e "Mais em [categoria]";
 - carrinho em duas colunas no computador, com resumo fixo; "Remover" discreto com "Desfazer";
 - busca sem resultado na loja diz o que foi buscado e leva a todos os produtos.
+- finalização na ordem de quem compra: dados, entrega, pagamento, garantias e confirmar;
+- "ou em até 12x no cartão" no produto quando o cartão pelo site está ligado.
 
 #### Corrigido
 

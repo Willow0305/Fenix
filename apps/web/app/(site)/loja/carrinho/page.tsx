@@ -366,6 +366,58 @@ export default function CartPage() {
             onSubmit={(event) => void checkout.submit(event)}
           >
             <h2>Finalizar pedido</h2>
+            <ErrorSummary error={checkout.error} />
+            {status === 'authenticated' && profile ? (
+              <p>
+                Pedido em nome de <strong>{profile.name}</strong> ({profile.email}).
+              </p>
+            ) : (
+              <>
+                <p className="muted">
+                  Comprando sem conta. <Link href="/entrar?next=/loja/carrinho">Entre</Link> para
+                  acompanhar pela sua área.
+                </p>
+                <div className="form-grid">
+                  <TextField
+                    label="Nome completo"
+                    maxLength={160}
+                    required
+                    autoComplete="name"
+                    value={form.customerName}
+                    onChange={(e) => setForm({ ...form, customerName: e.target.value })}
+                    error={checkout.fieldError('customerName')}
+                  />
+                  <TextField
+                    label="E-mail"
+                    maxLength={180}
+                    type="email"
+                    required
+                    autoComplete="email"
+                    value={form.customerEmail}
+                    onChange={(e) => setForm({ ...form, customerEmail: e.target.value })}
+                    error={checkout.fieldError('customerEmail')}
+                  />
+                </div>
+              </>
+            )}
+            <PhoneField
+              label="Celular/WhatsApp"
+              required={status !== 'authenticated' || !profile?.phone}
+              value={form.customerPhone}
+              placeholder={profile?.phone ? formatPhoneDisplay(profile.phone) : '(00) 00000-0000'}
+              onValueChange={(value) => setForm({ ...form, customerPhone: value })}
+              error={checkout.fieldError('customerPhone')}
+            />
+            {onlyMembership ? null : (
+              <DeliveryChoice
+                productsTotal={productsTotal}
+                authenticated={status === 'authenticated'}
+                value={delivery}
+                onChange={setDelivery}
+                onFee={setFee}
+                fieldError={checkout.fieldError}
+              />
+            )}
             <fieldset className="form-section stack gap-sm">
               <legend>Como pagar</legend>
               <div className="choice-cards">
@@ -416,66 +468,14 @@ export default function CartPage() {
                       <Icon name="credit-card" /> Cartão ou dinheiro
                     </strong>
                     <small className="muted">
-                      Combine com a diretoria pelo WhatsApp: maquininha, link de pagamento ou
-                      dinheiro na retirada ou entrega. O pedido fica reservado por 72 horas.
+                      Combine pelo WhatsApp: maquininha, link ou dinheiro na retirada ou entrega.
+                      Reservado por 72 horas.
                     </small>
                   </span>
                 </label>
               </div>
             </fieldset>
-            {onlyMembership ? null : (
-              <DeliveryChoice
-                productsTotal={productsTotal}
-                authenticated={status === 'authenticated'}
-                value={delivery}
-                onChange={setDelivery}
-                onFee={setFee}
-                fieldError={checkout.fieldError}
-              />
-            )}
             <ConsumerRights compact />
-            <ErrorSummary error={checkout.error} />
-            {status === 'authenticated' && profile ? (
-              <p>
-                Pedido em nome de <strong>{profile.name}</strong> ({profile.email}).
-              </p>
-            ) : (
-              <>
-                <p className="muted">
-                  Comprando sem conta. <Link href="/entrar?next=/loja/carrinho">Entre</Link> para
-                  acompanhar pela sua área.
-                </p>
-                <div className="form-grid">
-                  <TextField
-                    label="Nome completo"
-                    maxLength={160}
-                    required
-                    autoComplete="name"
-                    value={form.customerName}
-                    onChange={(e) => setForm({ ...form, customerName: e.target.value })}
-                    error={checkout.fieldError('customerName')}
-                  />
-                  <TextField
-                    label="E-mail"
-                    maxLength={180}
-                    type="email"
-                    required
-                    autoComplete="email"
-                    value={form.customerEmail}
-                    onChange={(e) => setForm({ ...form, customerEmail: e.target.value })}
-                    error={checkout.fieldError('customerEmail')}
-                  />
-                </div>
-              </>
-            )}
-            <PhoneField
-              label="Celular/WhatsApp"
-              required={status !== 'authenticated' || !profile?.phone}
-              value={form.customerPhone}
-              placeholder={profile?.phone ? formatPhoneDisplay(profile.phone) : '(00) 00000-0000'}
-              onValueChange={(value) => setForm({ ...form, customerPhone: value })}
-              error={checkout.fieldError('customerPhone')}
-            />
             <TextArea
               label="Observações (opcional)"
               maxLength={2000}
