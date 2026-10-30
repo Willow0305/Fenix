@@ -5,25 +5,14 @@
   color: #fff;
   padding: clamp(2.5rem, 6vw, 4.5rem) 0;
 
-  // Faixa diagonal da camisa atrás da logo (DT-080), escolhida pelo responsável no lugar
-  // das listras verticais (2026-10-30). A fênix vermelha nunca fica sobre vermelho.
+  // Brilho vermelho suave atrás da logo: o fundo original, escolhido pelo responsável no
+  // lugar da faixa diagonal e das listras (2026-10-30).
   &::before {
     content: '';
     position: absolute;
     inset: 0;
-    background: linear-gradient(
-      112deg,
-      transparent 0 47%,
-      var(--color-primary) 47% 53%,
-      transparent 53% 55.5%,
-      rgb(205 21 29 / 35%) 55.5% 57%,
-      transparent 57%
-    );
+    background: radial-gradient(circle at 80% 30%, rgb(205 21 29 / 35%), transparent 55%);
     pointer-events: none;
-
-    @media (max-width: 760px) {
-      background: var(--brand-slash-soft);
-    }
   }
 }
 
