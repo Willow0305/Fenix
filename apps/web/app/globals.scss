@@ -46,6 +46,14 @@
   --duration-press: 140ms;
   --duration-fast: 180ms;
   --duration-base: 240ms;
+  // Faixa diagonal (DT-080), de volta no herói e nos convites a pedido do responsável
+  // (2026-10-30). A forma forte fica só no herói da página inicial (home.module.scss).
+  --brand-slash-soft: linear-gradient(
+    112deg,
+    transparent 0 60%,
+    rgb(205 21 29 / 16%) 60% 68%,
+    transparent 68%
+  );
   // Listras verticais da camisa (DT-081): risca fina, como no uniforme vermelho.
   // As listras fortes ficam só no herói da página inicial (home.module.scss).
   --brand-stripes-soft: repeating-linear-gradient(
@@ -1823,7 +1831,7 @@ a.news-kicker {
   padding: 1.5rem;
   border-radius: var(--radius-md);
   color: #fff;
-  background: var(--brand-stripes-soft), var(--color-ink);
+  background: var(--brand-slash-soft), var(--color-ink);
   box-shadow: var(--shadow-card);
 
   h2 {

@@ -5,26 +5,24 @@
   color: #fff;
   padding: clamp(2.5rem, 6vw, 4.5rem) 0;
 
-  // Listras verticais da camisa (DT-081): duas fortes na borda direita, como no centro da
-  // camisa branca, e a risca fina no fundo. A fênix vermelha nunca fica sobre vermelho.
+  // Faixa diagonal da camisa atrás da logo (DT-080), escolhida pelo responsável no lugar
+  // das listras verticais (2026-10-30). A fênix vermelha nunca fica sobre vermelho.
   &::before {
     content: '';
     position: absolute;
     inset: 0;
-    background:
-      linear-gradient(
-        90deg,
-        transparent 0 calc(100% - 7.5rem),
-        var(--color-primary) calc(100% - 7.5rem) calc(100% - 5rem),
-        transparent calc(100% - 5rem) calc(100% - 4rem),
-        var(--color-primary-dark) calc(100% - 4rem) calc(100% - 3.25rem),
-        transparent calc(100% - 3.25rem)
-      ),
-      var(--brand-stripes-soft);
+    background: linear-gradient(
+      112deg,
+      transparent 0 47%,
+      var(--color-primary) 47% 53%,
+      transparent 53% 55.5%,
+      rgb(205 21 29 / 35%) 55.5% 57%,
+      transparent 57%
+    );
     pointer-events: none;
 
     @media (max-width: 760px) {
-      background: var(--brand-stripes-soft);
+      background: var(--brand-slash-soft);
     }
   }
 }

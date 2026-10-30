@@ -6,6 +6,12 @@ O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) e o 
 
 ## [Não publicado]
 
+### Identidade: faixa diagonal de volta no início (2026-10-30)
+
+#### Alterado
+
+- herói da página inicial e convites "Afiliações abertas" e "Quer jogar com a gente?" voltam à faixa diagonal da camisa (`DT-080`), a pedido do responsável; a risca fina vertical fica nas demais superfícies escuras (DT-081 revisto).
+
 ### Plano de experiência: Onda 5, painel da diretoria (2026-10-30)
 
 #### Alterado

@@ -1619,7 +1619,7 @@ Manter paleta, layout e componentes, e trocar os sinais de interface genérica p
 - **Animação:** só CSS; sem GSAP e sem rolagem suave (substitui a sugestão da skill de vitrine).
 - **Fotos reais** do clube fornecidas pelo responsável, com autorização de imagem (menores com autorização do responsável legal), originais em `referencias/fotos/`; o site usa versões otimizadas cadastradas pelo painel.
 - **Paleta mantida** (vermelho, preto e branco). O verde do uniforme não entra na interface.
-- **Grafismo:** listras verticais da camisa substituem a faixa diagonal de `DT-080`.
+- **Grafismo:** listras verticais da camisa substituem a faixa diagonal de `DT-080`. **Revisto em 2026-10-30:** a pedido do responsável, o herói da página inicial e os convites "Afiliações abertas" e "Quer jogar com a gente?" voltam à faixa diagonal; a risca fina vertical continua nas demais superfícies escuras.
 - **Eventos externos:** novo tipo de evento de outros clubes e federações, com organizador, link oficial, times e placar, preço ou entrada gratuita e cidade livre. Notícias e eventos não ficam limitados ao Acre.
 - **Compartilhar** em notícias e eventos e **adicionar à agenda** (arquivo de calendário) nos eventos, sem coleta de dados.
 - **Medição própria:** contagem agregada de visitas e leituras, sem dado pessoal, sem cookies de terceiros; regra registrada em `docs/13`.

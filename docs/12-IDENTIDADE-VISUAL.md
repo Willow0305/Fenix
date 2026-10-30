@@ -146,10 +146,10 @@ As duas são servidas pelo próprio site (`next/font`), sem pedido ao Google no 
 
 ## Grafismo da marca
 
-As **listras verticais da camisa** são o grafismo do Fênix (`DT-081`, substitui a faixa diagonal de `DT-080`), no lugar de brilhos e degradês genéricos:
+O grafismo do Fênix vem da camisa, no lugar de brilhos e degradês genéricos (`DT-080`, `DT-081`):
 
-- risca fina vermelha sobre o preto, como no uniforme vermelho (`--brand-stripes-soft`): reserva de imagem, convites escuros;
-- duas listras fortes na borda direita do herói da página inicial, como no centro da camisa branca; a fênix vermelha nunca fica sobre vermelho;
+- **faixa diagonal** no herói da página inicial (forma forte, entre o texto e a logo; a fênix vermelha nunca fica sobre vermelho) e nos convites escuros "Afiliações abertas" e "Quer jogar com a gente?" (`--brand-slash-soft`). O responsável preferiu a faixa às listras nesses lugares (2026-10-30);
+- **risca fina vertical** (`--brand-stripes-soft`) nas demais superfícies escuras: reserva de imagem sem foto, página de afiliação, convite do fórum e destaque da pré-venda;
 - a paleta continua vermelho, preto e branco: o verde do uniforme aparece só nas fotos (`DT-081`);
 - não usar borda colorida grossa no topo ou na lateral de cartões como enfeite.
 
