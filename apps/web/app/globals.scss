@@ -2452,9 +2452,255 @@ details.collapsible {
     color: var(--color-text);
     text-decoration: none;
 
+    @media (hover: hover) and (pointer: fine) {
+      &:hover {
+        color: var(--color-primary-dark);
+        text-decoration: underline;
+      }
+    }
+  }
+}
+
+// ---- Página do produto (loja) ----
+.product-page {
+  padding-top: 1.5rem;
+}
+
+.product-layout {
+  display: grid;
+  gap: clamp(1.25rem, 3vw, 2.5rem);
+  grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
+  align-items: start;
+
+  @media (max-width: 860px) {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+// A foto acompanha a rolagem enquanto se lê descrição e opções.
+.product-media {
+  position: sticky;
+  top: calc(80px + env(safe-area-inset-top, 0px));
+
+  @media (max-width: 860px) {
+    position: static;
+  }
+}
+
+// Coluna de informações: linhas no tamanho do conteúdo, sem esticar até a altura da foto.
+.product-info {
+  align-content: start;
+  gap: 0.75rem;
+}
+
+.product-title {
+  margin: 0;
+  font-size: clamp(2rem, 1.5rem + 1.8vw, 2.75rem);
+  line-height: 1.05;
+}
+
+.product-fulfillment {
+  justify-self: start;
+}
+
+.purchase-box {
+  gap: 1rem;
+}
+
+.price-line {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.35rem 0.75rem;
+}
+
+.price-now {
+  color: var(--color-primary-dark);
+  font-family: var(--font-display);
+  font-size: 2.4rem;
+  font-weight: 700;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+
+.buy-row {
+  > .stepper {
+    flex: none;
+  }
+
+  > .btn {
+    flex: 1 1 12rem;
+  }
+}
+
+// Depois de adicionar: o próximo passo fica óbvio (finalizar ou continuar).
+.added-notice {
+  display: grid;
+  gap: 0.6rem;
+  padding: 0.85rem 1rem;
+  border: 1px solid #86efac;
+  border-radius: var(--radius-sm);
+  background: var(--color-success-soft);
+  color: #14532d;
+  font-weight: 600;
+  transition:
+    opacity var(--duration-fast) var(--ease-out),
+    transform var(--duration-base) var(--ease-out);
+
+  @starting-style {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+}
+
+// Garantias ao lado do botão de compra: reduzem o risco percebido.
+.trust-list {
+  display: grid;
+  gap: 0.45rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  color: var(--color-text-subtle);
+  font-size: 0.92rem;
+
+  li {
+    display: flex;
+    gap: 0.55rem;
+    align-items: baseline;
+  }
+
+  .icon {
+    color: var(--color-primary);
+  }
+}
+
+.related-products {
+  margin-top: 3rem;
+}
+
+.related-grid {
+  --card-min: 200px;
+}
+
+// ---- Carrinho e finalização ----
+.cart-page {
+  max-width: 1120px;
+  padding-top: 1.5rem;
+}
+
+// Computador: itens e dados à esquerda, resumo fixo à direita. Celular: itens, resumo, dados.
+.checkout-layout {
+  display: grid;
+  gap: 1.25rem 2rem;
+  grid-template-columns: minmax(0, 1fr) minmax(18rem, 22rem);
+  grid-template-areas:
+    'lines summary'
+    'form summary';
+  align-items: start;
+
+  > .cart-lines {
+    grid-area: lines;
+  }
+
+  > .checkout-summary {
+    grid-area: summary;
+  }
+
+  > .checkout-form {
+    grid-area: form;
+  }
+
+  @media (max-width: 900px) {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas:
+      'lines'
+      'summary'
+      'form';
+  }
+}
+
+.checkout-summary {
+  position: sticky;
+  top: calc(84px + env(safe-area-inset-top, 0px));
+  display: grid;
+  gap: 1rem;
+
+  h2 {
+    margin: 0;
+  }
+
+  .cart-totals {
+    width: 100%;
+    margin: 0;
+    padding-top: 0.75rem;
+    border-top: 1px solid var(--color-border);
+  }
+
+  @media (max-width: 900px) {
+    position: static;
+  }
+}
+
+.cart-line-name {
+  color: var(--color-text);
+  text-decoration: none;
+
+  @media (hover: hover) and (pointer: fine) {
     &:hover {
       color: var(--color-primary-dark);
       text-decoration: underline;
     }
   }
+}
+
+// Remover é secundário: discreto até passar o mouse.
+.btn-link.cart-remove {
+  color: var(--color-text-muted);
+  font-size: 0.9rem;
+  text-decoration: none;
+
+  @media (hover: hover) and (pointer: fine) {
+    &:hover {
+      color: var(--color-danger);
+    }
+  }
+}
+
+.checkout-form .form-actions > .btn {
+  flex: 1 1 100%;
+  min-height: 52px;
+  font-size: 1.05rem;
+}
+
+// Opção sem estoque: riscada e apagada, além do texto para leitor de tela.
+.btn.is-unavailable {
+  opacity: 0.55;
+  text-decoration: line-through;
+}
+
+// Aviso "Removido · Desfazer" no carrinho.
+.removed-notice {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 0.75rem;
+  align-items: center;
+  padding: 0.6rem 0.75rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface);
+  transition: opacity var(--duration-fast) var(--ease-out);
+
+  @starting-style {
+    opacity: 0;
+  }
+
+  > span {
+    flex: 1 1 12rem;
+  }
+}
+
+.btn-link.removed-close {
+  color: var(--color-text-muted);
+  min-width: 32px;
+  min-height: 32px;
 }

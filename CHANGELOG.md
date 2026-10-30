@@ -6,6 +6,18 @@ O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) e o 
 
 ## [Não publicado]
 
+### Plano de experiência: Onda 1, produto e carrinho (2026-10-29)
+
+#### Alterado
+
+- página do produto: informações sem espaços vazios, selo de desconto ("-11%"), garantias ao lado do botão (PIX, 7 dias para desistir, 90 dias contra defeito), "Finalizar compra" e "Continuar comprando" depois de adicionar e "Mais em [categoria]";
+- carrinho em duas colunas no computador, com resumo fixo; "Remover" discreto com "Desfazer";
+- busca sem resultado na loja diz o que foi buscado e leva a todos os produtos.
+
+#### Corrigido
+
+- auditoria de base (docs/31, Anexo B): foco visível em seletores de opção, gráficos e busca; opção esgotada anunciada; contorno de campo com contraste 3:1; menus do celular fecham com Esc; quantidade e botão de compra cabem em 320 px.
+
 ### Plano de experiência: Onda 0 (2026-10-29)
 
 #### Adicionado

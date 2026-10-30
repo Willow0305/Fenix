@@ -4,11 +4,13 @@ import { notFound } from 'next/navigation';
 
 import { Icon } from '../../../../components/icon';
 import { LiveRefresh } from '../../../../components/live-refresh';
+import { ProductCard } from '../../../../components/product-card';
 import { ProductGallery } from '../../../../components/product-gallery';
+import type { Page } from '../../../../lib/api-types';
 import type { Campaign } from '../../../../lib/campaign-types';
 import { formatDate, formatDateTime } from '../../../../lib/format';
 import { serverGet } from '../../../../lib/server-api';
-import { FULFILLMENT, type ProductDetail } from '../../../../lib/store-types';
+import { FULFILLMENT, type ProductDetail, type ProductSummary } from '../../../../lib/store-types';
 import { ProductPurchase } from './product-purchase';
 
 async function load(slug: string): Promise<ProductDetail | null> {
@@ -39,14 +41,23 @@ export default async function ProductPage({
     notFound();
   }
 
-  const campaign = product.campaign
-    ? ((await serverGet<Campaign[]>('/public/campaigns', 30)) ?? []).find(
-        (item) => item.slug === product.campaign?.slug
-      )
-    : undefined;
+  const [campaign, sameCategory] = await Promise.all([
+    product.campaign
+      ? serverGet<Campaign[]>('/public/campaigns', 30).then((rows) =>
+          (rows ?? []).find((item) => item.slug === product.campaign?.slug)
+        )
+      : undefined,
+    // "Mais da categoria": vitrine do que já está à venda, sem regra nova.
+    serverGet<Page<ProductSummary>>(
+      `/public/products?category=${encodeURIComponent(product.category.slug)}&pageSize=5`,
+      60
+    )
+  ]);
+  const related = (sameCategory?.data ?? []).filter((item) => item.id !== product.id).slice(0, 4);
+  const physical = product.fulfillmentType !== 'MEMBERSHIP';
 
   return (
-    <div className="container" style={{ paddingTop: '2rem' }}>
+    <div className="container product-page">
       <LiveRefresh topics={['store']} />
       <nav aria-label="Você está em" className="breadcrumbs">
         <Link href="/loja">Loja</Link>
@@ -59,22 +70,18 @@ export default async function ProductPage({
           {product.name}
         </span>
       </nav>
-      <div
-        style={{
-          display: 'grid',
-          gap: '2rem',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 340px), 1fr))'
-        }}
-      >
-        <ProductGallery images={product.images} productName={product.name} />
-        <div className="stack">
+      <div className="product-layout">
+        <div className="product-media">
+          <ProductGallery images={product.images} productName={product.name} />
+        </div>
+        <div className="stack product-info">
           <span className="muted">
             {product.category.name}
             {product.partner ? ` · vendido por ${product.partner.name}` : ''}
           </span>
-          <h1 style={{ margin: 0 }}>{product.name}</h1>
+          <h1 className="product-title">{product.name}</h1>
           {product.brand ? <span className="muted">Marca: {product.brand}</span> : null}
-          <span className="badge badge-brand" style={{ justifySelf: 'start' }}>
+          <span className="badge badge-brand product-fulfillment">
             {FULFILLMENT[product.fulfillmentType]}
           </span>
           {product.campaign ? (
@@ -125,6 +132,20 @@ export default async function ProductPage({
             <p className="muted">Disponível até {formatDateTime(product.availableUntil)}.</p>
           ) : null}
           <ProductPurchase product={product} />
+          {physical ? (
+            <ul className="trust-list" aria-label="Garantias da compra">
+              <li>
+                <Icon name="qr-code" /> Pagamento por PIX
+              </li>
+              <li>
+                <Icon name="arrow-counterclockwise" /> 7 dias para desistir depois de receber
+                (exceto personalizados)
+              </li>
+              <li>
+                <Icon name="shield-check" /> 90 dias de garantia contra defeito
+              </li>
+            </ul>
+          ) : null}
           {product.description ? (
             <section className="stack gap-sm" aria-labelledby="descricao-produto">
               <h2 id="descricao-produto" className="h-small m-0">
@@ -143,6 +164,16 @@ export default async function ProductPage({
           ) : null}
         </div>
       </div>
+      {related.length > 0 ? (
+        <section className="related-products" aria-labelledby="relacionados">
+          <h2 id="relacionados">Mais em {product.category.name}</h2>
+          <div className="card-grid related-grid">
+            {related.map((item) => (
+              <ProductCard key={item.id} product={item} />
+            ))}
+          </div>
+        </section>
+      ) : null}
     </div>
   );
 }

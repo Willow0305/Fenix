@@ -24,7 +24,7 @@ import { api, errorMessage } from '../../../../lib/api-client';
 import { useAuth } from '../../../../lib/auth-context';
 import { useCart } from '../../../../lib/cart-context';
 import { formatMoney, formatPhoneDisplay } from '../../../../lib/format';
-import type { CouponPreview, Order } from '../../../../lib/store-types';
+import type { CartLine, CouponPreview, Order } from '../../../../lib/store-types';
 import { BeneficiariesEditor } from '../../../../components/beneficiaries-editor';
 import { CartPersonalization } from '../../../../components/cart-personalization';
 import { CouponBox } from '../../../../components/coupon-box';
@@ -38,6 +38,8 @@ export default function CartPage() {
   const { status, profile } = useAuth();
   const { cart, setQuantity, changeOption, reload } = useCart();
   const [lineError, setLineError] = useState<string | null>(null);
+  // Última linha removida, para "Desfazer" (fica até a pessoa agir ou fechar o aviso).
+  const [removed, setRemoved] = useState<CartLine | null>(null);
   const [form, setForm] = useState({
     customerName: '',
     customerEmail: '',
@@ -169,7 +171,7 @@ export default function CartPage() {
   }
 
   return (
-    <div className="container stack" style={{ paddingTop: '2rem', maxWidth: 960 }}>
+    <div className="container stack cart-page">
       <LiveRefresh topics={['store']} onChange={() => void reload()} />
       <PageHeader
         title="Carrinho"
@@ -177,8 +179,8 @@ export default function CartPage() {
           ? { description: `${cart.itemCount} ${cart.itemCount === 1 ? 'item' : 'itens'}` }
           : {})}
         actions={
-          <Link href="/loja">
-            <Icon name="arrow-left" /> Continuar comprando
+          <Link href="/loja" className="back-link">
+            <Icon name="chevron-left" /> Continuar comprando
           </Link>
         }
       />
@@ -189,8 +191,38 @@ export default function CartPage() {
         </Empty>
       ) : null}
       {lineError ? <Alert kind="error">{lineError}</Alert> : null}
+      {/* Região sempre presente: o leitor de tela anuncia quando o texto aparece. */}
+      <div role="status">
+        {removed ? (
+          <div className="removed-notice">
+            <span>
+              Removido: <strong>{removed.productName}</strong>
+            </span>
+            <button
+              type="button"
+              className="btn btn-secondary btn-sm"
+              onClick={() => {
+                const line = removed;
+
+                setRemoved(null);
+                void change(line, line.quantity);
+              }}
+            >
+              <Icon name="arrow-counterclockwise" /> Desfazer
+            </button>
+            <button
+              type="button"
+              className="btn btn-link removed-close"
+              aria-label="Fechar aviso"
+              onClick={() => setRemoved(null)}
+            >
+              <Icon name="x-lg" />
+            </button>
+          </div>
+        ) : null}
+      </div>
       {cart && cart.lines.length > 0 ? (
-        <>
+        <div className="checkout-layout">
           <ul className="cart-lines">
             {cart.lines.map((line) => {
               const choices = line.options.filter(
@@ -237,7 +269,7 @@ export default function CartPage() {
                       <small className="muted">{line.variantName}</small>
                     )}
                     {line.warning === 'UNAVAILABLE' ? (
-                      <span className="field-error">Indisponível — remova para continuar.</span>
+                      <span className="field-error">Indisponível. Remova para continuar.</span>
                     ) : null}
                     {line.warning === 'BENEFICIARIES_REQUIRED' ? (
                       <span className="field-error">
@@ -252,7 +284,10 @@ export default function CartPage() {
                     ) : null}
                     {line.warning === 'INSUFFICIENT_STOCK' ? (
                       <span className="field-error">
-                        Só há {line.available} disponível(is). Ajuste a quantidade.
+                        {line.available === 1
+                          ? 'Só há 1 disponível.'
+                          : `Só há ${line.available ?? 0} disponíveis.`}{' '}
+                        Ajuste a quantidade.
                       </span>
                     ) : null}
                     <div className="cart-line-actions">
@@ -264,8 +299,11 @@ export default function CartPage() {
                       />
                       <button
                         type="button"
-                        className="btn btn-link"
-                        onClick={() => void change(line, 0)}
+                        className="btn btn-link cart-remove"
+                        onClick={() => {
+                          setRemoved(line);
+                          void change(line, 0);
+                        }}
                       >
                         <Icon name="trash3" /> Remover
                       </button>
@@ -281,37 +319,52 @@ export default function CartPage() {
               );
             })}
           </ul>
-          <CouponBox cartTotal={cart.total.amount} applied={coupon} onChange={setCoupon} />
-          <div className="cart-totals">
-            {coupon || delivering ? (
-              <>
-                <span>Produtos</span>
-                <span>{formatMoney((coupon?.subtotal ?? cart.total).amount)}</span>
-              </>
-            ) : null}
-            {coupon ? (
-              <>
-                <span>Desconto ({coupon.code})</span>
-                <span>−{formatMoney(coupon.discount.amount)}</span>
-              </>
-            ) : null}
-            {delivering ? (
-              <>
-                <span>Entrega</span>
-                <span>
-                  {fee === null
-                    ? 'escolha o bairro'
-                    : fee === 0
-                      ? 'Grátis'
-                      : formatMoney(fee.toFixed(2))}
-                </span>
-              </>
-            ) : null}
-            <strong>Total</strong>
-            <strong>{formatMoney(grandTotal)}</strong>
-          </div>
+          <aside className="card checkout-summary" aria-labelledby="resumo-pedido">
+            <h2 id="resumo-pedido">Resumo</h2>
+            <CouponBox cartTotal={cart.total.amount} applied={coupon} onChange={setCoupon} />
+            <div className="cart-totals">
+              {coupon || delivering ? (
+                <>
+                  <span>Produtos</span>
+                  <span>{formatMoney((coupon?.subtotal ?? cart.total).amount)}</span>
+                </>
+              ) : null}
+              {coupon ? (
+                <>
+                  <span>Desconto ({coupon.code})</span>
+                  <span>−{formatMoney(coupon.discount.amount)}</span>
+                </>
+              ) : null}
+              {delivering ? (
+                <>
+                  <span>Entrega</span>
+                  <span>
+                    {fee === null
+                      ? 'escolha o bairro'
+                      : fee === 0
+                        ? 'Grátis'
+                        : formatMoney(fee.toFixed(2))}
+                  </span>
+                </>
+              ) : null}
+              <strong>Total</strong>
+              <strong>{formatMoney(grandTotal)}</strong>
+            </div>
+            <ul className="trust-list">
+              <li>
+                <Icon name="arrow-counterclockwise" /> 7 dias para desistir depois de receber
+                (exceto personalizados)
+              </li>
+              <li>
+                <Icon name="shield-check" /> 90 dias de garantia contra defeito
+              </li>
+            </ul>
+          </aside>
 
-          <form className="form card" onSubmit={(event) => void checkout.submit(event)}>
+          <form
+            className="form card checkout-form"
+            onSubmit={(event) => void checkout.submit(event)}
+          >
             <h2>Finalizar pedido</h2>
             <fieldset className="form-section stack gap-sm">
               <legend>Como pagar</legend>
@@ -464,7 +517,7 @@ export default function CartPage() {
               </button>
             </div>
           </form>
-        </>
+        </div>
       ) : null}
     </div>
   );

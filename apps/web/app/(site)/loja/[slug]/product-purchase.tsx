@@ -19,6 +19,13 @@ import type { ProductDetail } from '../../../../lib/store-types';
 import { useResource } from '../../../../lib/use-resource';
 
 /** Escolha de variação/quantidade e favoritos; o servidor revalida tudo (RN-LOJ-007). */
+/** Desconto inteiro para o selo "-11%"; preços chegam como texto decimal da API. */
+function discountPercent(price: string, listPrice: string): number {
+  const list = Number(listPrice);
+
+  return list > 0 ? Math.round((1 - Number(price) / list) * 100) : 0;
+}
+
 export function ProductPurchase({ product }: { readonly product: ProductDetail }) {
   const { status } = useAuth();
   const { cart, setQuantity } = useCart();
@@ -62,15 +69,20 @@ export function ProductPurchase({ product }: { readonly product: ProductDetail }
   }
 
   return (
-    <div className="card stack">
-      <div className="row">
-        <strong style={{ fontSize: '1.6rem', color: 'var(--color-primary-dark)' }}>
+    <div className="card stack purchase-box">
+      <div className="price-line">
+        <strong className="price-now">
           {formatMoney(
             (Number(variant?.price.amount ?? product.priceFrom.amount) + extras).toFixed(2)
           )}
         </strong>
         {variant && variant.price.amount !== variant.listPrice.amount ? (
-          <s className="muted">{formatMoney(variant.listPrice.amount)}</s>
+          <>
+            <s className="muted">{formatMoney(variant.listPrice.amount)}</s>
+            <span className="badge badge-brand">
+              -{discountPercent(variant.price.amount, variant.listPrice.amount)}%
+            </span>
+          </>
         ) : null}
       </div>
       {hasAttributes(active) ? (
@@ -90,8 +102,9 @@ export function ProductPurchase({ product }: { readonly product: ProductDetail }
             {active.map((v) => (
               <label
                 key={v.id}
-                className={`btn btn-sm ${v.id === variantId ? 'btn-primary' : 'btn-secondary'}`}
-                style={{ opacity: v.inStock ? 1 : 0.5 }}
+                className={`btn btn-sm ${v.id === variantId ? 'btn-primary' : 'btn-secondary'}${
+                  v.inStock ? '' : ' is-unavailable'
+                }`}
               >
                 <input
                   type="radio"
@@ -140,7 +153,7 @@ export function ProductPurchase({ product }: { readonly product: ProductDetail }
           as carteirinhas ficam nela.
         </Alert>
       ) : product.purchasable && variant?.inStock ? (
-        <form className="row" onSubmit={(event) => void add.submit(event)}>
+        <form className="row buy-row" onSubmit={(event) => void add.submit(event)}>
           <QuantityStepper
             label={`Quantidade de ${product.name}`}
             value={quantity}
@@ -164,11 +177,24 @@ export function ProductPurchase({ product }: { readonly product: ProductDetail }
         </small>
       ) : null}
       <ErrorSummary error={add.error} />
-      {added ? (
-        <Alert kind="success">
-          Adicionado ao carrinho. <Link href="/loja/carrinho">Ver carrinho e finalizar</Link>
-        </Alert>
-      ) : null}
+      {/* Região sempre presente: o leitor de tela anuncia quando o texto aparece. */}
+      <div role="status">
+        {added ? (
+          <div className="added-notice">
+            <span>
+              <Icon name="check-circle-fill" /> Adicionado ao carrinho
+            </span>
+            <div className="row">
+              <Link href="/loja/carrinho" className="btn btn-primary btn-sm">
+                Finalizar compra
+              </Link>
+              <Link href="/loja" className="btn btn-secondary btn-sm">
+                Continuar comprando
+              </Link>
+            </div>
+          </div>
+        ) : null}
+      </div>
       {status === 'authenticated' ? (
         <button
           type="button"
@@ -176,7 +202,8 @@ export function ProductPurchase({ product }: { readonly product: ProductDetail }
           onClick={() => void toggleFavorite()}
           aria-pressed={isFavorite}
         >
-          {isFavorite ? '♥ Remover dos favoritos' : '♡ Salvar nos favoritos'}
+          <Icon name={isFavorite ? 'heart-fill' : 'heart'} />{' '}
+          {isFavorite ? 'Remover dos favoritos' : 'Salvar nos favoritos'}
         </button>
       ) : null}
     </div>

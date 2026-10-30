@@ -125,11 +125,20 @@ export default async function StorePage({
       {products === null ? (
         <p className="empty">A loja está indisponível no momento. Tente novamente em instantes.</p>
       ) : products.data.length === 0 ? (
-        <p className="empty">
-          {params.busca || params.categoria || params.prevenda
-            ? 'Nenhum produto encontrado para o filtro.'
-            : 'Novos produtos em breve!'}
-        </p>
+        <div className="empty stack">
+          {params.busca ? (
+            <p className="m-0">Nenhum produto para “{params.busca}”.</p>
+          ) : params.categoria || params.prevenda ? (
+            <p className="m-0">Nenhum produto nesta seção por enquanto.</p>
+          ) : (
+            <p className="m-0">Novos produtos em breve.</p>
+          )}
+          {params.busca || params.categoria || params.prevenda ? (
+            <p className="m-0">
+              <Link href="/loja">Ver todos os produtos</Link>
+            </p>
+          ) : null}
+        </div>
       ) : (
         <div className="card-grid" style={{ '--card-min': '200px' } as React.CSSProperties}>
           {products.data.map((product) => (
