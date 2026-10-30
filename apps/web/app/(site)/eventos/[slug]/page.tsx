@@ -8,8 +8,10 @@ import { MediaImage } from '../../../../components/media-image';
 import { ShareButtons } from '../../../../components/share-buttons';
 import {
   EVENT_STATUS,
+  admissionLabel,
   EVENT_TYPE,
-  scoreLabel,
+  eventHeadline,
+  eventPlace,
   type TeamEvent
 } from '../../../../lib/content-types';
 import { TEAM_TIME_ZONE } from '../../../../lib/format';
@@ -46,7 +48,7 @@ export async function generateMetadata({
     return { title: 'Evento' };
   }
 
-  const title = event.match ? scoreLabel(event.match) : event.title;
+  const title = eventHeadline(event);
   const description =
     event.description?.slice(0, 160) ??
     `${EVENT_TYPE[event.type]} em ${FULL_DATE.format(new Date(event.startsAt))}.`;
@@ -76,15 +78,19 @@ export default async function EventPage({
   // Página renderizada no servidor a cada pedido: o "agora" é o do pedido.
   const now = Date.now();
   const ended = (end ?? new Date(start.getTime() + 2 * 3_600_000)).getTime() < now;
-  const place = [event.locationName, event.address].filter(Boolean).join(' · ');
-  const mapQuery = encodeURIComponent(
-    [event.locationName, event.address].filter(Boolean).join(', ')
-  );
-  const title = event.match ? scoreLabel(event.match) : event.title;
+  const parts = [event.locationName, event.address, eventPlace(event)].filter(Boolean);
+  const place = parts.join(' · ');
+  const mapQuery = encodeURIComponent(parts.join(', '));
+  const title = eventHeadline(event);
+  const competition = event.match?.competitionName ?? event.externalMatch?.competitionName;
+  const admission = admissionLabel(event);
 
   return (
     <article className="container reading">
       <JsonLd data={sportsEventData(event)} />
+      <Link href="/eventos" className="back-link">
+        <Icon name="arrow-left" /> Eventos
+      </Link>
       <header className="reading-header">
         <p className="row m-0">
           <Link href={`/eventos?tipo=${event.type}`} className="news-kicker">
@@ -97,9 +103,7 @@ export default async function EventPage({
           ) : null}
         </p>
         <h1>{title}</h1>
-        {event.match && event.title !== title ? (
-          <p className="reading-lede">{event.title}</p>
-        ) : null}
+        {event.title !== title ? <p className="reading-lede">{event.title}</p> : null}
       </header>
       <section className="card event-when" aria-label="Quando e onde">
         <time className="event-date" dateTime={event.startsAt} aria-hidden="true">
@@ -126,10 +130,28 @@ export default async function EventPage({
               </a>
             </li>
           ) : null}
-          {event.match?.competitionName ? (
+          {competition ? (
             <li>
-              <Icon name="trophy" /> {event.match.competitionName}
-              {event.match.team ? ` · ${event.match.team.name}` : ''}
+              <Icon name="trophy" /> {competition}
+              {event.match?.team ? ` · ${event.match.team.name}` : ''}
+            </li>
+          ) : null}
+          {admission ? (
+            <li>
+              <Icon name="ticket-perforated" /> {admission}
+            </li>
+          ) : null}
+          {event.isExternal && event.organizerName ? (
+            <li>
+              <Icon name="building" /> Organização: {event.organizerName}
+              {event.officialUrl ? (
+                <>
+                  {' '}
+                  <a href={event.officialUrl} target="_blank" rel="noopener noreferrer nofollow">
+                    Página oficial
+                  </a>
+                </>
+              ) : null}
             </li>
           ) : null}
         </ul>

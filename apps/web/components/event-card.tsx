@@ -1,6 +1,13 @@
 import Link from 'next/link';
 
-import { EVENT_STATUS, EVENT_TYPE, scoreLabel, type TeamEvent } from '../lib/content-types';
+import {
+  admissionLabel,
+  EVENT_STATUS,
+  EVENT_TYPE,
+  eventHeadline,
+  eventPlace,
+  type TeamEvent
+} from '../lib/content-types';
 import { TEAM_TIME_ZONE } from '../lib/format';
 import { Icon } from './icon';
 import { MediaImage } from './media-image';
@@ -26,6 +33,9 @@ export function EventCard({
   readonly compact?: boolean;
 }) {
   const start = new Date(event.startsAt);
+  const where = [event.locationName, eventPlace(event)].filter(Boolean).join(' · ');
+  const competition = event.match?.competitionName ?? event.externalMatch?.competitionName;
+  const admission = admissionLabel(event);
 
   return (
     <article id={event.slug} className="content-card">
@@ -42,22 +52,28 @@ export function EventCard({
         </MediaImage>
       </Link>
       <div className="content-card-body">
+        {event.isExternal && event.organizerName ? (
+          <small className="news-kicker">{event.organizerName}</small>
+        ) : null}
         <h3 className="content-card-title line-clamp-2">
-          <Link href={`/eventos/${event.slug}`}>
-            {event.match ? scoreLabel(event.match) : event.title}
-          </Link>
+          <Link href={`/eventos/${event.slug}`}>{eventHeadline(event)}</Link>
         </h3>
         <span className="muted">
           <Icon name="calendar-event" /> <time dateTime={event.startsAt}>{time.format(start)}</time>
         </span>
-        {event.locationName ? (
+        {where ? (
           <span className="muted">
-            <Icon name="geo-alt" /> {event.locationName}
+            <Icon name="geo-alt" /> {where}
           </span>
         ) : null}
-        {event.match?.competitionName ? (
+        {competition ? (
           <span className="muted">
-            <Icon name="trophy" /> {event.match.competitionName}
+            <Icon name="trophy" /> {competition}
+          </span>
+        ) : null}
+        {admission ? (
+          <span className="muted">
+            <Icon name="ticket-perforated" /> {admission}
           </span>
         ) : null}
         {!compact && event.description ? <p className="line-clamp-3">{event.description}</p> : null}

@@ -96,7 +96,7 @@ O contrato completo e executável fica no OpenAPI (`/docs` fora de produção). 
 | `GET` | `/api/v1/public/news[/:slug]?channel=home\|forum&category` · `public/news-categories` | público (somente publicadas) | 7 |
 | `GET`/`POST`/`PATCH` | `/api/v1/news[/:id]` · `news-categories[/:id]` | `news.manage` | 7 |
 | `POST`/`PUT` | `/api/v1/news/:id/publish` (agora ou `scheduledAt`) · `:id/status` · `:id/cover` (multipart) | `news.manage` | 7 |
-| `GET` | `/api/v1/public/events[/:slug]?scope=upcoming\|past` | público | 7 |
+| `GET` | `/api/v1/public/events[/:slug]?scope=upcoming\|past&type=&origin=fenix\|external&region=acre\|outros` | público | 7, DT-081 |
 | `GET`/`POST`/`PATCH`/`PUT` | `/api/v1/events[/:id]` · `:id/status` | `events.manage` | 7 |
 | `GET` | `/api/v1/forum/categories` · `categories/:slug/topics` · `topics/:id` | público conforme visibilidade | 7 |
 | `POST`/`PATCH`/`DELETE`/`PUT` | `/api/v1/forum/categories/:slug/topics` · `topics/:id/posts` · `posts/:id` · `posts/:id/reaction` · `forum/reports` | autenticado, limites antiabuso | 7 |

@@ -1,5 +1,5 @@
 import type { TeamEvent } from './content-types';
-import { scoreLabel } from './content-types';
+import { eventHeadline } from './content-types';
 import { calendarDaysBetween } from './format';
 
 /** Sem término informado, o evento ocupa 2 horas na agenda da pessoa. */
@@ -66,7 +66,7 @@ export function eventIcs(event: TeamEvent, url: string, now: Date = new Date()):
     `DTSTAMP:${icsDate(now)}`,
     `DTSTART:${icsDate(event.startsAt)}`,
     `DTEND:${icsDate(end)}`,
-    `SUMMARY:${icsText(event.match ? scoreLabel(event.match) : event.title)}`,
+    `SUMMARY:${icsText(eventHeadline(event))}`,
     ...(place ? [`LOCATION:${icsText(place)}`] : []),
     `DESCRIPTION:${icsText(description)}`,
     `URL:${url}`,

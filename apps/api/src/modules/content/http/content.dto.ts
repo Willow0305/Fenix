@@ -120,7 +120,41 @@ export class MatchDto {
   @ApiPropertyOptional() @IsOptional() @IsInt() @Min(0) @Max(99) opponentScore?: number;
 }
 
-export class EventDto {
+export class ExternalMatchDto {
+  @ApiProperty() @IsString() @MinLength(2) @MaxLength(160) homeTeamName!: string;
+  @ApiProperty() @IsString() @MinLength(2) @MaxLength(160) awayTeamName!: string;
+  @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(160) competitionName?: string;
+  @ApiPropertyOptional() @IsOptional() @IsInt() @Min(0) @Max(99) homeScore?: number;
+  @ApiPropertyOptional() @IsOptional() @IsInt() @Min(0) @Max(99) awayScore?: number;
+}
+
+/** Dados de agenda e de evento externo (D3, DT-081); texto vazio apaga o valor. */
+class EventDetailsDto {
+  @ApiPropertyOptional() @IsOptional() @IsBoolean() isExternal?: boolean;
+  @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(160) organizerName?: string;
+  @ApiPropertyOptional({ description: 'Endereço https da página oficial.' })
+  @IsOptional()
+  @IsString()
+  @MaxLength(500)
+  officialUrl?: string;
+  @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(120) city?: string;
+  @ApiPropertyOptional({ description: 'UF (ex.: AC); vazio fora do Brasil.' })
+  @IsOptional()
+  @Matches(/^([A-Za-z]{2})?$/, { message: 'Use a sigla da UF, como AC.' })
+  state?: string;
+  @ApiPropertyOptional() @IsOptional() @IsBoolean() isFree?: boolean;
+  @ApiPropertyOptional({ example: '20.00', description: 'Vazio apaga o preço.' })
+  @IsOptional()
+  @Matches(/^(\d{1,8}(\.\d{1,2})?)?$/, { message: 'Informe o preço como 20.00.' })
+  ticketPrice?: string;
+  @ApiPropertyOptional({ type: ExternalMatchDto, nullable: true, description: 'null remove.' })
+  @IsOptional()
+  @ValidateNested()
+  @Type(() => ExternalMatchDto)
+  externalMatch?: ExternalMatchDto | null;
+}
+
+export class EventDto extends EventDetailsDto {
   @ApiProperty() @IsString() @MinLength(3) @MaxLength(180) title!: string;
   @ApiProperty({ enum: EventType }) @IsEnum(EventType) type!: EventType;
   @ApiProperty() @IsISO8601() startsAt!: string;
@@ -137,7 +171,7 @@ export class EventDto {
   match?: MatchDto;
 }
 
-export class UpdateEventDto {
+export class UpdateEventDto extends EventDetailsDto {
   @ApiPropertyOptional() @IsOptional() @IsString() @MinLength(3) @MaxLength(180) title?: string;
   @ApiPropertyOptional({ enum: EventType }) @IsOptional() @IsEnum(EventType) type?: EventType;
   @ApiPropertyOptional() @IsOptional() @IsISO8601() startsAt?: string;
@@ -179,6 +213,14 @@ export class PublicEventQueryDto {
   @IsIn(['upcoming', 'past'])
   scope?: 'upcoming' | 'past';
   @ApiPropertyOptional({ enum: EventType }) @IsOptional() @IsEnum(EventType) type?: EventType;
+  @ApiPropertyOptional({ enum: ['fenix', 'external'] })
+  @IsOptional()
+  @IsIn(['fenix', 'external'])
+  origin?: 'fenix' | 'external';
+  @ApiPropertyOptional({ enum: ['acre', 'outros'] })
+  @IsOptional()
+  @IsIn(['acre', 'outros'])
+  region?: 'acre' | 'outros';
   @ApiPropertyOptional()
   @IsOptional()
   @Type(() => Number)

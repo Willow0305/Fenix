@@ -75,6 +75,9 @@ export default async function NewsItemPage({
   return (
     <article className="container reading">
       <JsonLd data={newsArticleData(news)} />
+      <Link href="/noticias" className="back-link">
+        <Icon name="arrow-left" /> Notícias
+      </Link>
       <header className="reading-header">
         <Link href={`/noticias?categoria=${news.category.slug}`} className="news-kicker">
           {news.category.name}

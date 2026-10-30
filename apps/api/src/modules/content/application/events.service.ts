@@ -15,7 +15,9 @@ import {
 } from '../../media/application/media.service';
 import { assertActiveTeam } from '../../sports/application/active-team';
 import { slugify } from '../../sports/domain/sports-rules';
+import { type MoneyView, moneyView, parseMoney } from '../../../common/domain/money';
 import { EVENT_STATUS_LABELS, EVENT_TRANSITIONS, sanitizeText } from '../domain/content-rules';
+import { blankToNull, eventDetailsProblems, normalizeState } from '../domain/external-events';
 import { ContentAlertsService } from './content-alerts.service';
 
 export interface MatchView {
@@ -25,6 +27,14 @@ export interface MatchView {
   readonly teamScore: number | null;
   readonly opponentScore: number | null;
   readonly team: { id: string; name: string } | null;
+}
+
+export interface ExternalMatchView {
+  readonly homeTeamName: string;
+  readonly awayTeamName: string;
+  readonly competitionName: string | null;
+  readonly homeScore: number | null;
+  readonly awayScore: number | null;
 }
 
 export interface EventView {
@@ -43,6 +53,15 @@ export interface EventView {
   /** Capa do evento ou, sem ela, a da notícia vinculada mais recente (docs/29 COR-011). */
   readonly coverUrl: string | null;
   readonly match: MatchView | null;
+  /** Evento de outro organizador (D3, DT-081). */
+  readonly isExternal: boolean;
+  readonly organizerName: string | null;
+  readonly officialUrl: string | null;
+  readonly city: string | null;
+  readonly state: string | null;
+  /** Entrada: gratuita, com preço ou não informada (`isFree` falso e `price` nulo). */
+  readonly admission: { readonly isFree: boolean; readonly price: MoneyView | null };
+  readonly externalMatch: ExternalMatchView | null;
   readonly tryout: { id: string; title: string; slug: string } | null;
   readonly news: { id: string; title: string; slug: string }[];
 }
@@ -56,6 +75,14 @@ export interface MatchInput {
   readonly opponentScore?: number | null;
 }
 
+export interface ExternalMatchInput {
+  readonly homeTeamName: string;
+  readonly awayTeamName: string;
+  readonly competitionName?: string | null;
+  readonly homeScore?: number | null;
+  readonly awayScore?: number | null;
+}
+
 export interface EventInput {
   readonly title: string;
   readonly type: EventType;
@@ -67,6 +94,27 @@ export interface EventInput {
   readonly isPublic?: boolean;
   readonly tryoutId?: string | null;
   readonly match?: MatchInput | null;
+  readonly isExternal?: boolean;
+  /** Textos opcionais: vazio apaga. */
+  readonly organizerName?: string | null;
+  readonly officialUrl?: string | null;
+  readonly city?: string | null;
+  readonly state?: string | null;
+  readonly isFree?: boolean;
+  /** Decimal em string ("20.00"); vazio apaga. */
+  readonly ticketPrice?: string | null;
+  /** `null` remove o jogo entre times de fora. */
+  readonly externalMatch?: ExternalMatchInput | null;
+}
+
+export interface PublicEventQuery {
+  readonly scope?: 'upcoming' | 'past';
+  readonly type?: EventType;
+  readonly limit?: number;
+  /** Do Fênix ou de outros organizadores (D3). */
+  readonly origin?: 'fenix' | 'external';
+  /** Acre em destaque (PEN-069): "outros" é tudo com cidade ou UF fora do Acre. */
+  readonly region?: 'acre' | 'outros';
 }
 
 export interface EventFilters extends PageQueryDto {
@@ -76,6 +124,7 @@ export interface EventFilters extends PageQueryDto {
 
 const EVENT_INCLUDE = {
   match: { include: { team: { select: { id: true, name: true } } } },
+  externalMatch: true,
   tryout: { select: { id: true, title: true, slug: true } },
   news: {
     where: {
@@ -127,6 +176,24 @@ export class EventsService {
             teamScore: row.match.teamScore,
             opponentScore: row.match.opponentScore,
             team: row.match.team
+          }
+        : null,
+      isExternal: row.isExternal,
+      organizerName: row.organizerName,
+      officialUrl: row.officialUrl,
+      city: row.city,
+      state: row.state,
+      admission: {
+        isFree: row.isFree,
+        price: row.ticketPrice ? moneyView(row.ticketPrice, row.ticketCurrency) : null
+      },
+      externalMatch: row.externalMatch
+        ? {
+            homeTeamName: row.externalMatch.homeTeamName,
+            awayTeamName: row.externalMatch.awayTeamName,
+            competitionName: row.externalMatch.competitionName,
+            homeScore: row.externalMatch.homeScore,
+            awayScore: row.externalMatch.awayScore
           }
         : null,
       tryout: row.tryout,
@@ -277,6 +344,82 @@ export class EventsService {
     };
   }
 
+  private externalMatchData(
+    match: ExternalMatchInput
+  ): Omit<Prisma.ExternalMatchUncheckedCreateInput, 'eventId'> {
+    return {
+      homeTeamName: sanitizeText(match.homeTeamName),
+      awayTeamName: sanitizeText(match.awayTeamName),
+      competitionName: match.competitionName ? sanitizeText(match.competitionName) : null,
+      homeScore: match.homeScore ?? null,
+      awayScore: match.awayScore ?? null
+    };
+  }
+
+  /** Campos de agenda (D3) já normalizados, só os informados na entrada. */
+  private detailsData(input: Partial<EventInput>) {
+    const text = (value: string | null | undefined) => {
+      const clean = blankToNull(value);
+
+      return clean === null ? null : sanitizeText(clean);
+    };
+    const price = blankToNull(input.ticketPrice);
+
+    return {
+      ...(input.isExternal === undefined ? {} : { isExternal: input.isExternal }),
+      ...(input.organizerName === undefined ? {} : { organizerName: text(input.organizerName) }),
+      ...(input.officialUrl === undefined ? {} : { officialUrl: blankToNull(input.officialUrl) }),
+      ...(input.city === undefined ? {} : { city: text(input.city) }),
+      ...(input.state === undefined ? {} : { state: normalizeState(input.state) }),
+      ...(input.isFree === undefined ? {} : { isFree: input.isFree }),
+      ...(input.ticketPrice === undefined
+        ? {}
+        : { ticketPrice: price === null ? null : parseMoney(price, 'ticketPrice') })
+    };
+  }
+
+  /** Valida o resultado final (o que já existe com o que chegou), como o banco também exige. */
+  private assertDetails(
+    current: {
+      isExternal: boolean;
+      organizerName: string | null;
+      officialUrl: string | null;
+      state: string | null;
+      isFree: boolean;
+      ticketPrice: Prisma.Decimal | null;
+      hasTeamMatch: boolean;
+      hasExternalMatch: boolean;
+    },
+    input: Partial<EventInput>
+  ): void {
+    const problems = eventDetailsProblems({
+      isExternal: input.isExternal ?? current.isExternal,
+      organizerName:
+        input.organizerName === undefined
+          ? current.organizerName
+          : blankToNull(input.organizerName),
+      officialUrl:
+        input.officialUrl === undefined ? current.officialUrl : blankToNull(input.officialUrl),
+      state: input.state === undefined ? current.state : normalizeState(input.state),
+      isFree: input.isFree ?? current.isFree,
+      ticketPrice:
+        input.ticketPrice === undefined
+          ? (current.ticketPrice?.toFixed(2) ?? null)
+          : blankToNull(input.ticketPrice),
+      hasTeamMatch: input.match ? true : current.hasTeamMatch,
+      hasExternalMatch:
+        input.externalMatch === undefined ? current.hasExternalMatch : input.externalMatch !== null
+    });
+
+    if (problems.length > 0) {
+      throw AppError.validation(
+        'EVENT_DETAILS_INVALID',
+        problems.join(' '),
+        problems.map((message) => ({ field: 'event', code: 'INVALID', message }))
+      );
+    }
+  }
+
   async create(actor: Principal, input: EventInput, meta: RequestMeta): Promise<EventView> {
     const startsAt = new Date(input.startsAt);
     const endsAt = input.endsAt ? new Date(input.endsAt) : null;
@@ -287,9 +430,23 @@ export class EventsService {
       await this.assertTryout(input.tryoutId);
     }
 
-    if (input.type === 'MATCH' && !input.match) {
+    if (input.type === 'MATCH' && !input.match && !input.isExternal) {
       throw AppError.validation('MATCH_REQUIRED', 'Informe o adversário da partida.');
     }
+
+    this.assertDetails(
+      {
+        isExternal: false,
+        organizerName: null,
+        officialUrl: null,
+        state: null,
+        isFree: false,
+        ticketPrice: null,
+        hasTeamMatch: false,
+        hasExternalMatch: false
+      },
+      input
+    );
 
     const slug = await this.uniqueSlug(input.title, startsAt);
     const id = await this.prisma.$transaction(async (tx) => {
@@ -303,9 +460,16 @@ export class EventsService {
           endsAt,
           locationName: input.locationName ?? null,
           address: input.address ?? null,
-          isPublic: input.isPublic ?? false
+          isPublic: input.isPublic ?? false,
+          ...this.detailsData(input)
         }
       });
+
+      if (input.externalMatch) {
+        await tx.externalMatch.create({
+          data: { eventId: created.id, ...this.externalMatchData(input.externalMatch) }
+        });
+      }
 
       if (input.match) {
         await assertActiveTeam(tx, input.match.teamId);
@@ -342,12 +506,21 @@ export class EventsService {
   ): Promise<EventView> {
     const current = await this.prisma.event.findFirst({
       where: { id, deletedAt: null },
-      include: { match: true, tryout: { select: { id: true } } }
+      include: { match: true, externalMatch: true, tryout: { select: { id: true } } }
     });
 
     if (current === null) {
       throw AppError.notFound('Evento não encontrado.');
     }
+
+    this.assertDetails(
+      {
+        ...current,
+        hasTeamMatch: current.match !== null,
+        hasExternalMatch: current.externalMatch !== null
+      },
+      input
+    );
 
     const startsAt = input.startsAt ? new Date(input.startsAt) : current.startsAt;
     const endsAt =
@@ -372,9 +545,22 @@ export class EventsService {
           endsAt,
           ...(input.locationName === undefined ? {} : { locationName: input.locationName }),
           ...(input.address === undefined ? {} : { address: input.address }),
-          ...(input.isPublic === undefined ? {} : { isPublic: input.isPublic })
+          ...(input.isPublic === undefined ? {} : { isPublic: input.isPublic }),
+          ...this.detailsData(input)
         }
       });
+
+      if (input.externalMatch === null) {
+        await tx.externalMatch.deleteMany({ where: { eventId: id } });
+      } else if (input.externalMatch) {
+        const data = this.externalMatchData(input.externalMatch);
+
+        await tx.externalMatch.upsert({
+          where: { eventId: id },
+          create: { eventId: id, ...data },
+          update: data
+        });
+      }
 
       if (input.match) {
         const existing = await tx.match.findUnique({
@@ -414,7 +600,10 @@ export class EventsService {
             isPublic: current.isPublic,
             score: current.match
               ? `${current.match.teamScore ?? '-'}x${current.match.opponentScore ?? '-'}`
-              : null
+              : current.externalMatch
+                ? `${current.externalMatch.homeScore ?? '-'}x${current.externalMatch.awayScore ?? '-'}`
+                : null,
+            isExternal: current.isExternal
           },
           after: { fields: Object.keys(input) },
           meta
@@ -479,11 +668,7 @@ export class EventsService {
   }
 
   /** Calendário público: só eventos públicos já publicados (próximos ou recentes). */
-  async publicList(query: {
-    scope?: 'upcoming' | 'past';
-    type?: EventType;
-    limit?: number;
-  }): Promise<EventView[]> {
+  async publicList(query: PublicEventQuery): Promise<EventView[]> {
     const now = new Date();
     const upcoming = query.scope !== 'past';
     const rows = await this.prisma.event.findMany({
@@ -492,6 +677,16 @@ export class EventsService {
         isPublic: true,
         publishedAt: { lte: now },
         ...(query.type ? { type: query.type } : {}),
+        ...(query.origin ? { isExternal: query.origin === 'external' } : {}),
+        ...(query.region === 'acre' ? { state: 'AC' } : {}),
+        ...(query.region === 'outros'
+          ? {
+              AND: [
+                { OR: [{ state: null }, { state: { not: 'AC' } }] },
+                { OR: [{ city: { not: null } }, { state: { not: null } }] }
+              ]
+            }
+          : {}),
         status: upcoming ? { in: ['SCHEDULED', 'CANCELLED'] } : { in: ['COMPLETED', 'SCHEDULED'] },
         ...(upcoming
           ? { startsAt: { gte: new Date(now.getTime() - 6 * 3_600_000) } }

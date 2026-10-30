@@ -1,4 +1,6 @@
 import type { Page } from './api-types';
+import type { MoneyView } from './finance-types';
+import { formatMoney } from './format';
 
 export type NewsStatus = 'DRAFT' | 'SCHEDULED' | 'PUBLISHED' | 'HIDDEN' | 'ARCHIVED';
 export type EventType = 'TRYOUT' | 'MATCH' | 'FRIENDLY' | 'TRAINING' | 'COMMUNITY' | 'OTHER';
@@ -62,6 +64,20 @@ export interface TeamEvent {
     teamScore: number | null;
     opponentScore: number | null;
     team: { id: string; name: string } | null;
+  } | null;
+  /** Evento de outro organizador (D3, DT-081). */
+  isExternal: boolean;
+  organizerName: string | null;
+  officialUrl: string | null;
+  city: string | null;
+  state: string | null;
+  admission: { isFree: boolean; price: MoneyView | null };
+  externalMatch: {
+    homeTeamName: string;
+    awayTeamName: string;
+    competitionName: string | null;
+    homeScore: number | null;
+    awayScore: number | null;
   } | null;
   tryout: { id: string; title: string; slug: string } | null;
   news: { id: string; title: string; slug: string }[];
@@ -187,6 +203,46 @@ export const REPORT_STATUS: Record<ReportStatus, { label: string; badge: string 
   RESOLVED: { label: 'Resolvida', badge: 'badge-success' },
   DISMISSED: { label: 'Descartada', badge: '' }
 };
+
+/** Título do evento na agenda: placar do Fênix, jogo entre times de fora ou o título. */
+export function eventHeadline(event: TeamEvent): string {
+  if (event.match) {
+    return scoreLabel(event.match);
+  }
+
+  const game = event.externalMatch;
+
+  if (game) {
+    return game.homeScore === null || game.awayScore === null
+      ? `${game.homeTeamName} x ${game.awayTeamName}`
+      : `${game.homeTeamName} ${game.homeScore} x ${game.awayScore} ${game.awayTeamName}`;
+  }
+
+  return event.title;
+}
+
+/** Cidade e UF ("Cruzeiro do Sul/AC"), ou o que houver. */
+export function eventPlace(event: Pick<TeamEvent, 'city' | 'state'>): string | null {
+  if (event.city && event.state) {
+    return `${event.city}/${event.state}`;
+  }
+
+  return event.city ?? event.state;
+}
+
+/** "Entrada gratuita", "Entrada: R$ 15,50" ou nada quando a diretoria não informou. */
+export function admissionLabel(event: Pick<TeamEvent, 'admission'>): string | null {
+  // Resposta guardada em cache antes da atualização da API pode chegar sem o campo.
+  const admission = event.admission as TeamEvent['admission'] | undefined;
+
+  if (admission?.isFree) {
+    return 'Entrada gratuita';
+  }
+
+  return admission?.price
+    ? `Entrada: ${formatMoney(admission.price.amount, admission.price.currency)}`
+    : null;
+}
 
 /** Placar de partida: "Fênix 3 x 1 Adversário" (ou "a definir"). */
 export function scoreLabel(match: NonNullable<TeamEvent['match']>, teamName = 'Fênix'): string {

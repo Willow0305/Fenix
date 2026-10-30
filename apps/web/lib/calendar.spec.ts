@@ -17,6 +17,13 @@ const base: TeamEvent = {
   publishedAt: '2026-10-01T00:00:00Z',
   coverUrl: null,
   match: null,
+  isExternal: false,
+  organizerName: null,
+  officialUrl: null,
+  city: null,
+  state: null,
+  admission: { isFree: false, price: null },
+  externalMatch: null,
   tryout: null,
   news: []
 };

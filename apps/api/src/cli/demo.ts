@@ -359,9 +359,11 @@ async function main(): Promise<void> {
           ].join('\n\n'),
           endsAt: new Date(item.startsAt.getTime() + 3 * 3_600_000),
           isPublic: true,
-          publishedAt: new Date(now.getTime() - 7 * day)
+          publishedAt: new Date(now.getTime() - 7 * day),
+          city: 'Rio Branco',
+          state: 'AC'
         },
-        update: {}
+        update: { city: 'Rio Branco', state: 'AC' }
       });
 
       await prisma.match.upsert({
@@ -376,6 +378,39 @@ async function main(): Promise<void> {
         update: {}
       });
     }
+
+    // Evento externo (D3, DT-081): jogo entre dois times de fora, em outra cidade do Acre.
+    const external = await prisma.event.upsert({
+      where: { slug: 'etapa-estadual-jurua-demo' },
+      create: {
+        slug: 'etapa-estadual-jurua-demo',
+        title: 'Etapa do Juruá do Estadual Adulto (demonstração)',
+        type: 'MATCH',
+        status: 'SCHEDULED',
+        startsAt: new Date(now.getTime() + 3 * day),
+        locationName: 'Ginásio municipal (demonstração)',
+        city: 'Cruzeiro do Sul',
+        state: 'AC',
+        isExternal: true,
+        organizerName: 'Federação de demonstração',
+        officialUrl: 'https://example.org/estadual',
+        isFree: true,
+        isPublic: true,
+        publishedAt: new Date(now.getTime() - day)
+      },
+      update: {}
+    });
+
+    await prisma.externalMatch.upsert({
+      where: { eventId: external.id },
+      create: {
+        eventId: external.id,
+        homeTeamName: 'Clube Juruá (demonstração)',
+        awayTeamName: 'Tarauacá Vôlei (demonstração)',
+        competitionName: 'Estadual Adulto — etapa do Juruá'
+      },
+      update: {}
+    });
 
     const forumCategory = await prisma.forumCategory.upsert({
       where: { slug: 'conversa-geral-demo' },

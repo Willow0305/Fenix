@@ -1641,3 +1641,13 @@ Manter paleta, layout e componentes, e trocar os sinais de interface genérica p
 - notificação do tipo `store.stock_back`, na finalidade "Pedidos da loja" (e-mail ligado por padrão);
 - apagado na anonimização e incluído na exportação de dados do titular.
 
+### Implementação: eventos externos e agenda (2026-10-30)
+
+- "evento externo" virou a marca `isExternal` no próprio `Event`, e não um valor novo de `EventType`: um jogo da federação continua sendo "Partida oficial" ou "Amistoso", e o tipo segue servindo ao filtro; organizador é obrigatório quando a marca está ligada (também por `CHECK` no banco);
+- campos novos em `Event`, valendo para qualquer evento: `organizerName`, `officialUrl` (só `https`), `city` (livre, qualquer lugar), `state` (UF da lista `BRAZIL_STATES` de `@fenix/validation`, vazia fora do Brasil), `isFree` e `ticketPrice` `DECIMAL(10,2)` com `ticketCurrency` (gratuita e preço não convivem; os dois vazios = não informado);
+- jogo entre dois times de fora em `ExternalMatch` (1:1, mandante, visitante, competição e sets); o jogo do Fênix continua em `Match`, e os dois não convivem no mesmo evento;
+- filtros públicos em `GET /public/events`: `type`, `origin=fenix|external` e `region=acre|outros`; "Acre" é `state = 'AC'`; "outros lugares" é tudo com cidade ou UF fora do Acre; evento sem cidade nem UF aparece só em "todos os lugares";
+- eventos externos públicos avisam quem assina "Eventos e jogos", como os do Fênix (`DT-067`);
+- "Adicionar à agenda" é um arquivo `.ics` gerado pelo site (`/eventos/[slug]/agenda.ics`, RFC 5545, UTC, 2 horas quando não há término) e "Compartilhar" usa o link do WhatsApp e a área de transferência; nada é registrado sobre quem baixa ou compartilha;
+- notícias e eventos publicam dados estruturados (`NewsArticle`, `SportsEvent`) com o `<` escapado para o texto da diretoria não fechar a tag.
+

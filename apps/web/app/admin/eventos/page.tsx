@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { BRAZIL_STATES } from '@fenix/validation';
 
 import {
   Alert,
@@ -23,7 +24,7 @@ import {
   EVENT_TYPE,
   type EventStatus,
   type EventType,
-  scoreLabel,
+  eventHeadline,
   type TeamEvent
 } from '../../../lib/content-types';
 import { formatDateTime } from '../../../lib/format';
@@ -80,6 +81,17 @@ type Form = {
   teamId: string;
   teamScore: string;
   opponentScore: string;
+  isExternal: boolean;
+  organizerName: string;
+  officialUrl: string;
+  city: string;
+  state: string;
+  admission: 'unknown' | 'free' | 'paid';
+  ticketPrice: string;
+  homeTeamName: string;
+  awayTeamName: string;
+  homeScore: string;
+  awayScore: string;
 };
 
 const EMPTY: Form = {
@@ -97,7 +109,18 @@ const EMPTY: Form = {
   isHome: true,
   teamId: '',
   teamScore: '',
-  opponentScore: ''
+  opponentScore: '',
+  isExternal: false,
+  organizerName: '',
+  officialUrl: '',
+  city: '',
+  state: '',
+  admission: 'unknown',
+  ticketPrice: '',
+  homeTeamName: '',
+  awayTeamName: '',
+  homeScore: '',
+  awayScore: ''
 };
 
 function fromEvent(event: TeamEvent): Form {
@@ -116,7 +139,21 @@ function fromEvent(event: TeamEvent): Form {
     isHome: event.match?.isHome ?? true,
     teamId: event.match?.team?.id ?? '',
     teamScore: event.match?.teamScore?.toString() ?? '',
-    opponentScore: event.match?.opponentScore?.toString() ?? ''
+    opponentScore: event.match?.opponentScore?.toString() ?? '',
+    isExternal: event.isExternal,
+    organizerName: event.organizerName ?? '',
+    officialUrl: event.officialUrl ?? '',
+    city: event.city ?? '',
+    state: event.state ?? '',
+    admission: event.admission.isFree ? 'free' : event.admission.price ? 'paid' : 'unknown',
+    ticketPrice: event.admission.price?.amount ?? '',
+    homeTeamName: event.externalMatch?.homeTeamName ?? '',
+    awayTeamName: event.externalMatch?.awayTeamName ?? '',
+    homeScore: event.externalMatch?.homeScore?.toString() ?? '',
+    awayScore: event.externalMatch?.awayScore?.toString() ?? '',
+    ...(event.externalMatch?.competitionName
+      ? { competitionName: event.externalMatch.competitionName }
+      : {})
   };
 }
 
@@ -135,7 +172,7 @@ function EventForm({
   const isMatch = form.type === 'MATCH' || form.type === 'FRIENDLY';
   const save = useSubmit(async () => {
     const match =
-      isMatch && form.opponentName
+      isMatch && !form.isExternal && form.opponentName
         ? {
             opponentName: form.opponentName,
             isHome: form.isHome,
@@ -153,8 +190,25 @@ function EventForm({
       description: form.description,
       locationName: form.locationName,
       address: form.address,
+      isExternal: form.isExternal,
+      organizerName: form.isExternal ? form.organizerName : '',
+      officialUrl: form.officialUrl,
+      city: form.city,
+      state: form.state,
+      isFree: form.admission === 'free',
+      ticketPrice: form.admission === 'paid' ? form.ticketPrice.replace(',', '.') : '',
       ...(match ? { match } : {})
     };
+    const externalMatch =
+      form.isExternal && form.homeTeamName && form.awayTeamName
+        ? {
+            homeTeamName: form.homeTeamName,
+            awayTeamName: form.awayTeamName,
+            ...(form.competitionName ? { competitionName: form.competitionName } : {}),
+            ...(form.homeScore !== '' ? { homeScore: Number(form.homeScore) } : {}),
+            ...(form.awayScore !== '' ? { awayScore: Number(form.awayScore) } : {})
+          }
+        : null;
 
     if (editingId) {
       await api(`/events/${editingId}`, {
@@ -162,7 +216,8 @@ function EventForm({
         body: {
           ...body,
           endsAt: form.endsAt ? new Date(form.endsAt).toISOString() : '',
-          tryoutId: form.tryoutId
+          tryoutId: form.tryoutId,
+          externalMatch
         }
       });
     } else {
@@ -171,7 +226,8 @@ function EventForm({
         body: {
           ...body,
           ...(form.endsAt ? { endsAt: new Date(form.endsAt).toISOString() } : {}),
-          ...(form.tryoutId ? { tryoutId: form.tryoutId } : {})
+          ...(form.tryoutId ? { tryoutId: form.tryoutId } : {}),
+          ...(externalMatch ? { externalMatch } : {})
         }
       });
       setForm(EMPTY);
@@ -243,7 +299,115 @@ function EventForm({
           ]}
         />
       </div>
-      {isMatch ? (
+      <fieldset className="form-grid">
+        <legend>Organização, lugar e entrada</legend>
+        <SelectField
+          label="Quem organiza"
+          value={form.isExternal ? 'external' : 'fenix'}
+          onChange={(e) => setForm({ ...form, isExternal: e.target.value === 'external' })}
+          options={[
+            { value: 'fenix', label: 'O Fênix' },
+            { value: 'external', label: 'Outro organizador (evento externo)' }
+          ]}
+        />
+        {form.isExternal ? (
+          <TextField
+            label="Organizador"
+            hint="Federação, clube ou liga responsável."
+            maxLength={160}
+            required
+            value={form.organizerName}
+            onChange={set('organizerName')}
+          />
+        ) : null}
+        <TextField
+          label="Página oficial"
+          hint="Endereço completo, começando com https://."
+          type="url"
+          maxLength={500}
+          value={form.officialUrl}
+          onChange={set('officialUrl')}
+        />
+        <TextField
+          label="Cidade"
+          hint="Qualquer lugar; fora do Brasil, inclua o país."
+          maxLength={120}
+          value={form.city}
+          onChange={set('city')}
+        />
+        <SelectField
+          label="UF"
+          value={form.state}
+          onChange={set('state')}
+          options={[
+            { value: '', label: 'Fora do Brasil ou não informada' },
+            ...Object.entries(BRAZIL_STATES).map(([value, label]) => ({
+              value,
+              label: `${value} · ${label}`
+            }))
+          ]}
+        />
+        <SelectField
+          label="Entrada"
+          value={form.admission}
+          onChange={(e) => setForm({ ...form, admission: e.target.value as Form['admission'] })}
+          options={[
+            { value: 'unknown', label: 'Não informar' },
+            { value: 'free', label: 'Gratuita' },
+            { value: 'paid', label: 'Paga' }
+          ]}
+        />
+        {form.admission === 'paid' ? (
+          <TextField
+            label="Preço (R$)"
+            inputMode="decimal"
+            placeholder="20,00"
+            required
+            value={form.ticketPrice}
+            onChange={set('ticketPrice')}
+          />
+        ) : null}
+      </fieldset>
+      {isMatch && form.isExternal ? (
+        <fieldset className="form-grid">
+          <legend>Jogo (times de fora)</legend>
+          <TextField
+            label="Time mandante"
+            maxLength={160}
+            value={form.homeTeamName}
+            onChange={set('homeTeamName')}
+          />
+          <TextField
+            label="Time visitante"
+            maxLength={160}
+            value={form.awayTeamName}
+            onChange={set('awayTeamName')}
+          />
+          <TextField
+            label="Competição"
+            maxLength={160}
+            value={form.competitionName}
+            onChange={set('competitionName')}
+          />
+          <TextField
+            label="Sets do mandante"
+            type="number"
+            min={0}
+            max={99}
+            value={form.homeScore}
+            onChange={set('homeScore')}
+          />
+          <TextField
+            label="Sets do visitante"
+            type="number"
+            min={0}
+            max={99}
+            value={form.awayScore}
+            onChange={set('awayScore')}
+          />
+        </fieldset>
+      ) : null}
+      {isMatch && !form.isExternal ? (
         <fieldset className="form-grid">
           <legend>Partida</legend>
           <TextField
@@ -403,7 +567,7 @@ export default function EventsAdminPage() {
                   <tr key={event.id}>
                     <td data-label="Quando">{formatDateTime(event.startsAt)}</td>
                     <td data-label="Evento">
-                      <strong>{event.match ? scoreLabel(event.match) : event.title}</strong>
+                      <strong>{eventHeadline(event)}</strong>
                       <br />
                       <small className="muted">
                         {EVENT_TYPE[event.type]}

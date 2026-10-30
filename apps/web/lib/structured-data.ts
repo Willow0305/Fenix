@@ -1,5 +1,5 @@
 import type { NewsDetail, TeamEvent } from './content-types';
-import { scoreLabel } from './content-types';
+import { eventHeadline, eventPlace } from './content-types';
 import { SITE_URL } from './site-url';
 
 /** Endereço absoluto de um caminho do site (imagens servidas pelo próprio domínio, DT-022). */
@@ -46,18 +46,19 @@ const EVENT_STATUS_SCHEMA: Record<TeamEvent['status'], string> = {
 
 /** Evento para buscadores (schema.org `SportsEvent`; docs/31, Onda 3). */
 export function sportsEventData(event: TeamEvent): Record<string, unknown> {
-  const place = [event.locationName, event.address].filter(Boolean).join(', ');
-  const competitors = event.match
-    ? [
-        { '@type': 'SportsTeam', name: 'Fênix Vôlei' },
-        { '@type': 'SportsTeam', name: event.match.opponentName }
-      ]
-    : [];
+  const town = eventPlace(event);
+  const place = [event.locationName, event.address, town].filter(Boolean).join(', ');
+  const teams = event.match
+    ? ['Fênix Vôlei', event.match.opponentName]
+    : event.externalMatch
+      ? [event.externalMatch.homeTeamName, event.externalMatch.awayTeamName]
+      : [];
+  const price = event.admission.isFree ? '0' : event.admission.price?.amount;
 
   return {
     '@context': 'https://schema.org',
     '@type': 'SportsEvent',
-    name: event.match ? scoreLabel(event.match) : event.title,
+    name: eventHeadline(event),
     startDate: event.startsAt,
     ...(event.endsAt ? { endDate: event.endsAt } : {}),
     eventStatus: EVENT_STATUS_SCHEMA[event.status],
@@ -66,15 +67,33 @@ export function sportsEventData(event: TeamEvent): Record<string, unknown> {
       ? {
           location: {
             '@type': 'Place',
-            name: event.locationName ?? place,
-            ...(event.address ? { address: event.address } : {})
+            name: event.locationName ?? town ?? place,
+            address: place
           }
         }
       : {}),
     ...(event.description ? { description: event.description.slice(0, 300) } : {}),
     image: [absoluteUrl(event.coverUrl ?? '/brand/logo-fenix.png')],
-    ...(competitors.length > 0 ? { competitor: competitors } : {}),
-    organizer: PUBLISHER,
+    ...(teams.length > 0
+      ? { competitor: teams.map((name) => ({ '@type': 'SportsTeam', name })) }
+      : {}),
+    ...(price === undefined
+      ? {}
+      : {
+          offers: {
+            '@type': 'Offer',
+            price,
+            priceCurrency: event.admission.price?.currency ?? 'BRL',
+            ...(event.officialUrl ? { url: event.officialUrl } : {})
+          }
+        }),
+    organizer: event.isExternal
+      ? {
+          '@type': 'Organization',
+          name: event.organizerName,
+          ...(event.officialUrl ? { url: event.officialUrl } : {})
+        }
+      : PUBLISHER,
     url: absoluteUrl(`/eventos/${event.slug}`)
   };
 }

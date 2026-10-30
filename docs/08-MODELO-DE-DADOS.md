@@ -39,7 +39,7 @@ O modelo consolida o PDF de requisitos, o briefing técnico, `AGENTS.md` e as de
 | Loja e estoque | `ProductCategory`, `Product`, `ProductImage`, `ProductVariant`, `InventoryMovement`, `Favorite`, `StockAlert`, `ProductReview`, `Cart`, `CartItem`, `Order`, `OrderItem`, `Payment`, `Refund` |
 | Campanhas | `SalesCampaign`, `SalesCampaignProduct` |
 | Parceiros e agenda | `Partner`, `PartnerDocument`, `PartnerProfessional`, `PartnerService`, `ProfessionalAvailability`, `Appointment`, `PartnerSettlement`, `PartnerSettlementItem` |
-| Conteúdo e comunidade | `NewsCategory`, `News`, `Event`, `Match`, `ForumCategory`, `ForumTopic`, `ForumPost`, `ForumReaction`, `ForumReport`, `ForumModerationAction`, `Notification` |
+| Conteúdo e comunidade | `NewsCategory`, `News`, `Event`, `Match`, `ExternalMatch`, `ForumCategory`, `ForumTopic`, `ForumPost`, `ForumReaction`, `ForumReport`, `ForumModerationAction`, `Notification` |
 
 ## 4. Entidades de apoio justificadas
 
@@ -124,7 +124,7 @@ Observações de agendamento são administrativas; prontuário, diagnóstico, si
 
 ### 5.7 Conteúdo, eventos e comunidade
 
-`Event` concentra data, local e visibilidade quando existe uma projeção de calendário. `Match` é seu detalhe opcional 1:1. `Tryout` pode existir internamente sem evento e, nesse caso, usa seus próprios `startsAt` e `location`; quando `eventId` existe, esses dois campos de fallback ficam nulos e a agenda/local são lidos de `Event`. Evento ligado a seletiva usa tipo `TRYOUT`; evento ligado a partida usa `MATCH` ou `FRIENDLY`; o mesmo evento não pode conter simultaneamente `Match` e `Tryout`. `News` liga-se opcionalmente a `Event` e `ForumTopic`, permitindo projeção em página inicial, calendário e fórum sem cópia manual.
+`Event` concentra data, local e visibilidade quando existe uma projeção de calendário. `Match` é seu detalhe opcional 1:1. Evento de outro organizador tem `isExternal`, `organizerName` obrigatório e, quando é jogo entre times de fora, `ExternalMatch` 1:1 no lugar de `Match` (`DT-081`); cidade, UF, link oficial e entrada (gratuita ou `ticketPrice` decimal com moeda) valem para qualquer evento. `Tryout` pode existir internamente sem evento e, nesse caso, usa seus próprios `startsAt` e `location`; quando `eventId` existe, esses dois campos de fallback ficam nulos e a agenda/local são lidos de `Event`. Evento ligado a seletiva usa tipo `TRYOUT`; evento ligado a partida usa `MATCH` ou `FRIENDLY`; o mesmo evento não pode conter simultaneamente `Match` e `Tryout`. `News` liga-se opcionalmente a `Event` e `ForumTopic`, permitindo projeção em página inicial, calendário e fórum sem cópia manual.
 
 `ForumPost` representa publicação inicial ou resposta por autor e aceita `parentPostId` para comentários encadeados. Reações pertencem a posts. `ForumReport` denuncia exatamente um tópico ou post, e `ForumModerationAction` registra a atuação correspondente.
 

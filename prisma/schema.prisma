@@ -2155,20 +2155,52 @@ model Event {
   announcedAt      DateTime?   @map("announced_at") @db.Timestamptz(6)
   /// Imagem de capa 16:9 (PEN-058, DT-041).
   coverMediaFileId String?     @map("cover_media_file_id") @db.Uuid
+  /// Evento de outro organizador (federação, outro clube; D3, DT-081).
+  isExternal       Boolean     @default(false) @map("is_external")
+  organizerName    String?     @map("organizer_name") @db.VarChar(160)
+  /// Página oficial do evento (só https).
+  officialUrl      String?     @map("official_url") @db.VarChar(500)
+  /// Cidade livre (qualquer lugar); `state` é a UF quando no Brasil (filtro "Acre", PEN-069).
+  city             String?     @db.VarChar(120)
+  state            String?     @db.Char(2)
+  /// Entrada: gratuita, com preço ou não informada (os dois vazios).
+  isFree           Boolean     @default(false) @map("is_free")
+  ticketPrice      Decimal?    @map("ticket_price") @db.Decimal(10, 2)
+  ticketCurrency   String      @default("BRL") @map("ticket_currency") @db.Char(3)
   createdAt        DateTime    @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt        DateTime    @updatedAt @map("updated_at") @db.Timestamptz(6)
   deletedAt        DateTime?   @map("deleted_at") @db.Timestamptz(6)
 
-  coverMediaFile MediaFile? @relation(fields: [coverMediaFileId], references: [id], onDelete: SetNull, onUpdate: Cascade)
+  coverMediaFile MediaFile?     @relation(fields: [coverMediaFileId], references: [id], onDelete: SetNull, onUpdate: Cascade)
   match          Match?
+  externalMatch  ExternalMatch?
   tryout         Tryout?
   news           News[]
 
+  @@index([isExternal, startsAt])
+  @@index([state, startsAt])
   @@index([status, startsAt])
   @@index([coverMediaFileId])
   @@index([type, startsAt])
   @@index([isPublic, publishedAt])
   @@map("events")
+}
+
+/// Jogo entre dois times de fora num evento externo (D3, DT-081); o do Fênix usa `Match`.
+model ExternalMatch {
+  id              String   @id @default(uuid()) @db.Uuid
+  eventId         String   @unique @map("event_id") @db.Uuid
+  homeTeamName    String   @map("home_team_name") @db.VarChar(160)
+  awayTeamName    String   @map("away_team_name") @db.VarChar(160)
+  competitionName String?  @map("competition_name") @db.VarChar(160)
+  homeScore       Int?     @map("home_score")
+  awayScore       Int?     @map("away_score")
+  createdAt       DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt       DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  event Event @relation(fields: [eventId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+
+  @@map("external_matches")
 }
 
 model Match {
