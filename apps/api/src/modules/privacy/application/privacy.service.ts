@@ -133,6 +133,16 @@ export class PrivacyService {
           }
         },
         favorites: { select: { createdAt: true, product: { select: { name: true } } } },
+        productReviews: {
+          where: { deletedAt: null },
+          select: {
+            rating: true,
+            comment: true,
+            status: true,
+            createdAt: true,
+            product: { select: { name: true } }
+          }
+        },
         // "Avise-me quando chegar" pendentes (DT-081).
         stockAlerts: {
           select: {
@@ -450,6 +460,8 @@ export class PrivacyService {
       await tx.userToken.deleteMany({ where: { userId } });
       await tx.favorite.deleteMany({ where: { userId } });
       await tx.stockAlert.deleteMany({ where: { userId } });
+      // Avaliações são conteúdo da pessoa: saem junto (minimização, DT-081).
+      await tx.productReview.deleteMany({ where: { userId } });
       await tx.userAddress.deleteMany({ where: { userId } });
       await tx.forumReaction.deleteMany({ where: { userId } });
       await tx.forumPost.updateMany({

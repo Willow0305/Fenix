@@ -60,6 +60,7 @@ export const PERMISSIONS = {
 
   forumPublish: 'forum.publish',
   forumModerate: 'forum.moderate',
+  reviewsModerate: 'reviews.moderate',
   forumMembersAccess: 'forum.members.access',
   newsManage: 'news.manage',
   eventsManage: 'events.manage',
@@ -132,6 +133,7 @@ export const PERMISSION_LABELS: Record<PermissionCode, string> = {
   'settlements.manage': 'Gerenciar repasses',
   'forum.publish': 'Publicar comunicados no fórum',
   'forum.moderate': 'Moderar fórum',
+  'reviews.moderate': 'Moderar avaliações da loja',
   'forum.members.access': 'Acessar a área de membros do fórum',
   'news.manage': 'Gerenciar notícias',
   'events.manage': 'Gerenciar eventos e partidas',
@@ -225,7 +227,15 @@ export const PERMISSION_AREAS: readonly {
   { name: 'Caixa e finanças', prefixes: ['finance.', 'transactions.', 'refunds.', 'cash.'] },
   {
     name: 'Loja e entregas',
-    prefixes: ['products.', 'inventory.', 'orders.', 'campaigns.', 'coupons.', 'delivery.']
+    prefixes: [
+      'products.',
+      'inventory.',
+      'orders.',
+      'campaigns.',
+      'coupons.',
+      'delivery.',
+      'reviews.'
+    ]
   },
   {
     name: 'Parceiros e carteirinhas',

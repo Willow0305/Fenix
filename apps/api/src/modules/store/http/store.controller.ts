@@ -98,11 +98,20 @@ import {
   UpdateStoreCategoryDto,
   UpdateVariantDto,
   VariantDto,
-  MembershipPlanDto
+  MembershipPlanDto,
+  ModerateReviewDto,
+  ReviewDto,
+  ReviewListQueryDto
 } from './store.dto';
 import { DeleteReasonDto } from '../../../common/http/delete-reason.dto';
 import { CardsService } from '../../cards/application/cards.service';
 import { type OrderRights, ReturnsService, type ReturnView } from '../application/returns.service';
+import {
+  type AdminReviewView,
+  type MyReviewView,
+  type ProductReviewsView,
+  ReviewsService
+} from '../application/reviews.service';
 
 export const CART_COOKIE = 'fenix_cart';
 const IDEMPOTENCY_HEADER = { name: 'Idempotency-Key', required: true };
@@ -175,7 +184,8 @@ export class StorefrontController {
     private readonly config: AppConfig,
     private readonly coupons: CouponsService,
     private readonly returns: ReturnsService,
-    private readonly inventory: InventoryService
+    private readonly inventory: InventoryService,
+    private readonly reviews: ReviewsService
   ) {}
 
   private cookieOptions(): CookieOptions {
@@ -533,6 +543,42 @@ export class StorefrontController {
     await this.inventory.requestAlert(principal.userId, variantId);
   }
 
+  /** Avaliações aprovadas do produto, com média e total (DT-081). */
+  @Get('public/products/:slug/reviews')
+  @Public()
+  productReviews(@Param('slug') slug: string): Promise<ProductReviewsView> {
+    return this.reviews.forProduct(slug);
+  }
+
+  @Get('me/reviews/:productId')
+  @ApiBearerAuth()
+  myReview(
+    @CurrentPrincipal() principal: Principal,
+    @Param('productId', new ParseUUIDPipe()) productId: string
+  ): Promise<MyReviewView> {
+    return this.reviews.mine(principal.userId, productId);
+  }
+
+  @Put('me/reviews/:productId')
+  @ApiBearerAuth()
+  saveReview(
+    @CurrentPrincipal() principal: Principal,
+    @Param('productId', new ParseUUIDPipe()) productId: string,
+    @Body() body: ReviewDto
+  ): Promise<MyReviewView> {
+    return this.reviews.save(principal.userId, productId, body);
+  }
+
+  @Delete('me/reviews/:productId')
+  @ApiBearerAuth()
+  @HttpCode(204)
+  async removeReview(
+    @CurrentPrincipal() principal: Principal,
+    @Param('productId', new ParseUUIDPipe()) productId: string
+  ): Promise<void> {
+    await this.reviews.remove(principal.userId, productId);
+  }
+
   @Delete('me/stock-alerts/:variantId')
   @ApiBearerAuth()
   @HttpCode(204)
@@ -554,8 +600,27 @@ export class StoreAdminController {
     private readonly orders: OrdersService,
     private readonly coupons: CouponsService,
     private readonly cards: CardsService,
-    private readonly returns: ReturnsService
+    private readonly returns: ReturnsService,
+    private readonly reviews: ReviewsService
   ) {}
+
+  /** Fila de avaliações para aprovar (DT-081). */
+  @Get('reviews')
+  @RequirePermissions(PERMISSIONS.reviewsModerate)
+  reviewsList(@Query() query: ReviewListQueryDto): Promise<Page<AdminReviewView>> {
+    return this.reviews.list(query);
+  }
+
+  @Post('reviews/:id/moderate')
+  @RequirePermissions(PERMISSIONS.reviewsModerate)
+  moderateReview(
+    @CurrentPrincipal() actor: Principal,
+    @Param('id', new ParseUUIDPipe()) id: string,
+    @Body() body: ModerateReviewDto,
+    @ReqMeta() meta: RequestMeta
+  ): Promise<AdminReviewView> {
+    return this.reviews.moderate(actor, id, body, meta);
+  }
 
   /** Desistências e defeitos (DT-070). */
   @Get('returns')

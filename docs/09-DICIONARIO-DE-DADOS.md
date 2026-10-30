@@ -567,6 +567,16 @@ Enums de estados descrevem o vocabulário inicial; transições e responsáveis 
 - Índices/restrições: UK `(userId, productVariantId)`; IX `productVariantId`. Só aceita variação de produto com estoque (`STOCK`) e sem unidade disponível.
 - Exclusão/auditoria: apagado na mesma transação em que a pessoa é avisada (entrada que leva o disponível de 0 para mais de 0), ao cancelar e na anonimização da conta; não guarda histórico de interesse. Aparece na exportação de dados do titular.
 
+### `ProductReview` — grupo A
+
+- Finalidade: avaliação de produto com estrelas de 1 a 5 e comentário opcional (`DT-081`).
+- Campos O: `productId`, `userId`, `rating` (1 a 5, CHECK no banco), `status` (`PENDING`, `APPROVED`, `REJECTED`).
+- Campos P: `comment` (até 1000), `moderatedById`, `moderatedAt`, `moderationReason` (obrigatório ao recusar), `deletedAt`.
+- FKs: `productId -> Product` (R); `userId -> User` (C); `moderatedById -> User` (N).
+- Índices/restrições: UK `(productId, userId)`; IX `(productId, status)`, `(status, createdAt)`, `moderatedById`.
+- Regras: só quem tem pedido próprio **entregue** com o produto (afiliação não entra); toda edição volta para `PENDING`; o site mostra só aprovadas e só o primeiro nome.
+- Exclusão/auditoria: a pessoa remove (lógico); moderação registrada em `review.moderated`; apagada na anonimização da conta e incluída na exportação do titular.
+
 ### `Cart` — grupo T
 
 - Finalidade: carrinho autenticado ou anônimo convertido no máximo uma vez.

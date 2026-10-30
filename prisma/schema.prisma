@@ -558,6 +558,8 @@ model User {
   auditLogs                       AuditLog[]
   favorites                       Favorite[]
   stockAlerts                     StockAlert[]
+  productReviews                  ProductReview[]
+  moderatedReviews                ProductReview[]          @relation("ReviewModerator")
   carts                           Cart[]
   privacyRequests                 PrivacyRequest[]         @relation("PrivacyRequestSubject")
   privacyRequestsHandled          PrivacyRequest[]         @relation("PrivacyRequestHandler")
@@ -1542,6 +1544,7 @@ model Product {
   images                ProductImage[]
   variants              ProductVariant[]
   favorites             Favorite[]
+  reviews               ProductReview[]
   personalizationFields ProductPersonalizationField[]
   campaignProducts      SalesCampaignProduct[]
   orderItems            OrderItem[]
@@ -1708,6 +1711,41 @@ model StockAlert {
   @@unique([userId, productVariantId])
   @@index([productVariantId])
   @@map("stock_alerts")
+}
+
+/// Situação da avaliação de produto (DT-081): só aparece no site depois de aprovada.
+enum ProductReviewStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+/// Avaliação de produto (DT-081): estrelas de 1 a 5 e comentário opcional, só de quem comprou
+/// e recebeu (pedido entregue), uma por produto e pessoa; o site mostra só o primeiro nome.
+model ProductReview {
+  id               String              @id @default(uuid()) @db.Uuid
+  productId        String              @map("product_id") @db.Uuid
+  userId           String              @map("user_id") @db.Uuid
+  /// 1 a 5 (restrição também no banco).
+  rating           Int                 @db.SmallInt
+  comment          String?             @db.Text
+  status           ProductReviewStatus @default(PENDING)
+  moderatedById    String?             @map("moderated_by_id") @db.Uuid
+  moderatedAt      DateTime?           @map("moderated_at") @db.Timestamptz(6)
+  moderationReason String?             @map("moderation_reason") @db.VarChar(500)
+  createdAt        DateTime            @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt        DateTime            @updatedAt @map("updated_at") @db.Timestamptz(6)
+  deletedAt        DateTime?           @map("deleted_at") @db.Timestamptz(6)
+
+  product     Product @relation(fields: [productId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+  user        User    @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  moderatedBy User?   @relation("ReviewModerator", fields: [moderatedById], references: [id], onDelete: SetNull, onUpdate: Cascade)
+
+  @@unique([productId, userId])
+  @@index([productId, status])
+  @@index([status, createdAt])
+  @@index([moderatedById])
+  @@map("product_reviews")
 }
 
 model Cart {

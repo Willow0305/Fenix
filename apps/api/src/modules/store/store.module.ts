@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 
 import { FinanceModule } from '../finance/finance.module';
 import { SettingsModule } from '../settings/settings.module';
+import { ReviewsService } from './application/reviews.service';
 import { CartService, FavoritesService } from './application/cart.service';
 import { CatalogService } from './application/catalog.service';
 import { CouponsService } from './application/coupons.service';
@@ -34,7 +35,8 @@ import { DeliveryAdminController, DeliveryController } from './http/delivery.con
     CouponsService,
     ReturnsService,
     DeliveryService,
-    DeliveryDispatchService
+    DeliveryDispatchService,
+    ReviewsService
   ],
   exports: [OrdersService, InventoryService, CatalogService]
 })

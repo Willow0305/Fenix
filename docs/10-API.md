@@ -68,6 +68,10 @@ O contrato completo e executável fica no OpenAPI (`/docs` fora de produção). 
 | `GET`/`PUT`/`DELETE` | `/api/v1/me/favorites[/:productId]` | próprio | 4 |
 | `GET` | `/api/v1/me/stock-alerts?variantIds=` | próprio: variações com aviso pedido (`DT-081`) | 9 |
 | `PUT`/`DELETE` | `/api/v1/me/stock-alerts/:variantId` | próprio: pedir ou cancelar "avise-me quando chegar"; `409 IN_STOCK` se já houver estoque | 9 |
+| `GET` | `/api/v1/public/products/:slug/reviews` | público: avaliações aprovadas, média e total (`DT-081`) | 9 |
+| `GET`/`PUT`/`DELETE` | `/api/v1/me/reviews/:productId` | próprio: avaliar (só quem comprou e recebeu), editar (volta à fila) ou remover; `403 NOT_ELIGIBLE` | 9 |
+| `GET` | `/api/v1/store/reviews?status=` | `reviews.moderate`: fila de avaliações | 9 |
+| `POST` | `/api/v1/store/reviews/:id/moderate` | `reviews.moderate`: aprovar ou recusar com motivo, auditado | 9 |
 | `GET`/`POST`/`PATCH`/`PUT`/`DELETE` | `/api/v1/store/categories` · `store/products` · `:id/status` · `:id/variants` · `:id/images` | `products.manage` | 4 |
 | `POST`/`GET` | `/api/v1/store/variants/:id/stock` · `:id/movements` | `inventory.adjust` / `products.manage` | 4 |
 | `GET` | `/api/v1/store/orders[/:id]` | `orders.read` | 4 |

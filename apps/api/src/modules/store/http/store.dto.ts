@@ -570,3 +570,27 @@ export class ReturnListQueryDto extends PageQueryDto {
   @IsIn(['open', 'closed'])
   status?: 'open' | 'closed';
 }
+
+/** Avaliação de produto (DT-081). */
+export class ReviewDto {
+  @ApiProperty({ minimum: 1, maximum: 5 }) @IsInt() @Min(1) @Max(5) rating!: number;
+  @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(1000) comment?: string;
+}
+
+export class ModerateReviewDto {
+  @ApiProperty({ enum: ['APPROVE', 'REJECT'] })
+  @IsIn(['APPROVE', 'REJECT'])
+  decision!: 'APPROVE' | 'REJECT';
+  @ApiPropertyOptional({ description: 'Obrigatório ao recusar.' })
+  @IsOptional()
+  @IsString()
+  @MaxLength(500)
+  reason?: string;
+}
+
+export class ReviewListQueryDto extends PageQueryDto {
+  @ApiPropertyOptional({ enum: ['PENDING', 'APPROVED', 'REJECTED'] })
+  @IsOptional()
+  @IsIn(['PENDING', 'APPROVED', 'REJECTED'])
+  status?: 'PENDING' | 'APPROVED' | 'REJECTED';
+}
