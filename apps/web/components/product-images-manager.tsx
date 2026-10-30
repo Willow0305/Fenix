@@ -18,6 +18,7 @@ export function ProductImagesManager({
 }) {
   return (
     <ImageGalleryManager<ProductDetail>
+      imagesOf={(detail) => detail.images}
       basePath={`/store/products/${productId}/images`}
       images={images}
       onChange={onChange}

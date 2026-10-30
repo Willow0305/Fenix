@@ -1664,6 +1664,12 @@ Manter paleta, layout e componentes, e trocar os sinais de interface genérica p
 - rotas `news/:id/gallery` (envio), `gallery/order`, `gallery/:imageId` (descrever e remover), com `news.manage`; a ordem trava a linha da notícia e recusa lista desatualizada (`IMAGES_CHANGED`);
 - no painel, o gerenciador de fotos do produto virou o componente genérico `ImageGalleryManager`, usado pelas duas telas; no site, a galeria abre na mesma janela escura das fotos do produto.
 
+### Implementação: recorte de fotos no painel (2026-10-30)
+
+- dependência nova no site: `react-easy-crop` 5.5.0 (MIT, versão estável e madura), só para a janela de recorte; arrastar, pinça no celular, setas do teclado e formatos (original, 3:2, 16:9, 4:3, 1:1);
+- o recorte é feito no próprio navegador (canvas) e enviado como JPEG pelas mesmas rotas de envio; o servidor continua validando tipo, tamanho e otimizando; nada sai do aparelho antes de a pessoa confirmar;
+- vale para os três gerenciadores de fotos (produto, galeria da notícia, fotos do clube): enviar uma foto por vez abre o recorte; "Recortar" numa foto já enviada envia a versão cortada, põe no mesmo lugar e remove a anterior (remoção lógica, auditada).
+
 ### Implementação: mais lidas (2026-10-30)
 
 - `news_daily_views` (notícia, dia civil no fuso do clube, total), somada com `INSERT … ON CONFLICT DO UPDATE` para não perder leitura simultânea; a regra de privacidade está em `docs/13` (medição de leituras);

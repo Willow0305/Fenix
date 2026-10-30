@@ -5,6 +5,7 @@ import { useEffect, useId, useState } from 'react';
 import { api, ApiError, errorMessage } from '../lib/api-client';
 import { plural } from '../lib/format';
 import { Icon } from './icon';
+import { ImageCropDialog } from './image-crop-dialog';
 import { Alert, ConfirmDialog } from './ui';
 
 export interface GalleryImage {
@@ -32,8 +33,8 @@ export function moveItem<T>(list: readonly T[], from: number, to: number): T[] {
 
 /**
  * Fotos com envio de várias de uma vez, ordem por arrastar ou pelos botões (no celular),
- * descrição de cada foto e remoção (DT-051). Usada nas fotos do produto e na galeria da
- * notícia (D8, DT-081).
+ * descrição de cada foto, recorte (ao enviar uma foto ou depois) e remoção (DT-051). Usada
+ * nas fotos do produto, na galeria da notícia e nas fotos do clube (DT-081).
  */
 export function ImageGalleryManager<T>({
   basePath,
@@ -46,7 +47,8 @@ export function ImageGalleryManager<T>({
   placeholder,
   removeDescription,
   firstIsCover = false,
-  noun = 'foto'
+  noun = 'foto',
+  imagesOf
 }: {
   /** Base REST: POST (envio), PUT `order`, PATCH e DELETE `/:imageId`. */
   readonly basePath: string;
@@ -62,6 +64,8 @@ export function ImageGalleryManager<T>({
   readonly firstIsCover?: boolean;
   /** Para a mensagem de limite: "por produto", "por notícia". */
   readonly noun?: string;
+  /** Fotos dentro da resposta da API, para "Recortar" achar a foto nova. */
+  readonly imagesOf: (detail: T) => readonly GalleryImage[];
 }) {
   const inputId = useId();
   const [order, setOrder] = useState<GalleryImage[]>([...images]);
@@ -70,8 +74,73 @@ export function ImageGalleryManager<T>({
   const [message, setMessage] = useState<{ kind: 'success' | 'error'; text: string } | null>(null);
   const [removing, setRemoving] = useState<GalleryImage | null>(null);
   const [busy, setBusy] = useState(false);
+  const headingId = useId();
+  // Recorte de uma foto nova (antes de enviar) ou de uma já enviada (DT-081).
+  const [cropping, setCropping] = useState<
+    { kind: 'new'; src: string } | { kind: 'existing'; src: string; image: GalleryImage } | null
+  >(null);
 
   useEffect(() => setOrder([...images]), [images]);
+
+  function closeCrop() {
+    setCropping((current) => {
+      if (current?.kind === 'new') {
+        URL.revokeObjectURL(current.src);
+      }
+
+      return null;
+    });
+  }
+
+  function postFile(file: Blob, altText?: string | null): Promise<T> {
+    const body = new FormData();
+
+    body.set('file', file, 'foto.jpg');
+
+    if (altText) {
+      body.set('altText', altText);
+    }
+
+    return api<T>(basePath, { method: 'POST', body });
+  }
+
+  /** Envia o recorte: foto nova no fim; foto existente trocada na mesma posição. */
+  async function saveCrop(blob: Blob) {
+    const target = cropping;
+
+    if (!target) {
+      return;
+    }
+
+    if (target.kind === 'new') {
+      await postFile(blob).then(onChange);
+      setMessage({ kind: 'success', text: 'Foto enviada.' });
+      closeCrop();
+
+      return;
+    }
+
+    const before = new Set(order.map((image) => image.id));
+    const added = await postFile(blob, target.image.altText);
+    const fresh = imagesOf(added).find((image) => !before.has(image.id));
+
+    if (!fresh) {
+      onChange(added);
+      closeCrop();
+
+      return;
+    }
+
+    // A foto nova entra no lugar da antiga, e a antiga sai.
+    const ids = order.flatMap((image) =>
+      image.id === target.image.id ? [fresh.id, image.id] : [image.id]
+    );
+
+    await api<T>(`${basePath}/order`, { method: 'PUT', body: { imageIds: ids } });
+    onChange(await api<T>(`${basePath}/${target.image.id}`, { method: 'DELETE' }));
+    setMessage({ kind: 'success', text: 'Recorte salvo.' });
+    closeCrop();
+  }
 
   async function call(action: () => Promise<T>, success?: string) {
     setBusy(true);
@@ -111,6 +180,13 @@ export function ImageGalleryManager<T>({
     const skipped = list.length - invalid.length - valid.length;
 
     setMessage(null);
+
+    // Uma foto por vez abre o recorte antes de enviar; várias de uma vez vão direto.
+    if (valid.length === 1 && invalid.length === 0 && valid[0]) {
+      setCropping({ kind: 'new', src: URL.createObjectURL(valid[0]) });
+
+      return;
+    }
 
     if (valid.length === 0) {
       setMessage({
@@ -174,8 +250,8 @@ export function ImageGalleryManager<T>({
   }
 
   return (
-    <section className="card stack" aria-labelledby="imagens">
-      <h2 id="imagens">
+    <section className="card stack" aria-labelledby={headingId}>
+      <h2 id={headingId}>
         <Icon name="images" className="icon-lead" /> {title} ({order.length} de {max})
       </h2>
       <p className="muted m-0">{intro}</p>
@@ -275,6 +351,15 @@ export function ImageGalleryManager<T>({
                 ) : null}
                 <button
                   type="button"
+                  className="btn btn-secondary btn-sm"
+                  disabled={busy || order.length >= max}
+                  title={order.length >= max ? 'Remova uma foto para poder recortar.' : undefined}
+                  onClick={() => setCropping({ kind: 'existing', src: image.url, image })}
+                >
+                  <Icon name="crop" /> Recortar
+                </button>
+                <button
+                  type="button"
                   className="btn btn-link"
                   aria-label={`Remover foto ${index + 1}`}
                   disabled={busy}
@@ -293,6 +378,7 @@ export function ImageGalleryManager<T>({
       {order.length < max ? (
         <div className="field">
           <label htmlFor={inputId}>Adicionar fotos (PNG, JPG ou WebP, até 10 MB cada)</label>
+          <span className="field-hint">Uma foto por vez abre o recorte antes de enviar.</span>
           <input
             id={inputId}
             type="file"
@@ -306,6 +392,13 @@ export function ImageGalleryManager<T>({
           />
         </div>
       ) : null}
+
+      <ImageCropDialog
+        src={cropping?.src ?? null}
+        title={cropping?.kind === 'existing' ? 'Recortar foto' : 'Ajustar a foto antes de enviar'}
+        onCancel={closeCrop}
+        onConfirm={saveCrop}
+      />
 
       <ConfirmDialog
         open={removing !== null}

@@ -355,6 +355,7 @@ export default function NewsEditPage() {
       />
 
       <ImageGalleryManager<NewsDetail>
+        imagesOf={(detail) => detail.gallery}
         basePath={`/news/${id}/gallery`}
         images={n.gallery}
         onChange={news.setData}

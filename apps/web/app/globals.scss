@@ -1467,6 +1467,25 @@ a.news-kicker {
   }
 }
 
+// Recorte de foto no painel (DT-081): área de corte escura, formatos e aproximar.
+dialog.crop-dialog {
+  display: none;
+  width: min(100% - 2rem, 760px);
+
+  &[open] {
+    display: grid;
+    gap: 0.75rem;
+  }
+}
+
+.crop-stage {
+  position: relative;
+  height: min(60dvh, 480px);
+  overflow: hidden;
+  border-radius: var(--radius-sm);
+  background: var(--color-ink);
+}
+
 // Fotos do clube na página Sobre: uma de cada vez, trocando por esmaecimento.
 .photo-carousel {
   display: grid;

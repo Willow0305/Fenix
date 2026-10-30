@@ -12,6 +12,7 @@ O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) e o 
 
 - herói da página inicial e convites "Afiliações abertas" e "Quer jogar com a gente?" voltam ao fundo original, com brilho vermelho suave atrás da logo (anterior à faixa diagonal de `DT-080`), a pedido do responsável; o mesmo brilho vale em todas as superfícies escuras (imagem sem foto, afiliação, fórum, pré-venda), no lugar das listras (DT-081 revisto);
 - fotos do clube na página Sobre, passando sozinhas a cada 6 segundos, com legenda, anterior, próxima e Pausar; param com o mouse ou o foco em cima e não trocam sozinhas em "reduzir movimento". A diretoria envia e ordena em Configurações › Fotos do clube (até 20; migração `20261030070000_fotos_do_clube`); o herói da página inicial continua com a logo;
+- recortar fotos no painel (fotos do clube, de produto e da galeria da notícia): enviar uma foto por vez abre o ajuste antes de subir, e "Recortar" troca uma foto já enviada pela versão cortada na mesma posição; formatos original, 3:2, 16:9, 4:3 e 1:1.
 - modelo "Faixa" da carteirinha volta à faixa diagonal.
 
 ### Plano de experiência: Onda 5, painel da diretoria (2026-10-30)

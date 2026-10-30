@@ -357,6 +357,7 @@ export default function SettingsPage() {
           </div>
           {settings.data ? (
             <ImageGalleryManager<AdminTeam>
+              imagesOf={(detail) => detail.photos ?? []}
               basePath="/team-settings/photos"
               images={settings.data.photos ?? []}
               onChange={settings.setData}
