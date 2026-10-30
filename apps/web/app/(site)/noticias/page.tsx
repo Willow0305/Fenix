@@ -39,6 +39,11 @@ export default async function NewsPage({
     serverGet<NewsCategory[]>('/public/news-categories', 60),
     params.assunto ? serverGet<NewsTag[]>('/public/news-tags', 60) : Promise.resolve(null)
   ]);
+  const isFront = page === 1 && !params.categoria && !params.assunto;
+  // "Mais lidas" só na capa e só com pelo menos 3, para a lista dizer algo (D5, DT-081).
+  const mostRead = isFront
+    ? ((await serverGet<NewsSummary[]>('/public/news-most-read?limit=5', 300)) ?? [])
+    : [];
   const topic = tags?.find((tag) => tag.slug === params.assunto);
   const items = news?.data ?? [];
   const totalPages = news ? Math.ceil(news.meta.total / news.meta.pageSize) : 1;
@@ -127,18 +132,34 @@ export default async function NewsPage({
           ))}
         </section>
       ) : null}
-      {rest.length > 0 ? (
-        <section aria-labelledby="mais-noticias" className="stack">
-          <h2 id="mais-noticias" className={page === 1 ? 'list-title' : 'visually-hidden'}>
-            Mais notícias
-          </h2>
-          <div className={styles.list}>
-            {rest.map((item) => (
-              <NewsRow key={item.id} news={item} />
-            ))}
-          </div>
-        </section>
-      ) : null}
+      <div className={styles.columns}>
+        {rest.length > 0 ? (
+          <section aria-labelledby="mais-noticias" className="stack">
+            <h2 id="mais-noticias" className={page === 1 ? 'list-title' : 'visually-hidden'}>
+              Mais notícias
+            </h2>
+            <div className={styles.list}>
+              {rest.map((item) => (
+                <NewsRow key={item.id} news={item} />
+              ))}
+            </div>
+          </section>
+        ) : null}
+        {mostRead.length >= 3 ? (
+          <aside aria-labelledby="mais-lidas" className={`stack ${styles.mostRead}`}>
+            <h2 id="mais-lidas" className="list-title">
+              Mais lidas da semana
+            </h2>
+            <ol className="list-plain">
+              {mostRead.map((item) => (
+                <li key={item.id}>
+                  <Link href={`/noticias/${item.slug}`}>{item.title}</Link>
+                </li>
+              ))}
+            </ol>
+          </aside>
+        ) : null}
+      </div>
       {totalPages > 1 ? (
         <nav aria-label="Paginação" className="row">
           {page > 1 ? (

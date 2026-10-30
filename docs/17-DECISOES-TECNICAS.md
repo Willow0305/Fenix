@@ -1664,3 +1664,9 @@ Manter paleta, layout e componentes, e trocar os sinais de interface genérica p
 - rotas `news/:id/gallery` (envio), `gallery/order`, `gallery/:imageId` (descrever e remover), com `news.manage`; a ordem trava a linha da notícia e recusa lista desatualizada (`IMAGES_CHANGED`);
 - no painel, o gerenciador de fotos do produto virou o componente genérico `ImageGalleryManager`, usado pelas duas telas; no site, a galeria abre na mesma janela escura das fotos do produto.
 
+### Implementação: mais lidas (2026-10-30)
+
+- `news_daily_views` (notícia, dia civil no fuso do clube, total), somada com `INSERT … ON CONFLICT DO UPDATE` para não perder leitura simultânea; a regra de privacidade está em `docs/13` (medição de leituras);
+- `POST /public/news/:slug/view` responde 204 sempre, mesmo para notícia inexistente ou oculta (não revela nada e não conta); limite de 30 por minuto por IP;
+- `GET /public/news-most-read` soma os últimos 7 dias, só entre notícias ainda públicas, desempata pela mais recente; a capa mostra o bloco só com 3 ou mais notícias lidas.
+

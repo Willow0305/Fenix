@@ -99,7 +99,7 @@ const NEWS_INCLUDE = {
 type NewsRow = Prisma.NewsGetPayload<{ include: typeof NEWS_INCLUDE }>;
 
 /** Filtro público: publicada (ou agendada já alcançada) e não removida (RN-COM-005). */
-function publicWhere(now: Date): Prisma.NewsWhereInput {
+export function publicWhere(now: Date): Prisma.NewsWhereInput {
   return {
     deletedAt: null,
     status: { in: ['PUBLISHED', 'SCHEDULED'] },
@@ -588,6 +588,20 @@ export class NewsService {
       page,
       pageSize
     );
+  }
+
+  /** Resumos das notícias públicas com esses ids (para "mais lidas"). */
+  async publicSummaries(ids: readonly string[]): Promise<NewsSummary[]> {
+    if (ids.length === 0) {
+      return [];
+    }
+
+    const rows = await this.prisma.news.findMany({
+      where: { id: { in: [...ids] }, ...publicWhere(new Date()) },
+      include: NEWS_INCLUDE
+    });
+
+    return rows.map((row) => this.summary(row));
   }
 
   async publicGet(slug: string): Promise<NewsDetail> {

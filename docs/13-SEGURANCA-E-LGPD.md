@@ -276,6 +276,14 @@ Dados de saúde/prontuário continuam fora do escopo, mesmo com responsável.
 - a exportação dos dados do titular inclui consentimento e preferências; a anonimização apaga as preferências, limpa o consentimento e cancela envios pendentes;
 - provedores de e-mail e a Meta (WhatsApp Cloud API) são operadores: entram no inventário de terceiros abaixo e no contrato (`PEN-042`, `PEN-064`).
 
+### Medição de leituras de notícias (D5, DT-081)
+
+- a contagem é **própria e agregada**: a tabela `news_daily_views` guarda só notícia, dia e total. Não há pessoa, conta, IP, navegador, cookie ou identificador de dispositivo;
+- o site avisa a leitura de uma notícia pública uma vez por aba; a marca de "já contada" fica só no `sessionStorage` daquela aba, nunca vai ao servidor e some ao fechar a aba;
+- o IP passa apenas pelo limite de requisições em memória (30 por minuto), como em qualquer rota pública, e não é gravado;
+- sem ferramenta de terceiros nem cookie de análise, não há banner de consentimento para essa medição; se um dia houver ferramenta externa, a decisão volta para cá;
+- o dado serve só para "mais lidas" (últimos 7 dias) e pode ser apagado a qualquer momento sem afetar o conteúdo.
+
 ## Terceiros e operadores
 
 - inventariar hospedagem, banco, objeto, e-mail, observabilidade e futuros gateways;

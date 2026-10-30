@@ -5,6 +5,7 @@ import { ContentAlertsService } from './application/content-alerts.service';
 import { EventsService } from './application/events.service';
 import { ForumService } from './application/forum.service';
 import { NewsGalleryService } from './application/news-gallery.service';
+import { NewsViewsService } from './application/news-views.service';
 import { NewsTagsService } from './application/news-tags.service';
 import { NewsService } from './application/news.service';
 import { ContentController } from './http/content.controller';
@@ -15,6 +16,7 @@ import { ContentController } from './http/content.controller';
     NewsService,
     NewsTagsService,
     NewsGalleryService,
+    NewsViewsService,
     EventsService,
     ForumService,
     AnnouncementsService,

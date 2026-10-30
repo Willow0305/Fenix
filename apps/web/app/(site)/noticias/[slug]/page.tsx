@@ -7,6 +7,7 @@ import { JsonLd } from '../../../../components/json-ld';
 import { MediaImage } from '../../../../components/media-image';
 import { NewsRow, NewsTime } from '../../../../components/news-card';
 import { NewsGallery } from '../../../../components/news-gallery';
+import { NewsViewBeacon } from '../../../../components/news-view-beacon';
 import { ShareButtons } from '../../../../components/share-buttons';
 import type { Page } from '../../../../lib/api-types';
 import type { NewsDetail, NewsSummary } from '../../../../lib/content-types';
@@ -79,6 +80,7 @@ export default async function NewsItemPage({
   return (
     <article className="container reading">
       <JsonLd data={newsArticleData(news)} />
+      <NewsViewBeacon slug={news.slug} />
       <Link href="/noticias" className="back-link">
         <Icon name="arrow-left" /> Notícias
       </Link>

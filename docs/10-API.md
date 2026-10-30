@@ -96,6 +96,8 @@ O contrato completo e executável fica no OpenAPI (`/docs` fora de produção). 
 | `GET` | `/api/v1/public/news[/:slug]?channel=home\|forum&category` · `public/news-categories` | público (somente publicadas) | 7 |
 | `GET`/`POST`/`PATCH` | `/api/v1/news[/:id]` · `news-categories[/:id]` | `news.manage` | 7 |
 | `POST`/`PUT` | `/api/v1/news/:id/publish` (agora ou `scheduledAt`) · `:id/status` · `:id/cover` (multipart) | `news.manage` | 7 |
+| `POST` | `/api/v1/public/news/:slug/view` (204, 30/min) | público | DT-081 |
+| `GET` | `/api/v1/public/news-most-read?limit=` | público | DT-081 |
 | `GET` | `/api/v1/public/news-tags`; `public/news?tag=` | público | DT-081 |
 | `GET/POST/PATCH/DELETE` | `/api/v1/news-tags[/:id]` | `news.manage` | DT-081 |
 | `POST/PUT/PATCH/DELETE` | `/api/v1/news/:id/gallery[/order\|/:imageId]` | `news.manage` | DT-081 |

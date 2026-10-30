@@ -18,6 +18,7 @@ O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) e o 
 - eventos externos na agenda (D3, DT-081): organizador, página oficial, cidade livre com UF, entrada gratuita ou com preço e jogo entre times de fora com placar; filtro "Acre / Outros lugares" e "Do Fênix / De outros organizadores"; formulário do painel com a seção "Organização, lugar e entrada" (migração `20261030030000_eventos_externos`).
 - assuntos de notícias em lista controlada pela diretoria (D8, DT-081): até 5 por notícia, mostrados no fim do texto e com página própria (`/noticias?assunto=`); cadastro em Painel › Notícias › Assuntos de notícias (migração `20261030040000_assuntos_noticias`).
 - galeria de fotos na notícia (D8, DT-081): até 30 fotos com legenda, ordenadas no painel e abertas no site na janela escura da loja, com anterior, próxima e setas do teclado (migração `20261030050000_galeria_noticias`).
+- "Mais lidas da semana" na capa de notícias (D5, D8, DT-081), com contagem própria e agregada: só notícia, dia e total, sem cookie nem dado de quem leu (migração `20261030060000_leituras_noticias`).
 
 ### Plano de experiência: Onda 1, produto e carrinho (2026-10-29)
 

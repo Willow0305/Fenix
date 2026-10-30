@@ -43,6 +43,16 @@ export class UpdateNewsCategoryDto {
   @ApiPropertyOptional() @IsOptional() @IsBoolean() isActive?: boolean;
 }
 
+export class MostReadQueryDto {
+  @ApiPropertyOptional({ minimum: 1, maximum: 10, default: 5 })
+  @IsOptional()
+  @Type(() => Number)
+  @IsInt()
+  @Min(1)
+  @Max(10)
+  limit?: number;
+}
+
 export class NewsImageDto {
   @ApiPropertyOptional({ description: 'Descrição, mostrada como legenda.' })
   @IsOptional()

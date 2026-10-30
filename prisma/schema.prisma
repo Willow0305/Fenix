@@ -2158,6 +2158,21 @@ model NewsImage {
   @@map("news_images")
 }
 
+/// Leituras por notícia e dia (D5, DT-081): só a soma; sem pessoa, IP, cookie ou navegador.
+model NewsDailyView {
+  id     String   @id @default(uuid()) @db.Uuid
+  newsId String   @map("news_id") @db.Uuid
+  /// Dia civil no fuso do clube.
+  day    DateTime @db.Date
+  views  Int      @default(0)
+
+  news News @relation(fields: [newsId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+
+  @@unique([newsId, day])
+  @@index([day])
+  @@map("news_daily_views")
+}
+
 /// Assunto de notícia em lista controlada pela diretoria (D8, DT-081).
 model NewsTag {
   id        String    @id @default(uuid()) @db.Uuid
@@ -2430,13 +2445,14 @@ model News {
   updatedAt        DateTime   @updatedAt @map("updated_at") @db.Timestamptz(6)
   deletedAt        DateTime?  @map("deleted_at") @db.Timestamptz(6)
 
-  category       NewsCategory  @relation(fields: [categoryId], references: [id], onDelete: Restrict, onUpdate: Cascade)
-  authorUser     User?         @relation(fields: [authorUserId], references: [id], onDelete: SetNull, onUpdate: Cascade)
-  coverMediaFile MediaFile?    @relation(fields: [coverMediaFileId], references: [id], onDelete: SetNull, onUpdate: Cascade)
-  event          Event?        @relation(fields: [eventId], references: [id], onDelete: SetNull, onUpdate: Cascade)
-  forumTopic     ForumTopic?   @relation(fields: [forumTopicId], references: [id], onDelete: SetNull, onUpdate: Cascade)
+  category       NewsCategory    @relation(fields: [categoryId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+  authorUser     User?           @relation(fields: [authorUserId], references: [id], onDelete: SetNull, onUpdate: Cascade)
+  coverMediaFile MediaFile?      @relation(fields: [coverMediaFileId], references: [id], onDelete: SetNull, onUpdate: Cascade)
+  event          Event?          @relation(fields: [eventId], references: [id], onDelete: SetNull, onUpdate: Cascade)
+  forumTopic     ForumTopic?     @relation(fields: [forumTopicId], references: [id], onDelete: SetNull, onUpdate: Cascade)
   tags           NewsTagLink[]
   gallery        NewsImage[]
+  dailyViews     NewsDailyView[]
 
   @@index([status, scheduledAt, publishedAt])
   @@index([showOnHome, status, publishedAt])

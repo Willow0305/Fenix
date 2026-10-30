@@ -54,6 +54,7 @@ import {
 } from '../application/news.service';
 import { type NewsTagView, NewsTagsService } from '../application/news-tags.service';
 import { NewsGalleryService } from '../application/news-gallery.service';
+import { NewsViewsService } from '../application/news-views.service';
 import {
   BroadcastDto,
   EditPostDto,
@@ -64,6 +65,7 @@ import {
   ModerationQueryDto,
   NewsCategoryDto,
   NewsDto,
+  MostReadQueryDto,
   NewsImageDto,
   NewsImageOrderDto,
   NewsQueryDto,
@@ -97,6 +99,7 @@ export class ContentController {
     private readonly news: NewsService,
     private readonly newsTags: NewsTagsService,
     private readonly gallery: NewsGalleryService,
+    private readonly views: NewsViewsService,
     private readonly events: EventsService,
     private readonly forum: ForumService,
     private readonly announcements: AnnouncementsService
@@ -108,6 +111,22 @@ export class ContentController {
   @Public()
   publicNews(@Query() query: PublicNewsQueryDto): Promise<Page<NewsSummary>> {
     return this.news.publicList(defined(query));
+  }
+
+  /** "Mais lidas" dos últimos 7 dias (D5, DT-081). */
+  @Get('public/news-most-read')
+  @Public()
+  mostReadNews(@Query() query: MostReadQueryDto): Promise<NewsSummary[]> {
+    return this.views.mostRead(query.limit);
+  }
+
+  /** Uma leitura, sem nada que identifique quem leu (D5, DT-081). */
+  @Post('public/news/:slug/view')
+  @Public()
+  @HttpCode(204)
+  @Throttle({ default: { limit: 30, ttl: 60_000 } })
+  async viewNews(@Param('slug') slug: string): Promise<void> {
+    await this.views.record(slug);
   }
 
   @Get('public/news/:slug')
