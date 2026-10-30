@@ -6,7 +6,7 @@ import styles from './site-footer.module.scss';
 import { formatPhoneDisplay } from '../lib/format';
 
 export function SiteFooter({ team }: { readonly team: PublicTeam }) {
-  const city = [team.address.city, team.address.state].filter(Boolean).join(' — ');
+  const city = [team.address.city, team.address.state].filter(Boolean).join('/');
 
   return (
     <footer className={styles.footer}>

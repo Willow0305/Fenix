@@ -1,4 +1,5 @@
 import type { Metadata, Viewport } from 'next';
+import { Barlow_Condensed, Inter } from 'next/font/google';
 import { headers } from 'next/headers';
 import type { ReactNode } from 'react';
 
@@ -28,8 +29,18 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: '#0B0613'
+  themeColor: '#0B0613',
+  viewportFit: 'cover'
 };
+
+// Fontes servidas pelo próprio site (DT-080): Inter no texto, Barlow Condensed nos títulos.
+const inter = Inter({ subsets: ['latin'], variable: '--font-inter', display: 'swap' });
+const display = Barlow_Condensed({
+  subsets: ['latin'],
+  weight: ['600', '700', '800'],
+  variable: '--font-condensed',
+  display: 'swap'
+});
 
 interface RootLayoutProps {
   readonly children: ReactNode;
@@ -40,7 +51,7 @@ export default async function RootLayout({ children }: RootLayoutProps) {
   await headers();
 
   return (
-    <html lang="pt-BR">
+    <html lang="pt-BR" className={`${inter.variable} ${display.variable}`}>
       <body>
         <a href="#conteudo" className="skip-link">
           Pular para o conteúdo

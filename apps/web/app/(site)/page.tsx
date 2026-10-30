@@ -1,6 +1,7 @@
 import Link from 'next/link';
 
 import { BrandLogo } from '../../components/brand-logo';
+import { Icon } from '../../components/icon';
 import { MembershipCta } from '../../components/membership-cta';
 import { firstTeamLogo } from '../../lib/brand';
 import { getPublicTeam, serverGet } from '../../lib/server-api';
@@ -40,9 +41,6 @@ export default async function HomePage() {
               <Link href="/loja" className={`btn ${styles.ghost}`}>
                 Loja oficial
               </Link>
-              <Link href="/contato" className={`btn ${styles.ghost}`}>
-                Fale conosco
-              </Link>
             </div>
           </div>
           <div className={styles.heroLogo}>
@@ -52,7 +50,7 @@ export default async function HomePage() {
       </section>
 
       {membership ? (
-        <div className={`container ${styles.section}`} style={{ paddingBottom: 0 }}>
+        <div className={`container ${styles.section} ${styles.membership}`}>
           <MembershipCta
             product={{
               name: membership.name,
@@ -64,21 +62,35 @@ export default async function HomePage() {
       ) : null}
 
       <section className={`container ${styles.section}`} aria-labelledby="times-title">
-        <h2 id="times-title">Nossos times</h2>
+        <div className={styles.sectionHead}>
+          <h2 id="times-title">Nossos times</h2>
+        </div>
         <div className={styles.cards}>
           <Link href="/times?tipo=MALE" className={styles.teamCard}>
-            <BrandLogo src={male} alt="Logo do time masculino" size={64} />
-            <strong>Masculino</strong>
-            <span>Elenco, agenda e notícias do time masculino.</span>
+            <BrandLogo src={male} alt="" size={64} />
+            <div>
+              <strong>Masculino</strong>
+              <span>Elenco e agenda</span>
+            </div>
+            <Icon name="arrow-right" className={styles.teamArrow} />
           </Link>
           <Link href="/times?tipo=FEMALE" className={styles.teamCard}>
-            <BrandLogo src={female} alt="Logo do time feminino" size={64} />
-            <strong>Feminino</strong>
-            <span>Elenco, agenda e notícias do time feminino.</span>
+            <BrandLogo src={female} alt="" size={64} />
+            <div>
+              <strong>Feminino</strong>
+              <span>Elenco e agenda</span>
+            </div>
+            <Icon name="arrow-right" className={styles.teamArrow} />
           </Link>
           <Link href="/seletivas" className={styles.teamCard}>
-            <strong>Seletivas</strong>
-            <span>Veja as seletivas abertas e faça sua inscrição.</span>
+            <span className={styles.teamIcon}>
+              <Icon name="clipboard-check" />
+            </span>
+            <div>
+              <strong>Seletivas</strong>
+              <span>Venha jogar com a gente</span>
+            </div>
+            <Icon name="arrow-right" className={styles.teamArrow} />
           </Link>
         </div>
       </section>

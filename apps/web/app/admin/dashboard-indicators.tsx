@@ -21,12 +21,7 @@ export function DashboardIndicators() {
       </h2>
       <div className="stat-grid">
         {(summary.data ?? []).map((indicator) => (
-          <Link
-            key={indicator.key}
-            href={indicator.link}
-            className="stat"
-            style={{ color: 'inherit', textDecoration: 'none' }}
-          >
+          <Link key={indicator.key} href={indicator.link} className="stat stat-link">
             <div className="stat-label">{indicator.label}</div>
             <div className="stat-value">{indicator.value}</div>
             <small className="muted" title={indicator.definition}>

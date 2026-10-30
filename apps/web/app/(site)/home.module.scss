@@ -1,11 +1,34 @@
 .hero {
-  background:
-    radial-gradient(circle at 80% 30%, rgb(205 21 29 / 35%), transparent 55%), var(--color-ink);
+  position: relative;
+  overflow: hidden;
+  background: var(--color-ink);
   color: #fff;
-  padding: 3.5rem 0;
+  padding: clamp(2.5rem, 6vw, 4.5rem) 0;
+
+  // Faixa diagonal da camisa atrás da logo (DT-080).
+  &::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    // Faixa entre o texto e a logo: a fênix vermelha nunca fica sobre vermelho (docs/12).
+    background: linear-gradient(
+      112deg,
+      transparent 0 47%,
+      var(--color-primary) 47% 53%,
+      transparent 53% 55.5%,
+      rgb(205 21 29 / 35%) 55.5% 57%,
+      transparent 57%
+    );
+    pointer-events: none;
+
+    @media (max-width: 760px) {
+      background: var(--brand-slash-soft);
+    }
+  }
 }
 
 .heroInner {
+  position: relative;
   display: grid;
   gap: 2rem;
   grid-template-columns: 1.3fr 1fr;
@@ -13,19 +36,23 @@
 }
 
 .heroText h1 {
-  font-size: clamp(2.2rem, 5vw, 3.6rem);
-  font-weight: 900;
+  margin-bottom: 0.4em;
+  font-size: clamp(2.75rem, 1.6rem + 5vw, 5rem);
+  font-weight: 800;
+  line-height: 0.95;
   text-transform: uppercase;
-  letter-spacing: 0.01em;
+  letter-spacing: 0.005em;
 }
 
 .eyebrow {
   margin: 0 0 0.75rem;
-  color: #ffb4b7;
+  color: #fff;
+  font-family: var(--font-display);
   font-weight: 700;
+  font-size: 1.05rem;
   text-transform: uppercase;
-  letter-spacing: 0.12em;
-  font-size: 0.85rem;
+  letter-spacing: 0.08em;
+  opacity: 0.75;
 }
 
 .lead {
@@ -38,7 +65,7 @@
   display: flex;
   flex-wrap: wrap;
   gap: 0.75rem;
-  margin-top: 1.5rem;
+  margin-top: 1.75rem;
 }
 
 .ghost {
@@ -46,8 +73,11 @@
   color: #fff;
   background: transparent;
 
-  &:hover {
-    background: rgb(255 255 255 / 10%);
+  @media (hover: hover) and (pointer: fine) {
+    &:hover {
+      border-color: #fff;
+      background: rgb(255 255 255 / 10%);
+    }
   }
 }
 
@@ -64,48 +94,129 @@
   padding: 3rem 0 0;
 }
 
+// Título de seção com o link "ver todos" alinhado à direita.
+.sectionHead {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.25rem 1rem;
+  margin-bottom: 1rem;
+
+  h2 {
+    margin: 0;
+  }
+
+  a {
+    font-weight: 600;
+    text-decoration: none;
+
+    &:hover {
+      text-decoration: underline;
+    }
+  }
+}
+
+.grid {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 260px), 1fr));
+}
+
+.gridProducts {
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 200px), 1fr));
+}
+
+.membership {
+  padding-bottom: 0;
+}
+
 .cards {
   display: grid;
   gap: 1rem;
-  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 240px), 1fr));
 }
 
 .teamCard {
   display: grid;
-  gap: 0.35rem;
-  padding: 1.4rem;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 1rem;
+  padding: 1.1rem 1.25rem;
   border-radius: var(--radius-md);
   background: var(--color-surface);
   border: 1px solid var(--color-border);
-  border-top: 4px solid var(--color-primary);
   color: inherit;
   text-decoration: none;
   box-shadow: var(--shadow-card);
+  touch-action: manipulation;
+  transition:
+    border-color var(--duration-fast) ease,
+    transform var(--duration-press) var(--ease-out);
+
+  > div {
+    display: grid;
+    gap: 0.15rem;
+  }
 
   strong {
-    font-size: 1.2rem;
+    font-family: var(--font-display);
+    font-size: 1.45rem;
+    line-height: 1.1;
+    text-transform: uppercase;
+    letter-spacing: 0.01em;
   }
 
-  span {
+  > div > span {
     color: var(--color-text-muted);
+    font-size: 0.95rem;
   }
 
-  &:hover {
-    border-color: var(--color-primary);
+  &:active {
+    transform: scale(0.99);
   }
+
+  @media (hover: hover) and (pointer: fine) {
+    &:hover {
+      border-color: var(--color-primary);
+
+      .teamArrow {
+        color: var(--color-primary);
+        transform: translateX(3px);
+      }
+    }
+  }
+}
+
+.teamIcon {
+  display: grid;
+  place-items: center;
+  width: 64px;
+  height: 64px;
+  border-radius: var(--radius-md);
+  background: var(--color-ink);
+  color: #fff;
+  font-size: 1.75rem;
+}
+
+.teamArrow {
+  color: var(--color-text-muted);
+  font-size: 1.1rem;
+  transition:
+    color var(--duration-fast) ease,
+    transform var(--duration-fast) var(--ease-out);
 }
 
 @media (max-width: 760px) {
   .heroInner {
     grid-template-columns: 1fr;
+    gap: 1rem;
   }
 
+  // No celular a logo fica menor, para o convite caber na primeira tela.
   .heroLogo {
     order: -1;
-
-    img {
-      width: 160px;
-      height: 160px;
-    }
+    justify-content: flex-start;
+    --logo-size: 112px;
   }
 }

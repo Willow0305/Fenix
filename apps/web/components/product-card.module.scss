@@ -9,11 +9,27 @@
   color: inherit;
   text-decoration: none;
   box-shadow: var(--shadow-card);
-  transition: transform 0.15s ease;
+  touch-action: manipulation;
+  transition:
+    border-color var(--duration-fast) ease,
+    transform var(--duration-press) var(--ease-out);
 
-  &:hover {
-    transform: translateY(-2px);
-    border-color: var(--color-primary);
+  :global(.media-frame) > img {
+    transition: transform var(--duration-base) var(--ease-out);
+  }
+
+  &:active {
+    transform: scale(0.99);
+  }
+
+  @media (hover: hover) and (pointer: fine) {
+    &:hover {
+      border-color: var(--color-primary);
+
+      :global(.media-frame) > img {
+        transform: scale(1.03);
+      }
+    }
   }
 }
 
@@ -35,4 +51,10 @@
   font-weight: 800;
   font-size: 1.1rem;
   color: var(--color-primary-dark);
+  font-variant-numeric: tabular-nums;
+}
+
+.fulfillment {
+  font-size: 0.8rem;
+  color: var(--color-text-muted);
 }

@@ -8,8 +8,14 @@ declare const styles: {
   readonly ghost: string;
   readonly heroLogo: string;
   readonly section: string;
+  readonly sectionHead: string;
+  readonly grid: string;
+  readonly gridProducts: string;
+  readonly membership: string;
   readonly cards: string;
   readonly teamCard: string;
+  readonly teamIcon: string;
+  readonly teamArrow: string;
 };
 
 export default styles;

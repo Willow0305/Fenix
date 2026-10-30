@@ -7,13 +7,7 @@ import type { Page } from '../../lib/api-types';
 import type { NewsSummary, TeamEvent } from '../../lib/content-types';
 import { serverGet } from '../../lib/server-api';
 import type { ProductSummary } from '../../lib/store-types';
-
-const GRID = {
-  display: 'grid',
-  gap: '1rem',
-  gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 260px), 1fr))',
-  marginTop: '1rem'
-} as const;
+import styles from './home.module.scss';
 
 /**
  * Destaques da página inicial. Cada módulo contribui com uma seção quando houver
@@ -30,15 +24,12 @@ export async function HomeHighlights() {
   return (
     <>
       {news && news.data.length > 0 ? (
-        <section className="container" style={{ paddingTop: '3rem' }} aria-labelledby="noticias">
-          <div className="row">
-            <h2 id="noticias" style={{ margin: 0 }}>
-              Notícias
-            </h2>
-            <span className="spacer" />
+        <section className={`container ${styles.section}`} aria-labelledby="noticias">
+          <div className={styles.sectionHead}>
+            <h2 id="noticias">Notícias</h2>
             <Link href="/noticias">Ver todas</Link>
           </div>
-          <div style={GRID}>
+          <div className={styles.grid}>
             {news.data.map((item) => (
               <NewsCard key={item.id} news={item} headingLevel="h3" />
             ))}
@@ -47,15 +38,12 @@ export async function HomeHighlights() {
       ) : null}
 
       {events && events.length > 0 ? (
-        <section className="container" style={{ paddingTop: '3rem' }} aria-labelledby="agenda">
-          <div className="row">
-            <h2 id="agenda" style={{ margin: 0 }}>
-              Próximos jogos e eventos
-            </h2>
-            <span className="spacer" />
+        <section className={`container ${styles.section}`} aria-labelledby="agenda">
+          <div className={styles.sectionHead}>
+            <h2 id="agenda">Próximos jogos e eventos</h2>
             <Link href="/eventos">Agenda completa</Link>
           </div>
-          <div style={GRID}>
+          <div className={styles.grid}>
             {events.map((event) => (
               <EventCard key={event.id} event={event} compact />
             ))}
@@ -64,24 +52,12 @@ export async function HomeHighlights() {
       ) : null}
 
       {featured && featured.data.length > 0 ? (
-        <section
-          className="container"
-          style={{ paddingTop: '3rem' }}
-          aria-labelledby="loja-destaques"
-        >
-          <div className="row">
-            <h2 id="loja-destaques" style={{ margin: 0 }}>
-              Na loja
-            </h2>
-            <span className="spacer" />
+        <section className={`container ${styles.section}`} aria-labelledby="loja-destaques">
+          <div className={styles.sectionHead}>
+            <h2 id="loja-destaques">Na loja</h2>
             <Link href="/loja">Ver todos os produtos</Link>
           </div>
-          <div
-            style={{
-              ...GRID,
-              gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 200px), 1fr))'
-            }}
-          >
+          <div className={`${styles.grid} ${styles.gridProducts}`}>
             {featured.data.map((product) => (
               <ProductCard key={product.id} product={product} />
             ))}

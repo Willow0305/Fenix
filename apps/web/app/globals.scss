@@ -34,7 +34,24 @@
   --space-6: 1.5rem;
   --space-8: 2rem;
   --font-sans:
-    Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    var(--font-inter, Inter), ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
+    'Segoe UI', sans-serif;
+  // Títulos condensados, como número e nome em camisa de jogo (DT-080).
+  --font-display: var(--font-condensed, 'Arial Narrow'), var(--font-sans);
+  // Movimento (DT-080): curvas fortes; interface responde em até ~250 ms.
+  --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+  --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
+  --duration-press: 140ms;
+  --duration-fast: 180ms;
+  --duration-base: 240ms;
+  // Faixa diagonal da camisa (DT-080): o grafismo da marca no lugar de brilhos genéricos.
+  // A forma forte fica só no herói da página inicial (home.module.scss).
+  --brand-slash-soft: linear-gradient(
+    112deg,
+    transparent 0 60%,
+    rgb(205 21 29 / 16%) 60% 68%,
+    transparent 68%
+  );
 }
 
 *,
@@ -48,6 +65,11 @@ body {
   min-height: 100%;
 }
 
+html {
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
 body {
   margin: 0;
   background: var(--color-background);
@@ -55,10 +77,25 @@ body {
   font-family: var(--font-sans);
   line-height: 1.5;
   text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -webkit-tap-highlight-color: transparent;
+}
+
+// Rodapé sempre no fim da tela, mesmo em página curta.
+body:has(> main#conteudo) {
+  display: flex;
+  flex-direction: column;
+  min-height: 100dvh;
+
+  > main {
+    flex: 1 0 auto;
+  }
 }
 
 a {
   color: var(--color-primary-dark);
+  text-underline-offset: 0.18em;
+  text-decoration-thickness: 1px;
 }
 
 strong {
@@ -68,9 +105,30 @@ strong {
 h1,
 h2,
 h3 {
-  line-height: 1.2;
+  line-height: 1.15;
   margin: 0 0 0.5em;
   text-wrap: balance;
+}
+
+// Títulos de página e de seção na fonte condensada da marca.
+h1,
+h2 {
+  font-family: var(--font-display);
+  font-weight: 700;
+  letter-spacing: 0.005em;
+}
+
+h1 {
+  font-size: clamp(1.9rem, 1.4rem + 1.6vw, 2.5rem);
+}
+
+h2 {
+  font-size: clamp(1.45rem, 1.2rem + 0.8vw, 1.8rem);
+}
+
+// Números alinhados em tabelas, totais e contadores.
+.tabular {
+  font-variant-numeric: tabular-nums;
 }
 
 // Texto digitado por usuário nunca alarga a página (docs/29 §3.4).
@@ -162,7 +220,11 @@ img {
 }
 
 .container {
-  width: min(100% - 2rem, var(--content-width));
+  // Recuo lateral respeita o recorte da tela (notch) com o celular deitado.
+  width: min(
+    100% - 2 * max(1rem, env(safe-area-inset-left, 0px), env(safe-area-inset-right, 0px)),
+    var(--content-width)
+  );
   margin-inline: auto;
 }
 
@@ -183,7 +245,19 @@ img {
   cursor: pointer;
   max-width: 100%;
   overflow-wrap: anywhere;
-  transition: background-color 0.15s ease;
+  // Toque responde na hora: sem atraso de duplo toque e sem selecionar o texto ao segurar.
+  touch-action: manipulation;
+  user-select: none;
+  -webkit-user-select: none;
+  transition:
+    background-color var(--duration-fast) ease,
+    border-color var(--duration-fast) ease,
+    color var(--duration-fast) ease,
+    transform var(--duration-press) var(--ease-out);
+
+  &:active:not(:disabled) {
+    transform: scale(0.97);
+  }
 
   &:disabled {
     opacity: 0.6;
@@ -195,7 +269,7 @@ img {
   background: var(--color-primary);
   color: #fff;
 
-  &:hover:not(:disabled) {
+  &:active:not(:disabled) {
     background: var(--color-primary-dark);
   }
 }
@@ -204,15 +278,26 @@ img {
   background: var(--color-surface);
   border-color: var(--color-border);
   color: var(--color-text);
-
-  &:hover:not(:disabled) {
-    border-color: var(--color-text-muted);
-  }
 }
 
 .btn-danger {
   background: var(--color-danger);
   color: #fff;
+}
+
+// Hover só com mouse: no celular o estado "preso" depois do toque some.
+@media (hover: hover) and (pointer: fine) {
+  .btn-primary:hover:not(:disabled) {
+    background: var(--color-primary-dark);
+  }
+
+  .btn-secondary:hover:not(:disabled) {
+    border-color: var(--color-text-muted);
+  }
+
+  .btn-danger:hover:not(:disabled) {
+    background: #991b1b;
+  }
 }
 
 .btn-link {
@@ -221,6 +306,10 @@ img {
   background: none;
   color: var(--color-primary-dark);
   text-decoration: underline;
+
+  &:active:not(:disabled) {
+    transform: none;
+  }
 }
 
 .btn-sm {
@@ -507,7 +596,6 @@ img {
 
   h1 {
     margin: 0;
-    font-size: 1.6rem;
   }
 
   p {
@@ -563,9 +651,10 @@ img {
 
 .delivery-code-value {
   margin: 0;
-  font-size: 2.6rem;
-  font-weight: 800;
-  letter-spacing: 0.35em;
+  font-family: var(--font-display);
+  font-size: 3rem;
+  font-weight: 700;
+  letter-spacing: 0.3em;
   font-variant-numeric: tabular-nums;
 }
 
@@ -628,9 +717,68 @@ img {
   }
 
   .stat-value {
-    font-size: 1.8rem;
-    font-weight: 800;
+    font-family: var(--font-display);
+    font-size: 2.1rem;
+    font-weight: 700;
+    line-height: 1.1;
     font-variant-numeric: tabular-nums;
+  }
+}
+
+// Indicador do painel que leva à origem do número.
+.stat-link {
+  display: grid;
+  gap: 0.2rem;
+  color: inherit;
+  text-decoration: none;
+  transition: border-color var(--duration-fast) ease;
+
+  @media (hover: hover) and (pointer: fine) {
+    &:hover {
+      border-color: var(--color-primary);
+    }
+  }
+}
+
+// Atalhos do painel por área (docs/11).
+.shortcut-grid {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 15rem), 1fr));
+  align-items: start;
+}
+
+.shortcut-group {
+  padding: 1rem;
+
+  h3 {
+    margin: 0 0 0.5rem;
+    color: var(--color-text-muted);
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  a {
+    display: flex;
+    gap: 0.55rem;
+    align-items: center;
+    margin-inline: -0.5rem;
+    padding: 0.4rem 0.5rem;
+    border-radius: var(--radius-sm);
+    color: var(--color-text);
+    text-decoration: none;
+
+    .icon {
+      color: var(--color-primary);
+    }
+  }
+
+  @media (hover: hover) and (pointer: fine) {
+    a:hover {
+      background: var(--color-background);
+    }
   }
 }
 
@@ -651,6 +799,26 @@ dialog {
   &::backdrop {
     background: rgb(11 6 19 / 55%);
   }
+
+  // Entrada da janela: surge do centro, sem partir do zero. A busca (Ctrl+K) abre seca.
+  &[open]:not(.search-dialog) {
+    transition:
+      opacity var(--duration-fast) var(--ease-out),
+      transform var(--duration-base) var(--ease-out);
+
+    @starting-style {
+      opacity: 0;
+      transform: scale(0.96);
+    }
+
+    &::backdrop {
+      transition: opacity var(--duration-fast) ease;
+
+      @starting-style {
+        opacity: 0;
+      }
+    }
+  }
 }
 
 // ---- Imagens com proporção fixa e reserva da logo (docs/29 §3.6) ----
@@ -670,7 +838,7 @@ dialog {
   &.is-fallback {
     display: grid;
     place-items: center;
-    background: linear-gradient(135deg, var(--color-ink) 0%, var(--color-ink-soft) 100%);
+    background: var(--brand-slash-soft), var(--color-ink);
   }
 
   .media-fallback {
@@ -785,7 +953,16 @@ dialog {
     height: 100dvh;
     margin: 0;
     border-radius: 0;
-    padding: 1.25rem max(1rem, env(safe-area-inset-left, 0px));
+    padding: max(1.25rem, env(safe-area-inset-top, 0px)) max(1rem, env(safe-area-inset-right, 0px))
+      max(1.25rem, env(safe-area-inset-bottom, 0px)) max(1rem, env(safe-area-inset-left, 0px));
+
+    // Em tela cheia, a janela sobe um pouco em vez de crescer do centro.
+    &[open]:not(.search-dialog) {
+      @starting-style {
+        opacity: 0;
+        transform: translateY(1.5rem);
+      }
+    }
   }
 
   // Tabela que vira lista de cartões: cada <td> precisa de data-label.
@@ -841,10 +1018,16 @@ dialog {
   }
 }
 
+// Movimento reduzido: nada se desloca nem cresce; esmaecer e mudar de cor continuam,
+// porque ajudam a entender o que mudou.
 @media (prefers-reduced-motion: reduce) {
-  * {
-    transition: none !important;
-    animation: none !important;
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-property: opacity, color, background-color, border-color !important;
+    scroll-behavior: auto !important;
   }
 }
 
@@ -927,6 +1110,30 @@ dialog {
 .content-card-title {
   margin: 0;
   font-size: 1.15rem;
+  line-height: 1.25;
+
+  a {
+    color: var(--color-text);
+    text-decoration: none;
+  }
+}
+
+// Foto do cartão aproxima de leve ao passar o mouse; o título ganha a cor da marca.
+.content-card .media-frame > img {
+  transition: transform var(--duration-base) var(--ease-out);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .content-card:hover {
+    .media-frame > img {
+      transform: scale(1.03);
+    }
+
+    .content-card-title a {
+      color: var(--color-primary-dark);
+      text-decoration: underline;
+    }
+  }
 }
 
 @media (min-width: 1024px) {
@@ -1167,8 +1374,10 @@ dialog {
       display: none;
     }
 
-    &:hover {
-      background: var(--color-background);
+    @media (hover: hover) and (pointer: fine) {
+      &:hover {
+        background: var(--color-background);
+      }
     }
   }
 
@@ -1190,13 +1399,14 @@ dialog {
   padding: 1.5rem;
   border-radius: var(--radius-md);
   color: #fff;
-  background:
-    radial-gradient(circle at 90% 20%, rgb(205 21 29 / 45%), transparent 60%), var(--color-ink);
+  background: var(--brand-slash-soft), var(--color-ink);
   box-shadow: var(--shadow-card);
 
   h2 {
     margin: 0 0 0.25rem;
     color: #fff;
+    text-transform: uppercase;
+    letter-spacing: 0.01em;
   }
 
   p {
@@ -1225,8 +1435,11 @@ dialog {
   color: #fff;
   background: transparent;
 
-  &:hover {
-    background: rgb(255 255 255 / 10%);
+  @media (hover: hover) and (pointer: fine) {
+    &:hover:not(:disabled) {
+      border-color: #fff;
+      background: rgb(255 255 255 / 10%);
+    }
   }
 }
 
@@ -1257,7 +1470,7 @@ dialog {
 }
 
 .team-card-chevron {
-  transition: transform 0.15s ease;
+  transition: transform var(--duration-base) var(--ease-in-out);
 }
 
 .team-card-description {
@@ -1306,12 +1519,16 @@ dialog {
   color: #fff;
   font-size: 1.5rem;
   box-shadow: 0 4px 14px rgb(0 0 0 / 25%);
-  transition: transform 0.15s ease;
+  touch-action: manipulation;
+  transition: transform var(--duration-press) var(--ease-out);
 
   &:hover,
   &:focus-visible {
     color: #fff;
-    transform: scale(1.06);
+  }
+
+  &:active {
+    transform: scale(0.94);
   }
 
   @media print {
@@ -1511,6 +1728,19 @@ input.stepper-input {
   border-radius: 0;
   text-align: center;
   font-variant-numeric: tabular-nums;
+}
+
+// Link de voltar/avançar com seta em ícone (no lugar de "←" no texto).
+.back-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-weight: 600;
+  text-decoration: none;
+
+  &:hover {
+    text-decoration: underline;
+  }
 }
 
 // Caminho de navegação.
@@ -1762,8 +1992,11 @@ input.stepper-input {
 
   dd {
     margin: 0;
-    font-size: 1.5rem;
-    font-weight: 600;
+    font-family: var(--font-display);
+    font-size: 1.75rem;
+    font-weight: 700;
+    line-height: 1.1;
+    font-variant-numeric: tabular-nums;
     overflow-wrap: anywhere;
   }
 }
@@ -1955,12 +2188,21 @@ details.collapsible {
   align-items: start;
   padding: 0.75rem 0.8rem;
   border: 1px solid var(--color-border);
-  border-left: 4px solid var(--color-primary);
   border-radius: var(--radius-md);
   background: var(--color-surface);
-  box-shadow: 0 10px 28px rgb(0 0 0 / 18%);
+  box-shadow:
+    0 1px 2px rgb(11 6 19 / 8%),
+    0 12px 32px rgb(11 6 19 / 16%);
   pointer-events: auto;
-  animation: toast-in 0.18s ease-out;
+  // Transição (não keyframe): avisos que chegam em sequência não reiniciam do zero.
+  transition:
+    opacity var(--duration-base) var(--ease-out),
+    transform var(--duration-base) var(--ease-out);
+
+  @starting-style {
+    opacity: 0;
+    transform: translateY(-8px) scale(0.98);
+  }
 }
 
 .toast-icon {
@@ -1991,19 +2233,6 @@ details.collapsible {
   background: none;
   color: var(--color-text-muted);
   cursor: pointer;
-}
-
-@keyframes toast-in {
-  from {
-    opacity: 0;
-    transform: translateY(-6px);
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .toast {
-    animation: none;
-  }
 }
 
 /* Carteirinha digital (DT-068): proporção de cartão 85,6 × 54 mm, três modelos. */
@@ -2169,5 +2398,21 @@ details.collapsible {
     print-color-adjust: exact;
     -webkit-print-color-adjust: exact;
     break-inside: avoid;
+  }
+}
+
+// Título de item em lista (categoria do fórum, seletiva): link na cor do texto.
+.list-title {
+  margin: 0;
+  font-size: 1.4rem;
+
+  a {
+    color: var(--color-text);
+    text-decoration: none;
+
+    &:hover {
+      color: var(--color-primary-dark);
+      text-decoration: underline;
+    }
   }
 }

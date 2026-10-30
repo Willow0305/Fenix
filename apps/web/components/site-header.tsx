@@ -65,8 +65,7 @@ export function SiteHeader({
           aria-controls="main-nav"
           onClick={() => setOpen((value) => !value)}
         >
-          <span className="visually-hidden">Menu</span>
-          <span aria-hidden="true">{open ? '✕' : '☰'}</span>
+          <Icon name={open ? 'x-lg' : 'list'} label="Menu" />
         </button>
 
         <nav

@@ -12,7 +12,7 @@ export default async function ContactPage() {
   const address = [
     team.address.line1,
     team.address.line2,
-    [team.address.city, team.address.state].filter(Boolean).join(' — '),
+    [team.address.city, team.address.state].filter(Boolean).join('/'),
     team.address.postalCode
   ].filter(Boolean);
   const hasContact = team.email || team.phone || address.length > 0 || team.socialLinks.length > 0;

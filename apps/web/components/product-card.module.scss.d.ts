@@ -3,6 +3,7 @@ declare const styles: {
   readonly body: string;
   readonly meta: string;
   readonly price: string;
+  readonly fulfillment: string;
 };
 
 export default styles;

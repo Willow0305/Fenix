@@ -1587,3 +1587,24 @@ O "sem juros" do Mercado Pago é configurado para a conta inteira no painel dele
 - guardamos só bandeira, os 4 últimos dígitos, parcelas e situação; nunca o número do cartão;
 - **recebimento na hora** é configurado na conta do Mercado Pago (não no sistema); mudar para 14 ou 30 dias é só lá.
 
+## DT-080 — Acabamento visual com a identidade do Fênix
+
+- **Estado:** Aceita; implementada em 2026-10-29 (fonte dos títulos a confirmar em `PEN-068`)
+- **Data:** 2026-10-29
+- **Aprovador:** responsável do projeto ("deixe o sistema a cara da Fênix… gostei das cores e do design, mas o sistema ainda tem partes que gritam ser um sistema produzido por IA")
+
+### Decisão
+
+Manter paleta, layout e componentes, e trocar os sinais de interface genérica por elementos próprios do clube:
+
+- **tipografia:** Inter no texto (já era a recomendação de `docs/12`, mas não era carregada; o site usava a fonte do sistema) e Barlow Condensed nos títulos, ambas servidas pelo próprio site com `next/font` (sem requisição ao Google no navegador; a CSP `font-src 'self'` continua valendo);
+- **grafismo:** faixa diagonal de camisa no lugar dos brilhos radiais vermelhos; sem borda colorida grossa em cartões e avisos;
+- **movimento** com tokens próprios (curvas e durações), resposta ao toque em botões, hover só com mouse, entrada de janelas, avisos e menus, e "reduzir movimento" que mantém esmaecimentos;
+- **celular:** `viewport-fit=cover` com margens da área segura, `100dvh` no painel, menu lateral do painel com fundo escurecido que fecha ao tocar, sem destaque azul de toque e sem atraso de duplo toque;
+- **textos:** cabeçalhos de página dizem para que a tela serve, sem explicar o funcionamento interno; plurais escritos por extenso no lugar de "(s)" e "(a)"; setas e travessões de enfeite trocados por ícones e pontuação comum.
+
+### Consequências
+
+- nenhuma regra de negócio, permissão ou rota mudou; regras que o usuário precisa saber antes de agir continuam nos diálogos de confirmação e nas dicas dos campos;
+- o build do site baixa as fontes uma vez (precisa de acesso à internet na hora do `next build`).
+

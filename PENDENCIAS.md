@@ -522,6 +522,14 @@ Prioridades:
 - **Recomendação (já implementada em 2026-10-28, a confirmar):** cada produto escolhe uma regra cadastrada ("sem juros até N"); num carrinho misturado vale a **menor** regra entre os itens (o clube nunca paga juros que não ofereceu); sem código do Mercado Pago, o produto fica só "com juros". Falta confirmar com o Mercado Pago o nome do campo do código na criação do pagamento (`differential_pricing_id`) com as credenciais de teste.
 - **Impacto:** `DT-079`, cadastro de produto, checkout e custos (o clube paga a taxa do parcelamento sem juros).
 
+### PEN-068 — Confirmar a fonte dos títulos
+
+- **Prioridade:** P2
+- **Bloqueia:** aceite visual final; o sistema funciona com qualquer escolha
+- **Questão:** `docs/12` recomendava Inter no texto e citava Montserrat como possibilidade nos títulos, sem aprovação. No acabamento visual de 2026-10-29 (`DT-080`), os títulos passaram a usar **Barlow Condensed** (condensada, como letreiro de camisa e placar), servida pelo próprio site, para afastar a aparência genérica.
+- **Recomendação (já implementada, a confirmar):** manter Barlow Condensed nos títulos e Inter no texto. Ambas têm licença SIL Open Font License. Trocar é uma linha em `apps/web/app/layout.tsx` (token `--font-display`).
+- **Impacto:** `DT-080`, `docs/12-IDENTIDADE-VISUAL.md`.
+
 ## 11. Critério de resolução
 
 Ao resolver uma pendência:

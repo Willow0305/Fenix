@@ -135,6 +135,32 @@ Regras:
 
 Escala, pesos e licenciamento ainda são provisórios.
 
+### Adotado em 2026-10-29 (`DT-080`, confirmar em `PEN-068`)
+
+| Papel | Fonte | Uso |
+|---|---|---|
+| Texto e interface | Inter | corpo, campos, botões, tabelas |
+| Títulos (`--font-display`) | Barlow Condensed 600–800 | `h1`, `h2`, nome da marca no cabeçalho, números de indicadores, código de entrega |
+
+As duas são servidas pelo próprio site (`next/font`), sem pedido ao Google no navegador; se falharem, o texto aparece na fonte do sistema. Títulos ficam em caixa normal; caixa alta só em títulos curtos de destaque (herói, convites, cartões de time).
+
+## Grafismo da marca
+
+A **faixa diagonal** (como a faixa de uma camisa de jogo) é o grafismo do Fênix, no lugar de brilhos e degradês genéricos:
+
+- herói da página inicial: faixa vermelha forte entre o texto e a logo; a fênix vermelha nunca fica sobre vermelho;
+- convites escuros, reserva de imagem e carteirinha "Faixa": versão discreta (`--brand-slash-soft`);
+- não usar borda colorida grossa no topo ou na lateral de cartões como enfeite.
+
+## Movimento
+
+Tokens em `globals.scss`: `--ease-out` (`cubic-bezier(0.23, 1, 0.32, 1)`), `--ease-in-out`, `--duration-press` (140 ms), `--duration-fast` (180 ms) e `--duration-base` (240 ms).
+
+- botões e cartões clicáveis encolhem levemente ao pressionar (`scale(0.97)`);
+- efeitos de passar o mouse só valem com mouse (`@media (hover: hover) and (pointer: fine)`), para não "grudar" no celular;
+- janelas, avisos e o menu do celular entram com esmaecimento curto; a busca do painel (Ctrl+K) abre sem animação, por ser usada o tempo todo;
+- com "reduzir movimento" no aparelho, nada se desloca nem cresce; esmaecer e mudar de cor continuam.
+
 ## Componentes visuais
 
 | Componente | Padrão |

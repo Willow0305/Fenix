@@ -9,6 +9,7 @@ declare const styles: {
   readonly topbar: string;
   readonly profile: string;
   readonly menu: string;
+  readonly backdrop: string;
   readonly content: string;
 };
 

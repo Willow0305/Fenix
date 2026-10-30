@@ -47,7 +47,12 @@ export function BrandLogo({
       alt={alt}
       width={size}
       height={size}
-      style={{ objectFit: 'contain', width: size, height: size }}
+      // `--logo-size` permite ao CSS reduzir a logo em telas pequenas sem perder o quadrado.
+      style={{
+        objectFit: 'contain',
+        width: `var(--logo-size, ${size}px)`,
+        height: `var(--logo-size, ${size}px)`
+      }}
       onError={next}
     />
   );

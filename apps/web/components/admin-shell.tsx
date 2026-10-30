@@ -273,7 +273,8 @@ export function AdminShell({ children }: { readonly children: ReactNode }) {
       >
         <Link href="/" className={styles.brand}>
           <BrandLogo src={boardLogo?.url} alt={boardLogo?.altText ?? undefined} size={36} />
-          <span>Fênix · Painel</span>
+          <span>Fênix</span>
+          <small>Painel</small>
         </Link>
         <nav>
           {ADMIN_NAV.map((group) => {
@@ -312,6 +313,14 @@ export function AdminShell({ children }: { readonly children: ReactNode }) {
           })}
         </nav>
       </aside>
+      {open ? (
+        <button
+          type="button"
+          className={styles.backdrop}
+          aria-label="Fechar menu"
+          onClick={() => setOpen(false)}
+        />
+      ) : null}
       <div className={styles.main}>
         <header className={styles.topbar}>
           <button

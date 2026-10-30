@@ -50,9 +50,7 @@ export function ProductCard({ product }: { readonly product: ProductSummary }) {
           {onSale ? <s className="muted">{formatMoney(product.listPriceFrom.amount)}</s> : null}{' '}
           {formatMoney(product.priceFrom.amount)}
         </span>
-        <span className="muted" style={{ fontSize: '0.8rem' }}>
-          {FULFILLMENT[product.fulfillmentType]}
-        </span>
+        <span className={styles.fulfillment}>{FULFILLMENT[product.fulfillmentType]}</span>
       </div>
     </Link>
   );

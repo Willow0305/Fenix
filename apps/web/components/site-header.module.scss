@@ -2,6 +2,7 @@
   position: sticky;
   top: 0;
   z-index: 50;
+  padding-top: env(safe-area-inset-top, 0px);
   background: var(--color-ink);
   color: #fff;
   border-bottom: 3px solid var(--color-primary);
@@ -20,9 +21,11 @@
   gap: 0.6rem;
   color: #fff;
   text-decoration: none;
+  font-family: var(--font-display);
   font-weight: 800;
-  font-size: 1.15rem;
-  letter-spacing: 0.02em;
+  font-size: 1.45rem;
+  line-height: 1;
+  letter-spacing: 0.03em;
   text-transform: uppercase;
 }
 
@@ -37,6 +40,12 @@
   color: #fff;
   font-size: 1.3rem;
   cursor: pointer;
+  touch-action: manipulation;
+  transition: transform var(--duration-press) var(--ease-out);
+
+  &:active {
+    transform: scale(0.94);
+  }
 }
 
 .nav {
@@ -61,15 +70,20 @@
     color: #e9e7ee;
     text-decoration: none;
     font-weight: 500;
-
-    &:hover {
-      color: #fff;
-      background: rgb(255 255 255 / 8%);
-    }
+    transition:
+      color var(--duration-fast) ease,
+      background-color var(--duration-fast) ease;
 
     &[aria-current='page'] {
       color: #fff;
       box-shadow: inset 0 -2px 0 var(--color-primary);
+    }
+  }
+
+  @media (hover: hover) and (pointer: fine) {
+    a:not(:global(.btn)):hover {
+      color: #fff;
+      background: rgb(255 255 255 / 8%);
     }
   }
 }
@@ -77,6 +91,20 @@
 .account {
   display: flex;
   gap: 0.5rem;
+
+  // Sobre o fundo escuro, botões secundários são vazados em vez de blocos brancos.
+  :global(.btn-secondary) {
+    border-color: rgb(255 255 255 / 30%);
+    background: transparent;
+    color: #fff;
+  }
+
+  @media (hover: hover) and (pointer: fine) {
+    :global(.btn-secondary):hover {
+      border-color: #fff;
+      background: rgb(255 255 255 / 8%);
+    }
+  }
 }
 
 @media (max-width: 1020px) {
@@ -89,10 +117,14 @@
   .nav {
     display: none;
     position: absolute;
-    inset: 68px 0 auto;
+    inset: 100% 0 auto;
     flex-direction: column;
     align-items: stretch;
-    padding: 1rem;
+    max-height: calc(100dvh - 72px - env(safe-area-inset-top, 0px));
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    padding: 0.5rem max(1rem, env(safe-area-inset-right, 0px)) 1rem
+      max(1rem, env(safe-area-inset-left, 0px));
     background: var(--color-ink);
     border-bottom: 3px solid var(--color-primary);
 
@@ -101,8 +133,34 @@
       margin: 0;
     }
 
+    // Item atual marcado na lateral, como na barra do painel.
+    a:not(:global(.btn)) {
+      padding: 0.7rem 0.75rem;
+      font-size: 1.05rem;
+
+      &[aria-current='page'] {
+        box-shadow: inset 3px 0 0 var(--color-primary);
+        background: rgb(255 255 255 / 6%);
+      }
+    }
+
     &.open {
       display: flex;
+      transition:
+        opacity var(--duration-fast) var(--ease-out),
+        transform var(--duration-base) var(--ease-out);
+
+      @starting-style {
+        opacity: 0;
+        transform: translateY(-0.5rem);
+      }
     }
+  }
+
+  .account {
+    flex-wrap: wrap;
+    padding-top: 0.75rem;
+    margin-top: 0.25rem;
+    border-top: 1px solid rgb(255 255 255 / 12%);
   }
 }
