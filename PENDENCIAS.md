@@ -544,7 +544,7 @@ Prioridades:
 - **Bloqueia:** nada; aconteceu 1 vez em 4 execuções de `affiliation.spec.ts` (computador) em 2026-10-30, e as 3 seguintes passaram
 - **Questão:** o teste registrou "500 em /api/v1/cart". O log da API dos testes não é guardado, então a causa não foi confirmada. Hipótese: duas requisições simultâneas criando o carrinho do mesmo usuário (`cart.service.ts`, sem restrição de unicidade por usuário ativo).
 - **Recomendação:** guardar o log da API nos testes ponta a ponta (`e2e/start.cjs`) e, se a hipótese se confirmar, tornar a criação do carrinho idempotente por dono.
-- **Impacto:** loja (carrinho), testes ponta a ponta. Relacionado: mensagens da API do carrinho ainda usam "unidade(s)" e "disponível(is)" (`cart.service.ts`), a corrigir na Onda 1.
+- **Impacto:** loja (carrinho), testes ponta a ponta. As mensagens do carrinho e do pedido com "unidade(s)" e "disponível(is)" foram corrigidas em 2026-10-30.
 
 ## 11. Critério de resolução
 

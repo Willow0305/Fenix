@@ -33,6 +33,7 @@ import {
   personalizationValuesOf
 } from '../domain/personalization';
 import { InventoryService } from './inventory.service';
+import { plural } from '../../../common/domain/plural';
 
 export const CART_TTL_DAYS = 30;
 
@@ -505,7 +506,7 @@ export class CartService {
     if (input.length !== line.quantity) {
       throw AppError.validation(
         'BENEFICIARIES_COUNT',
-        `Informe ${line.quantity} beneficiário(s), um por afiliação.`
+        `Informe ${plural(line.quantity, 'beneficiário', 'beneficiários')}, um por afiliação.`
       );
     }
 
@@ -648,7 +649,7 @@ export class CartService {
     if (quantity > 0 && product.buyerLimit !== null && quantity > product.buyerLimit) {
       throw AppError.validation(
         'BUYER_LIMIT',
-        `Limite de ${product.buyerLimit} unidade(s) por comprador.`
+        `Limite de ${plural(product.buyerLimit, 'unidade', 'unidades')} por comprador.`
       );
     }
 
@@ -658,7 +659,9 @@ export class CartService {
       if (quantity > available) {
         throw AppError.conflict(
           'INSUFFICIENT_STOCK',
-          available > 0 ? `Apenas ${available} unidade(s) disponível(is).` : 'Produto esgotado.'
+          available > 0
+            ? `Apenas ${plural(available, 'unidade disponível', 'unidades disponíveis')}.`
+            : 'Produto esgotado.'
         );
       }
     }

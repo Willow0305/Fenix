@@ -81,6 +81,7 @@ import {
 } from '../domain/delivery';
 import { decryptField } from '../../../common/crypto/data-cipher';
 import { beneficiariesOf, beneficiaryProblems, resizeBeneficiaries } from '../domain/cart-details';
+import { plural } from '../../../common/domain/plural';
 
 export interface OrderItemView {
   readonly id: string;
@@ -546,7 +547,7 @@ export class OrdersService implements OnModuleInit {
           if (available < item.quantity) {
             throw AppError.conflict(
               'INSUFFICIENT_STOCK',
-              `Estoque insuficiente para "${product.name}" (${item.productVariant.name}): ${available} disponível(is).`
+              `Estoque insuficiente para "${product.name}" (${item.productVariant.name}): ${plural(available, 'disponível', 'disponíveis')}.`
             );
           }
         }
@@ -560,7 +561,7 @@ export class OrdersService implements OnModuleInit {
         ) {
           throw AppError.conflict(
             'BUYER_LIMIT',
-            `"${product.name}" tem limite de ${product.buyerLimit} unidade(s) por comprador.`
+            `"${product.name}" tem limite de ${plural(product.buyerLimit ?? 0, 'unidade', 'unidades')} por comprador.`
           );
         }
 
