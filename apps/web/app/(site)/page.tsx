@@ -3,7 +3,7 @@ import Link from 'next/link';
 import { BrandLogo } from '../../components/brand-logo';
 import { Icon } from '../../components/icon';
 import { MembershipCta } from '../../components/membership-cta';
-import { firstTeamLogo } from '../../lib/brand';
+import { firstTeamLogo, firstTeamPhoto } from '../../lib/brand';
 import { getPublicTeam, serverGet } from '../../lib/server-api';
 import type { Page } from '../../lib/api-types';
 import { formatMoney } from '../../lib/format';
@@ -23,6 +23,8 @@ export default async function HomePage() {
   const logo = team.brandAssets.OFFICIAL;
   const male = firstTeamLogo(teams, 'MALE') ?? logo?.url;
   const female = firstTeamLogo(teams, 'FEMALE') ?? logo?.url;
+  const malePhoto = firstTeamPhoto(teams, 'MALE');
+  const femalePhoto = firstTeamPhoto(teams, 'FEMALE');
 
   return (
     <>
@@ -66,7 +68,11 @@ export default async function HomePage() {
           <h2 id="times-title">Nossos times</h2>
         </div>
         <div className={styles.cards}>
-          <Link href="/times?tipo=MALE" className={styles.teamCard}>
+          <Link
+            href="/times?tipo=MALE"
+            className={`${styles.teamCard}${malePhoto ? ` ${styles.withPhoto}` : ''}`}
+          >
+            {malePhoto ? <img className={styles.teamPhoto} src={malePhoto} alt="" /> : null}
             <BrandLogo src={male} alt="" size={64} />
             <div>
               <strong>Masculino</strong>
@@ -74,7 +80,11 @@ export default async function HomePage() {
             </div>
             <Icon name="arrow-right" className={styles.teamArrow} />
           </Link>
-          <Link href="/times?tipo=FEMALE" className={styles.teamCard}>
+          <Link
+            href="/times?tipo=FEMALE"
+            className={`${styles.teamCard}${femalePhoto ? ` ${styles.withPhoto}` : ''}`}
+          >
+            {femalePhoto ? <img className={styles.teamPhoto} src={femalePhoto} alt="" /> : null}
             <BrandLogo src={female} alt="" size={64} />
             <div>
               <strong>Feminino</strong>

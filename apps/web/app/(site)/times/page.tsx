@@ -108,6 +108,14 @@ export default async function TeamsPage({
               return (
                 <details key={team.id} className="card team-card" id={team.slug}>
                   <summary>
+                    {team.photoUrl ? (
+                      <img
+                        className="team-card-photo"
+                        src={team.photoUrl}
+                        alt={`Foto de ${team.name}`}
+                        loading="lazy"
+                      />
+                    ) : null}
                     <span className="team-card-head">
                       <BrandLogo src={team.logoUrl ?? official?.url} alt="" size={40} />
                       <strong className="team-card-name">{team.name}</strong>

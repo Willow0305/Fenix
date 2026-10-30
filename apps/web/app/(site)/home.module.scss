@@ -127,6 +127,7 @@
 }
 
 .teamCard {
+  overflow: hidden;
   display: grid;
   grid-template-columns: auto minmax(0, 1fr) auto;
   align-items: center;
@@ -245,4 +246,18 @@
     grid-column: auto;
     flex-direction: column;
   }
+}
+
+// Cartão de time com foto (DT-081): a foto ocupa o topo, inteira na largura do cartão.
+.withPhoto {
+  align-content: start;
+}
+
+.teamPhoto {
+  grid-column: 1 / -1;
+  width: calc(100% + 2.5rem);
+  max-width: none;
+  margin: -1.1rem -1.25rem 0;
+  aspect-ratio: 3 / 2;
+  object-fit: cover;
 }

@@ -36,6 +36,8 @@ export interface TeamView {
   readonly category: { id: string; name: string } | null;
   /** Logo própria da equipe; `null` = o site usa o brasão oficial (DT-064). */
   readonly logoUrl: string | null;
+  /** Foto do time (D2, DT-081); `null` = sem foto, o site mostra só a logo. */
+  readonly photoUrl: string | null;
   readonly activeAthletes?: number;
 }
 
@@ -72,6 +74,7 @@ export interface RosterCategoryView {
     type: TeamType;
     description: string | null;
     logoUrl: string | null;
+    photoUrl: string | null;
     athletes: RosterAthleteView[];
   }[];
 }
@@ -269,6 +272,7 @@ export class TeamsService {
         type: team.type,
         description: team.description,
         logoUrl: team.logoMediaFileId ? mediaUrl(team.logoMediaFileId) : null,
+        photoUrl: team.photoMediaFileId ? mediaUrl(team.photoMediaFileId) : null,
         athletes: team.memberships
           .map((membership) => {
             const athlete = membership.athlete;
@@ -320,6 +324,7 @@ export class TeamsService {
       isActive: row.isActive,
       category: row.category,
       logoUrl: row.logoMediaFileId ? mediaUrl(row.logoMediaFileId) : null,
+      photoUrl: row.photoMediaFileId ? mediaUrl(row.photoMediaFileId) : null,
       ...('_count' in row
         ? { activeAthletes: (row._count as { memberships: number }).memberships }
         : {})
@@ -451,10 +456,32 @@ export class TeamsService {
     file: IncomingFile | undefined | null,
     meta: RequestMeta
   ): Promise<TeamView> {
+    return this.setImage('logo', actor, id, file, meta);
+  }
+
+  /** Foto do time no site (D2, DT-081): mesmas regras da logo; `null` remove. */
+  async setPhoto(
+    actor: Principal,
+    id: string,
+    file: IncomingFile | undefined | null,
+    meta: RequestMeta
+  ): Promise<TeamView> {
+    return this.setImage('photo', actor, id, file, meta);
+  }
+
+  private async setImage(
+    kind: 'logo' | 'photo',
+    actor: Principal,
+    id: string,
+    file: IncomingFile | undefined | null,
+    meta: RequestMeta
+  ): Promise<TeamView> {
+    const field = kind === 'logo' ? 'logoMediaFileId' : 'photoMediaFileId';
+
     await this.prisma.$transaction(async (tx) => {
       const team = await tx.team.findFirst({
         where: { id, deletedAt: null },
-        select: { logoMediaFileId: true }
+        select: { logoMediaFileId: true, photoMediaFileId: true }
       });
 
       if (team === null) {
@@ -471,14 +498,14 @@ export class TeamsService {
               tx
             );
 
-      await tx.team.update({ where: { id }, data: { logoMediaFileId: stored?.id ?? null } });
+      await tx.team.update({ where: { id }, data: { [field]: stored?.id ?? null } });
       await this.audit.record(
         {
           actorUserId: actor.userId,
-          action: stored ? 'team.logo.updated' : 'team.logo.removed',
+          action: stored ? `team.${kind}.updated` : `team.${kind}.removed`,
           entityType: 'Team',
           entityId: id,
-          before: { mediaFileId: team.logoMediaFileId },
+          before: { mediaFileId: team[field] },
           after: { mediaFileId: stored?.id ?? null },
           meta
         },

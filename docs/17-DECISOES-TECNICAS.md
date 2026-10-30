@@ -1670,6 +1670,11 @@ Manter paleta, layout e componentes, e trocar os sinais de interface genérica p
 - o recorte é feito no próprio navegador (canvas) e enviado como JPEG pelas mesmas rotas de envio; o servidor continua validando tipo, tamanho e otimizando; nada sai do aparelho antes de a pessoa confirmar;
 - vale para os três gerenciadores de fotos (produto, galeria da notícia, fotos do clube): enviar uma foto por vez abre o recorte; "Recortar" numa foto já enviada envia a versão cortada, põe no mesmo lugar e remove a anterior (remoção lógica, auditada).
 
+### Implementação: foto do time (2026-10-30)
+
+- coluna `photo_media_file_id` em `teams` (mesmas regras da logo, `DT-064`: imagem pública, validada e otimizada; `SET NULL` se o arquivo sumir); rotas `PUT/DELETE teams/:id/photo` com `teams.manage`, auditadas como `team.photo.updated/removed`;
+- o painel abre o recorte já em 3:2, o formato em que a foto aparece no Início e em Times.
+
 ### Implementação: mais lidas (2026-10-30)
 
 - `news_daily_views` (notícia, dia civil no fuso do clube, total), somada com `INSERT … ON CONFLICT DO UPDATE` para não perder leitura simultânea; a regra de privacidade está em `docs/13` (medição de leituras);

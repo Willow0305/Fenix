@@ -23,12 +23,15 @@ const ASPECTS: readonly (readonly [string, number | null])[] = [
 export function ImageCropDialog({
   src,
   title,
+  initialAspect = null,
   onCancel,
   onConfirm
 }: {
   /** Imagem a cortar; `null` fecha a janela. */
   readonly src: string | null;
   readonly title: string;
+  /** Formato inicial (ex.: 3:2 na foto do time); sem ele, começa no "Original". */
+  readonly initialAspect?: number | null;
   readonly onCancel: () => void;
   readonly onConfirm: (blob: Blob) => Promise<void> | void;
 }) {
@@ -52,13 +55,13 @@ export function ImageCropDialog({
     if (src && !element.open) {
       setCrop({ x: 0, y: 0 });
       setZoom(1);
-      setAspect(null);
+      setAspect(initialAspect);
       setError(null);
       element.showModal();
     } else if (!src && element.open) {
       element.close();
     }
-  }, [src]);
+  }, [src, initialAspect]);
 
   async function confirm() {
     if (!src || !area) {

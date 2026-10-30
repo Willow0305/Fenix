@@ -22,6 +22,7 @@ import { useResource } from '../../../lib/use-resource';
 import { BrandLogo } from '../../../components/brand-logo';
 import { CategoryManager } from '../../../components/category-manager';
 import { TeamLogoUpload } from '../../../components/team-logo-upload';
+import { TeamPhotoUpload } from '../../../components/team-photo-upload';
 
 interface TeamFormState {
   name: string;
@@ -192,6 +193,14 @@ export default function TeamsAdminPage() {
           />
           <hr />
           <TeamLogoUpload
+            team={editing}
+            onChanged={async (saved) => {
+              setEditing(saved);
+              await teams.reload();
+            }}
+          />
+          <hr />
+          <TeamPhotoUpload
             team={editing}
             onChanged={async (saved) => {
               setEditing(saved);

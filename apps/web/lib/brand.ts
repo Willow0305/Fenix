@@ -23,3 +23,11 @@ export function firstTeamLogo(
 ): string | undefined {
   return teams.find((team) => team.type === type && team.logoUrl)?.logoUrl ?? undefined;
 }
+
+/** Foto da primeira equipe do tipo que tenha foto (cartões do Início, DT-081). */
+export function firstTeamPhoto(
+  teams: readonly { type: string; photoUrl?: string | null }[],
+  type: string
+): string | undefined {
+  return teams.find((team) => team.type === type && team.photoUrl)?.photoUrl ?? undefined;
+}

@@ -242,6 +242,29 @@ export class TeamsController {
     return this.teams.setLogo(actor, id, file, meta);
   }
 
+  @Put('teams/:id/photo')
+  @ApiConsumes('multipart/form-data')
+  @RequirePermissions(PERMISSIONS.teamsManage)
+  @UseInterceptors(FileInterceptor('file', UPLOAD_LIMITS))
+  setPhoto(
+    @CurrentPrincipal() actor: Principal,
+    @Param('id', new ParseUUIDPipe()) id: string,
+    @UploadedFile() file: IncomingFile | undefined,
+    @ReqMeta() meta: RequestMeta
+  ): Promise<TeamView> {
+    return this.teams.setPhoto(actor, id, file, meta);
+  }
+
+  @Delete('teams/:id/photo')
+  @RequirePermissions(PERMISSIONS.teamsManage)
+  removePhoto(
+    @CurrentPrincipal() actor: Principal,
+    @Param('id', new ParseUUIDPipe()) id: string,
+    @ReqMeta() meta: RequestMeta
+  ): Promise<TeamView> {
+    return this.teams.setPhoto(actor, id, null, meta);
+  }
+
   @Delete('teams/:id/logo')
   @RequirePermissions(PERMISSIONS.teamsManage)
   removeLogo(

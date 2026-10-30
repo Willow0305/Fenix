@@ -657,6 +657,43 @@ describe('Fase 2 — atletas, equipes, interessados e seletivas', () => {
     expect(removed.body.logoUrl).toBeNull();
   });
 
+  it('cada equipe pode ter foto própria, independente da logo (DT-081)', async () => {
+    const id = await createTeam(`Equipe com foto ${Date.now()}`);
+    const user = await tokenFor(ctx, ['user']);
+
+    await ctx
+      .http()
+      .put(`/api/v1/teams/${id}/photo`)
+      .set(auth(user.token))
+      .attach('file', PNG_1X1, 'foto.png')
+      .expect(403);
+
+    const saved = await ctx
+      .http()
+      .put(`/api/v1/teams/${id}/photo`)
+      .set(auth(board.token))
+      .attach('file', PNG_1X1, 'foto.png')
+      .expect(200);
+
+    expect(saved.body.photoUrl).toMatch(/^\/api\/v1\/media\//);
+    expect(saved.body.logoUrl).toBeNull();
+
+    const roster = await ctx.http().get('/api/v1/public/teams-roster').expect(200);
+    const listed = (roster.body as { teams: { id: string; photoUrl: string | null }[] }[])
+      .flatMap((group) => group.teams)
+      .find((team) => team.id === id);
+
+    expect(listed?.photoUrl).toBe(saved.body.photoUrl);
+
+    const removed = await ctx
+      .http()
+      .delete(`/api/v1/teams/${id}/photo`)
+      .set(auth(board.token))
+      .expect(200);
+
+    expect(removed.body.photoUrl).toBeNull();
+  });
+
   it('mostra os indicadores do painel com definição', async () => {
     const summary = await ctx
       .http()

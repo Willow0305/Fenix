@@ -1869,6 +1869,21 @@ dialog.crop-dialog {
   &[open] .team-card-chevron {
     transform: rotate(180deg);
   }
+
+  // Com foto, no computador: foto à esquerda e nome, selo e descrição à direita.
+  @media (min-width: 900px) {
+    > summary:has(.team-card-photo) {
+      grid-template-columns: minmax(0, 520px) minmax(0, 1fr);
+      grid-template-rows: auto 1fr;
+      column-gap: 1.5rem;
+      align-items: start;
+
+      .team-card-photo {
+        grid-row: 1 / span 2;
+        margin-bottom: 0;
+      }
+    }
+  }
 }
 
 /* Convite "Quer jogar com a gente?" na página Times, no tom do destaque do Início. */
@@ -1929,6 +1944,28 @@ dialog.crop-dialog {
   max-height: 22rem;
   object-fit: cover;
   border-radius: var(--radius-md);
+}
+
+// Foto do time no topo do cartão (DT-081), recortada em 3:2 no painel.
+.team-card-photo {
+  display: block;
+  width: 100%;
+  max-width: 560px;
+  aspect-ratio: 3 / 2;
+  margin-bottom: 0.75rem;
+  object-fit: cover;
+  border-radius: var(--radius-sm);
+  outline: 1px solid rgb(0 0 0 / 10%);
+  outline-offset: -1px;
+}
+
+.team-photo-preview {
+  display: block;
+  width: 100%;
+  max-width: 360px;
+  aspect-ratio: 3 / 2;
+  object-fit: cover;
+  border-radius: var(--radius-sm);
 }
 
 .team-card-head {
