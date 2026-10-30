@@ -93,7 +93,7 @@ export class AuthController {
   private assertSameOrigin(req: ContextRequest): void {
     const origin = req.header('origin');
 
-    if (origin !== undefined && origin !== this.config.values.webOrigin) {
+    if (origin !== undefined && !this.config.values.trustedOrigins.includes(origin)) {
       throw AppError.forbidden('Origem não permitida.');
     }
   }

@@ -6,6 +6,22 @@ O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) e o 
 
 ## [Não publicado]
 
+### Documentação jurídica e privacidade (2026-10-30)
+
+#### Adicionado
+
+- rascunhos de Termos de Uso e Política de Privacidade, identificando expressamente dados e decisões ainda pendentes de aprovação;
+- resumo da aplicação para orientar revisões futuras por IA, com inventário funcional, evidências técnicas e fontes oficiais;
+- pendência `PEN-071` para revisão jurídica do arrependimento em itens personalizados/afiliação e para versionamento do aceite dos documentos.
+
+### Desenvolvimento: abrir no celular pela mesma rede (2026-10-30)
+
+#### Alterado
+
+- `npm run dev` libera os IPs de rede do computador para abrir o site no celular (`http://IP:3000`), só em desenvolvimento: o Next aceita esses endereços e a API passa a aceitá-los na proteção de origem (CSRF) e no CORS; em produção, só `WEB_ORIGIN`. Outros nomes em `DEV_ALLOWED_ORIGINS`; passo a passo em `COMO-EXECUTAR.md`;
+- identificadores de aba e de pagamento funcionam fora de conexão segura (`crypto.randomUUID` só existe em HTTPS ou localhost; sem ele, o login pelo IP de rede falhava);
+- fotos do clube na página Sobre um pouco mais baixas no computador (proporção 2:1).
+
 ### Identidade: fundo original de volta no início (2026-10-30)
 
 #### Alterado

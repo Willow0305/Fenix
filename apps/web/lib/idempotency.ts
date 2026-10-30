@@ -1,17 +1,18 @@
 'use client';
 
 import { useCallback, useRef } from 'react';
+import { randomId } from './random-id';
 
 /**
  * Chave de idempotência por intenção de envio: reenvios do mesmo formulário (duplo clique,
  * nova tentativa após falha de rede) usam a mesma chave; após sucesso, uma nova é gerada.
  */
 export function useIdempotencyKey(): { headers: () => Record<string, string>; rotate: () => void } {
-  const key = useRef<string>(crypto.randomUUID());
+  const key = useRef<string>(randomId());
 
   const headers = useCallback(() => ({ 'Idempotency-Key': key.current }), []);
   const rotate = useCallback(() => {
-    key.current = crypto.randomUUID();
+    key.current = randomId();
   }, []);
 
   return { headers, rotate };

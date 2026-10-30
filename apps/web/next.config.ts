@@ -1,3 +1,4 @@
+import { networkInterfaces } from 'node:os';
 import { resolve } from 'node:path';
 
 import type { NextConfig } from 'next';
@@ -17,8 +18,27 @@ const securityHeaders = [
     : [])
 ];
 
+/**
+ * Só em desenvolvimento: abrir o site no celular pela mesma rede (http://IP-do-computador:3000).
+ * O Next bloqueia os scripts de desenvolvimento vindos de outro endereço; aqui liberamos os
+ * endereços IPv4 de rede deste computador e os de `DEV_ALLOWED_ORIGINS` (separados por vírgula).
+ */
+function localNetworkHosts(): string[] {
+  const fromEnv = (process.env['DEV_ALLOWED_ORIGINS'] ?? '')
+    .split(',')
+    .map((host) => host.trim())
+    .filter(Boolean);
+  const own = Object.values(networkInterfaces())
+    .flat()
+    .filter((net) => net !== undefined && net.family === 'IPv4' && !net.internal)
+    .map((net) => net?.address ?? '');
+
+  return [...new Set([...own, ...fromEnv])].filter(Boolean);
+}
+
 const nextConfig: NextConfig = {
   reactStrictMode: true,
+  ...(isProduction ? {} : { allowedDevOrigins: localNetworkHosts() }),
   // Pasta de build separada para os testes de ponta a ponta (`.next-e2e`), sem disputar com o `next dev`.
   distDir: process.env['NEXT_DIST_DIR'] ?? '.next',
   poweredByHeader: false,

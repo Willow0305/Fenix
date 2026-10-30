@@ -1,3 +1,4 @@
+import { networkInterfaces } from 'node:os';
 import { isAbsolute } from 'node:path';
 
 import { Injectable } from '@nestjs/common';
@@ -59,6 +60,45 @@ export interface WhatsAppCloudConfig {
   readonly apiVersion: string;
 }
 
+/** Em produção, só o endereço oficial; em desenvolvimento, também o site pela rede local. */
+export function trustedOriginsFor(
+  isProduction: boolean,
+  webOrigin: string,
+  env: NodeJS.ProcessEnv,
+  hosts?: readonly string[]
+): string[] {
+  return isProduction ? [webOrigin] : devTrustedOrigins(webOrigin, env, hosts);
+}
+
+/** Origens de desenvolvimento: o mesmo site pelo IP de rede deste computador e as extras. */
+export function devTrustedOrigins(
+  webOrigin: string,
+  env: NodeJS.ProcessEnv,
+  hosts: readonly string[] = localNetworkHosts()
+): string[] {
+  const base = new URL(webOrigin);
+  const port = base.port ? `:${base.port}` : '';
+  const extra = (env['DEV_ALLOWED_ORIGINS'] ?? '')
+    .split(',')
+    .map((host) => host.trim())
+    .filter(Boolean);
+
+  return [
+    ...new Set([
+      webOrigin,
+      ...[...hosts, ...extra].map((host) => `${base.protocol}//${host}${port}`)
+    ])
+  ];
+}
+
+function localNetworkHosts(): string[] {
+  return Object.values(networkInterfaces())
+    .flat()
+    .filter((net) => net !== undefined && net.family === 'IPv4' && !net.internal)
+    .map((net) => net?.address ?? '')
+    .filter(Boolean);
+}
+
 /**
  * Configuração tipada lida do ambiente. Fora de produção existem padrões inertes para
  * permitir testes e desenvolvimento; em produção os segredos são obrigatórios.
@@ -67,6 +107,12 @@ export interface AppConfigValues {
   readonly nodeEnv: string;
   readonly isProduction: boolean;
   readonly webOrigin: string;
+  /**
+   * Origens aceitas nas rotas com cookie (CSRF) e no CORS. Em produção, só `webOrigin`. Em
+   * desenvolvimento, também o site aberto pelo IP de rede deste computador (celular na mesma
+   * rede) e o que vier em `DEV_ALLOWED_ORIGINS`.
+   */
+  readonly trustedOrigins: readonly string[];
   readonly accessTokenSecret: string;
   readonly accessTokenTtlSeconds: number;
   readonly dataEncryptionKey: Buffer;
@@ -313,10 +359,13 @@ export function loadAppConfig(env: NodeJS.ProcessEnv = process.env): AppConfigVa
     );
   }
 
+  const webOrigin = readString(env, 'WEB_ORIGIN', devFallback('http://localhost:3000'));
+
   return {
     nodeEnv,
     isProduction,
-    webOrigin: readString(env, 'WEB_ORIGIN', devFallback('http://localhost:3000')),
+    webOrigin,
+    trustedOrigins: trustedOriginsFor(isProduction, webOrigin, env),
     accessTokenSecret,
     accessTokenTtlSeconds: 15 * 60,
     dataEncryptionKey,

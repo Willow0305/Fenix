@@ -1,5 +1,7 @@
 'use client';
 
+import { randomId } from './random-id';
+
 /**
  * Tempo real no navegador (DT-049). Lê o fluxo `/api/v1/me/events` com `fetch` (o token
  * vai no cabeçalho, nunca na URL) e avisa as telas para buscarem de novo. Os eventos não
@@ -25,7 +27,7 @@ let wakeUp: (() => void) | null = null;
 
 /** Identificador desta aba, enviado em `X-Client-Id` para ela não recarregar o que ela mesma mudou. */
 export function clientId(): string {
-  tabId ??= crypto.randomUUID();
+  tabId ??= randomId();
 
   return tabId;
 }

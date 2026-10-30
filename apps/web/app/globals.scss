@@ -1515,8 +1515,9 @@ dialog.crop-dialog {
     }
   }
 
+  // No computador, um pouco mais baixa que 16:9, a pedido do responsável (2026-10-30).
   @media (min-width: 900px) {
-    aspect-ratio: 16 / 9;
+    aspect-ratio: 2 / 1;
   }
 }
 

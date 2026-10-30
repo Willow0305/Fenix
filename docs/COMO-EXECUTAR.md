@@ -72,6 +72,8 @@ Se alguém atualizou o código (`git pull`), rode antes `npm ci` e `npm run db:m
 
 **Verificação em duas etapas:** no primeiro acesso ao painel, o sistema pede para ativá-la em **Minha conta → Segurança**. Instale um aplicativo autenticador no celular (Google Authenticator, Microsoft Authenticator ou Authy), leia o QR code, digite o código e **guarde os códigos de recuperação**. Daí em diante, o login pede a senha e o código do aplicativo.
 
+**No celular, pela mesma rede (Wi-Fi):** com `npm run dev` rodando, abra no celular `http://IP-do-computador:3000` (o IP aparece no terminal, na linha `Network:`, ou em `ipconfig`, "Endereço IPv4" do Wi-Fi, por exemplo `http://192.168.1.8:3000`). Os IPs de rede do computador já são liberados no modo de desenvolvimento; se o Windows perguntar, permita o Node.js na **rede privada** do firewall. Só para testes locais: em produção o site usa o endereço público com HTTPS.
+
 **E-mails** (recuperação de senha, pedidos, avisos de remessa): em desenvolvimento não são enviados de verdade, ficam como arquivos em `var/mail-outbox/`.
 
 ## 5. Brasão do time no site

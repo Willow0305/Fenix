@@ -6,6 +6,7 @@ import { api, errorMessage } from '../lib/api-client';
 import { formatMoney } from '../lib/format';
 import { Icon } from './icon';
 import { Alert, SelectField } from './ui';
+import { randomId } from '../lib/random-id';
 
 interface CardCheckout {
   orderId: string;
@@ -120,7 +121,7 @@ export function CardPayment({
         ? await api<CardCharge>('/public/orders/card', {
             method: 'POST',
             body: { ...body, ...guest },
-            headers: { 'Idempotency-Key': crypto.randomUUID() },
+            headers: { 'Idempotency-Key': randomId() },
             auth: false
           })
         : await api<CardCharge>(
@@ -128,7 +129,7 @@ export function CardPayment({
             {
               method: 'POST',
               body,
-              headers: { 'Idempotency-Key': crypto.randomUUID() }
+              headers: { 'Idempotency-Key': randomId() }
             }
           );
 

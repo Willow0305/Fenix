@@ -28,7 +28,7 @@ export function configureApplication(app: INestApplication): void {
     helmet({ contentSecurityPolicy: false, crossOriginResourcePolicy: { policy: 'same-site' } })
   );
   app.use(cookieParser());
-  app.enableCors({ origin: [config.webOrigin], credentials: true });
+  app.enableCors({ origin: [...config.trustedOrigins], credentials: true });
   app.setGlobalPrefix(API_PREFIX, { exclude: [{ path: 'health', method: RequestMethod.GET }] });
   app.useGlobalPipes(createValidationPipe());
   app.useGlobalFilters(new ProblemDetailsFilter());
