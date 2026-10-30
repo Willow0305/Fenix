@@ -18,7 +18,7 @@ import {
 } from '../../../../components/ui';
 import { api } from '../../../../lib/api-client';
 import type { CardsOverview } from '../../../../lib/card-types';
-import { formatMoney } from '../../../../lib/format';
+import { formatMoney, plural } from '../../../../lib/format';
 import { normalizeAmount } from '../../../../lib/idempotency';
 import { PRODUCT_STATUS, type ProductDetail } from '../../../../lib/store-types';
 import { useResource } from '../../../../lib/use-resource';
@@ -159,7 +159,7 @@ function PlansPage() {
                   <td data-label="Validade">{plan.membershipMonths ?? '—'} meses</td>
                   <td data-label="Venda">{salesWindow(plan)}</td>
                   <td data-label="Carteirinhas" className="num">
-                    {plan.activeCards} ativa(s) de {plan.issuedCards}
+                    {plural(plan.activeCards, 'ativa', 'ativas')} de {plan.issuedCards}
                   </td>
                   <td data-label="Situação">
                     <span className={`badge ${PRODUCT_STATUS[plan.status].badge}`}>

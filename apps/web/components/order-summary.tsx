@@ -1,5 +1,5 @@
 import { PAYMENT_STATUS } from '../lib/finance-types';
-import { formatDateTime, formatMoney } from '../lib/format';
+import { formatDateTime, formatMoney, plural } from '../lib/format';
 import { addressLine } from '../lib/delivery-types';
 import { ORDER_STATUS, type Order } from '../lib/store-types';
 import { Icon } from './icon';
@@ -122,7 +122,8 @@ export function OrderSummary({ order }: { readonly order: Order }) {
           <>
             <strong>Entrega em casa:</strong> {addressLine(order.deliveryAddress)}
             {order.deliveryAddress.reference ? ` (${order.deliveryAddress.reference})` : ''} · cerca
-            de {order.deliveryAddress.leadDays} dia(s) útil(eis) depois do pagamento
+            de {plural(order.deliveryAddress.leadDays, 'dia útil', 'dias úteis')} depois do
+            pagamento
           </>
         ) : order.items.every((item) => item.beneficiaries.length > 0) ? (
           <strong>Afiliação: carteirinha digital, sem retirada.</strong>

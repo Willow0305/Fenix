@@ -22,7 +22,7 @@ import { api } from '../../../../../lib/api-client';
 import type { Page } from '../../../../../lib/api-types';
 import { useAuth } from '../../../../../lib/auth-context';
 import type { CardAdminRow } from '../../../../../lib/card-types';
-import { formatDate, formatDateTime } from '../../../../../lib/format';
+import { formatDate, formatDateTime, plural } from '../../../../../lib/format';
 import { normalizeAmount } from '../../../../../lib/idempotency';
 import {
   PRODUCT_STATUS,
@@ -226,7 +226,7 @@ export default function MembershipPlanPage() {
                     method: 'POST',
                     body: {}
                   }).then(async (res) => {
-                    setNotice(`Aviso enviado para ${res.notified} conta(s).`);
+                    setNotice(`Aviso enviado para ${plural(res.notified, 'conta', 'contas')}.`);
                     await product.reload();
                   })
                 }

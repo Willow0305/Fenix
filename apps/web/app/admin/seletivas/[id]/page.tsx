@@ -17,7 +17,7 @@ import {
 import { api } from '../../../../lib/api-client';
 import type { Page } from '../../../../lib/api-types';
 import { useAuth } from '../../../../lib/auth-context';
-import { formatDate, formatDateTime, formatPhoneDisplay } from '../../../../lib/format';
+import { formatDate, formatDateTime, formatPhoneDisplay, plural } from '../../../../lib/format';
 import {
   type AthleteDetail,
   REGISTRATION_NEXT,
@@ -89,7 +89,8 @@ export default function TryoutDetailPage() {
           {TRYOUT_STATUS[t.status].label}
         </span>
         <span>
-          {t.usedSlots} inscrição(ões){t.maxSlots ? ` de ${t.maxSlots} vagas` : ''}
+          {plural(t.usedSlots, 'inscrição', 'inscrições')}
+          {t.maxSlots ? ` de ${t.maxSlots} vagas` : ''}
         </span>
         {t.blockReason && t.status === 'OPEN' ? (
           <span className="muted">{t.blockReason}</span>

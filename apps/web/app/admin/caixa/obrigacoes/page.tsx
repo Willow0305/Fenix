@@ -72,7 +72,7 @@ export default function ObligationsPage() {
     <>
       <PageHeader
         title="Contas a pagar e a receber"
-        description="Obrigações com vencimento. A quitação gera o lançamento no Caixa."
+        description="Contas a pagar e a receber, com vencimento."
         actions={
           can('transactions.create') ? (
             <button

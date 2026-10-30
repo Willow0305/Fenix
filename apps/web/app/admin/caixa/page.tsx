@@ -23,7 +23,7 @@ import {
   TRANSACTION_STATUS,
   type TransactionStatus
 } from '../../../lib/finance-types';
-import { formatDate, formatMoney, todayCivil } from '../../../lib/format';
+import { formatDate, formatMoney, todayCivil, plural } from '../../../lib/format';
 import { useIdempotencyKey } from '../../../lib/idempotency';
 import { useResource } from '../../../lib/use-resource';
 
@@ -80,7 +80,7 @@ export default function CashPage() {
     <>
       <PageHeader
         title="Caixa Fênix"
-        description="Saldos derivados dos lançamentos confirmados. Nada é apagado: correções geram estornos vinculados."
+        description="Entradas, saídas e saldo de cada conta do clube."
         actions={
           <>
             {can('transactions.create') ? (
@@ -177,8 +177,9 @@ export default function CashPage() {
             <div className="card">
               <div className="muted">Pendências</div>
               <span>
-                {s.pendingTransactions} lançamento(s) · {s.pendingPayments} pagamento(s) ·{' '}
-                {s.pendingReceipts} despesa(s) sem comprovante
+                {plural(s.pendingTransactions, 'lançamento', 'lançamentos')} ·{' '}
+                {plural(s.pendingPayments, 'pagamento', 'pagamentos')} ·{' '}
+                {plural(s.pendingReceipts, 'despesa', 'despesas')} sem comprovante
               </span>
             </div>
             <div className="card">

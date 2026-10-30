@@ -29,7 +29,8 @@ import {
   formatDateTime,
   formatMoney,
   formatPhoneDisplay,
-  todayCivil
+  todayCivil,
+  plural
 } from '../../../../lib/format';
 import { normalizeAmount } from '../../../../lib/idempotency';
 import type { Page } from '../../../../lib/api-types';
@@ -341,7 +342,7 @@ export default function CampaignDetailPage() {
             <li key={p.id}>
               <Link href={`/admin/produtos/${p.productId}`}>{p.productName}</Link> —{' '}
               {p.campaignPrice ? formatMoney(p.campaignPrice.amount) : 'preço do produto'} ·{' '}
-              {p.soldQuantity} vendida(s)
+              {plural(p.soldQuantity, 'vendida', 'vendidas')}
               {p.maximumQuantity ? ` / máx. ${p.maximumQuantity}` : ''}
             </li>
           ))}

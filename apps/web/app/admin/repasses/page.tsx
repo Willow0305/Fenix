@@ -194,7 +194,7 @@ function SettlementsAdmin() {
     <>
       <PageHeader
         title="Repasses a parceiros"
-        description="O repasse agrupa itens pagos e ainda não repassados. Ao pagar, uma única saída é lançada no Caixa."
+        description="O que o clube repassa aos parceiros pelas vendas pagas."
       />
       <div className="card row">
         <SelectField

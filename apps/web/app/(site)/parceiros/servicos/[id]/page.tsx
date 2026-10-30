@@ -17,6 +17,7 @@ import { useAuth } from '../../../../../lib/auth-context';
 import { formatDateTime, formatMoney } from '../../../../../lib/format';
 import type { Availability, PartnerService } from '../../../../../lib/partner-types';
 import { useResource } from '../../../../../lib/use-resource';
+import { Icon } from '../../../../../components/icon';
 
 interface Slots {
   service: PartnerService;
@@ -57,7 +58,9 @@ export default function ServiceRequestPage() {
   return (
     <div className="container stack" style={{ paddingTop: '2rem', maxWidth: '48rem' }}>
       <p>
-        <Link href={`/parceiros/${service.partner.id}`}>← {service.partner.name}</Link>
+        <Link href={`/parceiros/${service.partner.id}`} className="back-link">
+          <Icon name="chevron-left" /> {service.partner.name}
+        </Link>
       </p>
       <h1>{service.name}</h1>
       <p className="muted">

@@ -19,7 +19,7 @@ import { api } from '../../../lib/api-client';
 import type { Page } from '../../../lib/api-types';
 import { useAuth } from '../../../lib/auth-context';
 import { FEE_STATUS, type Fee, type FeeStatus, type MoneyView } from '../../../lib/finance-types';
-import { formatDate, formatMoney, formatMonth, todayCivil } from '../../../lib/format';
+import { formatDate, formatMoney, formatMonth, todayCivil, plural } from '../../../lib/format';
 import type { Team } from '../../../lib/sports-types';
 import { useResource } from '../../../lib/use-resource';
 import { useUrlFilters } from '../../../lib/use-url-filters';
@@ -57,7 +57,7 @@ function FeesList() {
     });
 
     generate.setMessage(
-      `${result.created} mensalidade(s) gerada(s); ${result.skipped} já existiam.`
+      `${plural(result.created, 'mensalidade gerada', 'mensalidades geradas')}; já existiam: ${result.skipped}.`
     );
     filters.set({ mes: generateMonth });
     await fees.reload();
@@ -65,10 +65,7 @@ function FeesList() {
 
   return (
     <>
-      <PageHeader
-        title="Mensalidades"
-        description="Cobranças por atleta e mês. Atraso é calculado pela data de vencimento."
-      />
+      <PageHeader title="Mensalidades" description="Cobranças de cada atleta, mês a mês." />
 
       {can('fees.generate') ? (
         <form className="card row" onSubmit={(event) => void generate.submit(event)}>

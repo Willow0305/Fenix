@@ -11,7 +11,7 @@ import {
   type SavedAddress,
   zoneOf
 } from '../lib/delivery-types';
-import { formatMoney } from '../lib/format';
+import { formatMoney, plural } from '../lib/format';
 import { useResource } from '../lib/use-resource';
 import { AddressFields } from './address-fields';
 import { Icon } from './icon';
@@ -184,8 +184,9 @@ export function DeliveryChoice({
           ) : null}
           {zone ? (
             <p className="m-0">
-              <Icon name="clock" /> Entrega em cerca de {zone.leadDays} dia(s) útil(eis) depois do
-              pagamento · taxa {fee === 0 ? 'grátis' : formatMoney((fee ?? 0).toFixed(2))}.
+              <Icon name="clock" /> Entrega em cerca de{' '}
+              {plural(zone.leadDays, 'dia útil', 'dias úteis')} depois do pagamento · taxa{' '}
+              {fee === 0 ? 'grátis' : formatMoney((fee ?? 0).toFixed(2))}.
             </p>
           ) : null}
         </>

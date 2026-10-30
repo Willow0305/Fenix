@@ -21,7 +21,7 @@ export function ConsumerRights({ compact = false }: { readonly compact?: boolean
         <li>
           <strong>Desistência (art. 49 do CDC):</strong> até 7 dias depois de receber o pedido (ou
           da ativação, na afiliação), sem precisar dizer o motivo, com estorno integral. Peça em
-          Minha conta → Pedidos (ou em Consultar pedido, se comprou sem conta). Pedido ainda não
+          Minha conta › Pedidos (ou em Consultar pedido, se comprou sem conta). Pedido ainda não
           retirado também pode ser desistido.
         </li>
         <li>

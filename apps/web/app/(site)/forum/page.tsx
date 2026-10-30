@@ -6,7 +6,7 @@ import { Alert, Empty, Loading } from '../../../components/ui';
 import type { Page } from '../../../lib/api-types';
 import { useAuth } from '../../../lib/auth-context';
 import type { ForumCategory, NewsSummary } from '../../../lib/content-types';
-import { formatDateTime } from '../../../lib/format';
+import { formatDateTime, plural } from '../../../lib/format';
 import { useResource } from '../../../lib/use-resource';
 
 const VISIBILITY_BADGE: Record<string, string> = {
@@ -62,16 +62,16 @@ export default function ForumPage() {
       {categories.data?.map((category) => (
         <article key={category.id} className="card stack">
           <div className="row">
-            <h2 style={{ margin: 0, fontSize: '1.2rem' }}>
+            <h2 className="list-title">
               <Link href={`/forum/${category.slug}`}>{category.name}</Link>
             </h2>
             {VISIBILITY_BADGE[category.visibility] ? (
               <span className="badge badge-info">{VISIBILITY_BADGE[category.visibility]}</span>
             ) : null}
             <span className="spacer" />
-            <span className="muted">{category.topicCount} tópico(s)</span>
+            <span className="muted">{plural(category.topicCount, 'tópico', 'tópicos')}</span>
           </div>
-          {category.description ? <p style={{ margin: 0 }}>{category.description}</p> : null}
+          {category.description ? <p className="m-0">{category.description}</p> : null}
         </article>
       ))}
     </div>

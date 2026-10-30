@@ -17,7 +17,13 @@ import type { Page } from '../../../../lib/api-types';
 import { api } from '../../../../lib/api-client';
 import { useAuth } from '../../../../lib/auth-context';
 import type { Closing, ClosingPreview } from '../../../../lib/finance-types';
-import { formatDate, formatDateTime, formatMoney, todayCivil } from '../../../../lib/format';
+import {
+  formatDate,
+  formatDateTime,
+  formatMoney,
+  todayCivil,
+  plural
+} from '../../../../lib/format';
 import { normalizeAmount, useIdempotencyKey } from '../../../../lib/idempotency';
 import { useResource } from '../../../../lib/use-resource';
 
@@ -66,7 +72,7 @@ export default function ClosingsPage() {
     <>
       <PageHeader
         title="Conferência e fechamento"
-        description="Compare o saldo esperado com o valor contado/extrato e feche o período. Reabrir exige permissão e motivo."
+        description="Confira o saldo com o extrato ou a contagem e feche o período."
       />
       {can('cash.reconcile') ? (
         <section className="card stack">
@@ -141,8 +147,13 @@ export default function ClosingsPage() {
               </dl>
               {preview.pendingTransactions > 0 ? (
                 <Alert kind="warning">
-                  Há {preview.pendingTransactions} lançamento(s) pendente(s) no período. Confirme ou
-                  cancele antes de fechar.
+                  Há{' '}
+                  {plural(
+                    preview.pendingTransactions,
+                    'lançamento pendente',
+                    'lançamentos pendentes'
+                  )}{' '}
+                  no período. Confirme ou cancele antes de fechar.
                 </Alert>
               ) : null}
               {can('cash.close') ? (

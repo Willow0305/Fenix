@@ -322,7 +322,7 @@ export default function EventsAdminPage() {
     <>
       <PageHeader
         title="Eventos e partidas"
-        description="Eventos públicos confirmados aparecem em /eventos e na página inicial. Notícias podem se ligar a um evento."
+        description="Partidas e eventos do clube na agenda do site."
         actions={
           <button
             type="button"

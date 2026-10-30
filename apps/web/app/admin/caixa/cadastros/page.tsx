@@ -121,7 +121,7 @@ export default function FinanceSetupPage() {
     <>
       <PageHeader
         title="Contas e categorias"
-        description="Plano de contas provisório; categorias do sistema não podem ser inativadas."
+        description="Contas do clube e categorias de entrada e saída."
       />
       {notice ? <Alert kind="success">{notice}</Alert> : null}
 

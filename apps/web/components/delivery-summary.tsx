@@ -48,7 +48,7 @@ export function DeliverySummaryCard() {
       </h2>
       <p className="muted m-0">
         Cada pessoa escolhe em Minha conta quais avisos recebe por e-mail e WhatsApp; o WhatsApp só
-        vale depois do aceite dela ({data.whatsappConsents} pessoa(s) aceitaram).
+        vale depois do aceite dela (aceites: {data.whatsappConsents}).
       </p>
       <div className="table-wrap">
         <table className="table table-stack">

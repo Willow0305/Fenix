@@ -55,7 +55,7 @@ export function BeneficiariesEditor({
       </strong>
       <small className="muted">
         Uma carteirinha por pessoa, de uso pessoal e intransferível. Com o e-mail, ela aparece na
-        conta da pessoa; sem e-mail, fica em Minha conta → Carteirinhas, para você mostrar ou
+        conta da pessoa; sem e-mail, fica em Minha conta › Carteirinhas, para você mostrar ou
         imprimir.
       </small>
       <ErrorSummary error={save.error} />

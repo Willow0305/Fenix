@@ -65,7 +65,7 @@ export default function PixAdminPage() {
     <>
       <PageHeader
         title="PIX e cartão"
-        description="Pagamentos de pedidos e mensalidades confirmados sozinhos pelo intermediário."
+        description="PIX e cartão confirmados automaticamente, de pedidos e mensalidades."
       />
       {notice ? <Alert kind="success">{notice}</Alert> : null}
       <section className="card stack" aria-labelledby="pix-situacao">

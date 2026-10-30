@@ -7,7 +7,7 @@ import { Icon } from '../../../components/icon';
 import { Alert, Empty, PageHeader, Skeleton } from '../../../components/ui';
 import { useAuth } from '../../../lib/auth-context';
 import type { BenefitAdmin, CardsOverview } from '../../../lib/card-types';
-import { formatMoney } from '../../../lib/format';
+import { formatMoney, plural } from '../../../lib/format';
 import { PRODUCT_STATUS } from '../../../lib/store-types';
 import { useResource } from '../../../lib/use-resource';
 import { salesWindow } from './plan-format';
@@ -24,7 +24,7 @@ export default function AffiliationOverviewPage() {
     <>
       <PageHeader
         title="Afiliação"
-        description="Planos de afiliação, benefícios dos parceiros e carteirinhas digitais num lugar só."
+        description="Planos, benefícios e carteirinhas digitais."
         actions={
           can('products.manage') ? (
             <Link href="/admin/afiliacao/planos?novo=1" className="btn btn-primary">
@@ -82,7 +82,8 @@ export default function AffiliationOverviewPage() {
                   sair da diretoria.
                 </p>
                 <p className="m-0">
-                  {o.board.valid} ativa(s) · {o.benefits.board} benefício(s) valendo
+                  {plural(o.board.valid, 'ativa', 'ativas')} ·{' '}
+                  {plural(o.benefits.board, 'benefício', 'benefícios')} valendo
                 </p>
                 <div className="row">
                   <Link href="/admin/afiliacao/beneficios?publico=BOARD">
@@ -102,7 +103,8 @@ export default function AffiliationOverviewPage() {
                   atleta for inativado.
                 </p>
                 <p className="m-0">
-                  {o.athletes.valid} válida(s) · {o.benefits.athlete} benefício(s) valendo
+                  {plural(o.athletes.valid, 'válida', 'válidas')} ·{' '}
+                  {plural(o.benefits.athlete, 'benefício', 'benefícios')} valendo
                 </p>
                 <div className="row">
                   <Link href="/admin/afiliacao/beneficios?publico=ATHLETE">
@@ -122,7 +124,8 @@ export default function AffiliationOverviewPage() {
                   maiores ou benefícios a mais que os de atleta.
                 </p>
                 <p className="m-0">
-                  {o.affiliates.valid} válida(s) · {o.benefits.affiliate} benefício(s) valendo
+                  {plural(o.affiliates.valid, 'válida', 'válidas')} ·{' '}
+                  {plural(o.benefits.affiliate, 'benefício', 'benefícios')} valendo
                 </p>
                 <div className="row">
                   <Link href="/admin/afiliacao/beneficios?publico=AFFILIATE">
@@ -172,7 +175,7 @@ export default function AffiliationOverviewPage() {
                       {plan.membershipMonths ?? '—'} meses · {salesWindow(plan)}
                     </span>
                     <span className="spacer" />
-                    <span>{plan.activeCards} ativa(s)</span>
+                    <span>{plural(plan.activeCards, 'ativa', 'ativas')}</span>
                   </li>
                 ))}
               </ul>

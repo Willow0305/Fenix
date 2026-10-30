@@ -16,7 +16,7 @@ import {
 } from '../../../components/ui';
 import { api } from '../../../lib/api-client';
 import type { Page, Role } from '../../../lib/api-types';
-import { formatDateTime, formatMoney } from '../../../lib/format';
+import { formatDateTime, formatMoney, plural } from '../../../lib/format';
 import { normalizeAmount } from '../../../lib/idempotency';
 import {
   type Coupon,
@@ -110,7 +110,7 @@ function PickList({
   return (
     <fieldset className="form-section">
       <legend>
-        {label} ({selected.size} escolhido(s))
+        {label} ({plural(selected.size, 'escolhido', 'escolhidos')})
       </legend>
       {hint ? <span className="field-hint">{hint}</span> : null}
       {items.length === 0 ? (
@@ -332,7 +332,7 @@ function CouponForm({
             items={(roles.data ?? []).map((role) => ({
               id: role.id,
               name: role.name,
-              note: `${role.userCount} pessoa(s)`
+              note: `${plural(role.userCount, 'pessoa', 'pessoas')}`
             }))}
             selected={form.roleIds}
             onToggle={(id) => set('roleIds', toggle(form.roleIds, id))}

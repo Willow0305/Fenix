@@ -56,7 +56,7 @@ export default function PartnersAdminPage() {
     <>
       <PageHeader
         title="Parceiros"
-        description="Somente parceiros aprovados e dentro da vigência do contrato aparecem no site e vendem na loja."
+        description="Só parceiros aprovados e com contrato em vigor aparecem no site e vendem na loja."
         actions={
           <button type="button" className="btn btn-primary" onClick={() => setCreating((v) => !v)}>
             {creating ? 'Fechar' : 'Novo parceiro'}

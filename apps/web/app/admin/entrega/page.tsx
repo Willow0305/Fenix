@@ -17,7 +17,7 @@ import {
 } from '../../../components/ui';
 import { api } from '../../../lib/api-client';
 import type { DeliveryAdmin, DeliveryZone } from '../../../lib/delivery-types';
-import { formatMoney } from '../../../lib/format';
+import { formatMoney, plural } from '../../../lib/format';
 import { normalizeAmount } from '../../../lib/idempotency';
 import { useResource } from '../../../lib/use-resource';
 
@@ -277,7 +277,7 @@ export default function DeliveryAdminPage() {
                 </div>
                 <p className="m-0">
                   {zone.fee.amount === '0.00' ? 'Grátis' : formatMoney(zone.fee.amount)} ·{' '}
-                  {zone.leadDays} dia(s) útil(eis)
+                  {plural(zone.leadDays, 'dia útil', 'dias úteis')}
                 </p>
                 <p className="muted m-0 text-break">
                   {zone.neighborhoods.map((n) => n.name).join(', ')}

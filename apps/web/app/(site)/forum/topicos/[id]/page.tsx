@@ -24,6 +24,7 @@ import {
 } from '../../../../../lib/content-types';
 import { formatDateTime } from '../../../../../lib/format';
 import { useResource } from '../../../../../lib/use-resource';
+import { Icon } from '../../../../../components/icon';
 
 type Moderation =
   | { kind: 'topic'; action: 'HIDE' | 'RESTORE' | 'CLOSE' | 'REOPEN' | 'PIN' | 'UNPIN' }
@@ -214,7 +215,9 @@ export default function TopicPage() {
     return (
       <div className="container" style={{ paddingTop: '2rem' }}>
         <Alert kind="error">{topic.error ?? 'Tópico não encontrado.'}</Alert>
-        <Link href="/forum">← Fórum</Link>
+        <Link href="/forum" className="back-link">
+          <Icon name="chevron-left" /> Fórum
+        </Link>
       </div>
     );
   }
@@ -230,7 +233,9 @@ export default function TopicPage() {
   return (
     <div className="container stack" style={{ paddingTop: '2rem', maxWidth: '52rem' }}>
       <p>
-        <Link href={`/forum/${t.category.slug}`}>← {t.category.name}</Link>
+        <Link href={`/forum/${t.category.slug}`} className="back-link">
+          <Icon name="chevron-left" /> {t.category.name}
+        </Link>
       </p>
       <div className="row">
         <h1 style={{ margin: 0 }}>{t.title}</h1>

@@ -46,7 +46,7 @@ export default function FinanceDashboardPage() {
     <>
       <PageHeader
         title="Painel financeiro"
-        description="Calculado dos lançamentos confirmados do Caixa e das mensalidades. Transferências entre contas não contam como receita nem despesa."
+        description="Receitas, despesas e saldo no período escolhido."
         actions={
           <Link href="/admin/caixa">
             <Icon name="arrow-left" /> Caixa

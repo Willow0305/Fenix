@@ -20,6 +20,7 @@ import { useAuth } from '../../../../lib/auth-context';
 import type { ForumCategory, TopicDetail, TopicSummary } from '../../../../lib/content-types';
 import { formatDateTime } from '../../../../lib/format';
 import { useResource } from '../../../../lib/use-resource';
+import { Icon } from '../../../../components/icon';
 
 export default function ForumCategoryPage() {
   const { slug } = useParams<{ slug: string }>();
@@ -49,7 +50,9 @@ export default function ForumCategoryPage() {
     return (
       <div className="container" style={{ paddingTop: '2rem' }}>
         <Alert kind="error">{data.error ?? 'Categoria não encontrada.'}</Alert>
-        <Link href="/forum">← Fórum</Link>
+        <Link href="/forum" className="back-link">
+          <Icon name="chevron-left" /> Fórum
+        </Link>
       </div>
     );
   }
@@ -59,7 +62,9 @@ export default function ForumCategoryPage() {
   return (
     <div className="container stack" style={{ paddingTop: '2rem' }}>
       <p>
-        <Link href="/forum">← Fórum</Link>
+        <Link href="/forum" className="back-link">
+          <Icon name="chevron-left" /> Fórum
+        </Link>
       </p>
       <div className="row">
         <h1 style={{ margin: 0 }}>{category.name}</h1>

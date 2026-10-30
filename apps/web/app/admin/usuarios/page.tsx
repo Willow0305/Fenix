@@ -17,7 +17,7 @@ import {
 import { api } from '../../../lib/api-client';
 import type { AdminUser, Page, Role } from '../../../lib/api-types';
 import { useAuth } from '../../../lib/auth-context';
-import { formatDateTime } from '../../../lib/format';
+import { formatDateTime, plural } from '../../../lib/format';
 import { useResource } from '../../../lib/use-resource';
 
 const STATUS_LABEL: Record<AdminUser['status'], string> = {
@@ -325,7 +325,7 @@ export default function UsersPage() {
               body: { reason }
             }
           );
-          setNotice(`${result.revoked} sessão(ões) encerrada(s).`);
+          setNotice(`${plural(result.revoked, 'sessão encerrada', 'sessões encerradas')}.`);
         }}
       />
 

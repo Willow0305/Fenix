@@ -14,7 +14,7 @@ import {
 } from '../../../components/ui';
 import type { Page } from '../../../lib/api-types';
 import { useAuth } from '../../../lib/auth-context';
-import { formatDate } from '../../../lib/format';
+import { formatDate, plural } from '../../../lib/format';
 import {
   ATHLETE_STATUS,
   type AthleteStatus,
@@ -125,7 +125,7 @@ function AthletesList() {
       {athletes.data && athletes.data.data.length > 0 ? (
         <>
           <p className="muted" aria-live="polite" style={{ margin: 0 }}>
-            {athletes.data.meta.total} atleta(s)
+            {plural(athletes.data.meta.total, 'atleta', 'atletas')}
           </p>
           <div className="table-wrap">
             <table className="table table-stack">

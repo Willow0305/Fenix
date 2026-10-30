@@ -20,7 +20,7 @@ import { api } from '../../../../lib/api-client';
 import type { Page } from '../../../../lib/api-types';
 import { useAuth } from '../../../../lib/auth-context';
 import type { BulkAssignResult, Plan, PlanMember } from '../../../../lib/finance-types';
-import { formatDate, formatMoney, todayCivil } from '../../../../lib/format';
+import { formatDate, formatMoney, todayCivil, plural } from '../../../../lib/format';
 import { normalizeAmount } from '../../../../lib/idempotency';
 import {
   ATHLETE_STATUS,
@@ -260,7 +260,8 @@ export default function PlanDetailPage() {
             />
             {selected.size > 0 ? (
               <p style={{ margin: 0 }}>
-                <strong>{selected.size} selecionado(s):</strong> {[...selected.values()].join(', ')}
+                <strong>{plural(selected.size, 'selecionado', 'selecionados')}:</strong>{' '}
+                {[...selected.values()].join(', ')}
               </p>
             ) : null}
             <form className="form" onSubmit={(event) => void assign.submit(event)}>
@@ -316,7 +317,7 @@ export default function PlanDetailPage() {
 
         {result ? (
           <Alert kind={result.skipped.length > 0 ? 'warning' : 'success'}>
-            {result.assigned} atleta(s) adicionado(s).
+            {plural(result.assigned, 'atleta adicionado', 'atletas adicionados')}.
             {result.skipped.length > 0 ? (
               <ul style={{ margin: '0.5rem 0 0' }}>
                 {result.skipped.map((item) => (

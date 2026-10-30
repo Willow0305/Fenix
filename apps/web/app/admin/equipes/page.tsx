@@ -338,7 +338,7 @@ export default function TeamsAdminPage() {
         }
         description={
           toggling?.isActive
-            ? `A equipe some do site e não recebe novos atletas, partidas, seletivas nem comunicados. Os ${toggling.activeAthletes ?? 0} vínculo(s) atuais continuam; encerre-os na ficha de cada atleta, se for o caso.`
+            ? `A equipe some do site e não recebe novos atletas, partidas, seletivas nem comunicados. Vínculos atuais continuam valendo (${toggling.activeAthletes ?? 0}); encerre-os na ficha de cada atleta, se for o caso.`
             : 'A equipe volta a aparecer no site e a aceitar novos vínculos.'
         }
         confirmLabel={toggling?.isActive ? 'Inativar' : 'Reativar'}

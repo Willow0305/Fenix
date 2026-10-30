@@ -21,7 +21,7 @@ export default async function TryoutsPage() {
         <div className="card stack">
           <p>Nenhuma seletiva publicada no momento.</p>
           <p>
-            <Link href="/interesse">Deixe seu contato</Link> para ser avisado(a) da próxima.
+            <Link href="/interesse">Deixe seu contato</Link> e avisamos quando abrir a próxima.
           </p>
         </div>
       ) : (
@@ -29,7 +29,7 @@ export default async function TryoutsPage() {
           {tryouts.map((tryout) => (
             <article key={tryout.id} className="card stack">
               <div className="row">
-                <h2 style={{ margin: 0 }}>
+                <h2 className="list-title">
                   <Link href={`/seletivas/${tryout.slug}`}>{tryout.title}</Link>
                 </h2>
                 <span className={`badge ${TRYOUT_STATUS[tryout.status].badge}`}>

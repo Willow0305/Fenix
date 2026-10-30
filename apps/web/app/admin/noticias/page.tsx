@@ -90,7 +90,7 @@ export default function NewsAdminPage() {
     <>
       <PageHeader
         title="Notícias e comunicados"
-        description="Uma notícia alimenta a página inicial e o fórum conforme os canais marcados; ocultar retira de todos."
+        description="Notícias do site, da página inicial e do fórum."
         actions={
           <button type="button" className="btn btn-primary" onClick={() => setCreating((v) => !v)}>
             {creating ? 'Fechar' : 'Nova notícia'}

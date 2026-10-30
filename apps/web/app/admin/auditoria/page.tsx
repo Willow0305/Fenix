@@ -116,7 +116,7 @@ export default function AuditPage() {
     <>
       <PageHeader
         title="Auditoria"
-        description="Trilha imutável de ações sensíveis. Datas no fuso do time; identificadores aceitam o UUID completo."
+        description="Quem fez o quê, e quando, nas ações importantes do sistema."
       />
       <form
         className="card form"

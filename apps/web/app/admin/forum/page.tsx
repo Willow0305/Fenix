@@ -26,7 +26,7 @@ import {
   REPORT_STATUS,
   type ReportStatus
 } from '../../../lib/content-types';
-import { formatDateTime } from '../../../lib/format';
+import { formatDateTime, plural } from '../../../lib/format';
 import { useResource } from '../../../lib/use-resource';
 import { CategoryManager } from '../../../components/category-manager';
 import { Icon } from '../../../components/icon';
@@ -72,7 +72,7 @@ function Categories() {
       <CategoryManager
         items={(categories.data ?? []).map((category) => ({
           ...category,
-          detail: `${category.topicCount} tópico(s)`
+          detail: `${plural(category.topicCount, 'tópico', 'tópicos')}`
         }))}
         endpoint="/forum/admin/categories"
         manage
@@ -300,7 +300,7 @@ export default function ForumAdminPage() {
     <>
       <PageHeader
         title="Fórum e moderação"
-        description="Ocultar, remover, fechar e fixar são feitos no próprio tópico, sempre com motivo. Nada é apagado do histórico."
+        description="Denúncias e categorias. Ocultar, fechar ou fixar é feito no próprio tópico."
       />
       <Reports />
       <Categories />

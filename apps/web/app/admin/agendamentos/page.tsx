@@ -49,7 +49,7 @@ export default function AppointmentsAdminPage() {
     <>
       <PageHeader
         title="Agendamentos"
-        description="Solicitações não são confirmações: confirme ou cancele com motivo. O solicitante e o profissional são avisados."
+        description="Pedidos de horário com os profissionais parceiros. Ao confirmar ou cancelar, os dois lados são avisados."
       />
       <div className="row">
         <label className="field">

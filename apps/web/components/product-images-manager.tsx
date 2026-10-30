@@ -6,6 +6,7 @@ import { api, ApiError, errorMessage } from '../lib/api-client';
 import type { ProductDetail } from '../lib/store-types';
 import { Icon } from './icon';
 import { Alert, ConfirmDialog } from './ui';
+import { plural } from '../lib/format';
 
 type Image = ProductDetail['images'][number];
 
@@ -136,10 +137,16 @@ export function ProductImagesManager({
     }
 
     const notes = [
-      `${valid.length - failed} foto(s) enviada(s).`,
-      invalid.length > 0 ? `${invalid.length} ignorada(s): formato ou tamanho inválido.` : '',
-      skipped > 0 ? `${skipped} ficou(aram) de fora pelo limite de ${MAX_IMAGES}.` : '',
-      failed > 0 ? `${failed} não pôde(puderam) ser enviada(s).` : ''
+      `${plural(valid.length - failed, 'foto enviada', 'fotos enviadas')}.`,
+      invalid.length > 0
+        ? `${plural(invalid.length, 'ignorada', 'ignoradas')}: formato ou tamanho inválido.`
+        : '',
+      skipped > 0 ? `Fora do limite de ${MAX_IMAGES} fotos: ${skipped}.` : '',
+      failed > 0
+        ? failed === 1
+          ? '1 foto não pôde ser enviada.'
+          : `${failed} fotos não puderam ser enviadas.`
+        : ''
     ].filter(Boolean);
 
     setMessage({ kind: failed > 0 ? 'error' : 'success', text: notes.join(' ') });

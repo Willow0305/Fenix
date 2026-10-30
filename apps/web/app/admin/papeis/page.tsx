@@ -17,6 +17,7 @@ import { api } from '../../../lib/api-client';
 import type { Role } from '../../../lib/api-types';
 import { useAuth } from '../../../lib/auth-context';
 import { useResource } from '../../../lib/use-resource';
+import { plural } from '../../../lib/format';
 
 interface PermissionItem {
   code: string;
@@ -154,7 +155,7 @@ export default function RolesPage() {
     <>
       <PageHeader
         title="Papéis e permissões"
-        description="Crie um papel para cada trabalho (ex.: Financeiro, Atendimento, Cadastro), marque o que ele pode fazer e dê o papel às pessoas em Usuários. O sistema confere sempre a permissão de cada ação."
+        description="O que cada função pode fazer no painel, como Financeiro ou Atendimento. Depois, dê o papel às pessoas em Usuários."
         actions={
           manage && editing === null ? (
             <button type="button" className="btn btn-primary" onClick={() => open('new')}>
@@ -227,7 +228,7 @@ export default function RolesPage() {
             <div className="row">
               <h2 className="m-0">{role.name}</h2>
               {role.isSystem ? <span className="badge">Sistema</span> : null}
-              <span className="badge">{role.userCount} pessoa(s)</span>
+              <span className="badge">{plural(role.userCount, 'pessoa', 'pessoas')}</span>
               <span className="spacer" />
               {manage && role.code !== 'admin' && editing === null ? (
                 <button
@@ -250,7 +251,7 @@ export default function RolesPage() {
             </div>
             {role.description ? <p className="muted m-0">{role.description}</p> : null}
             <details>
-              <summary>{role.permissions.length} permissão(ões)</summary>
+              <summary>{plural(role.permissions.length, 'permissão', 'permissões')}</summary>
               <ul>
                 {role.permissions.map((code) => (
                   <li key={code}>{labelOf(code)}</li>
@@ -286,7 +287,7 @@ export default function RolesPage() {
         title={`Excluir o papel ${removing?.name ?? ''}`}
         description={
           removing && removing.userCount > 0
-            ? `${removing.userCount} pessoa(s) têm este papel. Retire o papel delas em Usuários antes de excluir.`
+            ? `Este papel está com ${plural(removing.userCount, 'pessoa', 'pessoas')}. Retire o papel em Usuários antes de excluir.`
             : 'O papel sai da lista. A auditoria guarda o histórico.'
         }
         confirmLabel="Excluir"

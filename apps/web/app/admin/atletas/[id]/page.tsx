@@ -23,7 +23,7 @@ import { api } from '../../../../lib/api-client';
 import { ageFrom } from '../../../../lib/age';
 import type { AuditLog, Page } from '../../../../lib/api-types';
 import { useAuth } from '../../../../lib/auth-context';
-import { formatDate, formatDateTime, todayCivil } from '../../../../lib/format';
+import { formatDate, formatDateTime, todayCivil, plural } from '../../../../lib/format';
 import {
   ATHLETE_NEXT,
   ATHLETE_STATUS,
@@ -425,14 +425,15 @@ export default function AthleteDetailPage() {
                 onChange={(e) => setEffects({ ...effects, cancelFutureFees: e.target.checked })}
               />
               <span>
-                Cancelar {impact.data.cancellableFees} mensalidade(s) deste mês em diante sem
-                pagamento
+                Cancelar {plural(impact.data.cancellableFees, 'mensalidade', 'mensalidades')} deste
+                mês em diante sem pagamento
               </span>
             </label>
             {impact.data.keptOpenFees > 0 ? (
               <small className="muted">
-                {impact.data.keptOpenFees} mensalidade(s) de meses passados ou com pagamento
-                continuam em aberto.
+                Continuam em aberto{' '}
+                {plural(impact.data.keptOpenFees, 'mensalidade', 'mensalidades')} de meses passados
+                ou com pagamento.
               </small>
             ) : null}
             <label className="checkbox">

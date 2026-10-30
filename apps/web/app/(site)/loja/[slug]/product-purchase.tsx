@@ -14,7 +14,7 @@ import { Alert, ErrorSummary, useSubmit } from '../../../../components/ui';
 import { api } from '../../../../lib/api-client';
 import { useAuth } from '../../../../lib/auth-context';
 import { useCart } from '../../../../lib/cart-context';
-import { formatMoney } from '../../../../lib/format';
+import { formatMoney, plural } from '../../../../lib/format';
 import type { ProductDetail } from '../../../../lib/store-types';
 import { useResource } from '../../../../lib/use-resource';
 
@@ -159,7 +159,9 @@ export function ProductPurchase({ product }: { readonly product: ProductDetail }
         </Alert>
       )}
       {product.buyerLimit ? (
-        <small className="muted">Limite de {product.buyerLimit} unidade(s) por comprador.</small>
+        <small className="muted">
+          Limite de {plural(product.buyerLimit, 'unidade', 'unidades')} por comprador.
+        </small>
       ) : null}
       <ErrorSummary error={add.error} />
       {added ? (

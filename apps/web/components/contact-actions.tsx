@@ -32,7 +32,7 @@ export function ContactActions({
           href={whatsapp}
           target="_blank"
           rel="noopener noreferrer"
-          aria-label={`Abrir WhatsApp do(a) ${who}`}
+          aria-label={`Abrir WhatsApp: ${who}`}
         >
           <Icon name="whatsapp" /> WhatsApp
         </a>

@@ -95,7 +95,7 @@ export default async function PartnerPage({
             ))}
           </ul>
           <small className="muted">
-            Mostre o QR da carteirinha (Minha conta → Carteirinhas) na hora da compra.
+            Mostre o QR da carteirinha (Minha conta › Carteirinhas) na hora da compra.
           </small>
         </section>
       ) : null}

@@ -9,7 +9,7 @@ import { Alert, ConfirmDialog, PageHeader, Skeleton } from '../../../components/
 import { api } from '../../../lib/api-client';
 import { useAuth } from '../../../lib/auth-context';
 import type { Plan, PlanImpact } from '../../../lib/finance-types';
-import { formatMoney } from '../../../lib/format';
+import { formatMoney, plural } from '../../../lib/format';
 import { useResource } from '../../../lib/use-resource';
 
 /**
@@ -216,8 +216,8 @@ export default function PlansPage() {
                 onChange={(e) => setEffects({ ...effects, cancelFutureFees: e.target.checked })}
               />
               <span>
-                Cancelar {impact.data.cancellableFees} mensalidade(s) deste mês em diante sem
-                pagamento
+                Cancelar {plural(impact.data.cancellableFees, 'mensalidade', 'mensalidades')} deste
+                mês em diante sem pagamento
               </span>
             </label>
             <label className="checkbox">
@@ -228,14 +228,15 @@ export default function PlansPage() {
                 onChange={(e) => setEffects({ ...effects, endAthletePlans: e.target.checked })}
               />
               <span>
-                Encerrar hoje o plano de {impact.data.activeAthletes} atleta(s), para receberem
-                outro
+                Encerrar hoje o plano de {plural(impact.data.activeAthletes, 'atleta', 'atletas')},
+                para receberem outro
               </span>
             </label>
             {impact.data.keptOpenFees > 0 ? (
               <small className="muted">
-                {impact.data.keptOpenFees} mensalidade(s) de meses passados ou com pagamento
-                continuam em aberto (dívida real).
+                Continuam em aberto{' '}
+                {plural(impact.data.keptOpenFees, 'mensalidade', 'mensalidades')} de meses passados
+                ou com pagamento (dívida real).
               </small>
             ) : null}
           </fieldset>
@@ -246,7 +247,7 @@ export default function PlansPage() {
         title={`Excluir ${deleting?.name ?? ''}`}
         description={
           impact.data
-            ? `O plano some das listas e para de cobrar: ${impact.data.cancellableFees} mensalidade(s) deste mês em diante sem pagamento serão canceladas e ${impact.data.activeAthletes} atleta(s) saem do plano hoje. ${impact.data.keptOpenFees} cobrança(s) de meses passados ou com pagamento continuam em aberto.`
+            ? `O plano some das listas e para de cobrar: cancela ${plural(impact.data.cancellableFees, 'mensalidade', 'mensalidades')} deste mês em diante sem pagamento e tira ${plural(impact.data.activeAthletes, 'atleta', 'atletas')} do plano hoje. Continuam em aberto ${plural(impact.data.keptOpenFees, 'cobrança', 'cobranças')} de meses passados ou com pagamento.`
             : 'O plano some das listas e para de cobrar.'
         }
         confirmLabel="Excluir"

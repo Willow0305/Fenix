@@ -4,7 +4,7 @@ import { useState } from 'react';
 
 import { api } from '../lib/api-client';
 import type { AddressForm, DeliveryOptions } from '../lib/delivery-types';
-import { formatMoney } from '../lib/format';
+import { formatMoney, plural } from '../lib/format';
 import { PhoneField, PostalCodeField, TextField } from './ui';
 
 interface PostalLookup {
@@ -128,7 +128,7 @@ export function AddressFields({
             {options.zones.map((zone) => (
               <optgroup
                 key={zone.id}
-                label={`${zone.name} · ${formatMoney(zone.fee.amount)} · ${zone.leadDays} dia(s) útil(eis)`}
+                label={`${zone.name} · ${formatMoney(zone.fee.amount)} · ${plural(zone.leadDays, 'dia útil', 'dias úteis')}`}
               >
                 {zone.neighborhoods.map((n) => (
                   <option key={n.id} value={n.id}>

@@ -17,7 +17,7 @@ import {
 import type { Page } from '../../../lib/api-types';
 import { api } from '../../../lib/api-client';
 import type { BroadcastHistoryItem } from '../../../lib/content-types';
-import { formatDateTime } from '../../../lib/format';
+import { formatDateTime, plural } from '../../../lib/format';
 import { useIdempotencyKey } from '../../../lib/idempotency';
 import { useResource } from '../../../lib/use-resource';
 import { teamOptions } from '../../../lib/team-options';
@@ -65,7 +65,7 @@ export default function BroadcastPage() {
     setNotice(
       result.replayed
         ? 'Este aviso já tinha sido enviado; ninguém foi notificado de novo.'
-        : `Aviso enviado a ${result.recipients} pessoa(s).`
+        : `Aviso enviado a ${plural(result.recipients, 'pessoa', 'pessoas')}.`
     );
     setForm({ ...form, title: '', message: '', link: '' });
     await history.reload();
@@ -75,7 +75,7 @@ export default function BroadcastPage() {
     <>
       <PageHeader
         title="Avisos"
-        description="Aviso para um grupo: aparece em Notificações e sai por e-mail e WhatsApp para quem escolheu esses canais. Cada envio é registrado na auditoria."
+        description="Avisos para um grupo, no site, por e-mail e por WhatsApp."
       />
       {notice ? <Alert kind="success">{notice}</Alert> : null}
       <form className="form card" onSubmit={(event) => void send.submit(event)}>

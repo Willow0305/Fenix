@@ -9,7 +9,7 @@ describe('contato direto', () => {
       <ContactActions phone="68999990000" email="ana@exemplo.com" who="atleta" subject="Treino" />
     );
 
-    expect(screen.getByRole('link', { name: 'Abrir WhatsApp do(a) atleta' })).toHaveAttribute(
+    expect(screen.getByRole('link', { name: 'Abrir WhatsApp: atleta' })).toHaveAttribute(
       'href',
       'https://wa.me/5568999990000'
     );

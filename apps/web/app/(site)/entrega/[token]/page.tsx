@@ -14,7 +14,7 @@ import {
 } from '../../../../components/ui';
 import { api, errorMessage } from '../../../../lib/api-client';
 import type { CourierLink } from '../../../../lib/delivery-types';
-import { formatDateTime, formatPhoneDisplay } from '../../../../lib/format';
+import { formatDateTime, formatPhoneDisplay, plural } from '../../../../lib/format';
 
 /**
  * Link do entregador (DT-075, RN-ENT-007): sem login, só o necessário para esta entrega.
@@ -141,7 +141,7 @@ export default function CourierPage() {
           autoComplete="one-time-code"
           value={code}
           onChange={(e) => setCode(e.target.value)}
-          hint={`${view.codeAttemptsLeft} tentativa(s) restante(s).`}
+          hint={`${plural(view.codeAttemptsLeft, 'tentativa restante', 'tentativas restantes')}.`}
         />
         <button
           type="submit"

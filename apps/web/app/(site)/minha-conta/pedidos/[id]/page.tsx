@@ -11,6 +11,7 @@ import type { Order } from '../../../../../lib/store-types';
 import { useResource } from '../../../../../lib/use-resource';
 import { CancelOrder } from '../../../../../components/cancel-order';
 import { DeliveryTracking } from '../../../../../components/delivery-tracking';
+import { Icon } from '../../../../../components/icon';
 
 export default function MyOrderPage() {
   const { id } = useParams<{ id: string }>();
@@ -22,7 +23,9 @@ export default function MyOrderPage() {
 
   return (
     <>
-      <Link href="/minha-conta/pedidos">← Meus pedidos</Link>
+      <Link href="/minha-conta/pedidos" className="back-link">
+        <Icon name="chevron-left" /> Meus pedidos
+      </Link>
       <OrderSummary order={order.data} />
       {order.data.status === 'READY_FOR_PICKUP' ? (
         <Alert kind="success">Seu pedido está pronto para retirada!</Alert>

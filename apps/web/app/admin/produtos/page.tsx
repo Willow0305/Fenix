@@ -18,7 +18,7 @@ import {
 } from '../../../components/ui';
 import { api } from '../../../lib/api-client';
 import type { Page } from '../../../lib/api-types';
-import { formatMoney } from '../../../lib/format';
+import { formatMoney, plural } from '../../../lib/format';
 import { normalizeAmount } from '../../../lib/idempotency';
 import {
   FULFILLMENT,
@@ -120,7 +120,7 @@ export default function ProductsAdminPage() {
                   value,
                   label: FULFILLMENT[value]
                 }))}
-                hint="Afiliação (carteirinha) tem aba própria: Afiliação → Planos."
+                hint="Afiliação (carteirinha) tem aba própria: Afiliação › Planos."
               />
               <TextField
                 label="Preço (R$)"
@@ -242,7 +242,7 @@ export default function ProductsAdminPage() {
                     <td data-label="Produto">
                       <Link href={`/admin/produtos/${p.id}`}>{p.name}</Link>
                       <div className="muted" style={{ fontSize: '0.8rem' }}>
-                        {p.category.name} · {p.variants.length} variação(ões)
+                        {p.category.name} · {plural(p.variants.length, 'variação', 'variações')}
                       </div>
                     </td>
                     <td data-label="Modo">{FULFILLMENT[p.fulfillmentType]}</td>

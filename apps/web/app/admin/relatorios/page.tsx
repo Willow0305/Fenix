@@ -86,7 +86,7 @@ export default function ReportsPage() {
     <>
       <PageHeader
         title="Relatórios"
-        description="Totais derivados das movimentações e cadastros. Exportar exige permissão própria e fica registrado na auditoria."
+        description="Números do clube por período, para consultar e exportar."
         actions={
           can('reports.export') ? (
             <button

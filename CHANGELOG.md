@@ -6,6 +6,18 @@ O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) e o 
 
 ## [Não publicado]
 
+### Acabamento visual com a cara do Fênix (2026-10-29)
+
+#### Alterado
+
+- títulos na fonte condensada Barlow Condensed e texto em Inter, servidas pelo próprio site (DT-080; fonte dos títulos a confirmar em PEN-068);
+- faixa diagonal de camisa como grafismo da marca no herói, nos convites escuros e na reserva de imagem, no lugar dos brilhos vermelhos genéricos; a fênix nunca fica sobre vermelho;
+- página inicial: cartões de time com logo, texto curto e seta; dois botões no herói; logo menor no celular para o convite caber na primeira tela;
+- botões e cartões respondem ao toque; efeitos de mouse não "grudam" no celular; janelas, avisos e menus entram com animação curta; "reduzir movimento" mantém só esmaecimentos;
+- celular: área segura do notch, menu do site com o item atual marcado, menu do painel desliza e fecha ao tocar fora;
+- rodapé sempre no fim da tela; botões do cabeçalho vazados sobre o fundo escuro;
+- textos: cabeçalhos do painel dizem para que a tela serve; plurais por extenso ("2 tópicos" em vez de "tópico(s)"); "Olá, Nome" no painel; setas de texto trocadas por ícones.
+
 ### Cartão pelo site (2026-10-28)
 
 #### Adicionado

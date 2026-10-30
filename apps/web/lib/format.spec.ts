@@ -1,4 +1,4 @@
-import { formatDate, formatDateTime, formatMoney, formatMonth } from './format';
+import { formatDate, formatDateTime, formatMoney, formatMonth, plural } from './format';
 
 describe('formatação', () => {
   it('formata data civil sem deslocar o fuso', () => {
@@ -17,5 +17,11 @@ describe('formatação', () => {
 
   it('formata o mês de referência', () => {
     expect(formatMonth('2026-07-01')).toBe('07/2026');
+  });
+
+  it('escreve o plural por extenso', () => {
+    expect(plural(1, 'tópico', 'tópicos')).toBe('1 tópico');
+    expect(plural(0, 'tópico', 'tópicos')).toBe('0 tópicos');
+    expect(plural(1200, 'pessoa', 'pessoas')).toBe('1.200 pessoas');
   });
 });

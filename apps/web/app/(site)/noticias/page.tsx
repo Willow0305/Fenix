@@ -5,6 +5,7 @@ import { NewsCard } from '../../../components/news-card';
 import type { Page } from '../../../lib/api-types';
 import type { NewsCategory, NewsSummary } from '../../../lib/content-types';
 import { serverGet } from '../../../lib/server-api';
+import { Icon } from '../../../components/icon';
 
 export const metadata: Metadata = { title: 'Notícias' };
 
@@ -73,13 +74,23 @@ export default async function NewsPage({
       {totalPages > 1 ? (
         <nav aria-label="Paginação" className="row">
           {page > 1 ? (
-            <Link href={href({ categoria: params.categoria, pagina: page - 1 })}>← Anteriores</Link>
+            <Link
+              href={href({ categoria: params.categoria, pagina: page - 1 })}
+              className="back-link"
+            >
+              <Icon name="chevron-left" /> Anteriores
+            </Link>
           ) : null}
           <span className="muted">
             Página {page} de {totalPages}
           </span>
           {page < totalPages ? (
-            <Link href={href({ categoria: params.categoria, pagina: page + 1 })}>Próximas →</Link>
+            <Link
+              href={href({ categoria: params.categoria, pagina: page + 1 })}
+              className="back-link"
+            >
+              Próximas <Icon name="chevron-right" />
+            </Link>
           ) : null}
         </nav>
       ) : null}

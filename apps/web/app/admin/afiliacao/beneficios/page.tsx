@@ -146,7 +146,7 @@ function BenefitsAdmin() {
     <>
       <PageHeader
         title="Benefícios de parceiros"
-        description="Descontos dos parceiros para quem tem carteirinha. Desative para pausar sem perder o cadastro; aparecem na carteirinha, na conferência e no site."
+        description="Descontos dos parceiros para quem tem carteirinha."
         actions={
           <div className="row">
             {editing === null ? (

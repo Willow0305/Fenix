@@ -7,6 +7,7 @@ import { PartnerLogo } from '../../../components/partner-logo';
 import type { Benefit } from '../../../lib/card-types';
 import { PARTNER_TYPE, type PublicPartner } from '../../../lib/partner-types';
 import { serverGet } from '../../../lib/server-api';
+import { plural } from '../../../lib/format';
 
 export const metadata: Metadata = { title: 'Parceiros' };
 export const revalidate = 60;
@@ -38,7 +39,7 @@ export default async function PartnersPage() {
         <p className="card" style={{ margin: 0 }}>
           <Icon name="person-vcard" /> Com a carteirinha do Fênix (atleta ou afiliado), você tem
           desconto nos parceiros marcados. Mostre o QR em{' '}
-          <Link href="/minha-conta/carteirinhas">Minha conta → Carteirinhas</Link>.
+          <Link href="/minha-conta/carteirinhas">Minha conta › Carteirinhas</Link>.
         </p>
       ) : null}
       {partners.length === 0 && informal.length === 0 ? (
@@ -73,8 +74,8 @@ export default async function PartnersPage() {
                 {partner.description ? <p className="line-clamp-3">{partner.description}</p> : null}
                 {partner.services.length > 0 ? (
                   <small className="muted">
-                    <Icon name="calendar-check" /> {partner.services.length} serviço(s) com
-                    agendamento
+                    <Icon name="calendar-check" />{' '}
+                    {plural(partner.services.length, 'serviço', 'serviços')} com agendamento
                   </small>
                 ) : null}
               </div>

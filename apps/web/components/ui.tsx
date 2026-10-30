@@ -28,6 +28,7 @@ import {
 
 import { ApiError, errorMessage } from '../lib/api-client';
 import { decimalDisplay, type NumericMode, sanitizeNumeric } from '../lib/numeric-input';
+import { plural } from '../lib/format';
 
 /** Componentes de formulário acessíveis: rótulo visível, ajuda e erro associados. */
 interface FieldShellProps {
@@ -463,7 +464,7 @@ export function Pagination({
   const pages = Math.max(1, Math.ceil(total / pageSize));
 
   if (pages <= 1) {
-    return <p className="muted">{total} registro(s)</p>;
+    return <p className="muted">{plural(total, 'registro', 'registros')}</p>;
   }
 
   return (
@@ -477,7 +478,7 @@ export function Pagination({
         Anterior
       </button>
       <span>
-        Página {page} de {pages} · {total} registro(s)
+        Página {page} de {pages} · {plural(total, 'registro', 'registros')}
       </span>
       <button
         type="button"

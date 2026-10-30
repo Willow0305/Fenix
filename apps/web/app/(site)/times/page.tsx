@@ -92,8 +92,15 @@ export default async function TeamsPage({
             className="stack"
             aria-labelledby={`cat-${group.category?.id ?? 'outras'}`}
           >
-            <h2 id={`cat-${group.category?.id ?? 'outras'}`} style={{ margin: 0 }}>
-              {group.category ? `Categoria ${group.category.name}` : 'Outras equipes'}
+            <h2
+              id={`cat-${group.category?.id ?? 'outras'}`}
+              className={!group.category && roster.length === 1 ? 'visually-hidden' : 'm-0'}
+            >
+              {group.category
+                ? `Categoria ${group.category.name}`
+                : roster.length === 1
+                  ? 'Equipes'
+                  : 'Outras equipes'}
             </h2>
             {group.teams.map((team) => {
               return (

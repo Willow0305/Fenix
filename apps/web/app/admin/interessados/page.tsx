@@ -56,7 +56,7 @@ function InterestedList() {
     <>
       <PageHeader
         title="Interessados"
-        description="Pessoas que deixaram contato pelo site. Envio não cria conta nem atleta."
+        description="Quem deixou contato pelo site querendo jogar no Fênix."
       />
       {notice ? <Alert kind="success">{notice}</Alert> : null}
       <form

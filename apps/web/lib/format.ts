@@ -59,3 +59,8 @@ export function formatPhoneDisplay(value: string | null | undefined): string {
 
   return digits.length === 10 || digits.length === 11 ? formatPhone(digits) : value;
 }
+
+/** "1 tópico", "3 tópicos", "0 tópicos": plural por extenso, sem "tópico(s)". */
+export function plural(count: number, singular: string, pluralForm: string): string {
+  return `${count.toLocaleString('pt-BR')} ${count === 1 ? singular : pluralForm}`;
+}

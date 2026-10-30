@@ -24,10 +24,7 @@ export default function OrdersAdminPage() {
 
   return (
     <>
-      <PageHeader
-        title="Pedidos"
-        description="Pedidos da loja. Comprovantes PIX aparecem como pagamento aguardando confirmação."
-      />
+      <PageHeader title="Pedidos" description="Pedidos da loja, do pagamento à entrega." />
       <form
         className="row"
         role="search"
