@@ -797,6 +797,7 @@ model MediaFile {
   eventCovers           Event[]
   partnerDocuments      PartnerDocument[]
   productImages         ProductImage[]
+  newsImages            NewsImage[]
   newsCovers            News[]
 
   @@unique([storageProvider, bucket, objectKey])
@@ -2138,6 +2139,25 @@ model NewsCategory {
   @@map("news_categories")
 }
 
+/// Foto da galeria da notícia (D8, DT-081); a descrição aparece como legenda.
+model NewsImage {
+  id          String    @id @default(uuid()) @db.Uuid
+  newsId      String    @map("news_id") @db.Uuid
+  mediaFileId String    @map("media_file_id") @db.Uuid
+  altText     String?   @map("alt_text") @db.VarChar(180)
+  sortOrder   Int       @default(0) @map("sort_order")
+  createdAt   DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt   DateTime  @updatedAt @map("updated_at") @db.Timestamptz(6)
+  deletedAt   DateTime? @map("deleted_at") @db.Timestamptz(6)
+
+  news      News      @relation(fields: [newsId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+  mediaFile MediaFile @relation(fields: [mediaFileId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+
+  @@unique([newsId, mediaFileId])
+  @@index([newsId, sortOrder, deletedAt])
+  @@map("news_images")
+}
+
 /// Assunto de notícia em lista controlada pela diretoria (D8, DT-081).
 model NewsTag {
   id        String    @id @default(uuid()) @db.Uuid
@@ -2416,6 +2436,7 @@ model News {
   event          Event?        @relation(fields: [eventId], references: [id], onDelete: SetNull, onUpdate: Cascade)
   forumTopic     ForumTopic?   @relation(fields: [forumTopicId], references: [id], onDelete: SetNull, onUpdate: Cascade)
   tags           NewsTagLink[]
+  gallery        NewsImage[]
 
   @@index([status, scheduledAt, publishedAt])
   @@index([showOnHome, status, publishedAt])

@@ -15,6 +15,7 @@ import {
   TextField,
   useSubmit
 } from '../../../../components/ui';
+import { ImageGalleryManager } from '../../../../components/image-gallery-manager';
 import { ImageUpload } from '../../../../components/image-upload';
 import { api } from '../../../../lib/api-client';
 import type { Page } from '../../../../lib/api-types';
@@ -309,6 +310,19 @@ export default function NewsEditPage() {
         currentUrl={n.coverUrl}
         recommended="1600 × 900 px (16:9)"
         onUploaded={news.setData}
+      />
+
+      <ImageGalleryManager<NewsDetail>
+        basePath={`/news/${id}/gallery`}
+        images={n.gallery}
+        onChange={news.setData}
+        max={30}
+        title="Galeria"
+        noun="por notícia"
+        intro="Fotos mostradas depois do texto, na ordem daqui. Arraste ou use as setas para ordenar. A descrição vira a legenda e ajuda quem usa leitor de tela."
+        emptyText="Nenhuma foto na galeria. A capa continua sendo enviada no bloco acima."
+        placeholder="Ex.: bloqueio triplo no tie-break"
+        removeDescription="A foto sai da galeria da notícia no site."
       />
 
       <ConfirmDialog

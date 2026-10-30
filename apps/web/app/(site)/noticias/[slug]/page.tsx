@@ -6,6 +6,7 @@ import { Icon } from '../../../../components/icon';
 import { JsonLd } from '../../../../components/json-ld';
 import { MediaImage } from '../../../../components/media-image';
 import { NewsRow, NewsTime } from '../../../../components/news-card';
+import { NewsGallery } from '../../../../components/news-gallery';
 import { ShareButtons } from '../../../../components/share-buttons';
 import type { Page } from '../../../../lib/api-types';
 import type { NewsDetail, NewsSummary } from '../../../../lib/content-types';
@@ -71,6 +72,9 @@ export default async function NewsItemPage({
   }
 
   const more = await related(news);
+  // Resposta guardada em cache antes da atualização da API pode chegar sem os campos novos.
+  const gallery = (news.gallery as NewsDetail['gallery'] | undefined) ?? [];
+  const tags = (news.tags as NewsDetail['tags'] | undefined) ?? [];
 
   return (
     <article className="container reading">
@@ -99,10 +103,11 @@ export default async function NewsItemPage({
       ) : null}
       {/* Texto simples renderizado como texto, nunca como HTML (DT-034). */}
       <div className="prose reading-body">{news.content}</div>
-      {news.tags.length > 0 ? (
+      {gallery.length > 0 ? <NewsGallery images={gallery} /> : null}
+      {tags.length > 0 ? (
         <nav aria-label="Assuntos" className="row">
           <span className="muted">Assuntos:</span>
-          {news.tags.map((tag) => (
+          {tags.map((tag) => (
             <Link
               key={tag.id}
               href={`/noticias?assunto=${tag.slug}`}

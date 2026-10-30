@@ -98,6 +98,7 @@ O contrato completo e executável fica no OpenAPI (`/docs` fora de produção). 
 | `POST`/`PUT` | `/api/v1/news/:id/publish` (agora ou `scheduledAt`) · `:id/status` · `:id/cover` (multipart) | `news.manage` | 7 |
 | `GET` | `/api/v1/public/news-tags`; `public/news?tag=` | público | DT-081 |
 | `GET/POST/PATCH/DELETE` | `/api/v1/news-tags[/:id]` | `news.manage` | DT-081 |
+| `POST/PUT/PATCH/DELETE` | `/api/v1/news/:id/gallery[/order\|/:imageId]` | `news.manage` | DT-081 |
 | `GET` | `/api/v1/public/events[/:slug]?scope=upcoming\|past&type=&origin=fenix\|external&region=acre\|outros` | público | 7, DT-081 |
 | `GET`/`POST`/`PATCH`/`PUT` | `/api/v1/events[/:id]` · `:id/status` | `events.manage` | 7 |
 | `GET` | `/api/v1/forum/categories` · `categories/:slug/topics` · `topics/:id` | público conforme visibilidade | 7 |

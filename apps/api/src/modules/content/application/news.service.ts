@@ -51,6 +51,8 @@ export interface NewsSummary {
 
 export interface NewsDetail extends NewsSummary {
   readonly content: string;
+  /** Galeria de fotos (D8, DT-081); a descrição é a legenda. */
+  readonly gallery: { id: string; url: string; altText: string | null }[];
   readonly authorName: string | null;
   /** Campos administrativos. */
   readonly status?: NewsStatus;
@@ -86,6 +88,11 @@ const NEWS_INCLUDE = {
     where: { tag: { deletedAt: null, isActive: true } },
     select: { tag: { select: { id: true, name: true, slug: true } } },
     orderBy: { tag: { name: 'asc' } }
+  },
+  gallery: {
+    where: { deletedAt: null },
+    orderBy: { sortOrder: 'asc' },
+    select: { id: true, mediaFileId: true, altText: true }
   }
 } satisfies Prisma.NewsInclude;
 
@@ -133,6 +140,11 @@ export class NewsService {
     return {
       ...this.summary(row),
       content: row.content,
+      gallery: row.gallery.map((image) => ({
+        id: image.id,
+        url: mediaUrl(image.mediaFileId),
+        altText: image.altText
+      })),
       authorName: row.authorUser?.name ?? null,
       ...(admin
         ? {

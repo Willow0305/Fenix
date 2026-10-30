@@ -1658,3 +1658,9 @@ Manter paleta, layout e componentes, e trocar os sinais de interface genérica p
 - assunto em uso não é excluído (como as categorias, `COR-022`): a diretoria inativa, e o assunto inativo some das notícias e do filtro público sem apagar a ligação;
 - rotas `news-tags` (permissão `news.manage`), `public/news-tags` e filtro `tag` em `public/news`; no site, `/noticias?assunto=slug`.
 
+### Implementação: galeria da notícia (2026-10-30)
+
+- tabela `news_images` com as mesmas regras das fotos do produto (`DT-051`): imagem pública otimizada, ordem, descrição de até 180 caracteres (mostrada como legenda e usada como texto alternativo) e remoção lógica; até 30 fotos por notícia;
+- rotas `news/:id/gallery` (envio), `gallery/order`, `gallery/:imageId` (descrever e remover), com `news.manage`; a ordem trava a linha da notícia e recusa lista desatualizada (`IMAGES_CHANGED`);
+- no painel, o gerenciador de fotos do produto virou o componente genérico `ImageGalleryManager`, usado pelas duas telas; no site, a galeria abre na mesma janela escura das fotos do produto.
+

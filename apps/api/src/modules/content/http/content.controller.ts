@@ -53,6 +53,7 @@ import {
   type NewsSummary
 } from '../application/news.service';
 import { type NewsTagView, NewsTagsService } from '../application/news-tags.service';
+import { NewsGalleryService } from '../application/news-gallery.service';
 import {
   BroadcastDto,
   EditPostDto,
@@ -63,6 +64,8 @@ import {
   ModerationQueryDto,
   NewsCategoryDto,
   NewsDto,
+  NewsImageDto,
+  NewsImageOrderDto,
   NewsQueryDto,
   NewsTagDto,
   NewsStatusDto,
@@ -93,6 +96,7 @@ export class ContentController {
   constructor(
     private readonly news: NewsService,
     private readonly newsTags: NewsTagsService,
+    private readonly gallery: NewsGalleryService,
     private readonly events: EventsService,
     private readonly forum: ForumService,
     private readonly announcements: AnnouncementsService
@@ -277,6 +281,58 @@ export class ContentController {
     @ReqMeta() meta: RequestMeta
   ): Promise<NewsDetail> {
     return this.news.changeStatus(actor, id, body.status, body.reason, meta);
+  }
+
+  @Post('news/:id/gallery')
+  @ApiBearerAuth()
+  @ApiConsumes('multipart/form-data')
+  @RequirePermissions(PERMISSIONS.newsManage)
+  @UseInterceptors(FileInterceptor('file', UPLOAD_LIMITS))
+  addNewsImage(
+    @CurrentPrincipal() actor: Principal,
+    @Param('id', new ParseUUIDPipe()) id: string,
+    @UploadedFile() file: IncomingFile | undefined,
+    @Body() body: NewsImageDto,
+    @ReqMeta() meta: RequestMeta
+  ): Promise<NewsDetail> {
+    return this.gallery.add(actor, id, file, body.altText ?? null, meta);
+  }
+
+  @Put('news/:id/gallery/order')
+  @ApiBearerAuth()
+  @RequirePermissions(PERMISSIONS.newsManage)
+  reorderNewsImages(
+    @CurrentPrincipal() actor: Principal,
+    @Param('id', new ParseUUIDPipe()) id: string,
+    @Body() body: NewsImageOrderDto,
+    @ReqMeta() meta: RequestMeta
+  ): Promise<NewsDetail> {
+    return this.gallery.reorder(actor, id, body.imageIds, meta);
+  }
+
+  @Patch('news/:id/gallery/:imageId')
+  @ApiBearerAuth()
+  @RequirePermissions(PERMISSIONS.newsManage)
+  describeNewsImage(
+    @CurrentPrincipal() actor: Principal,
+    @Param('id', new ParseUUIDPipe()) id: string,
+    @Param('imageId', new ParseUUIDPipe()) imageId: string,
+    @Body() body: NewsImageDto,
+    @ReqMeta() meta: RequestMeta
+  ): Promise<NewsDetail> {
+    return this.gallery.describe(actor, id, imageId, body.altText ?? null, meta);
+  }
+
+  @Delete('news/:id/gallery/:imageId')
+  @ApiBearerAuth()
+  @RequirePermissions(PERMISSIONS.newsManage)
+  removeNewsImage(
+    @CurrentPrincipal() actor: Principal,
+    @Param('id', new ParseUUIDPipe()) id: string,
+    @Param('imageId', new ParseUUIDPipe()) imageId: string,
+    @ReqMeta() meta: RequestMeta
+  ): Promise<NewsDetail> {
+    return this.gallery.remove(actor, id, imageId, meta);
   }
 
   @Post('news/:id/cover')

@@ -1335,6 +1335,44 @@ a.news-kicker {
   min-width: 0;
 }
 
+// Galeria da notícia: miniaturas quadradas e a foto grande numa janela.
+.news-gallery {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 9rem), 1fr));
+  gap: 0.5rem;
+}
+
+.news-gallery-thumb {
+  display: block;
+  width: 100%;
+  aspect-ratio: 1;
+  padding: 0;
+  overflow: hidden;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: var(--color-ink);
+  cursor: zoom-in;
+
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform var(--duration-base) var(--ease-out);
+  }
+
+  @media (hover: hover) and (pointer: fine) {
+    &:hover img {
+      transform: scale(1.04);
+    }
+  }
+}
+
+.news-lightbox-caption {
+  max-width: 70ch;
+  margin-inline: auto;
+  text-align: center;
+}
+
 .share-buttons {
   display: flex;
   flex-wrap: wrap;

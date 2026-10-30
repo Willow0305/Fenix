@@ -46,6 +46,8 @@ export interface NewsTag {
 
 export interface NewsDetail extends NewsSummary {
   content: string;
+  /** Galeria (D8, DT-081); a descrição é a legenda. */
+  gallery: { id: string; url: string; altText: string | null }[];
   authorName: string | null;
   status?: NewsStatus;
   scheduledAt?: string | null;

@@ -10,6 +10,7 @@ import {
 import { Type } from 'class-transformer';
 import {
   ArrayMaxSize,
+  ArrayMinSize,
   IsArray,
   IsBoolean,
   IsEnum,
@@ -40,6 +41,23 @@ export class UpdateNewsCategoryDto {
   @ApiPropertyOptional() @IsOptional() @IsString() @MinLength(2) @MaxLength(120) name?: string;
   @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(1000) description?: string;
   @ApiPropertyOptional() @IsOptional() @IsBoolean() isActive?: boolean;
+}
+
+export class NewsImageDto {
+  @ApiPropertyOptional({ description: 'Descrição, mostrada como legenda.' })
+  @IsOptional()
+  @IsString()
+  @MaxLength(180)
+  altText?: string;
+}
+
+export class NewsImageOrderDto {
+  @ApiProperty({ type: [String], description: 'Todas as fotos da galeria na nova ordem.' })
+  @IsArray()
+  @ArrayMinSize(1)
+  @ArrayMaxSize(30)
+  @IsUUID('all', { each: true })
+  imageIds!: string[];
 }
 
 export class NewsTagDto {
