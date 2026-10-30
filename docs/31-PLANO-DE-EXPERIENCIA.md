@@ -179,6 +179,12 @@ Tamanhos relativos: **P** (pequeno), **M** (médio) e **G** (grande). Cada onda 
 - aviso de "salvo" consistente, erros ao lado do campo e confirmação só em ação irreversível;
 - revisão completa no celular, onde a diretoria mais usa.
 
+### Onda 6 — Vitrine · concluída em 2026-10-30
+
+**Entregue:** brilho vermelho original em todas as superfícies escuras (escolha do responsável, no lugar da faixa diagonal e das listras); fotos do clube passando sozinhas na página Sobre, enviadas em Configurações; recorte de fotos no painel (clube, produto, notícia, time); foto de cada time no Início e em Times; "Próximo jogo" e "Notícias" já na página inicial (Ondas 2 e 3).
+
+**Fora, por decisão:** o herói do Início fica com a logo e o fundo original, sem foto e sem nova animação (pedido do responsável); "história em linha do tempo" exigiria a diretoria cadastrar marcos com data — hoje a história é texto livre, então nada foi inventado.
+
 ### Onda 6 — Vitrine (M a G)
 
 Com a skill **build-awwwards-quality-sites**: início, sobre, times e seletivas.
