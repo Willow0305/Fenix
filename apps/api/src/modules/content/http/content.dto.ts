@@ -9,6 +9,8 @@ import {
 } from '../../../generated/prisma/client';
 import { Type } from 'class-transformer';
 import {
+  ArrayMaxSize,
+  IsArray,
   IsBoolean,
   IsEnum,
   IsIn,
@@ -40,6 +42,15 @@ export class UpdateNewsCategoryDto {
   @ApiPropertyOptional() @IsOptional() @IsBoolean() isActive?: boolean;
 }
 
+export class NewsTagDto {
+  @ApiProperty() @IsString() @MinLength(2) @MaxLength(80) name!: string;
+}
+
+export class UpdateNewsTagDto {
+  @ApiPropertyOptional() @IsOptional() @IsString() @MinLength(2) @MaxLength(80) name?: string;
+  @ApiPropertyOptional() @IsOptional() @IsBoolean() isActive?: boolean;
+}
+
 export class NewsDto {
   @ApiProperty() @IsString() @MinLength(3) @MaxLength(180) title!: string;
   @ApiProperty() @IsUUID() categoryId!: string;
@@ -55,12 +66,24 @@ export class NewsDto {
   @MaxLength(180)
   slug?: string;
   @ApiPropertyOptional() @IsOptional() @IsUUID() eventId?: string;
+  @ApiPropertyOptional({ type: [String], description: 'Até 5 assuntos da lista (D8).' })
+  @IsOptional()
+  @IsArray()
+  @ArrayMaxSize(5)
+  @IsUUID('4', { each: true })
+  tagIds?: string[];
   @ApiPropertyOptional() @IsOptional() @IsBoolean() showOnHome?: boolean;
   @ApiPropertyOptional() @IsOptional() @IsBoolean() showOnForum?: boolean;
   @ApiPropertyOptional() @IsOptional() @IsBoolean() isFeatured?: boolean;
 }
 
 export class UpdateNewsDto {
+  @ApiPropertyOptional({ type: [String], description: 'Lista completa; vazia remove todos.' })
+  @IsOptional()
+  @IsArray()
+  @ArrayMaxSize(5)
+  @IsUUID('4', { each: true })
+  tagIds?: string[];
   @ApiPropertyOptional() @IsOptional() @IsString() @MinLength(3) @MaxLength(180) title?: string;
   @ApiPropertyOptional() @IsOptional() @IsUUID() categoryId?: string;
   @ApiPropertyOptional()
@@ -105,6 +128,7 @@ export class NewsQueryDto extends PageQueryDto {
 
 export class PublicNewsQueryDto extends PageQueryDto {
   @ApiPropertyOptional() @IsOptional() @Matches(SLUG) category?: string;
+  @ApiPropertyOptional() @IsOptional() @Matches(SLUG) tag?: string;
   @ApiPropertyOptional({ enum: ['home', 'forum'] })
   @IsOptional()
   @IsIn(['home', 'forum'])

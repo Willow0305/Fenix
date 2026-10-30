@@ -302,8 +302,22 @@ async function main(): Promise<void> {
       }
     ];
 
+    // Assuntos da lista da diretoria (D8, DT-081).
+    const demoTags = await Promise.all(
+      [
+        ['estadual-demo', 'Estadual'],
+        ['feminino-demo', 'Vôlei feminino']
+      ].map(([slug, name]) =>
+        prisma.newsTag.upsert({
+          where: { slug: slug ?? '' },
+          create: { slug: slug ?? '', name: name ?? '' },
+          update: {}
+        })
+      )
+    );
+
     for (const [index, item] of news.entries()) {
-      await prisma.news.upsert({
+      const saved = await prisma.news.upsert({
         where: { slug: item.slug },
         create: {
           ...item,
@@ -321,6 +335,13 @@ async function main(): Promise<void> {
         },
         update: {}
       });
+
+      if (item.isFeatured) {
+        await prisma.newsTagLink.createMany({
+          data: demoTags.map((tag) => ({ newsId: saved.id, tagId: tag.id })),
+          skipDuplicates: true
+        });
+      }
     }
 
     const events = [

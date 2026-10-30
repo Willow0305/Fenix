@@ -99,6 +99,20 @@ export default async function NewsItemPage({
       ) : null}
       {/* Texto simples renderizado como texto, nunca como HTML (DT-034). */}
       <div className="prose reading-body">{news.content}</div>
+      {news.tags.length > 0 ? (
+        <nav aria-label="Assuntos" className="row">
+          <span className="muted">Assuntos:</span>
+          {news.tags.map((tag) => (
+            <Link
+              key={tag.id}
+              href={`/noticias?assunto=${tag.slug}`}
+              className="btn btn-secondary btn-sm"
+            >
+              {tag.name}
+            </Link>
+          ))}
+        </nav>
+      ) : null}
       {news.event ? (
         <aside className="card row">
           <Icon name="calendar-event" />

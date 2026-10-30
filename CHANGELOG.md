@@ -16,6 +16,7 @@ O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) e o 
 - agenda de eventos agrupada em "Hoje", "Nos próximos 7 dias" e "Mais para frente", no fuso de Rio Branco, com filtro por tipo (`/eventos?tipo=MATCH`; a API pública aceita `type`);
 - página do evento com a data grande, quando e onde no mesmo bloco, "Adicionar à agenda" (arquivo `.ics`, D4) até o fim do evento, "Compartilhar" e dados estruturados (`SportsEvent`).
 - eventos externos na agenda (D3, DT-081): organizador, página oficial, cidade livre com UF, entrada gratuita ou com preço e jogo entre times de fora com placar; filtro "Acre / Outros lugares" e "Do Fênix / De outros organizadores"; formulário do painel com a seção "Organização, lugar e entrada" (migração `20261030030000_eventos_externos`).
+- assuntos de notícias em lista controlada pela diretoria (D8, DT-081): até 5 por notícia, mostrados no fim do texto e com página própria (`/noticias?assunto=`); cadastro em Painel › Notícias › Assuntos de notícias (migração `20261030040000_assuntos_noticias`).
 
 ### Plano de experiência: Onda 1, produto e carrinho (2026-10-29)
 

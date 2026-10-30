@@ -22,9 +22,10 @@ import {
   NEWS_STATUS,
   type NewsCategory,
   type NewsDetail,
-  type NewsStatus
+  type NewsStatus,
+  type NewsTag
 } from '../../../lib/content-types';
-import { formatDateTime } from '../../../lib/format';
+import { formatDateTime, plural } from '../../../lib/format';
 import { useResource } from '../../../lib/use-resource';
 import { CategoryManager } from '../../../components/category-manager';
 
@@ -63,12 +64,64 @@ function CategoriesPanel({
   );
 }
 
+/** Assuntos em lista controlada pela diretoria (D8, DT-081). */
+function TagsPanel({
+  tags,
+  reload
+}: {
+  readonly tags: NewsTag[];
+  readonly reload: () => Promise<void>;
+}) {
+  const [name, setName] = useState('');
+  const create = useSubmit(async () => {
+    await api('/news-tags', { method: 'POST', body: { name } });
+    setName('');
+    await reload();
+  });
+
+  return (
+    <details className="card">
+      <summary>Assuntos de notícias ({tags.length})</summary>
+      <p className="muted">
+        Quem escreve escolhe até 5 assuntos desta lista. Renomear não muda o endereço do assunto.
+      </p>
+      <CategoryManager
+        items={tags.map((tag) => ({
+          ...tag,
+          detail: plural(tag.newsCount ?? 0, 'notícia', 'notícias')
+        }))}
+        endpoint="/news-tags"
+        manage
+        withDescription={false}
+        noun="assunto"
+        emptyText="Nenhum assunto cadastrado."
+        onChanged={reload}
+      />
+      <form className="row" onSubmit={(event) => void create.submit(event)}>
+        <TextField
+          label="Novo assunto"
+          hint="Ex.: Seleção acreana, Vôlei de praia, Base."
+          maxLength={80}
+          required
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+        />
+        <button type="submit" className="btn btn-secondary" disabled={create.pending}>
+          Adicionar
+        </button>
+      </form>
+      <ErrorSummary error={create.error} />
+    </details>
+  );
+}
+
 export default function NewsAdminPage() {
   const router = useRouter();
   const [page, setPage] = useState(1);
   const [status, setStatus] = useState<NewsStatus | ''>('');
   const list = useResource<Page<NewsDetail>>('/news', { page, pageSize: 25, status });
   const categories = useResource<NewsCategory[]>('/news-categories');
+  const tags = useResource<NewsTag[]>('/news-tags');
   const [creating, setCreating] = useState(false);
   const [form, setForm] = useState({ title: '', categoryId: '', summary: '', content: '' });
   const create = useSubmit(async () => {
@@ -100,6 +153,7 @@ export default function NewsAdminPage() {
       {categories.data ? (
         <CategoriesPanel categories={categories.data} reload={categories.reload} />
       ) : null}
+      {tags.data ? <TagsPanel tags={tags.data} reload={tags.reload} /> : null}
       {creating ? (
         <form className="form card" onSubmit={(event) => void create.submit(event)}>
           <ErrorSummary error={create.error} />

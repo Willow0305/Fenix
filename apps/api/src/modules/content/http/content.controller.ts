@@ -52,6 +52,7 @@ import {
   NewsService,
   type NewsSummary
 } from '../application/news.service';
+import { type NewsTagView, NewsTagsService } from '../application/news-tags.service';
 import {
   BroadcastDto,
   EditPostDto,
@@ -63,6 +64,7 @@ import {
   NewsCategoryDto,
   NewsDto,
   NewsQueryDto,
+  NewsTagDto,
   NewsStatusDto,
   PostDto,
   PostModerationDto,
@@ -78,7 +80,8 @@ import {
   UpdateEventDto,
   UpdateForumCategoryDto,
   UpdateNewsCategoryDto,
-  UpdateNewsDto
+  UpdateNewsDto,
+  UpdateNewsTagDto
 } from './content.dto';
 import { DeleteReasonDto } from '../../../common/http/delete-reason.dto';
 
@@ -89,6 +92,7 @@ const IDEMPOTENCY_HEADER = { name: 'Idempotency-Key', required: true };
 export class ContentController {
   constructor(
     private readonly news: NewsService,
+    private readonly newsTags: NewsTagsService,
     private readonly events: EventsService,
     private readonly forum: ForumService,
     private readonly announcements: AnnouncementsService
@@ -108,6 +112,12 @@ export class ContentController {
     return this.news.publicGet(slug);
   }
 
+  @Get('public/news-tags')
+  @Public()
+  publicNewsTags(): Promise<NewsTagView[]> {
+    return this.newsTags.list(true);
+  }
+
   @Get('public/news-categories')
   @Public()
   publicNewsCategories(): Promise<NewsCategoryView[]> {
@@ -115,6 +125,48 @@ export class ContentController {
   }
 
   // ---------- Notícias (diretoria) ----------
+
+  @Get('news-tags')
+  @ApiBearerAuth()
+  @RequirePermissions(PERMISSIONS.newsManage)
+  newsTagsList(): Promise<NewsTagView[]> {
+    return this.newsTags.list(false);
+  }
+
+  @Post('news-tags')
+  @ApiBearerAuth()
+  @RequirePermissions(PERMISSIONS.newsManage)
+  createNewsTag(
+    @CurrentPrincipal() actor: Principal,
+    @Body() body: NewsTagDto,
+    @ReqMeta() meta: RequestMeta
+  ): Promise<NewsTagView> {
+    return this.newsTags.create(actor, body, meta);
+  }
+
+  @Patch('news-tags/:id')
+  @ApiBearerAuth()
+  @RequirePermissions(PERMISSIONS.newsManage)
+  updateNewsTag(
+    @CurrentPrincipal() actor: Principal,
+    @Param('id', new ParseUUIDPipe()) id: string,
+    @Body() body: UpdateNewsTagDto,
+    @ReqMeta() meta: RequestMeta
+  ): Promise<NewsTagView> {
+    return this.newsTags.update(actor, id, defined(body), meta);
+  }
+
+  @Delete('news-tags/:id')
+  @HttpCode(204)
+  @RequirePermissions(PERMISSIONS.newsManage)
+  async deleteNewsTag(
+    @CurrentPrincipal() actor: Principal,
+    @Param('id', new ParseUUIDPipe()) id: string,
+    @Body() body: DeleteReasonDto,
+    @ReqMeta() meta: RequestMeta
+  ): Promise<void> {
+    await this.newsTags.remove(actor, id, body.reason, meta);
+  }
 
   @Get('news-categories')
   @ApiBearerAuth()

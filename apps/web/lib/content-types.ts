@@ -31,6 +31,17 @@ export interface NewsSummary {
   showOnForum: boolean;
   publishedAt: string | null;
   event: { id: string; title: string; slug: string; startsAt: string } | null;
+  /** Assuntos da lista da diretoria (D8, DT-081). */
+  tags: { id: string; name: string; slug: string }[];
+}
+
+/** Assunto de notícia (lista controlada pela diretoria). */
+export interface NewsTag {
+  id: string;
+  name: string;
+  slug: string;
+  isActive: boolean;
+  newsCount?: number;
 }
 
 export interface NewsDetail extends NewsSummary {

@@ -23,6 +23,7 @@ import {
 } from '../domain/content-rules';
 import { softDeleteIfUnused } from '../../../common/domain/safe-delete';
 import { ContentAlertsService } from './content-alerts.service';
+import { NewsTagsService } from './news-tags.service';
 
 export interface NewsCategoryView {
   readonly id: string;
@@ -44,6 +45,8 @@ export interface NewsSummary {
   readonly showOnForum: boolean;
   readonly publishedAt: string | null;
   readonly event: { id: string; title: string; slug: string; startsAt: string } | null;
+  /** Assuntos ativos da lista da diretoria (D8, DT-081). */
+  readonly tags: { id: string; name: string; slug: string }[];
 }
 
 export interface NewsDetail extends NewsSummary {
@@ -67,6 +70,7 @@ export interface NewsInput {
   readonly showOnHome?: boolean;
   readonly showOnForum?: boolean;
   readonly isFeatured?: boolean;
+  readonly tagIds?: readonly string[];
 }
 
 export interface NewsFilters extends PageQueryDto {
@@ -77,7 +81,12 @@ export interface NewsFilters extends PageQueryDto {
 const NEWS_INCLUDE = {
   category: { select: { id: true, name: true, slug: true } },
   event: { select: { id: true, title: true, slug: true, startsAt: true } },
-  authorUser: { select: { name: true } }
+  authorUser: { select: { name: true } },
+  tags: {
+    where: { tag: { deletedAt: null, isActive: true } },
+    select: { tag: { select: { id: true, name: true, slug: true } } },
+    orderBy: { tag: { name: 'asc' } }
+  }
 } satisfies Prisma.NewsInclude;
 
 type NewsRow = Prisma.NewsGetPayload<{ include: typeof NEWS_INCLUDE }>;
@@ -99,7 +108,8 @@ export class NewsService {
     private readonly prisma: PrismaService,
     private readonly audit: AuditService,
     private readonly media: MediaService,
-    private readonly alerts: ContentAlertsService
+    private readonly alerts: ContentAlertsService,
+    private readonly tags: NewsTagsService
   ) {}
 
   private summary(row: NewsRow): NewsSummary {
@@ -114,7 +124,8 @@ export class NewsService {
       showOnHome: row.showOnHome,
       showOnForum: row.showOnForum,
       publishedAt: row.publishedAt?.toISOString() ?? null,
-      event: row.event ? { ...row.event, startsAt: row.event.startsAt.toISOString() } : null
+      event: row.event ? { ...row.event, startsAt: row.event.startsAt.toISOString() } : null,
+      tags: row.tags.map((link) => link.tag)
     };
   }
 
@@ -324,19 +335,28 @@ export class NewsService {
   async create(actor: Principal, input: NewsInput, meta: RequestMeta): Promise<NewsDetail> {
     await this.assertRefs(input);
 
-    const row = await this.prisma.news.create({
-      data: {
-        title: sanitizeText(input.title),
-        slug: await this.uniqueSlug('news', input.slug || input.title),
-        categoryId: input.categoryId,
-        content: this.cleanContent(input.content),
-        summary: input.summary ? sanitizeText(input.summary) : null,
-        eventId: input.eventId ?? null,
-        showOnHome: input.showOnHome ?? false,
-        showOnForum: input.showOnForum ?? false,
-        isFeatured: input.isFeatured ?? false,
-        authorUserId: actor.userId
+    const slug = await this.uniqueSlug('news', input.slug || input.title);
+    const row = await this.prisma.$transaction(async (tx) => {
+      const created = await tx.news.create({
+        data: {
+          title: sanitizeText(input.title),
+          slug,
+          categoryId: input.categoryId,
+          content: this.cleanContent(input.content),
+          summary: input.summary ? sanitizeText(input.summary) : null,
+          eventId: input.eventId ?? null,
+          showOnHome: input.showOnHome ?? false,
+          showOnForum: input.showOnForum ?? false,
+          isFeatured: input.isFeatured ?? false,
+          authorUserId: actor.userId
+        }
+      });
+
+      if (input.tagIds && input.tagIds.length > 0) {
+        await this.tags.assign(tx, created.id, input.tagIds);
       }
+
+      return created;
     });
 
     await this.audit.record({
@@ -374,22 +394,31 @@ export class NewsService {
       );
     }
 
-    await this.prisma.news.update({
-      where: { id },
-      data: {
-        ...(input.title === undefined ? {} : { title: sanitizeText(input.title) }),
-        ...(input.slug === undefined || input.slug === current.slug
-          ? {}
-          : { slug: await this.uniqueSlug('news', input.slug, id) }),
-        ...(input.categoryId === undefined ? {} : { categoryId: input.categoryId }),
-        ...(input.content === undefined ? {} : { content: this.cleanContent(input.content) }),
-        ...(input.summary === undefined
-          ? {}
-          : { summary: input.summary ? sanitizeText(input.summary) : null }),
-        ...(input.eventId === undefined ? {} : { eventId: input.eventId }),
-        ...(input.showOnHome === undefined ? {} : { showOnHome: input.showOnHome }),
-        ...(input.showOnForum === undefined ? {} : { showOnForum: input.showOnForum }),
-        ...(input.isFeatured === undefined ? {} : { isFeatured: input.isFeatured })
+    const slug =
+      input.slug === undefined || input.slug === current.slug
+        ? undefined
+        : await this.uniqueSlug('news', input.slug, id);
+
+    await this.prisma.$transaction(async (tx) => {
+      await tx.news.update({
+        where: { id },
+        data: {
+          ...(input.title === undefined ? {} : { title: sanitizeText(input.title) }),
+          ...(slug === undefined ? {} : { slug }),
+          ...(input.categoryId === undefined ? {} : { categoryId: input.categoryId }),
+          ...(input.content === undefined ? {} : { content: this.cleanContent(input.content) }),
+          ...(input.summary === undefined
+            ? {}
+            : { summary: input.summary ? sanitizeText(input.summary) : null }),
+          ...(input.eventId === undefined ? {} : { eventId: input.eventId }),
+          ...(input.showOnHome === undefined ? {} : { showOnHome: input.showOnHome }),
+          ...(input.showOnForum === undefined ? {} : { showOnForum: input.showOnForum }),
+          ...(input.isFeatured === undefined ? {} : { isFeatured: input.isFeatured })
+        }
+      });
+
+      if (input.tagIds !== undefined) {
+        await this.tags.assign(tx, id, input.tagIds);
       }
     });
     await this.audit.record({
@@ -511,13 +540,16 @@ export class NewsService {
   // ---------- Público ----------
 
   async publicList(
-    query: PageQueryDto & { category?: string; channel?: 'home' | 'forum' }
+    query: PageQueryDto & { category?: string; tag?: string; channel?: 'home' | 'forum' }
   ): Promise<Page<NewsSummary>> {
     const { skip, take, page, pageSize } = pageArgs(query);
     const now = new Date();
     const where: Prisma.NewsWhereInput = {
       ...publicWhere(now),
       ...(query.category ? { category: { slug: query.category, isActive: true } } : {}),
+      ...(query.tag
+        ? { tags: { some: { tag: { slug: query.tag, isActive: true, deletedAt: null } } } }
+        : {}),
       ...(query.channel === 'home' ? { showOnHome: true } : {}),
       ...(query.channel === 'forum' ? { showOnForum: true } : {}),
       ...(query.search?.trim()

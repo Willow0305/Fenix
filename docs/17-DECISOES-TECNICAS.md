@@ -1651,3 +1651,10 @@ Manter paleta, layout e componentes, e trocar os sinais de interface genérica p
 - "Adicionar à agenda" é um arquivo `.ics` gerado pelo site (`/eventos/[slug]/agenda.ics`, RFC 5545, UTC, 2 horas quando não há término) e "Compartilhar" usa o link do WhatsApp e a área de transferência; nada é registrado sobre quem baixa ou compartilha;
 - notícias e eventos publicam dados estruturados (`NewsArticle`, `SportsEvent`) com o `<` escapado para o texto da diretoria não fechar a tag.
 
+### Implementação: assuntos de notícias (2026-10-30)
+
+- tabelas `news_tags` (lista da diretoria, exclusão lógica) e `news_tag_links` (UUID próprio, único por notícia e assunto, apagada junto com a notícia ou o assunto);
+- até 5 assuntos por notícia, só ativos; nome único sem diferenciar maiúsculas; renomear mantém o endereço (`slug`) para não quebrar links;
+- assunto em uso não é excluído (como as categorias, `COR-022`): a diretoria inativa, e o assunto inativo some das notícias e do filtro público sem apagar a ligação;
+- rotas `news-tags` (permissão `news.manage`), `public/news-tags` e filtro `tag` em `public/news`; no site, `/noticias?assunto=slug`.
+

@@ -39,7 +39,7 @@ O modelo consolida o PDF de requisitos, o briefing técnico, `AGENTS.md` e as de
 | Loja e estoque | `ProductCategory`, `Product`, `ProductImage`, `ProductVariant`, `InventoryMovement`, `Favorite`, `StockAlert`, `ProductReview`, `Cart`, `CartItem`, `Order`, `OrderItem`, `Payment`, `Refund` |
 | Campanhas | `SalesCampaign`, `SalesCampaignProduct` |
 | Parceiros e agenda | `Partner`, `PartnerDocument`, `PartnerProfessional`, `PartnerService`, `ProfessionalAvailability`, `Appointment`, `PartnerSettlement`, `PartnerSettlementItem` |
-| Conteúdo e comunidade | `NewsCategory`, `News`, `Event`, `Match`, `ExternalMatch`, `ForumCategory`, `ForumTopic`, `ForumPost`, `ForumReaction`, `ForumReport`, `ForumModerationAction`, `Notification` |
+| Conteúdo e comunidade | `NewsCategory`, `NewsTag`, `NewsTagLink`, `News`, `Event`, `Match`, `ExternalMatch`, `ForumCategory`, `ForumTopic`, `ForumPost`, `ForumReaction`, `ForumReport`, `ForumModerationAction`, `Notification` |
 
 ## 4. Entidades de apoio justificadas
 

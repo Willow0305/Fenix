@@ -22,6 +22,7 @@ import {
   NEWS_STATUS,
   type NewsCategory,
   type NewsDetail,
+  type NewsTag,
   type TeamEvent
 } from '../../../../lib/content-types';
 import { formatDateTime } from '../../../../lib/format';
@@ -37,12 +38,16 @@ type Form = {
   showOnHome: boolean;
   showOnForum: boolean;
   isFeatured: boolean;
+  tagIds: string[];
 };
+
+const MAX_TAGS = 5;
 
 export default function NewsEditPage() {
   const { id } = useParams<{ id: string }>();
   const news = useResource<NewsDetail>(`/news/${id}`);
   const categories = useResource<NewsCategory[]>('/news-categories');
+  const tags = useResource<NewsTag[]>('/news-tags');
   const events = useResource<Page<TeamEvent>>('/events', { pageSize: 50 });
   const [form, setForm] = useState<Form | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
@@ -62,7 +67,8 @@ export default function NewsEditPage() {
         eventId: n.event?.id ?? '',
         showOnHome: n.showOnHome,
         showOnForum: n.showOnForum,
-        isFeatured: n.isFeatured
+        isFeatured: n.isFeatured,
+        tagIds: n.tags.map((tag) => tag.id)
       });
     }
   }, [news.data]);
@@ -84,6 +90,7 @@ export default function NewsEditPage() {
           showOnHome: form.showOnHome,
           showOnForum: form.showOnForum,
           isFeatured: form.isFeatured,
+          tagIds: form.tagIds,
           ...(form.slug !== news.data.slug ? { slug: form.slug } : {})
         }
       })
@@ -248,6 +255,40 @@ export default function NewsEditPage() {
             onChange={(e) => setForm({ ...form, content: e.target.value })}
             hint="Texto simples; quebras de linha são preservadas."
           />
+          <fieldset className="stack">
+            <legend>Assuntos (até {MAX_TAGS})</legend>
+            {(tags.data ?? []).filter((tag) => tag.isActive).length === 0 ? (
+              <p className="muted m-0">
+                Nenhum assunto cadastrado. Cadastre em Notícias › Assuntos de notícias.
+              </p>
+            ) : null}
+            <div className="row">
+              {(tags.data ?? [])
+                .filter((tag) => tag.isActive)
+                .map((tag) => {
+                  const checked = form.tagIds.includes(tag.id);
+
+                  return (
+                    <label key={tag.id} className="row gap-sm">
+                      <input
+                        type="checkbox"
+                        checked={checked}
+                        disabled={!checked && form.tagIds.length >= MAX_TAGS}
+                        onChange={(e) =>
+                          setForm({
+                            ...form,
+                            tagIds: e.target.checked
+                              ? [...form.tagIds, tag.id]
+                              : form.tagIds.filter((id) => id !== tag.id)
+                          })
+                        }
+                      />
+                      {tag.name}
+                    </label>
+                  );
+                })}
+            </div>
+          </fieldset>
           <fieldset className="stack">
             <legend>Canais</legend>
             {check('showOnHome', 'Página inicial')}
