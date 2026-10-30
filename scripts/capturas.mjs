@@ -3,7 +3,7 @@
 //
 // Uso: npm run capturas -- [rótulo] [filtro]
 //   rótulo: nome da pasta em var/capturas/ (padrão: data e hora)
-//   filtro: só as rotas que contêm esse texto (ex.: "loja", "admin/caixa")
+//   filtro: só as rotas que contêm esse texto (ex.: "loja", "admin/caixa"); "=admin" só a rota exata
 // O painel usa a conta criada por `npm run capturas:conta` (segunda etapa ativada aqui).
 // Navegador: o Chromium do Playwright ou, se faltar, o Edge (CAPTURAS_NAVEGADOR=msedge|chrome).
 import { createHmac } from 'node:crypto';
@@ -195,7 +195,10 @@ async function launch() {
 
 async function main() {
   const all = [...staticRoutes(), ...(await dynamicRoutes())];
-  const routes = [...new Set(all)].filter((route) => route.includes(filter)).sort();
+  // "=admin" captura só a rota exata; sem "=", toda rota que contém o texto.
+  const matches = (route) =>
+    filter.startsWith('=') ? route === `/${filter.slice(1)}` : route.includes(filter);
+  const routes = [...new Set(all)].filter(matches).sort();
   const publicRoutes = routes.filter(
     (route) => !route.startsWith('/admin') && !route.startsWith('/minha-conta')
   );

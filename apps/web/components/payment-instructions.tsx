@@ -3,7 +3,7 @@
 import { useState } from 'react';
 
 import { api } from '../lib/api-client';
-import { todayCivil } from '../lib/format';
+import { formatMoney, todayCivil } from '../lib/format';
 import { useIdempotencyKey } from '../lib/idempotency';
 import type { Order } from '../lib/store-types';
 import { PixPayment } from './pix-payment';
@@ -23,7 +23,7 @@ function CardOrCashPayment({ order }: { readonly order: Order }) {
   const team = useResource<PublicTeam>('/public/team');
   const link = whatsappLink(
     team.data?.phone,
-    `Olá! Quero pagar o pedido ${order.orderNumber} (R$ ${order.totalAmount.amount.replace('.', ',')}) com cartão ou dinheiro.`
+    `Olá! Quero pagar o pedido ${order.orderNumber} (${formatMoney(order.totalAmount.amount)}) com cartão ou dinheiro.`
   );
 
   return (
@@ -132,8 +132,8 @@ export function OrderPayment({
         <h2 id="pagar">Pagamento com comprovante</h2>
         {order.paymentInfo?.pixKey ? (
           <p>
-            Faça um PIX de <strong>R$ {order.totalAmount.amount.replace('.', ',')}</strong> para a
-            chave <code>{order.paymentInfo.pixKey}</code> e envie o comprovante abaixo.
+            Faça um PIX de <strong>{formatMoney(order.totalAmount.amount)}</strong> para a chave{' '}
+            <code>{order.paymentInfo.pixKey}</code> e envie o comprovante abaixo.
           </p>
         ) : (
           <p>Combine o pagamento com a diretoria e envie o comprovante abaixo.</p>

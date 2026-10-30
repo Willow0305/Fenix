@@ -1,5 +1,6 @@
 'use client';
 
+import { formatMoney } from '../lib/format';
 import type { PersonalizationField, Variant } from '../lib/store-types';
 
 type Attribute = 'size' | 'model' | 'color';
@@ -122,7 +123,7 @@ export function PersonalizationInputs({
             {field.label}
             {field.required ? ' *' : ' (opcional)'}
             {Number(field.extraPrice.amount) > 0
-              ? ` · +R$ ${field.extraPrice.amount.replace('.', ',')}`
+              ? ` · +${formatMoney(field.extraPrice.amount)}`
               : ''}
           </span>
           <input

@@ -3,6 +3,8 @@ import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import type { Prisma } from '../../generated/prisma/client';
 
 import { todayIn } from '../../common/domain/civil-date';
+import { formatBrl } from '../../common/domain/money';
+import { plural } from '../../common/domain/plural';
 import { CurrentPrincipal, type Principal } from '../../common/http/request-context';
 import { PrismaService } from '../../common/prisma/prisma.service';
 import { PERMISSIONS } from '../access/domain/permission-catalog';
@@ -58,14 +60,14 @@ export class DashboardService {
       {
         key: 'activeAthletes',
         label: 'Atletas ativos',
-        value: String(activeAthletes),
+        value: activeAthletes.toLocaleString('pt-BR'),
         definition: 'Atletas com status Ativo, não excluídos.',
         link: '/admin/atletas?status=ACTIVE'
       },
       {
         key: 'newRegistrations',
         label: 'Inscrições novas',
-        value: String(newTryoutRegistrations + newInterested),
+        value: (newTryoutRegistrations + newInterested).toLocaleString('pt-BR'),
         definition:
           'Inscrições em seletivas e interessados com status Nova/Novo, ainda não analisados.',
         link: '/admin/seletivas'
@@ -73,7 +75,7 @@ export class DashboardService {
       {
         key: 'openTryouts',
         label: 'Seletivas abertas',
-        value: String(openTryouts),
+        value: openTryouts.toLocaleString('pt-BR'),
         definition: 'Seletivas com status Inscrições abertas.',
         link: '/admin/seletivas'
       }
@@ -86,14 +88,13 @@ export class DashboardService {
     ) {
       const today = todayIn();
       const finance = await this.reports.summary(`${today.slice(0, 7)}-01`, today);
-      const brl = (amount: string): string => `R$ ${amount.replace('.', ',')}`;
 
       if (principal.permissions.has(PERMISSIONS.feesRead)) {
         indicators.push({
           key: 'openFees',
           label: 'Mensalidades em aberto',
-          value: String(finance.openFees.count),
-          definition: `Cobranças abertas ou parciais (${finance.openFees.overdue} em atraso), somando ${brl(finance.openFees.remaining.amount)} a receber.`,
+          value: finance.openFees.count.toLocaleString('pt-BR'),
+          definition: `Cobranças abertas ou parciais (${finance.openFees.overdue} em atraso), somando ${formatBrl(finance.openFees.remaining.amount)} a receber.`,
           link: '/admin/mensalidades'
         });
       }
@@ -102,7 +103,7 @@ export class DashboardService {
         indicators.push({
           key: 'cashBalance',
           label: 'Saldo em caixa',
-          value: brl(finance.totalBalance.amount),
+          value: formatBrl(finance.totalBalance.amount),
           definition:
             'Soma dos lançamentos confirmados em todas as contas (receitas menos despesas).',
           link: '/admin/caixa'
@@ -120,8 +121,8 @@ export class DashboardService {
       indicators.push({
         key: 'monthSales',
         label: 'Vendas do mês',
-        value: `R$ ${sales.amount.amount.replace('.', ',')}`,
-        definition: `${sales.count} pedido(s) pago(s) no mês corrente, excluindo cancelados e reembolsados.`,
+        value: formatBrl(sales.amount.amount),
+        definition: `${plural(sales.count, 'pedido pago', 'pedidos pagos')} no mês corrente, excluindo cancelados e reembolsados.`,
         link: '/admin/pedidos'
       });
     }

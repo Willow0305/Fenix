@@ -7,7 +7,7 @@ import type {
 } from '../../../generated/prisma/client';
 
 import { AuditService } from '../../../common/audit/audit.service';
-import { DEFAULT_CURRENCY, money, round2 } from '../../../common/domain/money';
+import { DEFAULT_CURRENCY, formatBrl, money, round2 } from '../../../common/domain/money';
 import { AppError } from '../../../common/errors/app-error';
 import type { Principal, RequestMeta } from '../../../common/http/request-context';
 import { PrismaService, type PrismaTx } from '../../../common/prisma/prisma.service';
@@ -272,7 +272,7 @@ export class FinanceSetupService {
         if (!balance.isZero()) {
           throw AppError.conflict(
             'BALANCE_NOT_ZERO',
-            `A conta "${account.name}" ainda tem saldo de R$ ${balance.toFixed(2).replace('.', ',')}. Transfira o saldo para outra conta antes de excluir.`
+            `A conta "${account.name}" ainda tem saldo de ${formatBrl(balance)}. Transfira o saldo para outra conta antes de excluir.`
           );
         }
       }

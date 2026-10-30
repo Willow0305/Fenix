@@ -66,3 +66,14 @@ export interface MoneyView {
 export function moneyView(value: Money | null | undefined, currency = DEFAULT_CURRENCY): MoneyView {
   return { amount: toMoneyString(value), currency };
 }
+
+/** "R$ 19.086,80" a partir do decimal em texto, sem passar por número de ponto flutuante. */
+export function formatBrl(value: Money | string): string {
+  const fixed =
+    typeof value === 'string' ? round2(money(value)).toFixed(2) : round2(value).toFixed(2);
+  const negative = fixed.startsWith('-');
+  const [whole = '0', cents = '00'] = fixed.replace('-', '').split('.');
+  const grouped = whole.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+
+  return `${negative ? '-' : ''}R$ ${grouped},${cents}`;
+}

@@ -1392,6 +1392,42 @@ a.news-kicker {
   color: var(--color-warning);
 }
 
+// Painel: tarefas em ordem de urgência, cada uma leva à tela que resolve.
+.pending-tasks {
+  display: grid;
+
+  li + li {
+    border-top: 1px solid var(--color-border);
+  }
+
+  a {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 0.75rem;
+    min-height: 44px;
+    padding-block: 0.6rem;
+    color: var(--color-text);
+    font-weight: 600;
+    text-decoration: none;
+
+    > .icon:first-child {
+      color: var(--color-primary-dark);
+    }
+
+    > .icon:last-child {
+      color: var(--color-text-muted);
+    }
+
+    @media (hover: hover) and (pointer: fine) {
+      &:hover span {
+        color: var(--color-primary-dark);
+        text-decoration: underline;
+      }
+    }
+  }
+}
+
 // ---- Fórum (Onda 4) ----
 .forum-topics {
   display: grid;

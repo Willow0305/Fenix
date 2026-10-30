@@ -10,6 +10,7 @@ import type {
 import { AuditService } from '../../../common/audit/audit.service';
 import { generateOpaqueToken, sha256Hex } from '../../../common/crypto/tokens';
 import {
+  formatBrl,
   money,
   type Money,
   type MoneyView,
@@ -817,7 +818,7 @@ export class OrdersService implements OnModuleInit {
             userId: principal.userId,
             type: 'order.created',
             title: 'Pedido recebido',
-            message: `Pedido ${orderNumber} criado. Total: R$ ${total.toFixed(2).replace('.', ',')}.`,
+            message: `Pedido ${orderNumber} criado. Total: ${formatBrl(total)}.`,
             link: `/minha-conta/pedidos/${order.id}`,
             deduplicationKey: `order-created:${order.id}`
           },
@@ -837,10 +838,10 @@ export class OrdersService implements OnModuleInit {
         text: [
           `Olá, ${order.customerName}.`,
           '',
-          `Recebemos seu pedido ${order.orderNumber} no valor de R$ ${order.totalAmount.amount.replace('.', ',')}.`,
+          `Recebemos seu pedido ${order.orderNumber} no valor de ${formatBrl(order.totalAmount.amount)}.`,
           ...(order.deliveryAddress
             ? [
-                `Entrega em casa: ${addressLine(order.deliveryAddress)} (taxa R$ ${order.deliveryFee.amount.replace('.', ',')}, cerca de ${order.deliveryAddress.leadDays} dia(s) útil(eis) depois do pagamento).`
+                `Entrega em casa: ${addressLine(order.deliveryAddress)} (taxa ${formatBrl(order.deliveryFee.amount)}, cerca de ${plural(order.deliveryAddress.leadDays, 'dia útil', 'dias úteis')} depois do pagamento).`
               ]
             : ['Retirada com o Fênix: avisamos quando o pedido estiver pronto.']),
           order.paymentChoice === 'CARD'
@@ -864,8 +865,8 @@ export class OrdersService implements OnModuleInit {
           : `Novo pedido ${order.orderNumber}`,
       message:
         order.paymentChoice === 'CARD' && order.status === 'AWAITING_PAYMENT'
-          ? `Fale com ${order.customerName} (${order.customerPhone ?? 'sem telefone'}) para cobrar R$ ${order.totalAmount.amount.replace('.', ',')}: maquininha, link ou dinheiro.`
-          : `${order.customerName} · R$ ${order.totalAmount.amount.replace('.', ',')}`,
+          ? `Fale com ${order.customerName} (${order.customerPhone ?? 'sem telefone'}) para cobrar ${formatBrl(order.totalAmount.amount)}: maquininha, link ou dinheiro.`
+          : `${order.customerName} · ${formatBrl(order.totalAmount.amount)}`,
       link: `/admin/pedidos/${order.id}`,
       key: `staff-order:${order.id}`
     });

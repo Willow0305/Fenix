@@ -7,6 +7,7 @@ import { Icon } from '../../components/icon';
 import { PageHeader } from '../../components/ui';
 import { useAuth } from '../../lib/auth-context';
 import { DashboardIndicators } from './dashboard-indicators';
+import { PendingTasks } from './pending-tasks';
 
 export default function AdminHomePage() {
   const { profile, can } = useAuth();
@@ -14,6 +15,7 @@ export default function AdminHomePage() {
   return (
     <>
       <PageHeader title="Painel" description={`Olá, ${profile?.name.split(' ')[0] ?? ''}.`} />
+      <PendingTasks />
       <DashboardIndicators />
       <section className="stack" aria-labelledby="atalhos">
         <h2 id="atalhos">Atalhos</h2>

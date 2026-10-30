@@ -17,6 +17,7 @@ import {
 } from '../../../common/domain/civil-date';
 import {
   DEFAULT_CURRENCY,
+  formatBrl,
   type Money,
   money,
   type MoneyView,
@@ -808,7 +809,7 @@ export class FeesService {
             userId: assignment.athlete.userId,
             type: 'fee.created',
             title: 'Nova mensalidade disponível',
-            message: `Mensalidade de ${referenceMonth.slice(5, 7)}/${referenceMonth.slice(0, 4)} no valor de R$ ${amount.toFixed(2).replace('.', ',')}.`,
+            message: `Mensalidade de ${referenceMonth.slice(5, 7)}/${referenceMonth.slice(0, 4)} no valor de ${formatBrl(amount)}.`,
             link: '/minha-conta/mensalidades',
             deduplicationKey: `fee-created:${assignment.athleteId}:${referenceMonth}`
           });
@@ -931,7 +932,7 @@ export class FeesService {
     if (amount.greaterThan(available)) {
       throw AppError.validation(
         'AMOUNT_EXCEEDS_BALANCE',
-        `O valor excede o saldo em aberto desta mensalidade (R$ ${available.toFixed(2).replace('.', ',')}).`
+        `O valor excede o saldo em aberto desta mensalidade (${formatBrl(available)}).`
       );
     }
   }
