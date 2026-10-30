@@ -20,6 +20,7 @@ O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) e o 
 - galeria de fotos na notícia (D8, DT-081): até 30 fotos com legenda, ordenadas no painel e abertas no site na janela escura da loja, com anterior, próxima e setas do teclado (migração `20261030050000_galeria_noticias`).
 - "Mais lidas da semana" na capa de notícias (D5, D8, DT-081), com contagem própria e agregada: só notícia, dia e total, sem cookie nem dado de quem leu (migração `20261030060000_leituras_noticias`).
 - painel da notícia: prévia do cartão como aparece no site e lista do que falta (capa, resumo, categoria ativa e assunto), como aviso, sem travar a publicação.
+- Início: "Próximo jogo" do Fênix em destaque, com a data grande, "Ver o jogo" e "Adicionar à agenda"; a lista de próximos eventos não repete esse jogo.
 
 ### Plano de experiência: Onda 1, produto e carrinho (2026-10-29)
 

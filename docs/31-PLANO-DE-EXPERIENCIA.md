@@ -118,6 +118,14 @@ Tamanhos relativos: **P** (pequeno), **M** (médio) e **G** (grande). Cada onda 
 
 **Depende de decisão:** fotos reais de produto (**D2**), "avise-me quando chegar" e avaliações (**D9**).
 
+### Ondas 2 e 3 — Notícias e eventos · concluídas em 2026-10-30
+
+**Entregue:** capa de notícias em formato de portal (manchete, secundárias, lista, chapéu e data relativa); página de leitura (18 px, linha fina, "Leia também", `NewsArticle`); compartilhar (WhatsApp e copiar link, D4); assuntos em lista da diretoria (D8); galeria com legenda (D8); "Mais lidas da semana" com contagem própria e agregada (D5, regra em `docs/13`); prévia do cartão e lista do que falta no painel; agenda por "Hoje", "Nos próximos 7 dias" e "Mais para frente", filtros por lugar ("Acre" e "Outros lugares"), tipo e organização; página do evento com data grande, "Adicionar à agenda" (`.ics`, D4) e `SportsEvent`; eventos externos com organizador, link oficial, cidade e UF, entrada e jogo entre times de fora (D3); "Próximo jogo" no Início.
+
+**Revisão final das ondas:** rodar `/interface-review` sobre os commits das Ondas 2 e 3 (a skill só roda chamada pelo responsável).
+
+**Para a Onda 7:** cabeçalhos da tabela do painel de notícias quebram no meio da palavra em 1366 px ("PUBLICAÇÃ O", "CAN AIS") — pré-existente, entra no padrão único de tabela da Onda 5.
+
 ### Onda 2 — Notícias (M)
 
 **Referências:** portais esportivos brasileiros (manchete com foto grande e linha fina, chapéu de categoria, data relativa) e cadernos de esporte de jornais (leitura confortável, uma coluna).

@@ -1,4 +1,7 @@
 declare const styles: {
+  readonly nextGame: string;
+  readonly nextGameTitle: string;
+  readonly nextGameActions: string;
   readonly hero: string;
   readonly heroInner: string;
   readonly heroText: string;

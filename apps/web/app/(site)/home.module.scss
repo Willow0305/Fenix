@@ -222,3 +222,40 @@
     --logo-size: 112px;
   }
 }
+
+// Próximo jogo do Fênix (docs/31, Onda 3): data grande, confronto e as duas ações.
+.nextGame {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  gap: 1rem 1.5rem;
+  padding: 1.25rem;
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  box-shadow: var(--shadow-card);
+
+  @media (min-width: 900px) {
+    grid-template-columns: auto minmax(0, 1fr) auto;
+  }
+}
+
+.nextGameTitle {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: clamp(1.5rem, 3vw, 2rem);
+  font-weight: 700;
+  line-height: 1.15;
+  text-wrap: balance;
+}
+
+.nextGameActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  grid-column: 1 / -1;
+
+  @media (min-width: 900px) {
+    grid-column: auto;
+    flex-direction: column;
+  }
+}
