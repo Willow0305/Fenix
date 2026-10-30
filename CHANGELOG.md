@@ -13,11 +13,13 @@ O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) e o 
 - início do painel com "Para fazer agora": as pendências das bolinhas do menu em ordem de urgência (PIX, pedidos, mensalidades, LGPD, devoluções, inscrições, interessados, agendamentos, fórum, avaliações), cada uma com link para resolver.
 - tabelas do painel: cabeçalhos não quebram mais no meio da palavra ("PUBLICAÇÃ O") e garantem a largura mínima da coluna; no celular, cada linha vira cartão com o rótulo à esquerda e o conteúdo junto (nome com selo, botões e situação compactos), em vez de empilhar cada pedaço numa linha;
 - paginação diz o que conta em todas as listas ("187 pedidos", "12 atletas", "3 denúncias") no lugar de "registros".
+- formulários longos do painel mantêm o botão de salvar visível no rodapé enquanto se rola.
 
 #### Corrigido
 
 - valores em reais sem separador de milhar ("R$ 19086,80") nos indicadores do painel e nas mensagens de pedido, mensalidade e conta; agora "R$ 19.086,80", formatado a partir do decimal, sem ponto flutuante;
 - "pedido(s) pago(s)" e "dia(s) útil(eis)" com plural por extenso.
+- campos de formulário esticavam de altura quando o vizinho da mesma linha tinha texto de ajuda.
 
 ### Plano de experiência: Onda 4, fórum (2026-10-30)
 

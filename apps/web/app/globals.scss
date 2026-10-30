@@ -366,6 +366,8 @@ img {
 
 .field {
   display: grid;
+  // Na linha da grade, o campo não estica quando o vizinho tem texto de ajuda.
+  align-content: start;
   gap: 0.35rem;
 
   label,
@@ -449,6 +451,27 @@ img {
   flex-wrap: wrap;
   gap: 0.75rem;
   align-items: center;
+}
+
+// Formulário longo do painel: o botão de salvar fica à vista no rodapé enquanto se rola
+// (docs/31, Onda 5). Em formulário curto, nada muda.
+.form.card > .form-actions,
+.form.card > fieldset > .form-actions {
+  position: sticky;
+  bottom: 0;
+  z-index: 2;
+  margin-inline: -1.25rem;
+  margin-bottom: -1.25rem;
+  padding: 0.75rem 1.25rem max(0.75rem, env(safe-area-inset-bottom, 0px));
+  border-top: 1px solid var(--color-border);
+  border-radius: 0 0 var(--radius-md) var(--radius-md);
+  background: var(--color-surface);
+}
+
+.form.card > fieldset > .form-actions {
+  margin-inline: 0;
+  margin-bottom: 0;
+  padding-inline: 0;
 }
 
 // ---- Alertas, cartões e badges ----
