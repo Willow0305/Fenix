@@ -46,13 +46,9 @@
   --duration-press: 140ms;
   --duration-fast: 180ms;
   --duration-base: 240ms;
-  // Listras verticais da camisa (DT-081): risca fina, como no uniforme vermelho.
-  // As listras fortes ficam só no herói da página inicial (home.module.scss).
-  --brand-stripes-soft: repeating-linear-gradient(
-    90deg,
-    transparent 0 26px,
-    rgb(205 21 29 / 14%) 26px 28px
-  );
+  // Brilho vermelho suave sobre o preto: o fundo original do Fênix, escolhido pelo
+  // responsável para todas as superfícies escuras (2026-10-30; DT-081 revisto).
+  --brand-glow: radial-gradient(circle at 90% 20%, rgb(205 21 29 / 45%), transparent 60%);
 }
 
 *,
@@ -930,7 +926,7 @@ dialog {
   &.is-fallback {
     display: grid;
     place-items: center;
-    background: var(--brand-stripes-soft), var(--color-ink);
+    background: var(--brand-glow), var(--color-ink);
   }
 
   .media-fallback {
@@ -1562,7 +1558,7 @@ a.news-kicker {
   gap: 1rem;
   border-inline-start: 0;
   background: var(--color-ink);
-  background-image: var(--brand-stripes-soft);
+  background-image: var(--brand-glow);
   color: #fff;
 
   .list-title {
@@ -1823,9 +1819,7 @@ a.news-kicker {
   padding: 1.5rem;
   border-radius: var(--radius-md);
   color: #fff;
-  // Brilho vermelho suave, o fundo original, escolhido pelo responsável (2026-10-30).
-  background:
-    radial-gradient(circle at 90% 20%, rgb(205 21 29 / 45%), transparent 60%), var(--color-ink);
+  background: var(--brand-glow), var(--color-ink);
   box-shadow: var(--shadow-card);
 
   h2 {
@@ -2712,14 +2706,12 @@ details.collapsible {
 .member-card-stripe {
   color: #fff;
   background-color: var(--color-ink);
-  // Listras verticais da camisa, à direita (DT-081).
+  // Faixa diagonal: o modelo "Faixa" da carteirinha, como era antes das listras.
   background-image: linear-gradient(
-    90deg,
-    transparent 0 72%,
-    var(--color-primary) 72% 80%,
-    transparent 80% 83%,
-    var(--color-primary) 83% 85%,
-    transparent 85%
+    115deg,
+    transparent 0 55%,
+    var(--color-primary) 55% 70%,
+    transparent 70%
   );
 }
 
@@ -3124,7 +3116,7 @@ details.collapsible {
   padding: clamp(1.25rem, 3vw, 2rem);
   border-radius: var(--radius-md);
   color: #fff;
-  background: var(--brand-stripes-soft), var(--color-ink);
+  background: var(--brand-glow), var(--color-ink);
 
   h2 {
     margin: 0.35rem 0;

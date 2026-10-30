@@ -1,4 +1,6 @@
 declare const styles: {
+  readonly withPhoto: string;
+  readonly heroPhoto: string;
   readonly nextGame: string;
   readonly nextGameTitle: string;
   readonly nextGameActions: string;

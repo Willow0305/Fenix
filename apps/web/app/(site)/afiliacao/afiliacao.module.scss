@@ -1,5 +1,5 @@
 .hero {
-  background: var(--brand-stripes-soft), var(--color-ink);
+  background: var(--brand-glow), var(--color-ink);
   color: #fff;
   padding: clamp(2.5rem, 7vw, 5rem) 0;
 }
@@ -207,7 +207,7 @@
   gap: 1rem;
   padding: clamp(2rem, 5vw, 3rem) 1.25rem;
   border-radius: var(--radius-lg);
-  background: var(--brand-stripes-soft), var(--color-ink);
+  background: var(--brand-glow), var(--color-ink);
   color: #fff;
   text-align: center;
 

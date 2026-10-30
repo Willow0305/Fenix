@@ -148,8 +148,9 @@ As duas são servidas pelo próprio site (`next/font`), sem pedido ao Google no 
 
 O grafismo do Fênix vem da camisa, no lugar de brilhos e degradês genéricos (`DT-080`, `DT-081`):
 
-- **brilho vermelho suave** (o fundo original) no herói da página inicial, atrás da logo, e nos convites escuros "Afiliações abertas" e "Quer jogar com a gente?". O responsável preferiu esse fundo à faixa diagonal e às listras nesses lugares (2026-10-30);
-- **risca fina vertical** (`--brand-stripes-soft`) nas demais superfícies escuras: reserva de imagem sem foto, página de afiliação, convite do fórum e destaque da pré-venda;
+- **brilho vermelho suave sobre o preto** (`--brand-glow`, o fundo original) em todas as superfícies escuras: herói da página inicial, convites "Afiliações abertas" e "Quer jogar com a gente?", reserva de imagem sem foto, página de afiliação, convite do fórum e destaque da pré-venda. O responsável preferiu esse fundo à faixa diagonal e às listras (2026-10-30);
+- **foto do time no herói:** quando a diretoria envia a "Imagem de capa" em Configurações, ela entra no lugar da logo, ao lado do texto (abaixo dele no celular), sem texto por cima dos rostos; sem foto, aparece a logo;
+- o modelo "Faixa" da carteirinha mantém a faixa diagonal, que é o que o nome descreve;
 - a paleta continua vermelho, preto e branco: o verde do uniforme aparece só nas fotos (`DT-081`);
 - não usar borda colorida grossa no topo ou na lateral de cartões como enfeite.
 

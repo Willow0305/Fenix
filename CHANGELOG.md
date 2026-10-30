@@ -10,7 +10,9 @@ O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) e o 
 
 #### Alterado
 
-- herói da página inicial e convites "Afiliações abertas" e "Quer jogar com a gente?" voltam ao fundo original, com brilho vermelho suave atrás da logo (anterior à faixa diagonal de `DT-080`), a pedido do responsável; a risca fina vertical fica nas demais superfícies escuras (DT-081 revisto).
+- herói da página inicial e convites "Afiliações abertas" e "Quer jogar com a gente?" voltam ao fundo original, com brilho vermelho suave atrás da logo (anterior à faixa diagonal de `DT-080`), a pedido do responsável; o mesmo brilho vale em todas as superfícies escuras (imagem sem foto, afiliação, fórum, pré-venda), no lugar das listras (DT-081 revisto);
+- foto do time no herói da página inicial quando a diretoria envia a "Imagem de capa" em Configurações, ao lado do texto (abaixo dele no celular); sem foto, continua a logo;
+- modelo "Faixa" da carteirinha volta à faixa diagonal.
 
 ### Plano de experiência: Onda 5, painel da diretoria (2026-10-30)
 
