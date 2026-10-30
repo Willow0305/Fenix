@@ -43,9 +43,11 @@ export default async function TeamsPage({
     getPublicTeam(),
     serverGet<Tryout[]>('/public/tryouts', 30).then((rows) => rows ?? [])
   ]);
-  // Com filtro, conta só as seletivas desse tipo de time (ou sem time definido).
+  // Só conta seletiva que aceita inscrição agora (status, período e vagas, decididos pela API).
+  // Com filtro, só as desse tipo de time (ou sem time definido).
   const openTryouts = tryouts.filter(
-    (tryout) => !type || !tryout.team || tryout.team.type === type
+    (tryout) =>
+      tryout.acceptingRegistrations && (!type || !tryout.team || tryout.team.type === type)
   ).length;
   const official = club.brandAssets.OFFICIAL;
   const teams = roster.flatMap((group) => group.teams);

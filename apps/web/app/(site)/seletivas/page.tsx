@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { LiveRefresh } from '../../../components/live-refresh';
 import { formatDateTime } from '../../../lib/format';
 import { serverGet } from '../../../lib/server-api';
-import { TRYOUT_STATUS, type Tryout } from '../../../lib/sports-types';
+import { type Tryout, tryoutPublicBadge } from '../../../lib/sports-types';
 
 export const metadata: Metadata = { title: 'Seletivas' };
 export const revalidate = 30;
@@ -32,8 +32,8 @@ export default async function TryoutsPage() {
                 <h2 className="list-title">
                   <Link href={`/seletivas/${tryout.slug}`}>{tryout.title}</Link>
                 </h2>
-                <span className={`badge ${TRYOUT_STATUS[tryout.status].badge}`}>
-                  {TRYOUT_STATUS[tryout.status].label}
+                <span className={`badge ${tryoutPublicBadge(tryout).badge}`}>
+                  {tryoutPublicBadge(tryout).label}
                 </span>
               </div>
               <p className="muted" style={{ margin: 0 }}>

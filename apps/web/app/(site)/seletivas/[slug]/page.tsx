@@ -4,7 +4,7 @@ import { notFound } from 'next/navigation';
 import { LiveRefresh } from '../../../../components/live-refresh';
 import { formatDateTime } from '../../../../lib/format';
 import { serverGet } from '../../../../lib/server-api';
-import { TRYOUT_STATUS, type Tryout } from '../../../../lib/sports-types';
+import { type Tryout, tryoutPublicBadge } from '../../../../lib/sports-types';
 import { TryoutRegistrationForm } from './registration-form';
 
 export async function generateMetadata({
@@ -35,8 +35,8 @@ export default async function TryoutPage({
       <LiveRefresh topics={['tryouts']} />
       <div className="row">
         <h1 style={{ margin: 0 }}>{tryout.title}</h1>
-        <span className={`badge ${TRYOUT_STATUS[tryout.status].badge}`}>
-          {TRYOUT_STATUS[tryout.status].label}
+        <span className={`badge ${tryoutPublicBadge(tryout).badge}`}>
+          {tryoutPublicBadge(tryout).label}
         </span>
       </div>
       <dl className="card" style={{ display: 'grid', gap: '0.5rem', margin: 0 }}>

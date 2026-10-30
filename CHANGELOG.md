@@ -18,6 +18,11 @@ O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) e o 
 - rodapé sempre no fim da tela; botões do cabeçalho vazados sobre o fundo escuro;
 - textos: cabeçalhos do painel dizem para que a tela serve; plurais por extenso ("2 tópicos" em vez de "tópico(s)"); "Olá, Nome" no painel; setas de texto trocadas por ícones.
 
+#### Corrigido
+
+- seletiva aberta no cadastro, mas fora do período ou sem vagas, aparecia no site com o selo "Inscrições abertas" e o texto "foram encerradas"; agora o selo diz "Inscrições fechadas";
+- a página Times contava toda seletiva publicada (inclusive agendada ou encerrada) como "aberta"; agora conta só as que aceitam inscrição.
+
 ### Cartão pelo site (2026-10-28)
 
 #### Adicionado

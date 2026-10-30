@@ -194,6 +194,19 @@ export const TRYOUT_STATUS: Record<TryoutStatus, { label: string; badge: string 
   CANCELLED: { label: 'Cancelada', badge: 'badge-danger' }
 };
 
+/**
+ * Selo público da seletiva. "Aberta" no cadastro não basta: fora do período ou sem vagas,
+ * o servidor responde `acceptingRegistrations: false` e o selo não pode dizer "abertas".
+ */
+export function tryoutPublicBadge(tryout: Pick<Tryout, 'status' | 'acceptingRegistrations'>): {
+  label: string;
+  badge: string;
+} {
+  return tryout.status === 'OPEN' && !tryout.acceptingRegistrations
+    ? { label: 'Inscrições fechadas', badge: 'badge-warning' }
+    : TRYOUT_STATUS[tryout.status];
+}
+
 export const TRYOUT_NEXT: Record<TryoutStatus, TryoutStatus[]> = {
   DRAFT: ['SCHEDULED', 'OPEN', 'CANCELLED'],
   SCHEDULED: ['OPEN', 'CANCELLED'],
