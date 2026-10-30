@@ -56,6 +56,8 @@
     "db:clean-test-data": "npm run build --workspace=@fenix/api && dotenv -e .env -- node apps/api/dist/cli/clean-test-data.js",
     "db:fees-ended-plans": "npm run build --workspace=@fenix/api && dotenv -e .env -- node apps/api/dist/cli/fees-ended-plans.js",
     "mfa:reset": "npm run build --workspace=@fenix/api && dotenv -e .env -- node apps/api/dist/cli/mfa-reset.js",
+    "capturas:conta": "npm run build --workspace=@fenix/api && dotenv -e .env -- node apps/api/dist/cli/capture-account.js",
+    "capturas": "dotenv -e .env -- node scripts/capturas.mjs",
     "storage:migrate": "npm run build --workspace=@fenix/api && dotenv -e .env -- node apps/api/dist/cli/storage-migrate.js",
     "e2e": "npm run build --workspace=@fenix/api && node e2e/prepare.cjs && playwright test -c e2e/playwright.config.ts",
     "e2e:run": "playwright test -c e2e/playwright.config.ts"

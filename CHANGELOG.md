@@ -6,6 +6,14 @@ O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) e o 
 
 ## [Não publicado]
 
+### Plano de experiência: Onda 0 (2026-10-29)
+
+#### Adicionado
+
+- plano de experiência e conversão em `docs/31`, com as decisões do responsável (DT-081), o inventário das 96 telas e a auditoria de base (5 achados altos, corrigidos na Onda 1);
+- `npm run capturas:conta`: conta local de capturas do painel, recusada em produção e com endereço público;
+- `npm run capturas -- <rótulo> [filtro]`: capturas de tela de todas as páginas, do site e do painel, em computador e celular.
+
 ### Acabamento visual com a cara do Fênix (2026-10-29)
 
 #### Alterado

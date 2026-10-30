@@ -198,3 +198,80 @@ As decisões **D2**, **D3** e **D4** são as que mais destravam resultado; vale 
 | Foto de atleta menor sem autorização | só com autorização registrada (`DT-044`, `docs/13`) |
 | Skill genérica contrariar a identidade | tabela de conflitos da seção 2; `docs/12` prevalece |
 | Escopo crescer sem aprovação | itens "depende de decisão" ficam parados até virar `DT` |
+
+## Anexo A — Inventário de telas (Onda 0)
+
+96 páginas em 2026-10-29. Ação principal = o que a tela existe para fazer a pessoa realizar.
+
+| Área | Páginas | Ação principal | Onda |
+|---|---|---|---|
+| Vitrine | `/`, `/sobre`, `/times`, `/seletivas`, `/seletivas/[slug]`, `/interesse`, `/contato` | conhecer o clube; inscrever-se na seletiva; deixar contato | 6 |
+| Venda | `/loja`, `/loja/[slug]`, `/loja/carrinho`, `/loja/pedido` | comprar; finalizar o pedido; consultar o pedido | 1 |
+| Afiliação e parceiros | `/parceiros`, `/parceiros/[id]`, `/parceiros/servicos/[id]`, `/validar/[token]`, `/imprimir/carteirinha/[id]` | ser afiliado; usar o desconto; agendar serviço | 1 e 6 |
+| Notícias | `/noticias`, `/noticias/[slug]` | ler; compartilhar | 2 |
+| Eventos | `/eventos`, `/eventos/[slug]` | saber quando e onde; adicionar à agenda; compartilhar | 3 |
+| Fórum | `/forum`, `/forum/[slug]`, `/forum/topicos/[id]` | participar (abrir tópico, responder, reagir) | 4 |
+| Conta | `/entrar`, `/cadastro`, `/recuperar-senha`, `/redefinir-senha`, `/minha-conta` e 12 subpáginas | entrar; acompanhar pedidos, mensalidades e carteirinhas | 1 (pedidos) e 7 |
+| Entrega | `/entrega/[token]` | entregador confirmar a entrega com o código | 1 |
+| Painel: pessoas | `/admin/atletas` (+ novo e detalhe), `/admin/interessados`, `/admin/seletivas` (+ detalhe), `/admin/equipes`, `/admin/usuarios`, `/admin/papeis` | cadastrar e manter atletas e acessos | 5 |
+| Painel: financeiro | `/admin/mensalidades` (+ detalhe), `/admin/planos` (+ detalhe), `/admin/caixa` e 4 subpáginas, `/admin/pix`, `/admin/repasses` (+ detalhe), `/admin/relatorios` | receber, conferir e fechar o caixa | 5 |
+| Painel: loja | `/admin/produtos` (+ detalhe), `/admin/pedidos` (+ detalhe), `/admin/entrega`, `/admin/devolucoes`, `/admin/remessas` (+ detalhe), `/admin/cupons` | cadastrar produto; despachar pedido | 1 (lado do painel) e 5 |
+| Painel: afiliação e parceiros | `/admin/afiliacao` e 4 subpáginas, `/admin/carteirinhas` (+ benefícios), `/admin/parceiros` (+ detalhe), `/admin/servicos`, `/admin/agendamentos` | manter planos, benefícios e parceiros | 5 |
+| Painel: comunicação | `/admin/noticias` (+ detalhe), `/admin/eventos`, `/admin/forum`, `/admin/notificacoes` | publicar; moderar; avisar | 2, 3 e 4 (lado do painel) |
+| Painel: governança | `/admin`, `/admin/configuracoes`, `/admin/auditoria`, `/admin/privacidade` | ver pendências; configurar; auditar | 5 |
+| Sistema | `/offline`, páginas de erro e 404 | voltar a um caminho útil | 7 |
+
+### Ferramentas da Onda 0
+
+- `npm run capturas:conta`: cria ou recria a conta local `capturas@fenix.example` (administrador), com senha nova a cada execução, guardada em `var/capturas-conta.json` (fora do git). Recusa produção e endereço público.
+- `npm run capturas -- <rótulo> [filtro]`: captura todas as páginas (as com parâmetro usam o primeiro item real da API) em computador (1366 px) e celular (390 px), em `var/capturas/<rótulo>/`. Na primeira execução depois de criar a conta, ativa a segunda etapa dela pela API.
+
+## Anexo B — Auditoria de base (Onda 0, better-interface)
+
+Feita em 2026-10-29, com as seis skills `better-*` carregadas.
+
+### Escopo e cobertura
+
+- **Escopo:** a base compartilhada, que atinge todas as telas (`apps/web/app/globals.scss`, `components/ui.tsx`, `site-header`, `admin-shell`), e o fluxo de compra (`/loja`, `/loja/[slug]`, `/loja/carrinho`). As demais telas ficam para a auditoria de cada onda. Este relatório não as cobre.
+- **Stack:** Next.js 16, React 19, SCSS global com módulos, tokens CSS em `:root`, Bootstrap Icons. Telas em computador (1366 px) e celular (390 px e 320 px).
+- **Convenções lidas:** `AGENTS.md`, `CONTRIBUTING.md`, `docs/11-UX-UI.md`, `docs/12-IDENTIDADE-VISUAL.md`, `docs/29-CORRECAO-DE-TELAS.md`, `DT-080` e `DT-081`.
+
+| Domínio | Evidência inspecionada | Resultado |
+|---|---|---|
+| Acessibilidade | foco global, seletores de opção do produto, gráficos, busca, menus do site e do painel, avisos dinâmicos | 5 achados |
+| Layout | produto e carrinho a 320 px (sem rolagem lateral), cabeçalho fixo, linha de compra | 2 achados |
+| Textos | erros da API, página de erro, estados vazios da loja, ações do carrinho | 3 achados |
+| Tipografia | escala, pesos carregados, algarismos de preço, campos a 16 px, reticências | 1 achado |
+| Cores | 16 pares de tokens medidos pela fórmula WCAG | 2 achados |
+| Acabamento (UI) | transições, hover, escala ao pressionar, rolagem em sobreposições | 3 achados |
+
+### Achados
+
+| Gravidade | Domínio | Local | Antes | Depois | Por quê |
+|---|---|---|---|---|---|
+| ALTA | Acessibilidade | `app/(site)/loja/[slug]/product-purchase.tsx:118` | rádio de opção com `visually-hidden` dentro de um `label.btn`; o foco cai no rádio invisível | `label:has(input:focus-visible)` com o mesmo contorno de `:focus-visible` (`globals.scss:176`) | controle alcançável por teclado sem indicador de foco visível (2.4.7) |
+| ALTA | Acessibilidade | `app/globals.scss:2099` (`.chart-hit`), `app/globals.scss:1938` (`.search-box input`) | `outline: none`, com só 4% de preenchimento ou nada no lugar | apagar o `outline: none`; nos gráficos, `stroke: var(--color-focus); stroke-width: 2` em `:focus-visible`; na busca, `.search-box:focus-within { box-shadow: inset 0 -2px 0 var(--color-focus) }` | foco removido sem substituto verificado (2.4.7) |
+| ALTA | Acessibilidade | `components/variant-attributes.tsx:87`; `app/(site)/loja/[slug]/product-purchase.tsx:105` | opção sem estoque indicada só por `opacity: 0.5` | texto "esgotado" no nome acessível (`aria-label` ou texto visível) e o mesmo sinal visual nos dois seletores | estado comunicado só pela aparência (1.4.1) |
+| ALTA | Layout | `app/globals.scss:2484` (`.buy-row`) | `flex-wrap: nowrap`: a 320 px o seletor de quantidade encolhe e o botão "+" fica cortado | `flex-wrap: wrap`, quantidade com `flex: none`, botão com `flex: 1 1 12rem` | controle cortado a 320 px (1.4.10) |
+| ALTA | Cores | `app/globals.scss:364`, `:459`, `:552` (`--color-border` em campos) | `#d4d4d8` sobre `#ffffff` mede **1,48:1** | token próprio para contorno de campo (ex.: `--color-border-control`) com 3:1 medido; bordas decorativas seguem com `--color-border` | contorno de controle abaixo de 3:1 (1.4.11), em todos os formulários; `docs/12` deixava a borda "a validar" |
+| MÉDIA | Acessibilidade | `components/admin-shell.tsx:258`, `components/site-header.tsx:66` | menus do celular abrem sem levar o foco, sem fechar com Esc e com o fundo ainda ativo | ao abrir, foco no primeiro link; Esc fecha e devolve o foco ao botão; `inert` no conteúdo atrás | ordem de foco (2.4.3) e teclado (2.1.1) |
+| MÉDIA | Acessibilidade | `app/(site)/loja/[slug]/product-purchase.tsx:180` | região `role="status"` montada junto com o texto "Adicionado ao carrinho" | região vazia sempre presente, com o texto preenchido depois | anúncio pouco confiável em leitor de tela (4.1.3) |
+| MÉDIA | Layout | `components/site-header.module.scss:2` (cabeçalho fixo) | sem `scroll-padding-block-start` | `html { scroll-padding-block-start: 84px; }` | foco e âncoras podem ficar sob o cabeçalho (2.4.11) |
+| MÉDIA | Textos | `app/(site)/loja/carrinho/page.tsx:270` | "Remover" apaga a linha na hora, sem desfazer; item personalizado perde o que foi digitado | aviso "Item removido. Desfazer" com a linha guardada por alguns segundos | ação destrutiva sem desfazer; perde dado digitado |
+| MÉDIA | Textos | `app/(site)/loja/page.tsx:130` | "Nenhum produto encontrado para o filtro." | "Nenhum produto para “{busca}”." + link "Ver todos os produtos" | estado vazio filtrado sem nomear a busca nem oferecer saída |
+| MÉDIA | Cores | `app/globals.scss:394` (`.field-error`) e tokens de `--color-danger` | vermelho de erro a menos de 15° do vermelho da marca, só com texto | ícone de alerta em toda mensagem de erro de campo | erro e destaque da marca confundíveis (uma cor, um significado) |
+| MÉDIA | Acabamento | `app/globals.scss:692`, `:1717`, `:1740`, `:2415`, `:2604`, `:2616` | `:hover` fora de `@media (hover: hover)` | mover para dentro da consulta, como nos botões | o estado de hover "gruda" depois do toque no celular |
+| MÉDIA | Acabamento | `app/globals.scss:795` (`dialog`), `:1944` (`.search-results`) | `overflow-y: auto` sem `overscroll-behavior` | `overscroll-behavior: contain` | rolar até o fim da janela rola a página atrás |
+| BAIXA | Acabamento | `app/globals.scss:258`, `:810`, `:1530`; `components/site-header.module.scss:47`; `components/product-card.module.scss:22` | escala ao pressionar em 0,94, 0,96, 0,97 e 0,99 | um valor só para botões (0,97, `DT-080`) e outro para cartões (0,99), documentados | o mesmo detalhe feito de várias formas |
+| BAIXA | Textos | `lib/api-client.ts:48` | "Não foi possível concluir a operação." | dizer o próximo passo ("Confira os dados e tente de novo; se continuar, fale com a diretoria.") | erro sem caminho de recuperação (raro: só sem resposta padronizada da API) |
+
+Fora do limite de 15 achados ficaram dois de tipografia, baixos: `user-select: none` em todo `.btn` (`globals.scss:249`, melhor só em `(pointer: coarse)`) e a falta de `-moz-osx-font-smoothing` ao lado de `-webkit-font-smoothing` (`globals.scss:79`).
+
+### Verificação
+
+- **Passou:** produto e carrinho a 320 px sem rolagem lateral (`scrollWidth = innerWidth = 320`); 14 de 16 pares de cor acima do mínimo (texto secundário 5,75:1; branco no botão 5,64:1; foco azul 4,70:1 na página e 3,87:1 no cabeçalho); campos em 16 px; preços com algarismos tabulares; movimento reduzido mantém só esmaecimento e cor (`globals.scss`, `DT-080`).
+- **Não verificado:** leitor de tela real (NVDA ou VoiceOver); zoom de 200%; teclado percorrendo o fluxo de compra inteiro; modo de alto contraste do Windows.
+
+### Veredito
+
+**Block.** Há 5 achados ALTOS. Eles são corrigidos no início da Onda 1, antes de qualquer outra mudança na loja.

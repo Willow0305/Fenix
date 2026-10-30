@@ -138,6 +138,8 @@ No checkout, o CEP preenche a rua pelo ViaCEP, consultado pela API (o navegador 
 | `npm run db:seed` | recria permissões e plano de contas (não apaga dados) |
 | `npm run db:demo` | dados fictícios de demonstração |
 | `npm run mfa:reset -- <e-mail> "<motivo>"` | remove a verificação em duas etapas de quem perdeu o celular e os códigos |
+| `npm run capturas:conta` | só no computador local: cria a conta de capturas do painel (senha em `var/`, fora do git) |
+| `npm run capturas -- <rótulo> [filtro]` | capturas de tela do site e do painel em computador e celular, em `var/capturas/<rótulo>/` (com o site rodando) |
 | `npm run check` | verificação completa: formatação, lint, tipos, testes e build |
 | `npm run test:integration` | testes contra o banco (Docker precisa estar ligado) |
 | `docker compose down` | desliga o banco **sem apagar** os dados |

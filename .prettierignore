@@ -19,3 +19,6 @@ prisma/
 *.md
 # Cliente do Prisma gerado (DT-054)
 apps/api/src/generated/
+
+# Skills de terceiros copiadas sem alteração (licenças em .claude/skills/LICENSE-*).
+.claude/
