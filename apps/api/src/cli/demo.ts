@@ -270,6 +270,60 @@ async function main(): Promise<void> {
       });
     }
 
+    // Pior caso da loja (Onda 7, break-ui): nome no limite de 160 caracteres, variações longas,
+    // preço de quatro dígitos e uma única unidade em estoque.
+    if (!(await prisma.product.findUnique({ where: { slug: 'kit-completo-pior-caso-demo' } }))) {
+      const kit = await prisma.product.create({
+        data: {
+          slug: 'kit-completo-pior-caso-demo',
+          name: 'Kit completo de treino e jogo da temporada 2027 com camisa, short, meião, mochila térmica e jaqueta corta-vento bordada (edição limitada) — demonstração',
+          productCategoryId: category.id,
+          fulfillmentType: 'STOCK',
+          basePrice: D('1249.90'),
+          promotionalPrice: D('1099.90'),
+          currency: 'BRL',
+          status: 'ACTIVE',
+          isFeatured: true,
+          brand: 'Confecção Regional de Uniformes Esportivos do Vale do Acre',
+          description: 'Produto fictício de demonstração com textos no limite.'
+        }
+      });
+
+      for (const [index, name] of [
+        'Extragrande especial (GGG) — modelagem baby look feminina com manga raglan',
+        'P'
+      ].entries()) {
+        const variant = await prisma.productVariant.create({
+          data: {
+            productId: kit.id,
+            sku: `KIT-PIOR-${index}`,
+            name,
+            size: index === 1 ? 'P' : null
+          }
+        });
+
+        await prisma.inventoryMovement.create({
+          data: {
+            productVariantId: variant.id,
+            type: 'STOCK_IN',
+            quantityDelta: 1,
+            reason: 'Estoque inicial (demonstração)'
+          }
+        });
+      }
+    }
+
+    await prisma.team.upsert({
+      where: { slug: 'fenix-sub17-pior-caso-demo' },
+      create: {
+        slug: 'fenix-sub17-pior-caso-demo',
+        name: 'Fênix Sub-17 Feminino de Desenvolvimento e Iniciação Esportiva (demonstração)',
+        type: 'FEMALE',
+        description: 'Equipe fictícia com nome longo, para conferir os cartões de time.'
+      },
+      update: {}
+    });
+
     // Conteúdo de exemplo com textos e palavras longas, para conferir quebras de linha e
     // cartões em telas pequenas (notícias, eventos e fórum).
     const author = await prisma.user.findFirst({

@@ -2,6 +2,7 @@
 
 import { type KeyboardEvent, type MouseEvent, useEffect, useRef, useState } from 'react';
 
+import { fixedSrcSet, responsiveSrcSet } from '../lib/image-url';
 import { Icon } from './icon';
 import { MediaImage } from './media-image';
 
@@ -68,7 +69,7 @@ export function ProductGallery({
   }
 
   if (!current) {
-    return <MediaImage src={null} alt="" ratio="1/1" className="product-photo" />;
+    return <MediaImage src={null} alt="" ratio="1/1" priority className="product-photo" />;
   }
 
   return (
@@ -85,8 +86,11 @@ export function ProductGallery({
         }}
         onPointerLeave={() => setHoverOrigin(null)}
       >
+        {/* Versão maior no computador: a lupa aproxima 2x sem borrar. */}
         <img
           src={current.url}
+          srcSet={responsiveSrcSet(current.url)}
+          sizes="(min-width: 64rem) 72rem, 100vw"
           alt={alt(current, index)}
           decoding="async"
           style={
@@ -136,7 +140,13 @@ export function ProductGallery({
                     setZoomed(false);
                   }}
                 >
-                  <img src={image.url} alt="" loading="lazy" decoding="async" />
+                  <img
+                    src={image.url}
+                    srcSet={fixedSrcSet(image.url, 96)}
+                    alt=""
+                    loading="lazy"
+                    decoding="async"
+                  />
                 </button>
               </li>
             ))}

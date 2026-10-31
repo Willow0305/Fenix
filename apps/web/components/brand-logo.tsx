@@ -2,6 +2,8 @@
 
 import { useEffect, useRef, useState } from 'react';
 
+import { fixedSrcSet } from '../lib/image-url';
+
 /** Brasão oficial salvo em `public/brand/` (ver docs/COMO-EXECUTAR.md). */
 export const BRASAO_SRC = '/brand/brasao-fenix.png';
 /** Símbolo da fênix usado se o brasão ainda não foi adicionado. */
@@ -40,10 +42,14 @@ export function BrandLogo({
     }
   }, [index, src]);
 
+  const current = candidates[Math.min(index, candidates.length - 1)];
+
   return (
     <img
       ref={image}
-      src={candidates[Math.min(index, candidates.length - 1)]}
+      src={current}
+      // O brasão é opcional e pode não existir: vai direto, sem o otimizador registrar erro.
+      srcSet={current === BRASAO_SRC ? undefined : fixedSrcSet(current, size)}
       alt={alt}
       width={size}
       height={size}

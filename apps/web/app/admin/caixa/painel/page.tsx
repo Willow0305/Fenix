@@ -91,17 +91,17 @@ export default function FinanceDashboardPage() {
               <div className="stat-tile">
                 <dt>Inadimplência ({formatMonth(`${lastRate.month}-01`)})</dt>
                 <dd>{Number(lastRate.fees.overdueRate).toLocaleString('pt-BR')}%</dd>
-                <small className="muted">
+                <dd className="stat-note">
                   {formatMoney(lastRate.fees.overdue.amount)} de{' '}
                   {formatMoney(lastRate.fees.billedDue.amount)} vencidos
-                </small>
+                </dd>
               </div>
             ) : null}
             {data.expectedNext30Days ? (
               <div className="stat-tile">
                 <dt>Previsto nos próximos 30 dias</dt>
                 <dd>{formatMoney(data.expectedNext30Days.amount)}</dd>
-                <small className="muted">Mensalidades em aberto a vencer</small>
+                <dd className="stat-note">Mensalidades em aberto a vencer</dd>
               </div>
             ) : null}
           </dl>

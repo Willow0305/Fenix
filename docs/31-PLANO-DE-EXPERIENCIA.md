@@ -195,6 +195,10 @@ Com a skill **build-awwwards-quality-sites**: início, sobre, times e seletivas.
 - elenco com fotos autorizadas e história em linha do tempo;
 - só números e fatos reais do clube; nada de depoimento, parceiro ou estatística inventada.
 
+### Onda 7 — Revisão final · concluída em 2026-10-30
+
+**Entregue:** varredura automática (axe, WCAG 2.2 A e AA) de 81 rotas do site e do painel em 320 px e 1366 px: só dois problemas, ambos no gráfico do Caixa, corrigidos; nenhuma rolagem lateral e nada se mexendo com "reduzir movimento". Pior caso (break-ui) na loja, no carrinho, em Times, notícias, eventos e fórum: carrinho (opção longa), evento no celular e Times corrigidos; o resto já segurava. Desempenho no celular (4G lenta, CPU 4x): LCP de até 6,9 s para até 2,4 s com imagens no tamanho da tela (DT-082), CLS até 0,004. Teste ponta a ponta de acessibilidade novo. O cabeçalho da tabela de notícias citado acima foi resolvido no padrão de tabela da Onda 5. Revisão final: `/interface-review` sobre todas as ondas, pelo responsável.
+
 ### Onda 7 — Revisão final (M)
 
 - **better-interface** sobre o sistema inteiro e correção de tudo que for "alto";

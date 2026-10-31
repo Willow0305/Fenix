@@ -3,6 +3,7 @@ import type { Metadata } from 'next';
 import { BrandLogo } from '../../../components/brand-logo';
 import { PhotoCarousel } from '../../../components/photo-carousel';
 import { getPublicTeam } from '../../../lib/server-api';
+import { responsiveSrcSet } from '../../../lib/image-url';
 
 export const metadata: Metadata = { title: 'Sobre' };
 
@@ -17,7 +18,14 @@ export default async function AboutPage() {
       {photos.length > 0 ? (
         <PhotoCarousel photos={photos} />
       ) : cover ? (
-        <img className="about-cover" src={cover.url} alt={cover.altText ?? ''} loading="eager" />
+        <img
+          className="about-cover"
+          src={cover.url}
+          srcSet={responsiveSrcSet(cover.url)}
+          sizes="(min-width: 64rem) 60rem, 100vw"
+          alt={cover.altText ?? ''}
+          loading="eager"
+        />
       ) : null}
       <div className="row">
         <BrandLogo src={logo?.url} alt={logo?.altText ?? undefined} size={96} />

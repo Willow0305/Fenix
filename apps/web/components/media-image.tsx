@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 
+import { responsiveSrcSet } from '../lib/image-url';
 import { SYMBOL_SRC } from './brand-logo';
 
 export type MediaRatio = '16/9' | '1/1' | '4/3';
@@ -19,6 +20,7 @@ export function MediaImage({
   fallbackSrc,
   fallbackTone = 'brand',
   priority = false,
+  sizes = '100vw',
   className,
   children
 }: {
@@ -31,6 +33,8 @@ export function MediaImage({
   /** Fundo da reserva: escuro da marca (padrão) ou claro, para logos de terceiros. */
   readonly fallbackTone?: 'brand' | 'light';
   readonly priority?: boolean;
+  /** Largura em que a imagem aparece, para o navegador escolher a versão (DT-082). */
+  readonly sizes?: string;
   readonly className?: string;
   /** Selos posicionados sobre a imagem (docs/29 §3.7). */
   readonly children?: React.ReactNode;
@@ -47,10 +51,19 @@ export function MediaImage({
       style={{ aspectRatio: ratio }}
     >
       {showFallback ? (
-        <img src={fallbackSrc ?? SYMBOL_SRC} alt={alt} className="media-fallback" loading="lazy" />
+        <img
+          src={fallbackSrc ?? SYMBOL_SRC}
+          srcSet={responsiveSrcSet(fallbackSrc ?? SYMBOL_SRC)}
+          sizes="(min-width: 64rem) 16rem, 50vw"
+          alt={alt}
+          className="media-fallback"
+          loading={priority ? 'eager' : 'lazy'}
+        />
       ) : (
         <img
           src={src}
+          srcSet={responsiveSrcSet(src)}
+          sizes={sizes}
           alt={alt}
           loading={priority ? 'eager' : 'lazy'}
           decoding="async"

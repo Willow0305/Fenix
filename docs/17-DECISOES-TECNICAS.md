@@ -1687,3 +1687,27 @@ Manter paleta, layout e componentes, e trocar os sinais de interface genérica p
 - "Administrador" não ganha selo: é papel técnico, não cargo do clube; "Atleta" continua sem selo (D7);
 - a lista de tópicos passa a trazer quem respondeu por último e a categoria, o tópico com a mensagem mais recente; respostas = mensagens publicadas menos a que abriu o tópico.
 
+
+## DT-082 — Imagens no tamanho da tela e auditoria automática de acessibilidade
+
+- **Estado:** Aceita; implementada em 2026-10-30 (Onda 7 do plano `docs/31`)
+- **Data:** 2026-10-30
+- **Aprovador:** responsável do projeto (início da Onda 7: "desempenho no celular" e "teclado, leitor de tela, zoom de 200% e movimento reduzido")
+
+### Contexto
+
+A medição da Onda 7 no celular (build de produção, rede 4G lenta e CPU 4x mais lenta) mostrou o maior conteúdo da tela (LCP) em 6,9 s no Sobre, 6,1 s em Times e 3,5 s no Início e no produto. Causa: o celular baixava as fotos de 1920 px e as logos dos times (até 241 KB) para mostrá-las com 40 a 360 px, e o carrossel do Sobre baixava todas as fotos de uma vez.
+
+### Decisão
+
+- **imagens públicas pelo otimizador do Next** (`/_next/image`), por meio de `lib/image-url.ts` (`srcSet` com `sizes` nas fotos, 1x/2x nas logos e fotos de perfil); só passam por ele `/api/v1/media/**` e `/brand/**` (`images.localPatterns`); qualquer outro endereço segue intacto;
+- **mídia privada não passa:** o otimizador busca sem o token de acesso, e a API responde 404 para arquivo não público; fotos privadas continuam carregadas pelo cliente com login (`Avatar authenticated`);
+- **cache de 5 minutos** (`minimumCacheTTL: 300`, igual ao `Cache-Control` da API): uma foto removida ou com autorização de imagem retirada sai do ar no mesmo prazo de antes, sem ficar 4 horas (padrão do Next) numa versão reduzida;
+- carrossel do Sobre monta só a foto atual e as vizinhas; a primeira foto de Times e a imagem principal do produto carregam sem esperar a rolagem;
+- **dependência de desenvolvimento** `@axe-core/playwright` 4.14.0 (MPL-2.0, mantida pela Deque), usada só nos testes ponta a ponta (`e2e/tests/accessibility.spec.ts`): regras WCAG 2.2 A e AA nas páginas de vitrine, venda e conteúdo, reflow em 320 px, nada rodando sozinho com "reduzir movimento" e foco visível em cada parada do teclado.
+
+### Consequências
+
+- LCP no celular depois: até 2,4 s em todas as páginas medidas (Início 2,2 s, Sobre 1,6 s, Times 2,4 s, produto 1,4 s); peso da página inicial de 1,5 MB para 0,8 MB; estabilidade do layout (CLS) até 0,004;
+- o servidor do site passa a redimensionar imagens (usa o `sharp`, já dependência do site); a primeira visita a cada tamanho custa um pouco de CPU, as seguintes saem do cache;
+- a imagem Docker do site (`output: standalone`) leva o `sharp` pelo rastreamento do Next; a build da imagem não foi executada nesta etapa.

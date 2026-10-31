@@ -233,7 +233,7 @@ export default function CartPage() {
               return (
                 <li key={line.id} className="cart-line">
                   <Link href={`/loja/${line.productSlug}`} className="cart-thumb" tabIndex={-1}>
-                    <MediaImage src={line.image} alt="" ratio="1/1" fit="contain" />
+                    <MediaImage src={line.image} alt="" ratio="1/1" fit="contain" sizes="88px" />
                   </Link>
                   <div className="cart-line-body">
                     <Link href={`/loja/${line.productSlug}`} className="cart-line-name">

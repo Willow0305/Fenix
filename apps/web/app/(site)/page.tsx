@@ -8,6 +8,7 @@ import { getPublicTeam, serverGet } from '../../lib/server-api';
 import type { Page } from '../../lib/api-types';
 import { formatMoney } from '../../lib/format';
 import type { Team } from '../../lib/sports-types';
+import { responsiveSrcSet } from '../../lib/image-url';
 import type { ProductSummary } from '../../lib/store-types';
 import styles from './home.module.scss';
 import { HomeHighlights } from './home-highlights';
@@ -72,7 +73,15 @@ export default async function HomePage() {
             href="/times?tipo=MALE"
             className={`${styles.teamCard}${malePhoto ? ` ${styles.withPhoto}` : ''}`}
           >
-            {malePhoto ? <img className={styles.teamPhoto} src={malePhoto} alt="" /> : null}
+            {malePhoto ? (
+              <img
+                className={styles.teamPhoto}
+                src={malePhoto}
+                srcSet={responsiveSrcSet(malePhoto)}
+                sizes="(min-width: 64rem) 32rem, 100vw"
+                alt=""
+              />
+            ) : null}
             <BrandLogo src={male} alt="" size={64} />
             <div>
               <strong>Masculino</strong>
@@ -84,7 +93,15 @@ export default async function HomePage() {
             href="/times?tipo=FEMALE"
             className={`${styles.teamCard}${femalePhoto ? ` ${styles.withPhoto}` : ''}`}
           >
-            {femalePhoto ? <img className={styles.teamPhoto} src={femalePhoto} alt="" /> : null}
+            {femalePhoto ? (
+              <img
+                className={styles.teamPhoto}
+                src={femalePhoto}
+                srcSet={responsiveSrcSet(femalePhoto)}
+                sizes="(min-width: 64rem) 32rem, 100vw"
+                alt=""
+              />
+            ) : null}
             <BrandLogo src={female} alt="" size={64} />
             <div>
               <strong>Feminino</strong>

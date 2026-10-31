@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from 'react';
 
+import { responsiveSrcSet } from '../lib/image-url';
 import { Icon } from './icon';
 
 export interface CarouselPhoto {
@@ -69,16 +70,23 @@ export function PhotoCarousel({ photos }: { readonly photos: readonly CarouselPh
       }}
     >
       <div className="photo-carousel-stage">
-        {photos.map((photo, position) => (
-          <img
-            key={photo.id}
-            src={photo.url}
-            alt={photo.altText ?? `Foto ${position + 1} do clube`}
-            className={position === index ? 'is-current' : undefined}
-            aria-hidden={position !== index}
-            loading={position === 0 ? 'eager' : 'lazy'}
-          />
-        ))}
+        {/* Só a foto atual e as vizinhas ficam montadas: as outras não baixam antes da vez. */}
+        {photos.map((photo, position) =>
+          position === index ||
+          position === (index + 1) % total ||
+          position === (index - 1 + total) % total ? (
+            <img
+              key={photo.id}
+              src={photo.url}
+              srcSet={responsiveSrcSet(photo.url)}
+              sizes="(min-width: 64rem) 60rem, 100vw"
+              alt={photo.altText ?? `Foto ${position + 1} do clube`}
+              className={position === index ? 'is-current' : undefined}
+              aria-hidden={position !== index}
+              fetchPriority={position === index ? 'high' : 'low'}
+            />
+          ) : null
+        )}
       </div>
       <div className="photo-carousel-bar">
         <p className="m-0" aria-live={running ? 'off' : 'polite'}>

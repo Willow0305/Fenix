@@ -1,6 +1,7 @@
 import Link from 'next/link';
 
 import { formatDate, formatMoney } from '../lib/format';
+import { fixedSrcSet } from '../lib/image-url';
 import { FULFILLMENT, type ProductSummary } from '../lib/store-types';
 import { MediaImage } from './media-image';
 import styles from './product-card.module.scss';
@@ -22,11 +23,17 @@ export function ProductCard({ product }: { readonly product: ProductSummary }) {
 
   return (
     <Link href={`/loja/${product.slug}`} className={styles.card}>
-      <MediaImage src={product.image?.url} alt={product.image?.altText ?? product.name} ratio="1/1">
+      <MediaImage
+        src={product.image?.url}
+        alt={product.image?.altText ?? product.name}
+        ratio="1/1"
+        sizes="(min-width: 64rem) 24rem, (min-width: 40rem) 50vw, 100vw"
+      >
         {product.partner?.logoUrl ? (
           <img
             className="media-seal"
             src={product.partner.logoUrl}
+            srcSet={fixedSrcSet(product.partner.logoUrl, 48)}
             alt={`Parceiro: ${product.partner.name}`}
             loading="lazy"
           />

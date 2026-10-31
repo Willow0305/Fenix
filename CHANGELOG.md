@@ -6,6 +6,25 @@ O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) e o 
 
 ## [Não publicado]
 
+### Onda 7: revisão final de acessibilidade, casos extremos e desempenho (2026-10-30)
+
+#### Adicionado
+
+- teste ponta a ponta de acessibilidade (`e2e/tests/accessibility.spec.ts`, DT-082): axe com WCAG 2.2 A e AA em 16 páginas de vitrine, venda e conteúdo, sem rolagem lateral em 320 px, nada se mexendo com "reduzir movimento" e foco visível pelo teclado;
+- dados de demonstração de pior caso na loja e em Times (`npm run db:demo`): produto com nome no limite, variação longa, preço de quatro dígitos, uma unidade em estoque e time com nome comprido.
+
+#### Alterado
+
+- fotos e logos do site no tamanho em que aparecem, pelo otimizador de imagens do Next (DT-082): no celular, o maior conteúdo da tela aparece em até 2,4 s (antes até 6,9 s no Sobre) e a página inicial pesa metade;
+- carrossel do Sobre baixa só a foto atual e as vizinhas; primeira foto de Times e imagem principal do produto carregam sem esperar a rolagem.
+
+#### Corrigido
+
+- carrinho: nome de opção longo empurrava o seletor para fora do cartão, espremia o rótulo "Opção" e, no computador, fazia o nome do produto passar por baixo do preço;
+- página do evento no celular: a data fica em cima, e local e endereço usam a largura toda;
+- Times: nome do atleta não é mais cortado em duas linhas (é a única identificação no cartão); aviso de elenco vazio volta a ter o recuo do cartão;
+- painel do Caixa: gráfico de receita e despesa lido pelo leitor de tela mês a mês (antes era uma imagem só, com as colunas focáveis escondidas) e notas dos indicadores em HTML válido.
+
 ### Documentação jurídica e privacidade (2026-10-30)
 
 #### Adicionado

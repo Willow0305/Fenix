@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 
+import { fixedSrcSet } from '../lib/image-url';
 import { Icon } from './icon';
 
 export interface NewsGalleryImage {
@@ -47,7 +48,7 @@ export function NewsGallery({ images }: { readonly images: readonly NewsGalleryI
                 onClick={() => setCurrent(index)}
                 aria-label={`Abrir foto ${index + 1} de ${total}${item.altText ? `: ${item.altText}` : ''}`}
               >
-                <img src={item.url} alt="" loading="lazy" />
+                <img src={item.url} srcSet={fixedSrcSet(item.url, 160)} alt="" loading="lazy" />
               </button>
             </li>
           ))}

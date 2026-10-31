@@ -718,11 +718,19 @@ img {
 }
 
 // Página do evento: data grande ao lado de quando e onde.
+// No celular a data fica em cima, para o local e o endereço terem a largura toda.
 .event-when {
   display: grid;
-  grid-template-columns: auto minmax(0, 1fr);
-  align-items: center;
-  gap: 1.25rem;
+  grid-template-columns: minmax(0, 1fr);
+  justify-items: start;
+  gap: 1rem;
+
+  @media (min-width: 30rem) {
+    grid-template-columns: auto minmax(0, 1fr);
+    justify-items: stretch;
+    align-items: start;
+    gap: 1.25rem;
+  }
 }
 
 .event-date {
@@ -1840,6 +1848,12 @@ dialog.crop-dialog {
   }
 }
 
+// O nome é a única identificação do atleta: quebra em linhas, nunca é cortado.
+.roster-name {
+  overflow-wrap: anywhere;
+  text-wrap: balance;
+}
+
 // Cartão de time que abre e fecha o elenco (Times).
 .team-card {
   padding: 0;
@@ -2324,9 +2338,17 @@ input.stepper-input {
   display: flex;
   gap: 0.5rem;
   align-items: center;
+  min-width: 0;
 
+  > span {
+    flex-shrink: 0;
+  }
+
+  // Nome de opção longo: o seletor encolhe até caber; a lista aberta mostra o nome inteiro.
   select {
     width: auto;
+    min-width: 0;
+    max-width: 100%;
     min-height: 2.25rem;
   }
 }
@@ -2527,6 +2549,15 @@ input.stepper-input {
     line-height: 1.1;
     font-variant-numeric: tabular-nums;
     overflow-wrap: anywhere;
+  }
+
+  // Nota abaixo do número (ex.: "R$ 80,00 de R$ 400,00 vencidos").
+  .stat-note {
+    font-family: inherit;
+    font-size: 0.85rem;
+    font-weight: 400;
+    line-height: 1.4;
+    color: var(--color-text-muted);
   }
 }
 

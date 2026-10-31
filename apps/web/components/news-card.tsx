@@ -32,7 +32,16 @@ export function NewsCard({
   return (
     <article className={`content-card${featured ? ' is-featured' : ''}`}>
       <Link href={`/noticias/${news.slug}`} tabIndex={-1} aria-hidden="true">
-        <MediaImage src={news.coverUrl} alt="" priority={featured} />
+        <MediaImage
+          src={news.coverUrl}
+          alt=""
+          priority={featured}
+          sizes={
+            featured
+              ? '(min-width: 64rem) 48rem, 100vw'
+              : '(min-width: 64rem) 24rem, (min-width: 40rem) 50vw, 100vw'
+          }
+        />
       </Link>
       <div className="content-card-body">
         <small className="news-meta">
@@ -61,7 +70,7 @@ export function NewsRow({
   return (
     <article className="news-row">
       <Link href={`/noticias/${news.slug}`} tabIndex={-1} aria-hidden="true">
-        <MediaImage src={news.coverUrl} alt="" />
+        <MediaImage src={news.coverUrl} alt="" sizes="(min-width: 40rem) 12rem, 40vw" />
       </Link>
       <div className="news-row-body">
         <small className="news-meta">

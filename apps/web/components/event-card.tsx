@@ -40,7 +40,11 @@ export function EventCard({
   return (
     <article id={event.slug} className="content-card">
       <Link href={`/eventos/${event.slug}`} tabIndex={-1} aria-hidden="true">
-        <MediaImage src={event.coverUrl} alt="">
+        <MediaImage
+          src={event.coverUrl}
+          alt=""
+          sizes="(min-width: 64rem) 24rem, (min-width: 40rem) 50vw, 100vw"
+        >
           <span className="date-chip" aria-hidden="true">
             <strong>{day.format(start)}</strong>
             <span>{month.format(start).replace('.', '')}</span>

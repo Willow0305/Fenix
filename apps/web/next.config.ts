@@ -42,6 +42,12 @@ const nextConfig: NextConfig = {
   // Pasta de build separada para os testes de ponta a ponta (`.next-e2e`), sem disputar com o `next dev`.
   distDir: process.env['NEXT_DIST_DIR'] ?? '.next',
   poweredByHeader: false,
+  // Versões menores das imagens públicas (DT-082, `lib/image-url.ts`). Só mídia da API e da
+  // marca; o cache segue os 5 minutos da API, para uma foto removida (LGPD) sair logo do ar.
+  images: {
+    localPatterns: [{ pathname: '/api/v1/media/**' }, { pathname: '/brand/**' }],
+    minimumCacheTTL: 300
+  },
   // Imagem Docker: servidor enxuto com só o necessário (DT-053). Local segue com `next start`.
   ...(process.env['NEXT_OUTPUT'] === 'standalone'
     ? { output: 'standalone' as const, outputFileTracingRoot: resolve(process.cwd(), '../..') }

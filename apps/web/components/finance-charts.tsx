@@ -144,7 +144,8 @@ export function IncomeExpenseChart({ data }: { readonly data: readonly IncomeExp
         </li>
       </ul>
       <div className="chart-frame" onPointerLeave={() => setTip(null)}>
-        <svg viewBox={`0 0 ${WIDTH} ${HEIGHT}`} role="img" aria-labelledby={titleId}>
+        {/* Grupo, não imagem: cada mês é focável e tem nome próprio para o leitor de tela. */}
+        <svg viewBox={`0 0 ${WIDTH} ${HEIGHT}`} role="group" aria-labelledby={titleId}>
           {ticks.map((tick) => (
             <g key={tick}>
               <line
@@ -189,6 +190,7 @@ export function IncomeExpenseChart({ data }: { readonly data: readonly IncomeExp
                   width={band}
                   height={plotH}
                   className="chart-hit"
+                  role="img"
                   tabIndex={0}
                   aria-label={`${formatMonth(`${row.month}-01`)}: receita ${formatMoney(row.income.toFixed(2))}, despesa ${formatMoney(row.expense.toFixed(2))}`}
                   onPointerMove={show}

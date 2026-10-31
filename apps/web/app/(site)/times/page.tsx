@@ -6,6 +6,7 @@ import { BrandLogo } from '../../../components/brand-logo';
 import { Icon } from '../../../components/icon';
 import { JoinTeamCta } from '../../../components/join-team-cta';
 import { firstTeamLogo } from '../../../lib/brand';
+import { responsiveSrcSet } from '../../../lib/image-url';
 import { getPublicTeam, serverGet } from '../../../lib/server-api';
 import {
   type RosterCategory,
@@ -51,6 +52,8 @@ export default async function TeamsPage({
   ).length;
   const official = club.brandAssets.OFFICIAL;
   const teams = roster.flatMap((group) => group.teams);
+  // A primeira foto já aparece na primeira tela: carrega sem esperar a rolagem.
+  const firstPhotoTeamId = teams.find((team) => team.photoUrl)?.id;
   const headingLogo = (type ? firstTeamLogo(teams, type) : undefined) ?? official?.url;
   const teamCount = roster.reduce((total, group) => total + group.teams.length, 0);
 
@@ -112,8 +115,10 @@ export default async function TeamsPage({
                       <img
                         className="team-card-photo"
                         src={team.photoUrl}
+                        srcSet={responsiveSrcSet(team.photoUrl)}
+                        sizes="(min-width: 56rem) 32rem, 100vw"
                         alt={`Foto de ${team.name}`}
-                        loading="lazy"
+                        loading={team.id === firstPhotoTeamId ? 'eager' : 'lazy'}
                       />
                     ) : null}
                     <span className="team-card-head">
@@ -135,13 +140,13 @@ export default async function TeamsPage({
                       {team.athletes.map((athlete) => (
                         <li key={`${athlete.displayName}-${athlete.position ?? ''}`}>
                           <Avatar src={athlete.photoUrl} name={athlete.displayName} size={72} />
-                          <strong className="line-clamp-2">{athlete.displayName}</strong>
+                          <strong className="roster-name">{athlete.displayName}</strong>
                           <span className="muted">{athlete.position ?? 'Posição a definir'}</span>
                         </li>
                       ))}
                     </ul>
                   ) : (
-                    <p className="muted" style={{ margin: 0 }}>
+                    <p className="muted">
                       O elenco aparece aqui quando os atletas escolherem perfil público.
                     </p>
                   )}

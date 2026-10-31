@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 
 import { apiBlob } from '../lib/api-client';
+import { fixedSrcSet } from '../lib/image-url';
 import { initials } from '../lib/initials';
 
 /**
@@ -57,7 +58,12 @@ export function Avatar({
   return (
     <span className="avatar" style={{ width: size, height: size }}>
       {url && !failed ? (
-        <img src={url} alt={`Foto de ${name}`} onError={() => setFailed(true)} />
+        <img
+          src={url}
+          srcSet={fixedSrcSet(url, size)}
+          alt={`Foto de ${name}`}
+          onError={() => setFailed(true)}
+        />
       ) : (
         <span role="img" aria-label={`Foto de ${name}`} style={{ fontSize: size * 0.4 }}>
           {initials(name)}
