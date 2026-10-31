@@ -1,5 +1,13 @@
 import type { BrandContext, PublicTeam } from './api-types';
 
+/**
+ * Imagens da marca salvas em `public/brand/` (ver docs/COMO-EXECUTAR.md). Ficam aqui, fora
+ * de componente de cliente, para páginas de servidor também poderem usar o caminho.
+ */
+export const BRASAO_SRC = '/brand/brasao-fenix.png';
+/** Símbolo da fênix usado se o brasão ainda não foi adicionado. */
+export const SYMBOL_SRC = '/brand/logo-fenix.png';
+
 export interface BrandAsset {
   readonly url: string;
   readonly altText: string | null;

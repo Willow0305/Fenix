@@ -254,7 +254,8 @@ export class AthletesService {
     return {
       needsGuardianConsent,
       guardianConsentAt: row.publicProfileConsentAt?.toISOString() ?? null,
-      visibleOnSite: row.status === 'ACTIVE' && row.user?.profilePublic === true && consented
+      // No elenco com nome e posição; a foto depende do perfil público (DT-084).
+      visibleOnSite: row.status === 'ACTIVE' && consented
     };
   }
 

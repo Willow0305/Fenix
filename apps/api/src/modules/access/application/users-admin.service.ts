@@ -9,7 +9,8 @@ import { type Page, pageArgs, type PageQueryDto, toPage } from '../../../common/
 import type { Principal, RequestMeta } from '../../../common/http/request-context';
 import { PrismaService, type PrismaTx } from '../../../common/prisma/prisma.service';
 import { AuthService } from '../../auth/application/auth.service';
-import { normalizeEmail, REVOCATION } from '../../auth/domain/auth-rules';
+import { assertPhoneAvailable } from '../../auth/application/phone-availability';
+import { normalizeAccountPhone, normalizeEmail, REVOCATION } from '../../auth/domain/auth-rules';
 import { SYSTEM_ROLES } from '../domain/permission-catalog';
 
 export interface AdminUserView {
@@ -115,6 +116,14 @@ export class UsersAdminService {
     meta: RequestMeta
   ): Promise<AdminUserView> {
     const email = normalizeEmail(input.email);
+    const phone = normalizeAccountPhone(input.phone);
+
+    await assertPhoneAvailable(
+      this.prisma,
+      phone,
+      'Este celular já está em outra conta. Use outro número.'
+    );
+
     const roleCodes = input.roles.length > 0 ? input.roles : [SYSTEM_ROLES.user];
     const passwordHash = await hashPassword(generateOpaqueToken(24));
 
@@ -124,7 +133,7 @@ export class UsersAdminService {
         data: {
           name: input.name.trim(),
           email,
-          phone: input.phone?.trim() || null,
+          phone,
           passwordHash,
           status: 'ACTIVE',
           userRoles: {

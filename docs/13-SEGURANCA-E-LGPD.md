@@ -252,13 +252,14 @@ Antes de liberar qualquer jornada acessível a menores, é obrigatório:
 
 Dados de saúde/prontuário continuam fora do escopo, mesmo com responsável.
 
-### Foto de perfil e elenco público (DT-044)
+### Foto de perfil e elenco público (DT-044, revisto em DT-084)
 
 - todo usuário cadastrado pode enviar foto de perfil; ela é **privada por padrão** (arquivo `INTERNAL`): abre só para a própria pessoa e para quem tem `files.read.restricted` (administração e diretoria);
-- a própria pessoa decide o **perfil público**; só então a foto vira `PUBLIC` e, se for atleta ativo com vínculo aberto em equipe ativa, aparece no elenco do site. A diretoria não pode tornar público o perfil de ninguém;
-- **menor de 18 anos ou sem data de nascimento:** além da escolha da pessoa, exige a autorização do responsável registrada pela diretoria (LGPD art. 14), com motivo e auditoria; a diretoria guarda o documento da autorização fora do sistema;
+- **elenco (DT-084):** todo atleta ativo com vínculo aberto em equipe ativa aparece no elenco do site com nome de exibição e posição, com ou sem conta e com ou sem perfil público, por decisão do responsável do projeto; sem foto pública, o site mostra a logo do Fênix. A Política de Privacidade precisa informar isso aos atletas (ver `docs/33`);
+- a própria pessoa decide o **perfil público**; só então a foto vira `PUBLIC` e passa a aparecer no elenco. A diretoria não pode tornar pública a foto de ninguém;
+- **menor de 18 anos ou sem data de nascimento:** só entra no elenco (nome, posição e, com perfil público, a foto) com a autorização do responsável registrada pela diretoria (LGPD art. 14), com motivo e auditoria; a diretoria guarda o documento da autorização fora do sistema;
 - no site aparecem só nome de exibição (apelido; ou nome e último sobrenome; para menor, sobrenome só com a inicial), posição e foto. Nunca idade, data de nascimento, contato ou documento;
-- voltar a privado, remover a foto ou retirar a autorização tira a pessoa do elenco no próximo carregamento do site e fecha a foto. A foto trocada ou removida recebe exclusão lógica; a remoção física do arquivo segue a política de retenção (`PEN-011`).
+- voltar a privado ou remover a foto tira a foto do elenco no próximo carregamento do site (a pessoa continua com nome e posição); retirar a autorização do responsável tira o menor do elenco. A foto trocada ou removida recebe exclusão lógica; a remoção física do arquivo segue a política de retenção (`PEN-011`).
 
 ### Navegador lembrado na segunda etapa (DT-050)
 

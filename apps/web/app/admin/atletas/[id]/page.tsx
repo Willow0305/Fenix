@@ -206,12 +206,12 @@ export default function AthleteDetailPage() {
               <span>
                 <Icon name={a.publicProfile.visibleOnSite ? 'eye' : 'eye-slash'} />{' '}
                 {a.publicProfile.visibleOnSite
-                  ? 'Aparece no elenco do site (foto, nome e posição).'
-                  : !a.user.profilePublic
-                    ? 'Perfil privado: não aparece no site. Só a própria pessoa pode torná-lo público.'
-                    : a.publicProfile.needsGuardianConsent && !a.publicProfile.guardianConsentAt
-                      ? 'Escolheu perfil público, mas é menor de 18 (ou sem data de nascimento): falta a autorização do responsável.'
-                      : 'Perfil público; aparece no elenco quando estiver Ativo em uma equipe ativa.'}
+                  ? a.user.profilePublic
+                    ? 'Aparece no elenco do site com foto, nome e posição.'
+                    : 'Aparece no elenco com nome e posição e a logo do Fênix; a foto só sai se a própria pessoa tornar o perfil público.'
+                  : a.publicProfile.needsGuardianConsent && !a.publicProfile.guardianConsentAt
+                    ? 'Menor de 18 (ou sem data de nascimento): fora do elenco até registrar a autorização do responsável.'
+                    : 'Aparece no elenco quando estiver Ativo em uma equipe ativa.'}
               </span>
               {a.publicProfile.needsGuardianConsent && can('athletes.update') ? (
                 <div className="row">

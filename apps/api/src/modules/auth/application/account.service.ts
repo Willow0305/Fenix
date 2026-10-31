@@ -11,7 +11,8 @@ import {
   MediaService,
   mediaUrl
 } from '../../media/application/media.service';
-import { REVOCATION } from '../domain/auth-rules';
+import { normalizeAccountPhone, REVOCATION } from '../domain/auth-rules';
+import { assertPhoneAvailable } from './phone-availability';
 
 export interface ProfileView {
   readonly id: string;
@@ -100,11 +101,8 @@ export class AccountService {
       publicProfile: {
         isAthlete: athlete !== null,
         needsGuardianConsent,
-        visibleOnSite:
-          athlete !== null &&
-          athlete.status === 'ACTIVE' &&
-          user.profilePublic &&
-          !needsGuardianConsent
+        // No elenco com nome e posição; a foto depende de `profilePublic` (DT-084).
+        visibleOnSite: athlete !== null && athlete.status === 'ACTIVE' && !needsGuardianConsent
       },
       createdAt: user.createdAt.toISOString(),
       mfa: {
@@ -126,8 +124,17 @@ export class AccountService {
     });
     const data = {
       ...(input.name === undefined ? {} : { name: input.name.trim() }),
-      ...(input.phone === undefined ? {} : { phone: input.phone.trim() || null })
+      ...(input.phone === undefined ? {} : { phone: normalizeAccountPhone(input.phone) })
     };
+
+    if (data.phone !== undefined) {
+      await assertPhoneAvailable(
+        this.prisma,
+        data.phone,
+        'Este celular já está em outra conta. Use outro número.',
+        principal.userId
+      );
+    }
 
     await this.prisma.$transaction(async (tx) => {
       await tx.user.update({ where: { id: principal.userId }, data });

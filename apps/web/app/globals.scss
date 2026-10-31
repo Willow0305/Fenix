@@ -1848,6 +1848,17 @@ dialog.crop-dialog {
   }
 }
 
+// Atleta sem perfil público: símbolo do Fênix inteiro, sobre o fundo escuro da marca.
+.roster-logo {
+  background: var(--color-ink);
+
+  img {
+    width: 62%;
+    height: 62%;
+    object-fit: contain;
+  }
+}
+
 // O nome é a única identificação do atleta: quebra em linhas, nunca é cortado.
 .roster-name {
   overflow-wrap: anywhere;

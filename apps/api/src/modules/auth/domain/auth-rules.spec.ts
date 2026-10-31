@@ -5,6 +5,7 @@ import {
   evaluateSessionLifetime,
   normalizeRecoveryCode,
   RECOVERY_CODE_PATTERN,
+  normalizeAccountPhone,
   normalizeEmail,
   REVOCATION,
   SESSION_POLICY,
@@ -15,6 +16,13 @@ import {
 describe('regras de autenticação', () => {
   it('normaliza o e-mail', () => {
     expect(normalizeEmail('  Maria@Exemplo.COM ')).toBe('maria@exemplo.com');
+  });
+
+  it('guarda o celular só com dígitos, para máscara não driblar o número único', () => {
+    expect(normalizeAccountPhone('(68) 99999-0000')).toBe('68999990000');
+    expect(normalizeAccountPhone('68999990000')).toBe('68999990000');
+    expect(normalizeAccountPhone('  ')).toBeNull();
+    expect(normalizeAccountPhone(undefined)).toBeNull();
   });
 
   it('aceita senha forte', () => {

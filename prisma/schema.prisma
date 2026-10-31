@@ -481,7 +481,7 @@ model User {
   name                       String            @db.VarChar(160)
   email                      String            @unique @db.VarChar(180)
   passwordHash               String            @map("password_hash") @db.Text
-  phone                      String?           @db.VarChar(30)
+  phone                      String?           @unique @db.VarChar(30)
   status                     UserStatus        @default(PENDING)
   emailVerifiedAt            DateTime?         @map("email_verified_at") @db.Timestamptz(6)
   lastLoginAt                DateTime?         @map("last_login_at") @db.Timestamptz(6)

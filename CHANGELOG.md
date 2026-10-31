@@ -6,6 +6,13 @@ O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) e o 
 
 ## [Não publicado]
 
+### Celular único e elenco com todos os atletas (2026-10-30)
+
+#### Alterado
+
+- celular passa a ser único entre as contas, como o e-mail, com ou sem máscara: cadastro, edição do perfil e criação de conta pela diretoria recusam número de outra conta (DT-084). Migração `20261030090000_celular_unico`: números repetidos ficam com a conta mais antiga e saem das outras, com registro na auditoria;
+- elenco em Times mostra todo atleta ativo do time com nome e posição; a foto só aparece com perfil público, e sem ela entra a logo do Fênix. Menores continuam só com a autorização do responsável (DT-084, revisa DT-044).
+
 ### Agenda pelo Google e bolinha do sino (2026-10-30)
 
 #### Alterado

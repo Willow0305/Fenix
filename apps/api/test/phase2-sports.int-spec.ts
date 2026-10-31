@@ -140,7 +140,7 @@ describe('Fase 2 — atletas, equipes, interessados e seletivas', () => {
       .expect(204);
   });
 
-  it('elenco público respeita a escolha da pessoa e a autorização para menores (DT-044)', async () => {
+  it('elenco público: todo adulto com nome e posição, foto só com perfil público (DT-084)', async () => {
     const teamId = await createTeam(`Elenco ${Date.now()}`);
     const team = await ctx.prisma.team.findUniqueOrThrow({ where: { id: teamId } });
     const person = async (fullName: string, birthDate: string) => {
@@ -183,9 +183,12 @@ describe('Fase 2 — atletas, equipes, interessados e seletivas', () => {
 
     await ctx.http().get(photo).expect(404);
     await ctx.http().get(photo).set(auth(adult.token)).expect(200);
-    expect(await roster()).toEqual([]);
+    // Adulto aparece mesmo com perfil privado, sem foto; menor sem autorização, não.
+    expect(await roster()).toEqual([
+      { displayName: 'Ana Lima', position: 'Líbero', photoUrl: null }
+    ]);
 
-    // Perfil público: aparece no elenco e a foto abre para todos.
+    // Perfil público: a foto entra no elenco e abre para todos.
     for (const who of [adult, minor]) {
       await ctx
         .http()
@@ -209,7 +212,7 @@ describe('Fase 2 — atletas, equipes, interessados e seletivas', () => {
       .expect(200);
     expect((await roster()).map((a) => a.displayName)).toEqual(['Ana Lima', 'Bia R.']);
 
-    // Voltar a privado tira do elenco e fecha a foto.
+    // Voltar a privado tira só a foto: a pessoa continua no elenco.
     await ctx
       .http()
       .put('/api/v1/me/profile-visibility')
@@ -217,7 +220,10 @@ describe('Fase 2 — atletas, equipes, interessados e seletivas', () => {
       .send({ public: false })
       .expect(200);
     await ctx.http().get(photo).expect(404);
-    expect((await roster()).map((a) => a.displayName)).toEqual(['Bia R.']);
+    expect(await roster()).toEqual([
+      { displayName: 'Ana Lima', position: 'Líbero', photoUrl: null },
+      { displayName: 'Bia R.', position: 'Líbero', photoUrl: null }
+    ]);
   });
 
   describe('atletas', () => {

@@ -13,6 +13,16 @@ export function normalizeEmail(email: string): string {
 }
 
 /**
+ * Celular da conta guardado só com dígitos (DT-084), para "(68) 99999-0000" e
+ * "68999990000" serem o mesmo número: o celular é único entre as contas, como o e-mail.
+ */
+export function normalizeAccountPhone(phone: string | null | undefined): string | null {
+  const digits = (phone ?? '').replace(/\D/g, '');
+
+  return digits.length > 0 ? digits : null;
+}
+
+/**
  * Política de senha: comprimento mínimo, ao menos uma letra e um número, e não pode
  * conter o e-mail ou o nome. Comprimento é o fator principal (NIST SP 800-63B).
  */

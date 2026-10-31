@@ -218,10 +218,11 @@ export class TeamsService {
   }
 
   /**
-   * Elenco público por categoria (PEN-062, DT-044). Só atletas ativos, com vínculo aberto
-   * em equipe ativa, que marcaram perfil público na própria conta; menor de 18 (ou sem
-   * nascimento) só com autorização do responsável. Expõe apenas nome de exibição, posição
-   * e foto pública: nunca idade, contato ou documento.
+   * Elenco público por categoria (PEN-062, DT-044, revisto em DT-084). Todo atleta ativo
+   * com vínculo aberto em equipe ativa aparece com nome de exibição e posição; menor de 18
+   * (ou sem nascimento) só com autorização do responsável. A foto só sai para quem marcou
+   * perfil público na própria conta; sem ela, o site mostra a logo do Fênix. Nunca expõe
+   * idade, contato ou documento.
    */
   async publicRoster(type?: TeamType): Promise<RosterCategoryView[]> {
     const today = todayIn();
@@ -238,7 +239,6 @@ export class TeamsService {
             athlete: {
               deletedAt: null,
               status: 'ACTIVE',
-              user: { profilePublic: true, status: 'ACTIVE', deletedAt: null },
               OR: [{ birthDate: { lte: adultBirth } }, { publicProfileConsentAt: { not: null } }]
             }
           },
@@ -249,7 +249,14 @@ export class TeamsService {
                 preferredName: true,
                 birthDate: true,
                 position: true,
-                user: { select: { avatarMediaFileId: true } }
+                user: {
+                  select: {
+                    avatarMediaFileId: true,
+                    profilePublic: true,
+                    status: true,
+                    deletedAt: true
+                  }
+                }
               }
             }
           }
@@ -276,6 +283,14 @@ export class TeamsService {
         athletes: team.memberships
           .map((membership) => {
             const athlete = membership.athlete;
+            const user = athlete.user;
+            // Foto só com perfil público escolhido pela própria pessoa, em conta ativa.
+            const showPhoto =
+              user !== null &&
+              user.profilePublic &&
+              user.status === 'ACTIVE' &&
+              user.deletedAt === null &&
+              user.avatarMediaFileId !== null;
             const adult =
               athlete.birthDate !== null &&
               ageOn(dateToCivil(athlete.birthDate), today) >= ADULT_AGE;
@@ -283,9 +298,8 @@ export class TeamsService {
             return {
               displayName: publicDisplayName(athlete.fullName, athlete.preferredName, adult),
               position: membership.position ?? athlete.position,
-              photoUrl: athlete.user?.avatarMediaFileId
-                ? mediaUrl(athlete.user.avatarMediaFileId)
-                : null
+              photoUrl:
+                showPhoto && user.avatarMediaFileId ? mediaUrl(user.avatarMediaFileId) : null
             };
           })
           .sort((a, b) => a.displayName.localeCompare(b.displayName, 'pt-BR'))

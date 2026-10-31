@@ -20,11 +20,13 @@ import {
   evaluateSessionLifetime,
   MFA_CHALLENGE_MAX_ATTEMPTS,
   MFA_CHALLENGE_TTL_SECONDS,
+  normalizeAccountPhone,
   normalizeEmail,
   PASSWORD_RESET_TTL_SECONDS,
   REVOCATION,
   validatePassword
 } from '../domain/auth-rules';
+import { assertPhoneAvailable } from './phone-availability';
 import { MfaService } from './mfa.service';
 import { TrustedDevicesService } from './trusted-devices.service';
 import { SessionLifetimeService } from './session-lifetime.service';
@@ -143,6 +145,14 @@ export class AuthService {
       );
     }
 
+    const phone = normalizeAccountPhone(input.phone);
+
+    await assertPhoneAvailable(
+      this.prisma,
+      phone,
+      'Este celular já possui cadastro. Entre ou recupere a senha.'
+    );
+
     const passwordHash = await hashPassword(input.password);
 
     return this.prisma.$transaction(async (tx) => {
@@ -159,7 +169,7 @@ export class AuthService {
         data: {
           name,
           email,
-          phone: input.phone?.trim() || null,
+          phone,
           passwordHash,
           status: 'ACTIVE',
           lastLoginAt: new Date(),

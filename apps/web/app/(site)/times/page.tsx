@@ -5,8 +5,8 @@ import { Avatar } from '../../../components/avatar';
 import { BrandLogo } from '../../../components/brand-logo';
 import { Icon } from '../../../components/icon';
 import { JoinTeamCta } from '../../../components/join-team-cta';
-import { firstTeamLogo } from '../../../lib/brand';
-import { responsiveSrcSet } from '../../../lib/image-url';
+import { firstTeamLogo, SYMBOL_SRC } from '../../../lib/brand';
+import { fixedSrcSet, responsiveSrcSet } from '../../../lib/image-url';
 import { getPublicTeam, serverGet } from '../../../lib/server-api';
 import {
   type RosterCategory,
@@ -139,7 +139,14 @@ export default async function TeamsPage({
                     <ul className="roster" aria-label={`Elenco de ${team.name}`}>
                       {team.athletes.map((athlete) => (
                         <li key={`${athlete.displayName}-${athlete.position ?? ''}`}>
-                          <Avatar src={athlete.photoUrl} name={athlete.displayName} size={72} />
+                          {athlete.photoUrl ? (
+                            <Avatar src={athlete.photoUrl} name={athlete.displayName} size={72} />
+                          ) : (
+                            // Sem perfil público: a logo do Fênix no lugar da foto (DT-084).
+                            <span className="avatar roster-logo" style={{ width: 72, height: 72 }}>
+                              <img src={SYMBOL_SRC} srcSet={fixedSrcSet(SYMBOL_SRC, 48)} alt="" />
+                            </span>
+                          )}
                           <strong className="roster-name">{athlete.displayName}</strong>
                           <span className="muted">{athlete.position ?? 'Posição a definir'}</span>
                         </li>

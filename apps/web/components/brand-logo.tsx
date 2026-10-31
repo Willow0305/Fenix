@@ -2,12 +2,10 @@
 
 import { useEffect, useRef, useState } from 'react';
 
+import { BRASAO_SRC, SYMBOL_SRC } from '../lib/brand';
 import { fixedSrcSet } from '../lib/image-url';
 
-/** Brasão oficial salvo em `public/brand/` (ver docs/COMO-EXECUTAR.md). */
-export const BRASAO_SRC = '/brand/brasao-fenix.png';
-/** Símbolo da fênix usado se o brasão ainda não foi adicionado. */
-export const SYMBOL_SRC = '/brand/logo-fenix.png';
+export { BRASAO_SRC, SYMBOL_SRC };
 
 /**
  * Logo do time. Ordem de preferência: logo enviado pelo painel, brasão em

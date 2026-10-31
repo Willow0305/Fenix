@@ -1728,3 +1728,20 @@ A medição da Onda 7 no celular (build de produção, rede 4G lenta e CPU 4x ma
 - quem usa iPhone ou Outlook adiciona pelo Google Agenda no navegador ou à mão;
 - notificações antigas não mudam; a regra vale para os avisos criados daqui em diante.
 
+## DT-084 — Celular único e elenco com todos os atletas
+
+- **Estado:** Aceita; implementada em 2026-10-30
+- **Data:** 2026-10-30
+- **Aprovador:** responsável do projeto ("celular é único"; repetidos: "manter na conta mais antiga"; "se ela não for pública, tem como mostrar ao menos nome, posição e logo da fênix no lugar da foto? se ele deixar público a foto aparece")
+
+### Decisão
+
+- **celular único entre as contas**, como o e-mail: guardado só com dígitos (`normalizeAccountPhone`), recusado no cadastro ("Este celular já possui cadastro. Entre ou recupere a senha."), na edição do perfil e na criação de conta pela diretoria ("Este celular já está em outra conta. Use outro número."), código `PHONE_IN_USE`; índice único `users_phone_key` segura cadastros simultâneos (409). Telefones de atletas, responsáveis e contatos de emergência não mudam;
+- **repetidos existentes** (migração `20261030090000_celular_unico`): o número fica com a conta criada primeiro; nas outras o celular é apagado, com registro `user.phone_cleared_duplicate` na auditoria (sem o número; guarda só a conta que ficou com ele). A pessoa pode cadastrar outro número em Minha conta;
+- **elenco (revisa DT-044):** todo atleta ativo com vínculo aberto em equipe ativa aparece com nome de exibição e posição, mesmo sem conta ou com perfil privado; a foto só aparece com perfil público escolhido pela própria pessoa, e sem ela o site mostra a logo do Fênix. Menor de 18 (ou sem nascimento) continua só com a autorização do responsável. `visibleOnSite` passa a significar "está no elenco"; os textos de Minha conta e da ficha do atleta explicam a foto à parte.
+
+### Consequências
+
+- quem divide o celular com outra pessoa da família precisa de número próprio para a segunda conta (ou deixar o campo vazio, que segue opcional);
+- atletas adultos passam a ter nome e posição públicos sem escolha própria: a Política de Privacidade (`docs/33`, em revisão por outra pessoa) precisa informar isso; registrar na revisão jurídica.
+
