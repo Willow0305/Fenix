@@ -14,6 +14,7 @@ import {
   eventPlace,
   type TeamEvent
 } from '../../../../lib/content-types';
+import { googleCalendarUrl } from '../../../../lib/calendar';
 import { TEAM_TIME_ZONE } from '../../../../lib/format';
 import { serverGet } from '../../../../lib/server-api';
 import { absoluteUrl, sportsEventData } from '../../../../lib/structured-data';
@@ -158,8 +159,14 @@ export default async function EventPage({
       </section>
       <div className="row">
         {!ended && event.status !== 'CANCELLED' ? (
-          <a className="btn btn-primary btn-sm" href={`/eventos/${event.slug}/agenda.ics`} download>
-            <Icon name="calendar-plus" /> Adicionar à agenda
+          <a
+            className="btn btn-primary btn-sm"
+            href={googleCalendarUrl(event, absoluteUrl(`/eventos/${event.slug}`))}
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            <Icon name="calendar-plus" /> Adicionar ao Google Agenda{' '}
+            <span className="visually-hidden">(abre em nova aba)</span>
           </a>
         ) : null}
         <ShareButtons title={title} url={absoluteUrl(`/eventos/${event.slug}`)} />

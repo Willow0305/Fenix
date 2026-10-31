@@ -1711,3 +1711,20 @@ A medição da Onda 7 no celular (build de produção, rede 4G lenta e CPU 4x ma
 - LCP no celular depois: até 2,4 s em todas as páginas medidas (Início 2,2 s, Sobre 1,6 s, Times 2,4 s, produto 1,4 s); peso da página inicial de 1,5 MB para 0,8 MB; estabilidade do layout (CLS) até 0,004;
 - o servidor do site passa a redimensionar imagens (usa o `sharp`, já dependência do site); a primeira visita a cada tamanho custa um pouco de CPU, as seguintes saem do cache;
 - a imagem Docker do site (`output: standalone`) leva o `sharp` pelo rastreamento do Next; a build da imagem não foi executada nesta etapa.
+
+## DT-083 — Ajustes pedidos depois da Onda 7: agenda e bolinha do sino
+
+- **Estado:** Aceita; implementada em 2026-10-30
+- **Data:** 2026-10-30
+- **Aprovador:** responsável do projeto ("adicionar à agenda baixa um arquivo, não gostei… google agenda ok, baixar documento na apple ou outlook remova"; "entregue, cancelado e reembolsado são os únicos que não devem ser contados, o restante deveria ser contado")
+
+### Decisão
+
+- **"Adicionar à agenda" (revisa D4 e `DT-081`):** o botão abre o Google Agenda com o evento já preenchido (título, início e fim em UTC, 2 horas sem término informado, local, descrição curta e link do evento), em nova aba; o arquivo `.ics` e a rota `/eventos/[slug]/agenda.ics` foram removidos, sem opção para Apple ou Outlook. Nada é registrado sobre quem toca no botão; a página do Google recebe só os dados públicos do evento;
+- **bolinha do sino:** os avisos de pedido entregue, cancelado e reembolsado entram já como lidos (`countsAsUnread: false` em `NotifyInput`, regra `orderStatusCountsAsUnread`): aparecem na lista de notificações e seguem por e-mail e WhatsApp conforme as preferências, mas não acendem a bolinha. Todos os outros avisos de pedido (criado, pago, em separação, pronto para retirada, saiu para entrega, encomenda chegou, respostas a "Não recebi", decisões de devolução) continuam contando.
+
+### Consequências
+
+- quem usa iPhone ou Outlook adiciona pelo Google Agenda no navegador ou à mão;
+- notificações antigas não mudam; a regra vale para os avisos criados daqui em diante.
+

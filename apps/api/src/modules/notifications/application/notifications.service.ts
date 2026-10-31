@@ -19,6 +19,11 @@ export interface NotifyInput {
   readonly link?: string;
   /** Chave idempotente: o mesmo evento nunca gera duas notificações ao mesmo usuário. */
   readonly deduplicationKey: string;
+  /**
+   * `false`: entra já como lida. Aparece na lista e segue para e-mail e WhatsApp, mas não
+   * conta na bolinha do sino. Padrão: conta.
+   */
+  readonly countsAsUnread?: boolean;
 }
 
 export interface NotificationView {
@@ -63,6 +68,7 @@ export class NotificationsService {
         channel: 'IN_APP' as const,
         deliveryStatus: 'SENT' as const,
         sentAt: new Date(),
+        readAt: input.countsAsUnread === false ? new Date() : null,
         payload: (input.link ? { link: input.link } : {}) as Prisma.InputJsonValue,
         deduplicationKey: input.deduplicationKey
       })),

@@ -6,6 +6,13 @@ O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) e o 
 
 ## [Não publicado]
 
+### Agenda pelo Google e bolinha do sino (2026-10-30)
+
+#### Alterado
+
+- "Adicionar à agenda" virou "Adicionar ao Google Agenda": abre o Google Agenda com o evento preenchido, sem baixar arquivo; o arquivo `.ics` foi removido (DT-083, revisa D4);
+- avisos de pedido entregue, cancelado e reembolsado continuam na lista de notificações, mas não acendem mais a bolinha do sino; os demais avisos de pedido seguem contando (DT-083).
+
 ### Onda 7: revisão final de acessibilidade, casos extremos e desempenho (2026-10-30)
 
 #### Adicionado

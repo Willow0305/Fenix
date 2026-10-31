@@ -1,8 +1,10 @@
 import Link from 'next/link';
 
 import { Icon } from '../../components/icon';
+import { googleCalendarUrl } from '../../lib/calendar';
 import { eventHeadline, eventPlace, type TeamEvent } from '../../lib/content-types';
 import { TEAM_TIME_ZONE } from '../../lib/format';
+import { absoluteUrl } from '../../lib/structured-data';
 import styles from './home.module.scss';
 
 const DAY = new Intl.DateTimeFormat('pt-BR', { day: '2-digit', timeZone: TEAM_TIME_ZONE });
@@ -45,8 +47,14 @@ export function NextGame({ event }: { readonly event: TeamEvent }) {
           <Link href={`/eventos/${event.slug}`} className="btn btn-primary">
             Ver o jogo
           </Link>
-          <a href={`/eventos/${event.slug}/agenda.ics`} className="btn btn-secondary" download>
-            <Icon name="calendar-plus" /> Adicionar à agenda
+          <a
+            href={googleCalendarUrl(event, absoluteUrl(`/eventos/${event.slug}`))}
+            className="btn btn-secondary"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            <Icon name="calendar-plus" /> Adicionar ao Google Agenda{' '}
+            <span className="visually-hidden">(abre em nova aba)</span>
           </a>
         </div>
       </div>

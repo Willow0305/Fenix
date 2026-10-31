@@ -91,4 +91,27 @@ describe('Apagar notificações', () => {
     expect(removed.body).toEqual({ removed: 1 });
     expect((await list(user.token)).map((item) => item.readAt)).toEqual([null]);
   });
+
+  it('aviso que não conta entra já lido: aparece na lista, sem acender a bolinha', async () => {
+    const user = await tokenFor(ctx, ['user']);
+
+    await notify(user.id);
+    await ctx.app.get(NotificationsService).notify({
+      userId: user.id,
+      type: 'order.status',
+      title: 'Pedido FNX-1: Entregue',
+      message: 'Pedido entregue.',
+      deduplicationKey: randomUUID(),
+      countsAsUnread: false
+    });
+
+    const unread = await ctx
+      .http()
+      .get('/api/v1/me/notifications/unread-count')
+      .set(auth(user.token))
+      .expect(200);
+
+    expect(unread.body).toEqual({ count: 1 });
+    expect((await list(user.token)).filter((item) => item.readAt !== null)).toHaveLength(1);
+  });
 });

@@ -34,6 +34,7 @@ import {
   provesDelivery,
   strongerProof
 } from '../domain/delivery';
+import { orderStatusCountsAsUnread } from '../domain/store-rules';
 import { OrdersService, type OrderView } from './orders.service';
 
 export interface CourierInput {
@@ -562,7 +563,8 @@ export class DeliveryDispatchService implements OnModuleInit {
           title: `Pedido ${order.orderNumber}: entregue`,
           message: 'Pedido entregue. Obrigado por comprar com o Fênix!',
           link: `/minha-conta/pedidos/${orderId}`,
-          deduplicationKey: `order-status:${orderId}:DELIVERED`
+          deduplicationKey: `order-status:${orderId}:DELIVERED`,
+          countsAsUnread: orderStatusCountsAsUnread('DELIVERED')
         },
         tx
       );

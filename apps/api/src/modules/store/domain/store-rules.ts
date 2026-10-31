@@ -120,6 +120,15 @@ export const ORDER_STATUS_LABELS: Record<OrderStatus, string> = {
   REFUNDED: 'Reembolsado'
 };
 
+/**
+ * Avisos de pedido que não acendem a bolinha do sino (pedido do responsável, 2026-10-30):
+ * entregue, cancelado e reembolsado encerram o pedido e não pedem nada da pessoa. Eles
+ * continuam na lista de notificações e nos envios por e-mail; só entram já como lidos.
+ */
+export function orderStatusCountsAsUnread(status: OrderStatus): boolean {
+  return status !== 'DELIVERED' && status !== 'CANCELLED' && status !== 'REFUNDED';
+}
+
 /** Transições manuais. PAID só ocorre pela confirmação do pagamento. */
 export const ORDER_TRANSITIONS: TransitionTable<OrderStatus> = {
   CREATED: ['AWAITING_PAYMENT', 'CANCELLED'],

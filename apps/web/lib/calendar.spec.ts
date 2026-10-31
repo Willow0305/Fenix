@@ -1,5 +1,5 @@
 /** @jest-environment node */
-import { eventIcs, groupAgenda } from './calendar';
+import { googleCalendarUrl, groupAgenda } from './calendar';
 import type { TeamEvent } from './content-types';
 
 const base: TeamEvent = {
@@ -28,36 +28,36 @@ const base: TeamEvent = {
   news: []
 };
 
-describe('arquivo de calendário', () => {
-  const ics = eventIcs(
-    base,
-    'http://localhost:3000/eventos/final',
-    new Date('2026-10-30T12:00:00Z')
-  );
+describe('link do Google Agenda', () => {
+  const params = (event: TeamEvent) =>
+    new URL(googleCalendarUrl(event, 'http://localhost:3000/eventos/final')).searchParams;
 
-  it('usa UTC, 2 horas de duração padrão e quebras de linha CRLF', () => {
-    expect(ics).toContain('DTSTART:20261105T230000Z\r\n');
-    expect(ics).toContain('DTEND:20261106T010000Z\r\n');
-    expect(ics.endsWith('END:VCALENDAR\r\n')).toBe(true);
+  it('abre o Google Agenda com o evento preenchido, em UTC e com 2 horas por padrão', () => {
+    const url = googleCalendarUrl(base, 'http://localhost:3000/eventos/final');
+    const query = params(base);
+
+    expect(url.startsWith('https://calendar.google.com/calendar/render?')).toBe(true);
+    expect(query.get('action')).toBe('TEMPLATE');
+    expect(query.get('dates')).toBe('20261105T230000Z/20261106T010000Z');
+    expect(query.get('text')).toBe('Final, estadual; quadra 1');
+    expect(query.get('location')).toBe('Ginásio Álvaro, Rua A, 10');
+    expect(query.get('details')).toBe(
+      'Chegue cedo.\nTraga água.\n\nhttp://localhost:3000/eventos/final'
+    );
   });
 
-  it('escapa vírgula, ponto e vírgula e quebra de linha do texto', () => {
-    expect(ics).toContain('SUMMARY:Final\\, estadual\\; quadra 1');
-    expect(ics).toContain('LOCATION:Ginásio Álvaro\\, Rua A\\, 10');
-    expect(ics).toContain('DESCRIPTION:Chegue cedo.\\nTraga água.');
-  });
+  it('usa o término informado e corta descrição longa sem perder o link', () => {
+    const query = params({
+      ...base,
+      endsAt: '2026-11-06T02:30:00Z',
+      description: 'á'.repeat(2000),
+      locationName: null,
+      address: null
+    });
 
-  it('dobra linhas longas em até 75 bytes', () => {
-    const long = eventIcs({ ...base, description: 'á'.repeat(200) }, 'http://x');
-    const encoder = new TextEncoder();
-
-    for (const line of long.split('\r\n')) {
-      expect(encoder.encode(line).length).toBeLessThanOrEqual(75);
-    }
-  });
-
-  it('marca o evento cancelado', () => {
-    expect(eventIcs({ ...base, status: 'CANCELLED' }, 'http://x')).toContain('STATUS:CANCELLED');
+    expect(query.get('dates')).toBe('20261105T230000Z/20261106T023000Z');
+    expect(query.get('details')?.endsWith('…\n\nhttp://localhost:3000/eventos/final')).toBe(true);
+    expect(query.has('location')).toBe(false);
   });
 });
 

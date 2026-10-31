@@ -48,6 +48,7 @@ import {
   lineTotal,
   ORDER_STATUS_LABELS,
   ORDER_TRANSITIONS,
+  orderStatusCountsAsUnread,
   requiresStock,
   PIX_RESERVATION_MINUTES_DEFAULT,
   RESERVATION_HOURS_DEFAULT
@@ -1512,7 +1513,8 @@ export class OrdersService implements OnModuleInit {
                   ? 'Pedido entregue. Toque em "Recebi" em Meus pedidos para confirmar; os prazos de troca contam a partir daí.'
                   : `A situação do seu pedido mudou para "${ORDER_STATUS_LABELS[status]}".`,
         link: `/minha-conta/pedidos/${row.id}`,
-        deduplicationKey: `order-status:${row.id}:${status}`
+        deduplicationKey: `order-status:${row.id}:${status}`,
+        countsAsUnread: orderStatusCountsAsUnread(status)
       },
       tx
     );

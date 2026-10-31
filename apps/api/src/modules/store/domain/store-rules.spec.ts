@@ -8,6 +8,7 @@ import {
   isPurchasable,
   lineTotal,
   ORDER_TRANSITIONS,
+  orderStatusCountsAsUnread,
   orderTotal,
   reservedStock,
   signedDelta,
@@ -112,6 +113,17 @@ describe('regras da loja', () => {
     );
     expect(buyerLimitExceeded(2, 1, 2)).toBe(true);
     expect(buyerLimitExceeded(null, 10, 10)).toBe(false);
+  });
+});
+
+describe('bolinha do sino nos avisos de pedido', () => {
+  it('entregue, cancelado e reembolsado não contam; o restante conta', () => {
+    expect(orderStatusCountsAsUnread('DELIVERED')).toBe(false);
+    expect(orderStatusCountsAsUnread('CANCELLED')).toBe(false);
+    expect(orderStatusCountsAsUnread('REFUNDED')).toBe(false);
+    expect(orderStatusCountsAsUnread('PAID')).toBe(true);
+    expect(orderStatusCountsAsUnread('READY_FOR_PICKUP')).toBe(true);
+    expect(orderStatusCountsAsUnread('OUT_FOR_DELIVERY')).toBe(true);
   });
 });
 
