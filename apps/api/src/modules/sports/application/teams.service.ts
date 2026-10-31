@@ -248,7 +248,7 @@ export class TeamsService {
                 fullName: true,
                 preferredName: true,
                 birthDate: true,
-                position: true,
+                positions: true,
                 user: {
                   select: {
                     avatarMediaFileId: true,
@@ -297,7 +297,8 @@ export class TeamsService {
 
             return {
               displayName: publicDisplayName(athlete.fullName, athlete.preferredName, adult),
-              position: membership.position ?? athlete.position,
+              // Posição no time, se a diretoria definiu; senão, as posições da ficha (DT-085).
+              position: membership.position ?? (athlete.positions.join(', ') || null),
               photoUrl:
                 showPhoto && user.avatarMediaFileId ? mediaUrl(user.avatarMediaFileId) : null
             };

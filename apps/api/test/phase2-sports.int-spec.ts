@@ -256,7 +256,7 @@ describe('Fase 2 — atletas, equipes, interessados e seletivas', () => {
         .send({
           fullName: name,
           ...ADULT,
-          position: 'Levantadora',
+          positions: ['Levantadora'],
           documentNumber: randomCpf()
         })
         .expect(201);
@@ -276,15 +276,23 @@ describe('Fase 2 — atletas, equipes, interessados e seletivas', () => {
         .http()
         .patch(`/api/v1/athletes/${created.body.id}`)
         .set(auth(board.token))
-        .send({ position: 'Ponteira' })
+        .send({ positions: ['Ponteira', 'Oposta'] })
+        .expect(200);
+      // Mesma lista de novo não gera histórico (comparação pelo conteúdo).
+      await ctx
+        .http()
+        .patch(`/api/v1/athletes/${created.body.id}`)
+        .set(auth(board.token))
+        .send({ positions: ['Ponteira', 'Oposta'] })
         .expect(200);
 
-      const history = await ctx.prisma.auditLog.findFirst({
+      const history = await ctx.prisma.auditLog.findMany({
         where: { entityId: created.body.id, action: 'athlete.updated' }
       });
 
-      expect(history?.beforeData).toEqual({ position: 'Levantadora' });
-      expect(history?.afterData).toEqual({ position: 'Ponteira' });
+      expect(history).toHaveLength(1);
+      expect(history[0]?.beforeData).toEqual({ positions: ['Levantadora'] });
+      expect(history[0]?.afterData).toEqual({ positions: ['Ponteira', 'Oposta'] });
     });
 
     it('exige responsável para menor e ciência para menor de 12', async () => {

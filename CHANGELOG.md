@@ -6,6 +6,12 @@ O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) e o 
 
 ## [Não publicado]
 
+### Várias posições na ficha do atleta (2026-10-30)
+
+#### Alterado
+
+- a ficha do atleta aceita mais de uma posição, com as mesmas caixas da inscrição; o elenco em Times mostra todas quando o vínculo com o time não define uma posição própria; Minha conta e a lista de atletas mostram todas (DT-085; migração `20261030110000_posicoes_do_atleta`).
+
 ### Várias posições desejadas (2026-10-30)
 
 #### Alterado

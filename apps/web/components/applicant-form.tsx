@@ -5,7 +5,8 @@ import Link from 'next/link';
 import { type ReactNode, useState } from 'react';
 
 import { ageFrom } from '../lib/age';
-import { GENDER, POSITIONS, UNDECIDED_POSITION } from '../lib/sports-types';
+import { GENDER } from '../lib/sports-types';
+import { PositionChoices } from './position-choices';
 import { ErrorSummary, PhoneField, SelectField, TextArea, TextField, useSubmit } from './ui';
 
 export interface ApplicantPayload {
@@ -69,17 +70,6 @@ export function ApplicantForm({
   });
   const set = (key: keyof typeof form) => (event: { target: { value: string } }) =>
     setForm((current) => ({ ...current, [key]: event.target.value }));
-  // Mais de uma posição (DT-085); "Ainda não sei" não combina com as outras.
-  const togglePosition = (position: string, checked: boolean) =>
-    setPositions((current) => {
-      if (!checked) {
-        return current.filter((item) => item !== position);
-      }
-
-      return position === UNDECIDED_POSITION
-        ? [position]
-        : [...current.filter((item) => item !== UNDECIDED_POSITION), position];
-    });
   const setValue = (key: keyof typeof form) => (value: string) =>
     setForm((current) => ({ ...current, [key]: value }));
 
@@ -131,21 +121,11 @@ export function ApplicantForm({
             ...Object.entries(GENDER).map(([value, label]) => ({ value, label }))
           ]}
         />
-        <fieldset className="position-choices">
-          <legend className="label">Posições desejadas (opcional; marque quantas quiser)</legend>
-          <div className="position-options">
-            {POSITIONS.map((position) => (
-              <label key={position} className="checkbox">
-                <input
-                  type="checkbox"
-                  checked={positions.includes(position)}
-                  onChange={(event) => togglePosition(position, event.target.checked)}
-                />
-                <span>{position}</span>
-              </label>
-            ))}
-          </div>
-        </fieldset>
+        <PositionChoices
+          legend="Posições desejadas (opcional; marque quantas quiser)"
+          value={positions}
+          onChange={setPositions}
+        />
       </div>
 
       {isChild ? (

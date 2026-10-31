@@ -21,7 +21,7 @@ export default function MyAthletePage() {
     ['Nome', a.fullName],
     ['Apelido', a.preferredName],
     ['Nascimento', formatDate(a.birthDate)],
-    ['Posição', a.position],
+    ['Posições', a.positions.length > 0 ? a.positions.join(', ') : null],
     ['Gênero', a.gender ? GENDER[a.gender] : null],
     ['E-mail', a.email],
     ['Telefone', a.phone ? formatPhoneDisplay(a.phone) : null],

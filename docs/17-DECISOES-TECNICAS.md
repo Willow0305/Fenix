@@ -1757,6 +1757,15 @@ A medição da Onda 7 no celular (build de produção, rede 4G lenta e CPU 4x ma
 - `interested_people.desired_positions` e `tryout_registrations.desired_positions` viram listas (`VARCHAR(80)[]`); a migração `20261030100000_varias_posicoes` copia a posição que já existia como primeiro item; a API recebe `desiredPositions` (lista) no lugar de `desiredPosition`;
 - o painel mostra as posições separadas por vírgula; ao criar o atleta a partir da inscrição, a ficha vem com a primeira posição marcada, porque a ficha do atleta e o elenco guardam uma posição principal (a do vínculo com o time).
 
+### Ampliação: posições na ficha do atleta (2026-10-30)
+
+Aprovada pelo responsável ("posição na ficha do atleta: sim"):
+
+- a ficha do atleta também aceita várias posições (`athletes.positions`, `VARCHAR(80)[]`; migração `20261030110000_posicoes_do_atleta`, que mantém a posição antiga como primeiro item); a API recebe `positions` (lista) no lugar de `position`; ao criar o atleta a partir da inscrição, vêm todas as posições desejadas;
+- o mesmo grupo de caixas (`PositionChoices`) serve à inscrição e à ficha; posição já gravada fora da lista padrão (texto antigo) continua aparecendo marcada, para não se perder ao salvar;
+- o histórico da ficha compara a lista pelo conteúdo: salvar as mesmas posições não gera registro;
+- a posição do vínculo com o time (`team_athletes.position`) continua única: é a função naquele time e, quando preenchida, é a que aparece no elenco; sem ela, o elenco mostra as posições da ficha separadas por vírgula.
+
 ### Consequências
 
 - clientes da API que enviavam `desiredPosition` (texto) passam a ter o campo ignorado; o único cliente é o próprio site, já atualizado.

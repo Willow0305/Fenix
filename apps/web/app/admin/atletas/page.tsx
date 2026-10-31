@@ -150,7 +150,9 @@ function AthletesList() {
                       ) : null}
                     </td>
                     <td data-label="Nascimento">{formatDate(athlete.birthDate)}</td>
-                    <td data-label="Posição">{athlete.position ?? '—'}</td>
+                    <td data-label="Posição">
+                      {athlete.positions.length > 0 ? athlete.positions.join(', ') : '—'}
+                    </td>
                     <td data-label="Equipes">{athlete.teams.join(', ') || '—'}</td>
                     <td data-label="Status">
                       <span className={`badge ${ATHLETE_STATUS[athlete.status].badge}`}>

@@ -90,7 +90,7 @@ export class PrivacyService {
             fullName: true,
             preferredName: true,
             birthDate: true,
-            position: true,
+            positions: true,
             status: true,
             email: true,
             phone: true,

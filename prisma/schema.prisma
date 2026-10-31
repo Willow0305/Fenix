@@ -864,7 +864,7 @@ model Athlete {
   email                   String?       @db.VarChar(180)
   phone                   String?       @db.VarChar(30)
   gender                  Gender?
-  position                String?       @db.VarChar(80)
+  positions               String[]      @default([]) @db.VarChar(80)
   emergencyContactName    String?       @map("emergency_contact_name") @db.VarChar(160)
   emergencyContactPhone   String?       @map("emergency_contact_phone") @db.VarChar(30)
   guardianName            String?       @map("guardian_name") @db.VarChar(160)

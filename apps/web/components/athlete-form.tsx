@@ -4,7 +4,8 @@ import { FIELD_LIMITS } from '@fenix/validation';
 import { useState } from 'react';
 
 import { ageFrom } from '../lib/age';
-import { type AthleteDetail, GENDER, POSITIONS } from '../lib/sports-types';
+import { type AthleteDetail, GENDER } from '../lib/sports-types';
+import { PositionChoices } from './position-choices';
 import {
   CpfField,
   ErrorSummary,
@@ -23,7 +24,7 @@ export interface AthletePayload {
   email?: string;
   phone?: string;
   gender?: string;
-  position?: string;
+  positions?: string[];
   emergencyContactName?: string;
   emergencyContactPhone?: string;
   guardianName?: string;
@@ -32,7 +33,10 @@ export interface AthletePayload {
   notes?: string;
 }
 
-type FormState = Record<Exclude<keyof AthletePayload, 'guardianAcknowledged'>, string>;
+type FormState = Record<
+  Exclude<keyof AthletePayload, 'guardianAcknowledged' | 'positions'>,
+  string
+>;
 
 function initial(
   source?: Partial<AthleteDetail> & { desiredPositions?: readonly string[] }
@@ -45,8 +49,6 @@ function initial(
     email: source?.email ?? '',
     phone: source?.phone ?? '',
     gender: source?.gender ?? '',
-    // A ficha guarda a posição principal: a primeira marcada na inscrição (DT-085).
-    position: source?.position ?? source?.desiredPositions?.[0] ?? '',
     emergencyContactName: source?.emergencyContactName ?? '',
     emergencyContactPhone: source?.emergencyContactPhone ?? '',
     guardianName: source?.guardianName ?? '',
@@ -83,6 +85,9 @@ export function AthleteForm({
 }) {
   const start = initial(source);
   const [form, setForm] = useState<FormState>(start);
+  // Uma ou mais posições; ao criar a partir da inscrição, vêm as posições desejadas (DT-085).
+  const startPositions = [...(source?.positions ?? source?.desiredPositions ?? [])];
+  const [positions, setPositions] = useState<string[]>(startPositions);
   const [ack, setAck] = useState(false);
   const age = form.birthDate ? ageFrom(form.birthDate) : null;
   const isMinor = age !== null && age < 18;
@@ -100,6 +105,14 @@ export function AthleteForm({
 
     if (mode === 'create') {
       payload.fullName = form.fullName;
+    }
+
+    if (
+      mode === 'create'
+        ? positions.length > 0
+        : JSON.stringify(positions) !== JSON.stringify(startPositions)
+    ) {
+      payload.positions = positions;
     }
 
     if (needsAck && ack) {
@@ -160,17 +173,7 @@ export function AthleteForm({
               ...Object.entries(GENDER).map(([value, label]) => ({ value, label }))
             ]}
           />
-          <SelectField
-            label="Posição"
-            value={form.position}
-            onChange={set('position')}
-            options={[
-              { value: '', label: 'Não definida' },
-              ...[...new Set([...POSITIONS, ...(form.position ? [form.position] : [])])].map(
-                (p) => ({ value: p, label: p })
-              )
-            ]}
-          />
+          <PositionChoices legend="Posições" value={positions} onChange={setPositions} />
         </div>
       </fieldset>
 

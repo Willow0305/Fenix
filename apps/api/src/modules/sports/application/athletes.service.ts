@@ -28,6 +28,7 @@ import {
   ATHLETE_TRANSITIONS,
   normalizeDocument,
   normalizeName,
+  normalizePositions,
   periodsOverlap,
   validateGuardian
 } from '../domain/sports-rules';
@@ -41,7 +42,8 @@ export interface AthleteInput {
   readonly email?: string | null;
   readonly phone?: string | null;
   readonly gender?: Gender | null;
-  readonly position?: string | null;
+  /** Uma ou mais posições (DT-085). */
+  readonly positions?: readonly string[] | null;
   readonly emergencyContactName?: string | null;
   readonly emergencyContactPhone?: string | null;
   readonly guardianName?: string | null;
@@ -64,7 +66,7 @@ export interface AthleteSummary {
   readonly fullName: string;
   readonly preferredName: string | null;
   readonly birthDate: string | null;
-  readonly position: string | null;
+  readonly positions: readonly string[];
   readonly status: AthleteStatus;
   readonly teams: readonly string[];
   readonly hasAccount: boolean;
@@ -146,7 +148,7 @@ const TRACKED_FIELDS = [
   'email',
   'phone',
   'gender',
-  'position',
+  'positions',
   'emergencyContactName',
   'emergencyContactPhone',
   'guardianName',
@@ -199,7 +201,7 @@ export class AthletesService {
       fullName: row.fullName,
       preferredName: row.preferredName,
       birthDate: optionalCivil(row.birthDate),
-      position: row.position,
+      positions: row.positions,
       status: row.status,
       teams: this.activeTeams(row),
       hasAccount: row.userId !== null,
@@ -340,7 +342,7 @@ export class AthletesService {
           fullName: detail.fullName,
           preferredName: detail.preferredName,
           birthDate: detail.birthDate,
-          position: detail.position,
+          positions: detail.positions,
           status: detail.status,
           teams: detail.teams,
           hasAccount: detail.hasAccount
@@ -486,7 +488,7 @@ export class AthletesService {
         email: input.email ? normalizeEmail(input.email) : null,
         phone: trimOrNull(input.phone),
         gender: input.gender ?? null,
-        position: trimOrNull(input.position),
+        positions: normalizePositions(input.positions),
         emergencyContactName: trimOrNull(input.emergencyContactName),
         emergencyContactPhone: trimOrNull(input.emergencyContactPhone),
         guardianName: trimOrNull(input.guardianName),
@@ -571,7 +573,9 @@ export class AthletesService {
           : { email: input.email ? normalizeEmail(input.email) : null }),
         ...(input.phone === undefined ? {} : { phone: trimOrNull(input.phone) }),
         ...(input.gender === undefined ? {} : { gender: input.gender }),
-        ...(input.position === undefined ? {} : { position: trimOrNull(input.position) }),
+        ...(input.positions === undefined
+          ? {}
+          : { positions: normalizePositions(input.positions) }),
         ...(input.emergencyContactName === undefined
           ? {}
           : { emergencyContactName: trimOrNull(input.emergencyContactName) }),
@@ -597,9 +601,14 @@ export class AthletesService {
       const currentView = this.toDetail(current) as unknown as Record<string, unknown>;
 
       for (const field of TRACKED_FIELDS) {
-        const next = (input as Record<string, unknown>)[field];
+        const raw = (input as Record<string, unknown>)[field];
+        const next = field === 'positions' && raw !== undefined ? data.positions : raw;
+        // Listas (posições) comparadas pelo conteúdo, não pela referência.
+        const changed = Array.isArray(next)
+          ? JSON.stringify(next) !== JSON.stringify(currentView[field])
+          : next !== currentView[field];
 
-        if (next !== undefined && next !== currentView[field]) {
+        if (next !== undefined && changed) {
           before[field] = currentView[field] ?? null;
           after[field] = next;
         }

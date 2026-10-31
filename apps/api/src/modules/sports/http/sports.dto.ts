@@ -99,7 +99,13 @@ export class AthleteDto {
   @IsMobilePhoneBr()
   phone?: string;
   @ApiPropertyOptional({ enum: Gender }) @IsOptional() @IsEnum(Gender) gender?: Gender;
-  @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(80) position?: string;
+  @ApiPropertyOptional({ type: [String], description: 'Uma ou mais posições (DT-085).' })
+  @IsOptional()
+  @IsArray()
+  @ArrayMaxSize(MAX_DESIRED_POSITIONS)
+  @IsString({ each: true })
+  @MaxLength(80, { each: true })
+  positions?: string[];
   @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(160) emergencyContactName?: string;
   @ApiPropertyOptional()
   @IsOptional()
@@ -131,7 +137,13 @@ export class UpdateAthleteDto {
   @IsMobilePhoneBr()
   phone?: string;
   @ApiPropertyOptional({ enum: Gender }) @IsOptional() @IsEnum(Gender) gender?: Gender;
-  @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(80) position?: string;
+  @ApiPropertyOptional({ type: [String], description: 'Uma ou mais posições (DT-085).' })
+  @IsOptional()
+  @IsArray()
+  @ArrayMaxSize(MAX_DESIRED_POSITIONS)
+  @IsString({ each: true })
+  @MaxLength(80, { each: true })
+  positions?: string[];
   @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(160) emergencyContactName?: string;
   @ApiPropertyOptional()
   @IsOptional()

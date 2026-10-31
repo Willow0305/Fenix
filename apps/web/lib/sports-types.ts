@@ -44,7 +44,7 @@ export interface AthleteSummary {
   fullName: string;
   preferredName: string | null;
   birthDate: string | null;
-  position: string | null;
+  positions: string[];
   status: AthleteStatus;
   teams: string[];
   hasAccount: boolean;

@@ -109,7 +109,7 @@ async function main(): Promise<void> {
       const athlete = await prisma.athlete.create({
         data: {
           fullName: a.fullName,
-          position: a.position,
+          positions: [a.position],
           birthDate: new Date(`${a.birth}T00:00:00Z`),
           status: 'ACTIVE',
           notes: 'Cadastro fictício de demonstração.'
