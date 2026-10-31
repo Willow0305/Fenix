@@ -37,6 +37,20 @@ test('carrinho mostra os direitos de quem compra', async ({ page }) => {
   await expect(page.getByText(/desistir em até 7 dias/)).toBeVisible();
 });
 
+test('remover item leva o foco ao "Desfazer", que devolve o item', async ({ page }) => {
+  await addToCart(page, /Garrafa/);
+  await page.goto('/loja/carrinho');
+  await expect(page.locator('.cart-line')).toHaveCount(1);
+
+  await page.getByRole('button', { name: 'Remover' }).click();
+
+  const undo = page.getByRole('button', { name: 'Desfazer' });
+
+  await expect(undo).toBeFocused();
+  await page.keyboard.press('Enter');
+  await expect(page.locator('.cart-line')).toHaveCount(1);
+});
+
 /** Entrega em casa (DT-075): bairro da lista, taxa no total e endereço no pedido. */
 test('visitante escolhe receber em casa e vê a taxa no total', async ({ page }, info) => {
   const watcher = watch(page);

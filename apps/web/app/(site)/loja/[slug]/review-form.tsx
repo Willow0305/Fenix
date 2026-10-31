@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useId, useRef, useState } from 'react';
 
 import { StarInput } from '../../../../components/stars';
 import { Alert, ErrorSummary, TextArea, useSubmit } from '../../../../components/ui';
@@ -19,6 +19,8 @@ export function ReviewForm({ productId }: { readonly productId: string }) {
   const [comment, setComment] = useState('');
   const [missingRating, setMissingRating] = useState(false);
   const [sent, setSent] = useState(false);
+  const errorId = useId();
+  const stars = useRef<HTMLDivElement>(null);
   const review = mine.data?.review ?? null;
 
   useEffect(() => {
@@ -31,6 +33,8 @@ export function ReviewForm({ productId }: { readonly productId: string }) {
   const save = useSubmit(async () => {
     if (rating === 0) {
       setMissingRating(true);
+      // Leva o foco às estrelas: o leitor de tela lê o grupo e a mensagem ligada a ele.
+      stars.current?.querySelector<HTMLInputElement>('input[type="radio"]')?.focus();
       return;
     }
 
@@ -56,14 +60,21 @@ export function ReviewForm({ productId }: { readonly productId: string }) {
           ) : null}
         </p>
       ) : null}
-      <StarInput
-        value={rating}
-        onChange={(value) => {
-          setRating(value);
-          setMissingRating(false);
-        }}
-      />
-      {missingRating ? <span className="field-error">Escolha de 1 a 5 estrelas.</span> : null}
+      <div ref={stars}>
+        <StarInput
+          value={rating}
+          errorId={missingRating ? errorId : undefined}
+          onChange={(value) => {
+            setRating(value);
+            setMissingRating(false);
+          }}
+        />
+      </div>
+      {missingRating ? (
+        <span id={errorId} className="field-error">
+          Escolha de 1 a 5 estrelas.
+        </span>
+      ) : null}
       <TextArea
         label="Comentário (opcional)"
         maxLength={1000}

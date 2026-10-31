@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 import { Icon } from '../../../../components/icon';
 import { LiveRefresh } from '../../../../components/live-refresh';
@@ -40,6 +40,14 @@ export default function CartPage() {
   const [lineError, setLineError] = useState<string | null>(null);
   // Última linha removida, para "Desfazer" (fica até a pessoa agir ou fechar o aviso).
   const [removed, setRemoved] = useState<CartLine | null>(null);
+  const undoButton = useRef<HTMLButtonElement>(null);
+
+  // O botão "Remover" some com a linha: o foco vai para "Desfazer", sem voltar ao topo.
+  useEffect(() => {
+    if (removed) {
+      undoButton.current?.focus();
+    }
+  }, [removed]);
   const [form, setForm] = useState({
     customerName: '',
     customerEmail: '',
@@ -200,6 +208,7 @@ export default function CartPage() {
               Removido: <strong>{removed.productName}</strong>
             </span>
             <button
+              ref={undoButton}
               type="button"
               className="btn btn-secondary btn-sm"
               onClick={() => {

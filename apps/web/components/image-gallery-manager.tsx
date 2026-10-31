@@ -47,7 +47,7 @@ export function ImageGalleryManager<T>({
   placeholder,
   removeDescription,
   firstIsCover = false,
-  noun = 'foto',
+  noun = '',
   imagesOf
 }: {
   /** Base REST: POST (envio), PUT `order`, PATCH e DELETE `/:imageId`. */
@@ -75,6 +75,7 @@ export function ImageGalleryManager<T>({
   const [removing, setRemoving] = useState<GalleryImage | null>(null);
   const [busy, setBusy] = useState(false);
   const headingId = useId();
+  const limitText = noun ? `${max} fotos ${noun}` : `${max} fotos`;
   // Recorte de uma foto nova (antes de enviar) ou de uma já enviada (DT-081).
   const [cropping, setCropping] = useState<
     { kind: 'new'; src: string } | { kind: 'existing'; src: string; image: GalleryImage } | null
@@ -193,7 +194,7 @@ export function ImageGalleryManager<T>({
         kind: 'error',
         text:
           room <= 0
-            ? `O limite é de ${max} fotos ${noun}. Remova uma para enviar outra.`
+            ? `O limite é de ${limitText}. Remova uma para enviar outra.`
             : 'Envie imagens PNG, JPG ou WebP de até 10 MB.'
       });
 
@@ -353,7 +354,6 @@ export function ImageGalleryManager<T>({
                   type="button"
                   className="btn btn-secondary btn-sm"
                   disabled={busy || order.length >= max}
-                  title={order.length >= max ? 'Remova uma foto para poder recortar.' : undefined}
                   onClick={() => setCropping({ kind: 'existing', src: image.url, image })}
                 >
                   <Icon name="crop" /> Recortar
@@ -391,7 +391,12 @@ export function ImageGalleryManager<T>({
             }}
           />
         </div>
-      ) : null}
+      ) : (
+        // No limite, o motivo fica visível (botão desativado não recebe foco nem dica).
+        <p className="muted m-0">
+          Limite de {limitText} atingido. Para enviar ou recortar, remova uma foto antes.
+        </p>
+      )}
 
       <ImageCropDialog
         src={cropping?.src ?? null}

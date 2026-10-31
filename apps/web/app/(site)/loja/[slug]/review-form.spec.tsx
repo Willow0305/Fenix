@@ -34,8 +34,15 @@ describe('formulário de avaliação', () => {
     render(<ReviewForm productId="p1" />);
 
     fireEvent.click(screen.getByRole('button', { name: 'Enviar avaliação' }));
-    expect(await screen.findByText('Escolha de 1 a 5 estrelas.')).toBeInTheDocument();
+    const error = await screen.findByText('Escolha de 1 a 5 estrelas.');
+    const first = screen.getByLabelText('1 estrela');
+
     expect(api).not.toHaveBeenCalled();
+    // O foco vai para as estrelas, marcadas como inválidas e ligadas à mensagem.
+    expect(first).toHaveFocus();
+    expect(first).toHaveAttribute('aria-invalid', 'true');
+    expect(first).toHaveAccessibleDescription('Escolha de 1 a 5 estrelas.');
+    expect(error.id).not.toBe('');
 
     fireEvent.click(screen.getByLabelText('4 estrelas'));
     fireEvent.change(screen.getByLabelText(/Comentário/), { target: { value: 'Boa' } });

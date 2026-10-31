@@ -30,7 +30,8 @@ export function ShareButtons({ title, url }: { readonly title: string; readonly 
         target="_blank"
         rel="noopener noreferrer"
       >
-        <Icon name="whatsapp" /> WhatsApp
+        <Icon name="whatsapp" /> WhatsApp{' '}
+        <span className="visually-hidden">(abre em nova aba)</span>
       </a>
       <button type="button" className="btn btn-secondary btn-sm" onClick={() => void copy()}>
         <Icon name="link-45deg" /> Copiar link

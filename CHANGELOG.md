@@ -6,6 +6,15 @@ O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) e o 
 
 ## [Não publicado]
 
+### Revisão de interface das ondas (2026-10-30)
+
+#### Corrigido
+
+- avaliação de produto: enviar sem nota leva o foco às estrelas, marcadas como inválidas e ligadas à mensagem "Escolha de 1 a 5 estrelas.";
+- carrinho: ao remover um item, o foco vai para "Desfazer" em vez de voltar ao topo da página;
+- fotos no painel: no limite, o motivo de não poder enviar nem recortar fica escrito na tela (antes só aparecia ao passar o mouse sobre o botão desativado); lixeira com área de toque de 32 px;
+- compartilhar pelo WhatsApp avisa o leitor de tela que abre em nova aba, como o rodapé e o Google Agenda.
+
 ### Várias posições na ficha do atleta (2026-10-30)
 
 #### Alterado

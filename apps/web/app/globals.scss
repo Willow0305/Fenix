@@ -2466,6 +2466,13 @@ input.stepper-input {
   flex-wrap: wrap;
   gap: 0.35rem;
   align-items: center;
+
+  // Lixeira só com ícone: área de toque de 32 px, acima do mínimo de 24 px (WCAG 2.5.8).
+  .btn-link {
+    min-width: 32px;
+    min-height: 32px;
+    justify-content: center;
+  }
 }
 
 // Busca global do painel (DT-057).

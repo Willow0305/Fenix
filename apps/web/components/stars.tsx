@@ -26,14 +26,17 @@ export function Stars({
 export function StarInput({
   value,
   onChange,
-  name = 'nota'
+  name = 'nota',
+  errorId
 }: {
   readonly value: number;
   readonly onChange: (value: number) => void;
   readonly name?: string;
+  /** Id da mensagem de erro: cada estrela fica marcada como inválida e ligada a ela. */
+  readonly errorId?: string | undefined;
 }) {
   return (
-    <fieldset className="star-input">
+    <fieldset className="star-input" aria-describedby={errorId}>
       <legend>Sua nota</legend>
       {[1, 2, 3, 4, 5].map((step) => (
         <label key={step} className={value >= step ? 'is-on' : undefined}>
@@ -43,6 +46,8 @@ export function StarInput({
             value={step}
             checked={value === step}
             onChange={() => onChange(step)}
+            aria-invalid={errorId ? true : undefined}
+            aria-describedby={errorId}
             className="visually-hidden"
           />
           <Icon name={value >= step ? 'star-fill' : 'star'} />
