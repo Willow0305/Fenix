@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { type ReactNode, useState } from 'react';
 
 import { ageFrom } from '../lib/age';
-import { GENDER, POSITIONS } from '../lib/sports-types';
+import { GENDER, POSITIONS, UNDECIDED_POSITION } from '../lib/sports-types';
 import { ErrorSummary, PhoneField, SelectField, TextArea, TextField, useSubmit } from './ui';
 
 export interface ApplicantPayload {
@@ -14,7 +14,7 @@ export interface ApplicantPayload {
   email: string;
   phone: string;
   gender?: string;
-  desiredPosition?: string;
+  desiredPositions?: string[];
   experience?: string;
   notes?: string;
   guardianName?: string;
@@ -43,11 +43,11 @@ export function ApplicantForm({
     email: '',
     phone: '',
     gender: '',
-    desiredPosition: '',
     extra: '',
     guardianName: '',
     guardianPhone: ''
   });
+  const [positions, setPositions] = useState<string[]>([]);
   const [consent, setConsent] = useState(false);
   const age = form.birthDate ? ageFrom(form.birthDate) : null;
   const isMinor = age !== null && age < 18;
@@ -60,7 +60,7 @@ export function ApplicantForm({
       phone: form.phone,
       privacyConsent: consent,
       ...(form.gender ? { gender: form.gender } : {}),
-      ...(form.desiredPosition ? { desiredPosition: form.desiredPosition } : {}),
+      ...(positions.length > 0 ? { desiredPositions: positions } : {}),
       ...(form.extra ? { [extraField]: form.extra } : {}),
       ...(isMinor ? { guardianName: form.guardianName, guardianPhone: form.guardianPhone } : {})
     };
@@ -69,6 +69,17 @@ export function ApplicantForm({
   });
   const set = (key: keyof typeof form) => (event: { target: { value: string } }) =>
     setForm((current) => ({ ...current, [key]: event.target.value }));
+  // Mais de uma posição (DT-085); "Ainda não sei" não combina com as outras.
+  const togglePosition = (position: string, checked: boolean) =>
+    setPositions((current) => {
+      if (!checked) {
+        return current.filter((item) => item !== position);
+      }
+
+      return position === UNDECIDED_POSITION
+        ? [position]
+        : [...current.filter((item) => item !== UNDECIDED_POSITION), position];
+    });
   const setValue = (key: keyof typeof form) => (value: string) =>
     setForm((current) => ({ ...current, [key]: value }));
 
@@ -120,15 +131,21 @@ export function ApplicantForm({
             ...Object.entries(GENDER).map(([value, label]) => ({ value, label }))
           ]}
         />
-        <SelectField
-          label="Posição desejada (opcional)"
-          value={form.desiredPosition}
-          onChange={set('desiredPosition')}
-          options={[
-            { value: '', label: 'Selecione' },
-            ...POSITIONS.map((p) => ({ value: p, label: p }))
-          ]}
-        />
+        <fieldset className="position-choices">
+          <legend className="label">Posições desejadas (opcional; marque quantas quiser)</legend>
+          <div className="position-options">
+            {POSITIONS.map((position) => (
+              <label key={position} className="checkbox">
+                <input
+                  type="checkbox"
+                  checked={positions.includes(position)}
+                  onChange={(event) => togglePosition(position, event.target.checked)}
+                />
+                <span>{position}</span>
+              </label>
+            ))}
+          </div>
+        </fieldset>
       </div>
 
       {isChild ? (

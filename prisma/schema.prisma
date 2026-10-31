@@ -990,7 +990,7 @@ model InterestedPerson {
   birthDate            DateTime?              @map("birth_date") @db.Date
   email                String?                @db.VarChar(180)
   phone                String?                @db.VarChar(30)
-  desiredPosition      String?                @map("desired_position") @db.VarChar(80)
+  desiredPositions     String[]               @default([]) @map("desired_positions") @db.VarChar(80)
   source               String?                @db.VarChar(100)
   notes                String?                @db.Text
   guardianName         String?                @map("guardian_name") @db.VarChar(160)
@@ -1049,7 +1049,7 @@ model TryoutRegistration {
   email                String?                  @db.VarChar(180)
   phone                String?                  @db.VarChar(30)
   gender               Gender?
-  desiredPosition      String?                  @map("desired_position") @db.VarChar(80)
+  desiredPositions     String[]                 @default([]) @map("desired_positions") @db.VarChar(80)
   experience           String?                  @db.Text
   guardianName         String?                  @map("guardian_name") @db.VarChar(160)
   guardianPhone        String?                  @map("guardian_phone") @db.VarChar(30)

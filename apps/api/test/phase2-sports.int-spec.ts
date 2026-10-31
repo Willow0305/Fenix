@@ -587,10 +587,19 @@ describe('Fase 2 — atletas, equipes, interessados e seletivas', () => {
       const created = await ctx
         .http()
         .post('/api/v1/public/interest')
-        .send({ ...applicant({ email }), notes: 'Jogo há 3 anos' })
+        .send({
+          ...applicant({ email }),
+          notes: 'Jogo há 3 anos',
+          desiredPositions: ['Levantador(a)', 'Ponteiro(a)', 'Levantador(a)']
+        })
         .expect(201);
 
       expect(await ctx.prisma.user.count({ where: { email } })).toBe(0);
+      // Mais de uma posição desejada, sem repetir (DT-085).
+      expect(
+        (await ctx.prisma.interestedPerson.findUniqueOrThrow({ where: { id: created.body.id } }))
+          .desiredPositions
+      ).toEqual(['Levantador(a)', 'Ponteiro(a)']);
 
       await ctx
         .http()

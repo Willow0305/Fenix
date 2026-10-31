@@ -23,6 +23,7 @@ import {
   REASON_REQUIRED_REGISTRATION,
   REGISTRATION_BLOCK_MESSAGES,
   registrationBlock,
+  normalizePositions,
   SLOT_CONSUMING,
   slugify,
   TRYOUT_REGISTRATION_LABELS,
@@ -42,7 +43,7 @@ export interface ApplicantInput {
   readonly email: string;
   readonly phone: string;
   readonly gender?: Gender | null;
-  readonly desiredPosition?: string | null;
+  readonly desiredPositions?: readonly string[] | null;
   readonly experience?: string | null;
   readonly guardianName?: string | null;
   readonly guardianPhone?: string | null;
@@ -54,7 +55,7 @@ export interface InterestedView {
   readonly birthDate: string | null;
   readonly email: string | null;
   readonly phone: string | null;
-  readonly desiredPosition: string | null;
+  readonly desiredPositions: readonly string[];
   readonly notes: string | null;
   readonly guardianName: string | null;
   readonly guardianPhone: string | null;
@@ -100,7 +101,7 @@ export interface TryoutRegistrationView {
   readonly email: string | null;
   readonly phone: string | null;
   readonly gender: Gender | null;
-  readonly desiredPosition: string | null;
+  readonly desiredPositions: readonly string[];
   readonly experience: string | null;
   readonly guardianName: string | null;
   readonly guardianPhone: string | null;
@@ -144,7 +145,7 @@ function toRegistrationView(row: RegistrationRow): TryoutRegistrationView {
     email: row.email,
     phone: row.phone,
     gender: row.gender,
-    desiredPosition: row.desiredPosition,
+    desiredPositions: row.desiredPositions,
     experience: row.experience,
     guardianName: row.guardianName,
     guardianPhone: row.guardianPhone,
@@ -163,7 +164,7 @@ function toInterestedView(row: Prisma.InterestedPersonGetPayload<object>): Inter
     birthDate: optionalCivil(row.birthDate),
     email: row.email,
     phone: row.phone,
-    desiredPosition: row.desiredPosition,
+    desiredPositions: row.desiredPositions,
     notes: row.notes,
     guardianName: row.guardianName,
     guardianPhone: row.guardianPhone,
@@ -219,7 +220,7 @@ export class RecruitmentService {
         birthDate: civilToDate(input.birthDate),
         email: normalizeEmail(input.email),
         phone: input.phone.trim(),
-        desiredPosition: input.desiredPosition?.trim() || null,
+        desiredPositions: normalizePositions(input.desiredPositions),
         notes: input.notes?.trim() || null,
         guardianName: input.guardianName?.trim() || null,
         guardianPhone: input.guardianPhone?.trim() || null,
@@ -704,7 +705,7 @@ export class RecruitmentService {
             email,
             phone: input.phone.trim(),
             gender: input.gender ?? null,
-            desiredPosition: input.desiredPosition?.trim() || null,
+            desiredPositions: normalizePositions(input.desiredPositions),
             experience: input.experience?.trim() || null,
             guardianName: input.guardianName?.trim() || null,
             guardianPhone: input.guardianPhone?.trim() || null,

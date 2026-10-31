@@ -113,7 +113,7 @@ export interface TryoutRegistration {
   email: string | null;
   phone: string | null;
   gender: Gender | null;
-  desiredPosition: string | null;
+  desiredPositions: string[];
   experience: string | null;
   guardianName: string | null;
   guardianPhone: string | null;
@@ -130,7 +130,7 @@ export interface Interested {
   birthDate: string | null;
   email: string | null;
   phone: string | null;
-  desiredPosition: string | null;
+  desiredPositions: string[];
   notes: string | null;
   guardianName: string | null;
   guardianPhone: string | null;
@@ -253,13 +253,16 @@ export const INTERESTED_NEXT: Record<InterestedStatus, InterestedStatus[]> = {
   CONVERTED: []
 };
 
+/** Quem ainda não sabe a posição; não combina com as outras na inscrição. */
+export const UNDECIDED_POSITION = 'Ainda não sei';
+
 export const POSITIONS = [
   'Levantador(a)',
   'Oposto(a)',
   'Ponteiro(a)',
   'Central',
   'Líbero',
-  'Ainda não sei'
+  UNDECIDED_POSITION
 ];
 
 /** Elenco público por categoria (DT-044). */

@@ -6,6 +6,12 @@ O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) e o 
 
 ## [Não publicado]
 
+### Várias posições desejadas (2026-10-30)
+
+#### Alterado
+
+- "Quero jogar no Fênix" e a inscrição em seletiva aceitam mais de uma posição desejada (levantador, ponteiro, oposto…), em caixas de marcar; o painel mostra todas, e a ficha do atleta criada a partir da inscrição vem com a primeira (DT-085; migração `20261030100000_varias_posicoes`).
+
 ### Celular único e elenco com todos os atletas (2026-10-30)
 
 #### Alterado

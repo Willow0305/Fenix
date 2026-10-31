@@ -442,6 +442,26 @@ img {
   font-weight: 400;
 }
 
+// Posições desejadas na inscrição: várias caixas de marcar na linha inteira da grade.
+.position-choices {
+  grid-column: 1 / -1;
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+
+  legend {
+    padding: 0;
+    margin-bottom: 0.5rem;
+  }
+}
+
+.position-options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 1.25rem;
+}
+
 .form-actions {
   display: flex;
   flex-wrap: wrap;

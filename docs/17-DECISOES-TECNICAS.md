@@ -1745,3 +1745,19 @@ A medição da Onda 7 no celular (build de produção, rede 4G lenta e CPU 4x ma
 - quem divide o celular com outra pessoa da família precisa de número próprio para a segunda conta (ou deixar o campo vazio, que segue opcional);
 - atletas adultos passam a ter nome e posição públicos sem escolha própria: a Política de Privacidade (`docs/33`, em revisão por outra pessoa) precisa informar isso; registrar na revisão jurídica.
 
+## DT-085 — Mais de uma posição desejada na inscrição
+
+- **Estado:** Aceita; implementada em 2026-10-30
+- **Data:** 2026-10-30
+- **Aprovador:** responsável do projeto ("a posição desejada pelo atleta pode ser mais de uma (levantador, ponteiro, oposto, etc)")
+
+### Decisão
+
+- "Quero jogar no Fênix" e a inscrição em seletiva aceitam várias posições desejadas, marcadas em caixas (até 6, sem repetir, na ordem marcada); "Ainda não sei" não combina com as outras;
+- `interested_people.desired_positions` e `tryout_registrations.desired_positions` viram listas (`VARCHAR(80)[]`); a migração `20261030100000_varias_posicoes` copia a posição que já existia como primeiro item; a API recebe `desiredPositions` (lista) no lugar de `desiredPosition`;
+- o painel mostra as posições separadas por vírgula; ao criar o atleta a partir da inscrição, a ficha vem com a primeira posição marcada, porque a ficha do atleta e o elenco guardam uma posição principal (a do vínculo com o time).
+
+### Consequências
+
+- clientes da API que enviavam `desiredPosition` (texto) passam a ter o campo ignorado; o único cliente é o próprio site, já atualizado.
+

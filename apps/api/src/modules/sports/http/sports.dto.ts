@@ -9,7 +9,9 @@ import {
 } from '../../../generated/prisma/client';
 import { Transform } from 'class-transformer';
 import {
+  ArrayMaxSize,
   Equals,
+  IsArray,
   IsBoolean,
   IsEmail,
   IsEnum,
@@ -28,6 +30,7 @@ import {
 
 import { IsCpf, IsMobilePhoneBr, IsPhoneBr } from '../../../common/validation/br-fields';
 import { PageQueryDto } from '../../../common/http/pagination';
+import { MAX_DESIRED_POSITIONS } from '../domain/sports-rules';
 
 export const CIVIL_DATE_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
 
@@ -195,7 +198,13 @@ export class ApplicantDto {
   @ApiProperty() @IsEmail() @MaxLength(180) email!: string;
   @ApiProperty() @IsMobilePhoneBr() phone!: string;
   @ApiPropertyOptional({ enum: Gender }) @IsOptional() @IsEnum(Gender) gender?: Gender;
-  @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(80) desiredPosition?: string;
+  @ApiPropertyOptional({ type: [String], description: 'Uma ou mais posições desejadas.' })
+  @IsOptional()
+  @IsArray()
+  @ArrayMaxSize(MAX_DESIRED_POSITIONS)
+  @IsString({ each: true })
+  @MaxLength(80, { each: true })
+  desiredPositions?: string[];
   @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(2000) experience?: string;
   @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(160) guardianName?: string;
   @ApiPropertyOptional()

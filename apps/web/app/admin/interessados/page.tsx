@@ -127,7 +127,7 @@ function InterestedList() {
           <span className="muted">
             Nascimento {formatDate(person.birthDate)} · {person.email} ·{' '}
             {formatPhoneDisplay(person.phone)}
-            {person.desiredPosition ? ` · ${person.desiredPosition}` : ''}
+            {person.desiredPositions.length > 0 ? ` · ${person.desiredPositions.join(', ')}` : ''}
           </span>
           {person.guardianName ? (
             <span className="muted">
@@ -186,7 +186,7 @@ function InterestedList() {
                   phone: person.phone,
                   guardianName: person.guardianName,
                   guardianPhone: person.guardianPhone,
-                  desiredPosition: person.desiredPosition
+                  desiredPositions: person.desiredPositions
                 }}
                 submitLabel="Criar atleta"
                 onSubmit={async (payload) => {

@@ -34,7 +34,9 @@ export interface AthletePayload {
 
 type FormState = Record<Exclude<keyof AthletePayload, 'guardianAcknowledged'>, string>;
 
-function initial(source?: Partial<AthleteDetail> & { desiredPosition?: string | null }): FormState {
+function initial(
+  source?: Partial<AthleteDetail> & { desiredPositions?: readonly string[] }
+): FormState {
   return {
     fullName: source?.fullName ?? '',
     preferredName: source?.preferredName ?? '',
@@ -43,7 +45,8 @@ function initial(source?: Partial<AthleteDetail> & { desiredPosition?: string | 
     email: source?.email ?? '',
     phone: source?.phone ?? '',
     gender: source?.gender ?? '',
-    position: source?.position ?? source?.desiredPosition ?? '',
+    // A ficha guarda a posição principal: a primeira marcada na inscrição (DT-085).
+    position: source?.position ?? source?.desiredPositions?.[0] ?? '',
     emergencyContactName: source?.emergencyContactName ?? '',
     emergencyContactPhone: source?.emergencyContactPhone ?? '',
     guardianName: source?.guardianName ?? '',
@@ -73,7 +76,7 @@ export function AthleteForm({
   submitLabel,
   onSubmit
 }: {
-  readonly source?: (Partial<AthleteDetail> & { desiredPosition?: string | null }) | undefined;
+  readonly source?: (Partial<AthleteDetail> & { desiredPositions?: readonly string[] }) | undefined;
   readonly mode: 'create' | 'edit';
   readonly submitLabel: string;
   readonly onSubmit: (payload: AthletePayload) => Promise<void>;

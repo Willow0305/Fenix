@@ -4,6 +4,7 @@ import {
   ATHLETE_TRANSITIONS,
   INTERESTED_TRANSITIONS,
   normalizeDocument,
+  normalizePositions,
   periodsOverlap,
   registrationBlock,
   slugify,
@@ -110,6 +111,16 @@ describe('registrationBlock', () => {
       registrationBlock({ ...base, registrationEndsAt: new Date('2026-10-18T14:59:59Z') }, 0, now)
     ).toBe('ENDED');
     expect(registrationBlock({ ...base, maxSlots: 2 }, 2, now)).toBe('FULL');
+  });
+});
+
+describe('posições desejadas', () => {
+  it('aceita várias, sem espaços, vazias ou repetidas, na ordem marcada', () => {
+    expect(normalizePositions([' Ponteiro(a) ', 'Levantador(a)', '', 'Ponteiro(a)'])).toEqual([
+      'Ponteiro(a)',
+      'Levantador(a)'
+    ]);
+    expect(normalizePositions(undefined)).toEqual([]);
   });
 });
 

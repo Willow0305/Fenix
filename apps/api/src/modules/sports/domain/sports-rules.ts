@@ -13,6 +13,13 @@ import type { FieldError } from '../../../common/errors/app-error';
 
 export const PRIVACY_NOTICE_VERSION = '2026-10';
 export const ADULT_AGE = 18;
+/** Quantas posições a pessoa pode marcar como desejadas (levantador, ponteiro…). */
+export const MAX_DESIRED_POSITIONS = 6;
+
+/** Posições desejadas sem espaços sobrando, vazias ou repetidas, na ordem marcada. */
+export function normalizePositions(positions: readonly string[] | null | undefined): string[] {
+  return [...new Set((positions ?? []).map((position) => position.trim()).filter(Boolean))];
+}
 export const GUARDIAN_ACK_AGE = 12;
 
 export interface GuardianInput {

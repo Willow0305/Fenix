@@ -175,7 +175,7 @@ export default function TryoutDetailPage() {
             </div>
             <span className="muted">
               {formatDate(r.birthDate)} · {r.email} · {formatPhoneDisplay(r.phone)}
-              {r.desiredPosition ? ` · ${r.desiredPosition}` : ''}
+              {r.desiredPositions.length > 0 ? ` · ${r.desiredPositions.join(', ')}` : ''}
             </span>
             {r.guardianName ? (
               <span className="muted">
@@ -233,7 +233,7 @@ export default function TryoutDetailPage() {
                     gender: r.gender,
                     guardianName: r.guardianName,
                     guardianPhone: r.guardianPhone,
-                    desiredPosition: r.desiredPosition
+                    desiredPositions: r.desiredPositions
                   }}
                   submitLabel="Criar atleta"
                   onSubmit={async (payload) => {
