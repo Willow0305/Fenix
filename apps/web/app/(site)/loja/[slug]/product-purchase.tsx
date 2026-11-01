@@ -172,8 +172,8 @@ export function ProductPurchase({ product }: { readonly product: ProductDetail }
         <>
           <PersonalizationInputs fields={fields} values={values} onChange={setValues} />
           <small className="muted">
-            Item personalizado, feito sob medida com os dados acima. Você pode desistir em até 7
-            dias depois de receber, e ele tem garantia contra defeito.
+            Item personalizado, feito sob medida com os dados acima: a desistência por
+            arrependimento pode ser recusada pela diretoria. Defeito tem garantia.
           </small>
         </>
       ) : null}

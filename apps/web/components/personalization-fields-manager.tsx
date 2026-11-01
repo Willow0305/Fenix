@@ -79,8 +79,8 @@ export function PersonalizationFieldsManager({
       </h2>
       <p className="muted m-0">
         Com algum campo ativo, o produto vira personalizado: o cliente preenche na compra, cada
-        personalização é uma linha do carrinho. A desistência em 7 dias vale também para
-        personalizados (DT-093): a diretoria recebe o item de volta e faz o estorno.
+        personalização é uma linha do carrinho. Em pedido de desistência só de itens personalizados,
+        a diretoria pode aceitar ou recusar (DT-095).
       </p>
       {product.personalizationFields.length > 0 ? (
         <ul className="stack" style={{ gap: '0.4rem', paddingLeft: 0, listStyle: 'none' }}>

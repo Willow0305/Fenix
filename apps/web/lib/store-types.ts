@@ -358,6 +358,8 @@ export interface ReturnView {
   response: string | null;
   refundAmount: MoneyView | null;
   items: { orderItemId: string; productName: string; quantity: number }[];
+  /** Só itens personalizados: a diretoria pode recusar a desistência (DT-095). */
+  personalizedOnly?: boolean;
   customerName: string;
   createdAt: string;
   decidedAt: string | null;

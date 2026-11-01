@@ -6,6 +6,12 @@ O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) e o 
 
 ## [Não publicado]
 
+### Personalizados: diretoria pode recusar a desistência (2026-11-01)
+
+#### Alterado
+
+- a desistência de item personalizado volta a poder ser recusada pela diretoria, com o motivo registrado; o site avisa antes da compra; item comum continua com a desistência garantida e defeito sempre coberto (DT-095, substitui DT-093).
+
 ### Fênix do carrossel (2026-11-01)
 
 #### Alterado

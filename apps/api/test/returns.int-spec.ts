@@ -228,7 +228,7 @@ describe('Entrega comprovada, desistência e defeito (DT-070)', () => {
     }).expect(201);
   });
 
-  it('personalizado: com desistência (DT-093) e defeito resolvido por troca', async () => {
+  it('personalizado: desistência pode ser recusada (DT-095) e defeito resolvido por troca', async () => {
     const order = await paidOrder(true, 2);
 
     await ctx
@@ -251,17 +251,16 @@ describe('Entrega comprovada, desistência e defeito (DT-070)', () => {
 
     expect(withdrawal.body.returns[0]).toMatchObject({
       kind: 'WITHDRAWAL',
-      status: 'AWAITING_ITEM'
+      status: 'AWAITING_ITEM',
+      personalizedOnly: true
     });
-    // A diretoria confere, mas não pode negar a desistência (CDC art. 49).
-    expect(
-      (
-        await decide(withdrawal.body.returns[0].id, {
-          reject: true,
-          response: 'Item personalizado.'
-        }).expect(409)
-      ).body.code
-    ).toBe('WITHDRAWAL_CANNOT_BE_DENIED');
+    // Só de itens personalizados, a diretoria pode recusar, com o motivo, sem estorno.
+    const refused = await decide(withdrawal.body.returns[0].id, {
+      reject: true,
+      response: 'Camisa feita com nome e número, sem possibilidade de revenda.'
+    }).expect(200);
+
+    expect(refused.body).toMatchObject({ status: 'REJECTED', refundAmount: null });
 
     const defect = await requestReturn(order.id, {
       kind: 'DEFECT',
@@ -296,6 +295,15 @@ describe('Entrega comprovada, desistência e defeito (DT-070)', () => {
       items: [{ orderItemId: order.itemId, quantity: 1 }]
     }).expect(201);
 
+    // Item comum: a desistência no prazo não pode ser recusada (CDC art. 49).
+    expect(
+      (
+        await decide(withdrawal.body.returns[0].id, {
+          reject: true,
+          response: 'Não aceitamos.'
+        }).expect(409)
+      ).body.code
+    ).toBe('WITHDRAWAL_CANNOT_BE_DENIED');
     await decide(withdrawal.body.returns[0].id, { response: 'Estorno de uma unidade.' }).expect(
       200
     );

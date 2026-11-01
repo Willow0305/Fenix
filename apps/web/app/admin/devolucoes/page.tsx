@@ -43,7 +43,7 @@ export default function ReturnsAdminPage() {
     <>
       <PageHeader
         title="Trocas e devoluções"
-        description="Desistência em até 7 dias da entrega (exceto personalizados) e defeito em até 90 dias."
+        description="Desistência em até 7 dias da entrega (personalizados podem ser recusados) e defeito em até 90 dias."
       />
       {notice ? <Alert kind="success">{notice}</Alert> : null}
       <div className="row" role="group" aria-label="Situação">
@@ -99,7 +99,7 @@ export default function ReturnsAdminPage() {
               >
                 {r.kind === 'WITHDRAWAL' ? 'Registrar devolução e estornar' : 'Resolver'}
               </button>
-              {r.kind === 'DEFECT' ? (
+              {r.kind === 'DEFECT' || r.personalizedOnly ? (
                 <button
                   type="button"
                   className="btn btn-secondary btn-sm"
@@ -120,16 +120,18 @@ export default function ReturnsAdminPage() {
         open={deciding !== null}
         title={
           deciding?.reject
-            ? 'Recusar o defeito'
+            ? deciding.item.kind === 'WITHDRAWAL'
+              ? 'Recusar a desistência'
+              : 'Recusar o defeito'
             : deciding?.item.kind === 'WITHDRAWAL'
               ? 'Registrar devolução e estornar'
               : 'Resolver o defeito'
         }
         description={
-          deciding?.item.kind === 'WITHDRAWAL'
-            ? 'O estorno integral dos itens sai pelo Caixa, vinculado ao pagamento. Itens de estoque voltam ao estoque; afiliação é cancelada.'
-            : deciding?.reject
-              ? 'Explique ao cliente o motivo da recusa (fica registrado).'
+          deciding?.reject
+            ? 'Explique ao cliente o motivo da recusa (fica registrado).'
+            : deciding?.item.kind === 'WITHDRAWAL'
+              ? 'O estorno integral dos itens sai pelo Caixa, vinculado ao pagamento. Itens de estoque voltam ao estoque; afiliação é cancelada.'
               : 'Escolha a solução e escreva a resposta ao cliente.'
         }
         confirmLabel={deciding?.reject ? 'Recusar' : 'Confirmar'}

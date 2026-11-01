@@ -129,8 +129,8 @@ export function OrderRightsPanel({ target }: { readonly target: Target }) {
         </p>
       ) : rights.canWithdraw ? (
         <p className="muted m-0">
-          Mudou de ideia? Você pode desistir da compra, inclusive de itens personalizados, até 7
-          dias depois de receber, com estorno integral.
+          Mudou de ideia? Você pode desistir da compra até 7 dias depois de receber, com estorno
+          integral. Em itens personalizados, a diretoria pode recusar.
         </p>
       ) : null}
       {send.message ? <Alert kind="success">{send.message}</Alert> : null}
@@ -160,7 +160,7 @@ export function OrderRightsPanel({ target }: { readonly target: Target }) {
           <strong>{mode === 'WITHDRAWAL' ? 'Desistir da compra' : 'Problema com o produto'}</strong>
           <small className="muted">
             {mode === 'WITHDRAWAL'
-              ? 'Não é preciso dizer o motivo. A diretoria confere o pedido, recebe o item de volta e faz o estorno.'
+              ? 'Não é preciso dizer o motivo. A diretoria confere o pedido, recebe o item de volta e faz o estorno; em itens personalizados, pode recusar.'
               : 'Conte o que aconteceu; a diretoria responde com troca, conserto ou estorno.'}
           </small>
           <ErrorSummary error={send.error} />

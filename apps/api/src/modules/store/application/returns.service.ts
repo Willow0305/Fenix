@@ -40,6 +40,8 @@ export interface ReturnView {
   readonly response: string | null;
   readonly refundAmount: MoneyView | null;
   readonly items: { orderItemId: string; productName: string; quantity: number }[];
+  /** Só itens personalizados: a diretoria pode recusar a desistência (DT-095). */
+  readonly personalizedOnly: boolean;
   readonly customerName: string;
   readonly createdAt: string;
   readonly decidedAt: string | null;
@@ -64,7 +66,7 @@ export interface OrderRights {
 
 const RETURN_INCLUDE = {
   order: { select: { orderNumber: true, customerName: true } },
-  items: { include: { orderItem: { select: { productName: true } } } }
+  items: { include: { orderItem: { select: { productName: true, details: true } } } }
 } satisfies Prisma.ReturnRequestInclude;
 
 type ReturnRow = Prisma.ReturnRequestGetPayload<{ include: typeof RETURN_INCLUDE }>;
@@ -138,6 +140,9 @@ export class ReturnsService {
         productName: item.orderItem.productName,
         quantity: item.quantity
       })),
+      personalizedOnly:
+        row.items.length > 0 &&
+        row.items.every((item) => personalizationOfItem(item.orderItem.details).length > 0),
       customerName: row.order.customerName,
       createdAt: row.createdAt.toISOString(),
       decidedAt: row.decidedAt?.toISOString() ?? null
@@ -362,8 +367,7 @@ export class ReturnsService {
           throw AppError.validation('INVALID_ITEM', 'Item não pertence ao pedido.');
         }
 
-        // Personalizado também tem desistência em 7 dias (DT-093, revê DT-070): a diretoria
-        // confere o prazo e o item devolvido, mas não pode negar a desistência (CDC art. 49).
+        // Personalizado pode pedir desistência; a diretoria decide se aceita (DT-095).
 
         if (choice.quantity > item.quantity - (held.get(item.id) ?? 0)) {
           throw AppError.conflict(
@@ -478,6 +482,7 @@ export class ReturnsService {
                   productVariantId: true,
                   quantity: true,
                   totalAmount: true,
+                  details: true,
                   product: { select: { fulfillmentType: true } }
                 }
               }
@@ -495,10 +500,16 @@ export class ReturnsService {
         throw AppError.conflict('ALREADY_DECIDED', 'Este pedido já foi atendido.');
       }
 
-      if (row.kind === 'WITHDRAWAL' && input.reject) {
+      // Desistência só pode ser recusada quando todos os itens são personalizados (DT-095,
+      // decisão do responsável com jurisprudência dividida); nos demais, CDC art. 49.
+      if (
+        row.kind === 'WITHDRAWAL' &&
+        input.reject &&
+        !row.items.every((item) => personalizationOfItem(item.orderItem.details).length > 0)
+      ) {
         throw AppError.conflict(
           'WITHDRAWAL_CANNOT_BE_DENIED',
-          'Desistência dentro do prazo não pode ser negada (CDC art. 49).'
+          'Desistência dentro do prazo só pode ser recusada para itens personalizados (CDC art. 49).'
         );
       }
 

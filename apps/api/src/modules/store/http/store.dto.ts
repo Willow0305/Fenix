@@ -359,7 +359,7 @@ export class CheckoutDto {
   @IsIn([true], { message: 'É necessário aceitar as regras da loja.' })
   acceptTerms!: boolean;
   @ApiPropertyOptional({
-    description: 'Ciência de que o item personalizado é feito sob medida (DT-093).'
+    description: 'Ciência de que o item personalizado pode não ter desistência (DT-095).'
   })
   @IsOptional()
   @IsBoolean()

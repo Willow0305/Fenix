@@ -1897,7 +1897,7 @@ O ECA Digital (Lei 15.211/2025, em vigor desde 17/03/2026; Decreto 12.880/2026) 
 
 ## DT-093 — Desistência de 7 dias também para itens personalizados
 
-- **Estado:** Aceita; implementada em 2026-11-01 (revê a exceção de personalizados de `DT-070`)
+- **Estado:** Substituída por `DT-095` em 2026-11-01 (a diretoria voltou a poder recusar personalizados)
 - **Data:** 2026-11-01
 - **Aprovador:** responsável do projeto ("aceitar o arrependimento em 7 dias para tudo? sim, mas sob aprovação da diretoria")
 
@@ -1932,3 +1932,24 @@ O art. 49 do CDC não traz exceção para produto personalizado; decisões estad
 
 - o bloqueio é da interface: a API registra e confere a versão aceita, mas não recusa as demais rotas para quem ainda não aceitou;
 - publicar o primeiro texto faz todas as contas existentes aceitarem no próximo acesso.
+
+## DT-095 — Diretoria pode recusar a desistência de item personalizado
+
+- **Estado:** Aceita; implementada em 2026-11-01 (substitui `DT-093`)
+- **Data:** 2026-11-01
+- **Aprovador:** responsável do projeto ("itens personalizados [...] dificulta a revenda, logo o pedido de devolução pode e, se a Fênix quiser, ser negado"; depois da pesquisa, escolheu "Diretoria pode negar")
+
+### Contexto
+
+Pesquisa de 01/11/2026 (`docs/35` §1.3): jurisprudência dividida. Decisões do TJSP e do TJDF negam a desistência de personalizado; outras dos mesmos tribunais, do TJMS e do TJRS a garantem; sem precedente do STJ. O responsável assumiu o risco.
+
+### Decisão
+
+- o cliente pode pedir desistência de item personalizado; a diretoria **aceita ou recusa**, e a recusa exige o motivo, que fica registrado e é enviado ao cliente; sem estorno na recusa;
+- a recusa só é possível quando **todos** os itens do pedido de devolução são personalizados (`personalizedOnly`); com item comum, a desistência no prazo continua sem poder ser negada (`WITHDRAWAL_CANNOT_BE_DENIED`, CDC art. 49);
+- antes da compra, a página do produto e o carrinho avisam com destaque que a desistência de personalizado pode ser recusada, e o cliente marca que está ciente (obrigatório);
+- defeito continua sempre coberto (garantia de 90 dias), inclusive em personalizado.
+
+### Consequências
+
+- risco jurídico de reclamação ou processo, aceito pelo responsável; recomenda-se revisão do advogado antes de dados reais (`PEN-071`).

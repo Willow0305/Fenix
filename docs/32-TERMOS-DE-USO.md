@@ -143,11 +143,12 @@ aplicáveis devem ser informados de forma clara e conferidos por assessoria jur�
 da publicação. Este rascunho **não declara que produtos personalizados perdem
 automaticamente o direito de arrependimento** e não reduz garantias legais.
 
-Desde 01/11/2026 (`DT-093`), a desistência em até 7 dias depois do recebimento vale para
-todos os itens, inclusive personalizados. O pedido de desistência é conferido pela diretoria
-(prazo e devolução do item) e, dentro do prazo, não pode ser negado; o estorno é integral. O
-prazo da afiliação conta da ativação. O fluxo de estorno do sistema mantém o histórico
-financeiro.
+A desistência em até 7 dias depois do recebimento vale para os itens comprados pela
+internet, com estorno integral; a diretoria confere o prazo e a devolução do item. Para itens
+personalizados (nome, número etc.), feitos sob medida, o pedido de desistência pode ser
+recusado pela diretoria, com o motivo informado; isso é avisado com destaque antes da compra
+(`DT-095`). Defeito tem sempre garantia. O prazo da afiliação conta da ativação. O fluxo de
+estorno do sistema mantém o histórico financeiro.
 
 Em remessas, se a campanha não alcançar o mínimo, ela é cancelada e o comprador recebe de
 volta 100% do valor pago, sem conversão em crédito na loja (decisão de 01/11/2026,
