@@ -57,6 +57,8 @@ export default function CartPage() {
   });
   const [accept, setAccept] = useState(false);
   const [acceptPersonalized, setAcceptPersonalized] = useState(false);
+  // Sem conta: avisos do pedido também por WhatsApp, só com a escolha da pessoa (DT-096).
+  const [whatsappOptIn, setWhatsappOptIn] = useState(false);
   const [coupon, setCoupon] = useState<CouponPreview | null>(null);
   // Retirada ou entrega em casa (DT-075).
   const [delivery, setDelivery] = useState<DeliveryState>({
@@ -93,6 +95,7 @@ export default function CartPage() {
             ? {}
             : { customerName: form.customerName, customerEmail: form.customerEmail }),
           ...(form.customerPhone ? { customerPhone: form.customerPhone } : {}),
+          ...(!authenticated && whatsappOptIn && form.customerPhone ? { whatsappOptIn: true } : {}),
           ...(form.notes ? { notes: form.notes } : {}),
           ...(coupon ? { couponCode: coupon.code } : {}),
           paymentChoice,
@@ -419,6 +422,19 @@ export default function CartPage() {
               onValueChange={(value) => setForm({ ...form, customerPhone: value })}
               error={checkout.fieldError('customerPhone')}
             />
+            {status !== 'authenticated' ? (
+              <label className="checkbox">
+                <input
+                  type="checkbox"
+                  checked={whatsappOptIn}
+                  onChange={(event) => setWhatsappOptIn(event.target.checked)}
+                />
+                <span>
+                  Quero receber os avisos deste pedido também pelo WhatsApp (opcional). Dá para
+                  desligar quando quiser, na página do pedido.
+                </span>
+              </label>
+            ) : null}
             {onlyMembership ? null : (
               <DeliveryChoice
                 productsTotal={productsTotal}

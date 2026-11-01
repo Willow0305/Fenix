@@ -81,6 +81,7 @@ import {
   UpdatePersonalizationFieldDto,
   CheckoutDto,
   GuestLookupDto,
+  GuestWhatsappDto,
   GuestProofDto,
   ImageBodyDto,
   ImageOrderDto,
@@ -405,6 +406,14 @@ export class StorefrontController {
   @Throttle({ default: { limit: 10, ttl: 60_000 } })
   guestCancel(@Body() body: GuestLookupDto): Promise<OrderView> {
     return this.orders.cancelByBuyer({ orderNumber: body.orderNumber, code: body.code });
+  }
+
+  @Post('public/orders/whatsapp')
+  @Public()
+  @HttpCode(200)
+  @Throttle({ default: { limit: 10, ttl: 60_000 } })
+  guestWhatsapp(@Body() body: GuestWhatsappDto, @ReqMeta() meta: RequestMeta): Promise<OrderView> {
+    return this.orders.setGuestWhatsapp(body.orderNumber, body.code, body.enabled, meta);
   }
 
   @Post('me/orders/:id/receipt')

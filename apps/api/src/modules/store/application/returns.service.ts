@@ -24,6 +24,7 @@ import { InventoryService } from './inventory.service';
 import { personalizationOfItem } from './orders.service';
 import { strongerProof } from '../domain/delivery';
 import { guestCodeHash } from '../domain/guest-access';
+import { GuestMessagesService } from './guest-messages.service';
 
 /** Quem pede: conta logada ou visitante com número e código do pedido. */
 export type ReturnOwner =
@@ -121,7 +122,8 @@ export class ReturnsService {
     private readonly cards: CardsService,
     private readonly media: MediaService,
     private readonly notifications: NotificationsService,
-    private readonly staffAlerts: StaffAlertsService
+    private readonly staffAlerts: StaffAlertsService,
+    private readonly guestMessages: GuestMessagesService
   ) {}
 
   private view(row: ReturnRow): ReturnView {
@@ -610,6 +612,15 @@ export class ReturnsService {
       where: { id },
       include: RETURN_INCLUDE
     });
+
+    // Sem conta: a resposta da diretoria por e-mail e WhatsApp (DT-096).
+    await this.guestMessages.enqueueForOrder(
+      this.prisma,
+      row.orderId,
+      `return:${id}`,
+      `Pedido ${row.order.orderNumber}: troca ou devolução respondida`,
+      input.response
+    );
 
     return this.view(row);
   }

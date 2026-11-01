@@ -10,7 +10,6 @@ import { generateOpaqueToken, sha256Hex } from '../../../common/crypto/tokens';
 import { AppError } from '../../../common/errors/app-error';
 import type { Principal, RequestMeta } from '../../../common/http/request-context';
 import { JobScheduler } from '../../../common/jobs/job-scheduler';
-import { MailSender } from '../../../common/mail/mail.service';
 import { PrismaService, type PrismaTx } from '../../../common/prisma/prisma.service';
 import { PERMISSIONS } from '../../access/domain/permission-catalog';
 import { lockRow } from '../../finance/application/ledger.service';
@@ -37,6 +36,7 @@ import {
 import { orderStatusCountsAsUnread } from '../domain/store-rules';
 import { OrdersService, type OrderView } from './orders.service';
 import { guestCodeHash } from '../domain/guest-access';
+import { GuestMessagesService } from './guest-messages.service';
 
 export interface CourierInput {
   readonly name: string;
@@ -136,9 +136,9 @@ export class DeliveryDispatchService implements OnModuleInit {
     private readonly media: MediaService,
     private readonly notifications: NotificationsService,
     private readonly staffAlerts: StaffAlertsService,
-    private readonly mail: MailSender,
     private readonly jobs: JobScheduler,
-    private readonly orders: OrdersService
+    private readonly orders: OrdersService,
+    private readonly guestMessages: GuestMessagesService
   ) {}
 
   onModuleInit(): void {
@@ -442,23 +442,17 @@ export class DeliveryDispatchService implements OnModuleInit {
         );
       }
 
-      return {
-        link,
-        guest: order.customerUserId
-          ? null
-          : { email: order.customerEmail, name: order.customerName, message }
-      };
-    });
+      // Sem conta: e-mail e WhatsApp com o código de entrega (DT-096).
+      await this.guestMessages.enqueueForOrder(
+        tx,
+        orderId,
+        `dispatch:${attempt.id}`,
+        `Pedido ${order.orderNumber}: saiu para entrega`,
+        message
+      );
 
-    if (result.guest?.email) {
-      await this.mail
-        .send({
-          to: result.guest.email,
-          subject: 'Seu pedido saiu para entrega — Fênix Vôlei',
-          text: `Olá, ${result.guest.name}.\n\n${result.guest.message}`
-        })
-        .catch(() => undefined);
-    }
+      return { link };
+    });
 
     return { link: result.link, attempts: await this.attempts(orderId) };
   }
@@ -554,6 +548,13 @@ export class DeliveryDispatchService implements OnModuleInit {
         after: { status: 'DELIVERED', proof, attemptId, receivedBy: extra.receivedBy ?? null }
       },
       tx
+    );
+    await this.guestMessages.enqueueForOrder(
+      tx,
+      orderId,
+      'status:DELIVERED',
+      `Pedido ${order.orderNumber}: entregue`,
+      'Pedido entregue. Obrigado por comprar com o Fênix! Se houver algum problema, use a página do pedido.'
     );
 
     if (order.customerUserId) {
@@ -954,6 +955,17 @@ export class DeliveryDispatchService implements OnModuleInit {
           meta
         },
         tx
+      );
+      await this.guestMessages.enqueueForOrder(
+        tx,
+        orderId,
+        `not-received:${new Date().toISOString()}`,
+        `Pedido ${row.orderNumber}: "Não recebi" respondido`,
+        action === 'REDELIVER'
+          ? `Vamos entregar de novo. ${reason}`
+          : action === 'REFUND'
+            ? `O pedido será estornado. ${reason}`
+            : reason
       );
 
       if (row.customerUserId) {

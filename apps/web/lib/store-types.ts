@@ -178,6 +178,8 @@ export interface Order {
   customerEmail: string | null;
   customerPhone: string | null;
   isGuest: boolean;
+  /** Sem conta: pediu os avisos do pedido por WhatsApp (DT-096). */
+  guestWhatsappOptIn?: boolean;
   subtotalAmount: MoneyView;
   discountAmount: MoneyView;
   coupon: { code: string; released: boolean } | null;

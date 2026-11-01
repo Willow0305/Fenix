@@ -13,6 +13,7 @@ import { CardsModule } from '../cards/http/cards.controller';
 import { ReturnsService } from './application/returns.service';
 import { DeliveryService } from './application/delivery.service';
 import { DeliveryDispatchService } from './application/delivery-dispatch.service';
+import { GuestMessagesService } from './application/guest-messages.service';
 import { DispatchAdminController, DispatchPublicController } from './http/dispatch.controller';
 import { DeliveryAdminController, DeliveryController } from './http/delivery.controller';
 
@@ -36,8 +37,9 @@ import { DeliveryAdminController, DeliveryController } from './http/delivery.con
     ReturnsService,
     DeliveryService,
     DeliveryDispatchService,
-    ReviewsService
+    ReviewsService,
+    GuestMessagesService
   ],
-  exports: [OrdersService, InventoryService, CatalogService]
+  exports: [OrdersService, InventoryService, CatalogService, GuestMessagesService]
 })
 export class StoreModule {}

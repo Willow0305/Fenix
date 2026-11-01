@@ -6,6 +6,12 @@ O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) e o 
 
 ## [Não publicado]
 
+### Pedidos sem conta: avisos por e-mail e WhatsApp (2026-11-01)
+
+#### Adicionado
+
+- quem compra sem conta recebe por e-mail (e por WhatsApp, se escolher no checkout) cada novidade do pedido: recebido, pago, pronto para retirada, saiu para entrega, entregue, cancelado e respostas da diretoria, sempre com o link fixo; a página do pedido liga e desliga o WhatsApp e lembra de olhar a caixa de spam (DT-096).
+
 ### Pedidos sem conta: código fácil, link fixo e lembrar no aparelho (2026-11-01)
 
 #### Alterado

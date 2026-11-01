@@ -365,6 +365,12 @@ export class CheckoutDto {
   @IsBoolean()
   acceptPersonalized?: boolean;
   @ApiPropertyOptional({
+    description: 'Sem conta: receber os avisos do pedido por WhatsApp (DT-096).'
+  })
+  @IsOptional()
+  @IsBoolean()
+  whatsappOptIn?: boolean;
+  @ApiPropertyOptional({
     enum: ['PIX', 'CARD', 'ONLINE_CARD'],
     description:
       'PIX (30 min), cartão ou dinheiro com a diretoria (72 h) ou cartão pelo site (30 min) (DT-076, DT-079).'
@@ -400,6 +406,11 @@ export class GuestLookupDto {
   @Matches(/^FNX-\d{6}-[A-Z0-9]{6}$/i, { message: 'Número de pedido inválido.' })
   orderNumber!: string;
   @ApiProperty() @IsString() @MinLength(8) @MaxLength(64) code!: string;
+}
+
+/** Liga ou desliga os avisos do pedido sem conta por WhatsApp (DT-096). */
+export class GuestWhatsappDto extends GuestLookupDto {
+  @ApiProperty() @IsBoolean() enabled!: boolean;
 }
 
 export class OrderQueryDto extends PageQueryDto {

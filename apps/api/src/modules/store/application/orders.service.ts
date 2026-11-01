@@ -84,12 +84,9 @@ import {
 import { decryptField, encryptField } from '../../../common/crypto/data-cipher';
 import { beneficiariesOf, beneficiaryProblems, resizeBeneficiaries } from '../domain/cart-details';
 import { plural } from '../../../common/domain/plural';
-import {
-  formatGuestCode,
-  generateGuestCode,
-  guestCodeHash,
-  guestOrderPath
-} from '../domain/guest-access';
+import { formatGuestCode, generateGuestCode, guestCodeHash } from '../domain/guest-access';
+import { whatsappNumber } from '../../notifications/domain/channel-rules';
+import { GuestMessagesService } from './guest-messages.service';
 
 export interface OrderItemView {
   readonly id: string;
@@ -120,6 +117,8 @@ export interface OrderView {
   readonly customerEmail: string | null;
   readonly customerPhone: string | null;
   readonly isGuest: boolean;
+  /** Sem conta: pediu os avisos do pedido por WhatsApp (DT-096). */
+  readonly guestWhatsappOptIn: boolean;
   readonly subtotalAmount: MoneyView;
   readonly discountAmount: MoneyView;
   /** Cupom usado; `released` quando o pedido foi cancelado e o uso, liberado. */
@@ -176,6 +175,8 @@ export interface CheckoutInput {
   readonly couponCode?: string;
   /** Ciência de que o item personalizado é feito sob medida e pode não ter desistência (DT-095). */
   readonly acceptPersonalized?: boolean;
+  /** Quem compra sem conta pediu os avisos do pedido por WhatsApp (DT-096). */
+  readonly whatsappOptIn?: boolean;
   /** Retirada (padrão) ou entrega em casa (DT-075). */
   readonly fulfillment?: OrderFulfillment;
   /** PIX (padrão, 30 min) ou `CARD` = cartão ou dinheiro, combinado com a diretoria (72 h) (DT-076). */
@@ -257,7 +258,8 @@ export class OrdersService implements OnModuleInit {
     private readonly site: SiteRevalidateService,
     private readonly staffAlerts: StaffAlertsService,
     private readonly cards: CardsService,
-    private readonly delivery: DeliveryService
+    private readonly delivery: DeliveryService,
+    private readonly guestMessages: GuestMessagesService
   ) {}
 
   onModuleInit(): void {
@@ -311,6 +313,7 @@ export class OrdersService implements OnModuleInit {
       status: row.status,
       customerName: row.customerName,
       customerEmail: row.customerEmail,
+      guestWhatsappOptIn: row.guestWhatsappOptInAt !== null,
       customerPhone: row.customerPhone,
       isGuest: row.customerUserId === null,
       subtotalAmount: moneyView(row.subtotalAmount, row.currency),
@@ -707,6 +710,9 @@ export class OrdersService implements OnModuleInit {
           guestAccessCodeEncrypted: guestAccessCode
             ? encryptField(guestAccessCode, this.config.values.dataEncryptionKey)
             : null,
+          // Consentimento do WhatsApp só para quem compra sem conta e informou o celular.
+          guestWhatsappOptInAt:
+            guestAccessCode && input.whatsappOptIn === true && customerPhone ? new Date() : null,
           paymentChoice: input.paymentChoice ?? 'PIX',
           reservationExpiresAt: new Date(
             now.getTime() + this.reservationMs(input.paymentChoice ?? 'PIX')
@@ -815,7 +821,8 @@ export class OrdersService implements OnModuleInit {
             fulfillment: delivery ? 'DELIVERY' : 'PICKUP',
             deliveryFee: fee.toFixed(2),
             total: total.toFixed(2),
-            items: lines.length
+            items: lines.length,
+            whatsappOptIn: Boolean(guestAccessCode && input.whatsappOptIn === true && customerPhone)
           },
           meta
         },
@@ -840,33 +847,56 @@ export class OrdersService implements OnModuleInit {
     });
 
     const order = await this.withPaymentInfo(await this.get(orderId));
+    const summary = [
+      `Recebemos seu pedido ${order.orderNumber} no valor de ${formatBrl(order.totalAmount.amount)}.`,
+      ...(order.deliveryAddress
+        ? [
+            `Entrega em casa: ${addressLine(order.deliveryAddress)} (taxa ${formatBrl(order.deliveryFee.amount)}, cerca de ${plural(order.deliveryAddress.leadDays, 'dia útil', 'dias úteis')} depois do pagamento).`
+          ]
+        : ['Retirada com o Fênix: avisamos quando o pedido estiver pronto.']),
+      order.paymentChoice === 'CARD'
+        ? 'Pagamento com cartão ou dinheiro: combine com a diretoria (maquininha, link de pagamento ou dinheiro na retirada/entrega). O pedido fica reservado por 72 horas.'
+        : 'Pague por PIX em até 30 minutos pela página do pedido (QR ou chave com comprovante). Sem pagamento no prazo, o pedido é cancelado.'
+    ];
 
-    await this.mail
-      .send({
-        to: order.customerEmail ?? '',
-        subject: `Pedido ${order.orderNumber} — Fênix Vôlei`,
-        text: [
-          `Olá, ${order.customerName}.`,
-          '',
-          `Recebemos seu pedido ${order.orderNumber} no valor de ${formatBrl(order.totalAmount.amount)}.`,
-          ...(order.deliveryAddress
-            ? [
-                `Entrega em casa: ${addressLine(order.deliveryAddress)} (taxa ${formatBrl(order.deliveryFee.amount)}, cerca de ${plural(order.deliveryAddress.leadDays, 'dia útil', 'dias úteis')} depois do pagamento).`
-              ]
-            : ['Retirada com o Fênix: avisamos quando o pedido estiver pronto.']),
-          order.paymentChoice === 'CARD'
-            ? 'Pagamento com cartão ou dinheiro: combine com a diretoria (maquininha, link de pagamento ou dinheiro na retirada/entrega). O pedido fica reservado por 72 horas.'
-            : 'Pague por PIX em até 30 minutos pela página do pedido (QR ou chave com comprovante). Sem pagamento no prazo, o pedido é cancelado.',
-          ...(guestAccessCode
-            ? [
-                '',
-                `Acompanhe o pedido por este link, que não muda: ${this.config.values.webOrigin}${guestOrderPath(order.orderNumber, guestAccessCode)}`,
-                `Ou acesse ${this.config.values.webOrigin}/loja/pedido e informe o número ${order.orderNumber} e o código ${formatGuestCode(guestAccessCode)}.`
-              ]
-            : [`Acompanhe em ${this.config.values.webOrigin}/minha-conta/pedidos`])
-        ].join('\n')
-      })
-      .catch(() => undefined);
+    if (guestAccessCode) {
+      // Sem conta: fila de avisos por e-mail e WhatsApp, com o link fixo do pedido (DT-096).
+      const row = await this.prisma.order.findUniqueOrThrow({
+        where: { id: order.id },
+        select: {
+          id: true,
+          customerUserId: true,
+          customerEmail: true,
+          customerPhone: true,
+          guestWhatsappOptInAt: true
+        }
+      });
+
+      await this.guestMessages.enqueue(
+        this.prisma,
+        row,
+        'created',
+        `Pedido ${order.orderNumber} recebido`,
+        [
+          ...summary,
+          `Número do pedido: ${order.orderNumber}. Código de acesso: ${formatGuestCode(guestAccessCode)}.`
+        ].join(' ')
+      );
+    } else {
+      await this.mail
+        .send({
+          to: order.customerEmail ?? '',
+          subject: `Pedido ${order.orderNumber} — Fênix Vôlei`,
+          text: [
+            `Olá, ${order.customerName}.`,
+            '',
+            ...summary,
+            '',
+            `Acompanhe em ${this.config.values.webOrigin}/minha-conta/pedidos`
+          ].join('\n')
+        })
+        .catch(() => undefined);
+    }
 
     await this.staffAlerts.alert(PERMISSIONS.ordersRead, {
       type: 'staff.order.created',
@@ -1074,6 +1104,13 @@ export class OrdersService implements OnModuleInit {
     }
 
     await this.afterPaidInTx(tx, row.id);
+    await this.guestMessages.enqueue(
+      tx,
+      row,
+      'paid',
+      `Pedido ${row.orderNumber}: pagamento confirmado`,
+      `O pagamento do pedido ${row.orderNumber} foi confirmado. Avisamos quando ele estiver pronto.`
+    );
 
     if (row.customerUserId) {
       await this.notifications.notify(
@@ -1504,6 +1541,23 @@ export class OrdersService implements OnModuleInit {
 
   private async notifyStatus(tx: PrismaTx, row: OrderRow, status: OrderStatus): Promise<void> {
     if (!row.customerUserId) {
+      // Sem conta: o mesmo aviso por e-mail e WhatsApp (DT-096).
+      await this.guestMessages.enqueue(
+        tx,
+        row,
+        `status:${status}`,
+        `Pedido ${row.orderNumber}: ${ORDER_STATUS_LABELS[status]}`,
+        status === 'READY_FOR_PICKUP'
+          ? 'Seu pedido está pronto para retirada.'
+          : status === 'OUT_FOR_DELIVERY'
+            ? 'Seu pedido saiu para entrega no endereço informado.'
+            : status === 'DELIVERED'
+              ? 'Pedido entregue. Na página do pedido, toque em "Recebi" para confirmar; os prazos de troca contam a partir daí.'
+              : status === 'CANCELLED'
+                ? 'Seu pedido foi cancelado. Se houve pagamento, o estorno segue pelo mesmo meio.'
+                : `A situação do seu pedido mudou para "${ORDER_STATUS_LABELS[status]}".`
+      );
+
       return;
     }
 
@@ -1805,6 +1859,14 @@ export class OrdersService implements OnModuleInit {
         tx
       );
 
+      await this.guestMessages.enqueue(
+        tx,
+        row,
+        'arrived-delivery',
+        `Pedido ${row.orderNumber}: encomenda chegou`,
+        'Sua encomenda chegou e está em separação para a entrega no seu endereço.'
+      );
+
       if (row.customerUserId) {
         await this.notifications.notify(
           {
@@ -1884,6 +1946,67 @@ export class OrdersService implements OnModuleInit {
    * O comprador cancela o próprio pedido enquanto não pagou (DT-076): sem comprovante em
    * análise. Depois de pago, vale a desistência em 7 dias (DT-070).
    */
+  /**
+   * Quem comprou sem conta liga ou desliga os avisos do pedido por WhatsApp (DT-096, DT-048:
+   * consentimento registrado e revogável). Desligar cancela os avisos ainda na fila.
+   */
+  async setGuestWhatsapp(
+    orderNumber: string,
+    code: string,
+    enabled: boolean,
+    meta: RequestMeta
+  ): Promise<OrderView> {
+    const found = await this.prisma.order.findFirst({
+      where: {
+        orderNumber: orderNumber.trim().toUpperCase(),
+        guestAccessTokenHash: guestCodeHash(code)
+      },
+      select: { id: true, customerPhone: true, guestWhatsappOptInAt: true }
+    });
+
+    if (found === null) {
+      throw AppError.notFound('Pedido não encontrado. Confira o número e o código.');
+    }
+
+    if (enabled && !whatsappNumber(found.customerPhone)) {
+      throw AppError.validation(
+        'PHONE_REQUIRED',
+        'O pedido não tem um celular válido para receber avisos por WhatsApp.'
+      );
+    }
+
+    if (enabled !== (found.guestWhatsappOptInAt !== null)) {
+      await this.prisma.$transaction(async (tx) => {
+        await tx.order.update({
+          where: { id: found.id },
+          data: { guestWhatsappOptInAt: enabled ? new Date() : null }
+        });
+
+        if (!enabled) {
+          await tx.guestOrderMessage.updateMany({
+            where: { orderId: found.id, channel: 'WHATSAPP', status: 'PENDING' },
+            data: { status: 'CANCELLED', failureCode: 'CONSENTIMENTO_RETIRADO' }
+          });
+        }
+
+        await this.audit.record(
+          {
+            actorUserId: null,
+            action: enabled ? 'order.guest_whatsapp.opt_in' : 'order.guest_whatsapp.opt_out',
+            entityType: 'Order',
+            entityId: found.id,
+            before: { whatsapp: !enabled },
+            after: { whatsapp: enabled },
+            meta
+          },
+          tx
+        );
+      });
+    }
+
+    return this.guestLookup(orderNumber, code);
+  }
+
   async cancelByBuyer(
     owner: { userId: string } | { orderNumber: string; code: string },
     orderId?: string

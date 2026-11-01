@@ -15,13 +15,13 @@ import { AppError } from '../../../common/errors/app-error';
 import type { Principal, RequestMeta } from '../../../common/http/request-context';
 import { SiteRevalidateService } from '../../../common/http/site-revalidate.interceptor';
 import { JobScheduler } from '../../../common/jobs/job-scheduler';
-import { MailSender } from '../../../common/mail/mail.service';
 import { PrismaService } from '../../../common/prisma/prisma.service';
 import { PERMISSIONS } from '../../access/domain/permission-catalog';
 import { lockRow } from '../../finance/application/ledger.service';
 import { mediaUrl } from '../../media/application/media.service';
 import { NotificationsService } from '../../notifications/application/notifications.service';
 import { slugify } from '../../sports/domain/sports-rules';
+import { GuestMessagesService } from '../../store/application/guest-messages.service';
 import { OrdersService, personalizationOfItem } from '../../store/application/orders.service';
 import {
   assertWindow,
@@ -161,7 +161,7 @@ export class CampaignsService implements OnModuleInit {
     private readonly audit: AuditService,
     private readonly orders: OrdersService,
     private readonly notifications: NotificationsService,
-    private readonly mail: MailSender,
+    private readonly guestMessages: GuestMessagesService,
     private readonly jobs: JobScheduler,
     private readonly site: SiteRevalidateService
   ) {}
@@ -790,17 +790,15 @@ export class CampaignsService implements OnModuleInit {
         });
       }
 
-      // Quem tem conta recebe pelo aviso, no canal que escolheu (DT-048); o e-mail direto
-      // fica para compras sem conta.
-      if (order.customerEmail && !order.customerUserId) {
-        await this.mail
-          .send({
-            to: order.customerEmail,
-            subject: `Pedido ${order.orderNumber} pronto para retirada — Fênix Vôlei`,
-            text: `Olá, ${order.customerName}.\n\n${message}`
-          })
-          .catch(() => undefined);
-      }
+      // Quem tem conta recebe pelo aviso, no canal que escolheu (DT-048); sem conta, por
+      // e-mail e WhatsApp com o link fixo do pedido (DT-096).
+      await this.guestMessages.enqueueForOrder(
+        this.prisma,
+        order.id,
+        `campaign-arrived:${id}`,
+        `Pedido ${order.orderNumber}: pronto para retirada`,
+        message
+      );
     }
 
     return orders.size;

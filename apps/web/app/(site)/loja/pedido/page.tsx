@@ -5,6 +5,7 @@ import { useEffect, useRef, useState } from 'react';
 import { OrderPayment } from '../../../../components/payment-instructions';
 import { OrderRightsPanel } from '../../../../components/order-rights';
 import { CancelOrder } from '../../../../components/cancel-order';
+import { GuestOrderAlerts } from '../../../../components/guest-order-alerts';
 import { DeliveryTracking } from '../../../../components/delivery-tracking';
 import { OrderSummary } from '../../../../components/order-summary';
 import { ErrorSummary, PageHeader, TextField, useSubmit } from '../../../../components/ui';
@@ -159,6 +160,7 @@ export default function GuestOrderPage() {
       {order ? (
         <>
           <OrderSummary order={order} />
+          <GuestOrderAlerts order={order} access={current} onChanged={setOrder} />
           <DeliveryTracking
             order={order}
             notReceived={{ endpoint: '/public/orders/not-received', extra: current }}
