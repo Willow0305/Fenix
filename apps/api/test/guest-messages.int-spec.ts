@@ -166,6 +166,39 @@ describe('avisos do pedido sem conta', () => {
     expect(await queued(order.id)).toEqual([]);
   });
 
+  it('"Esqueci o código" reenvia o acesso sem revelar se o e-mail comprou', async () => {
+    const email = `esqueci-${randomUUID().slice(0, 6)}@exemplo.test`;
+    const { order, guestAccessCode } = await checkout({ customerEmail: email });
+    const resend = (address: string) =>
+      ctx.http().post('/api/v1/public/orders/resend-access').send({ email: address }).expect(202);
+    const known = await resend(email.toUpperCase());
+    const unknown = await resend(`ninguem-${randomUUID().slice(0, 6)}@exemplo.test`);
+
+    expect(known.body).toEqual(unknown.body);
+    expect(known.body.message).toMatch(/caixa de spam/);
+
+    const today = new Date().toISOString().slice(0, 10);
+
+    await resend(email);
+    expect(
+      (await queued(order.id)).filter((m) => m.kind === `resend:${today}`).map((m) => m.channel)
+    ).toEqual(['EMAIL']);
+
+    await messages.processDue(MORNING);
+
+    const text = readdirSync(ctx.outboxDir)
+      .map((file) => readFileSync(join(ctx.outboxDir, file), 'utf8'))
+      .filter((content) => content.includes(`Acesso ao pedido ${order.orderNumber}`))
+      .join(' ');
+
+    expect(text).toContain(`Código de acesso: ${guestAccessCode ?? ''}`);
+    expect(
+      await ctx.prisma.auditLog.count({
+        where: { entityId: order.id, action: 'order.guest_access.resent' }
+      })
+    ).toBe(2);
+  });
+
   it('liga e desliga o WhatsApp pela página do pedido, com registro', async () => {
     const { order, guestAccessCode } = await checkout({});
     const toggle = (enabled: boolean, code = guestAccessCode) =>

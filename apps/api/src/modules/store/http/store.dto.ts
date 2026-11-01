@@ -408,6 +408,11 @@ export class GuestLookupDto {
   @ApiProperty() @IsString() @MinLength(8) @MaxLength(64) code!: string;
 }
 
+/** "Esqueci o código": e-mail usado na compra sem conta (DT-096). */
+export class GuestResendDto {
+  @ApiProperty() @IsEmail() @MaxLength(180) email!: string;
+}
+
 /** Liga ou desliga os avisos do pedido sem conta por WhatsApp (DT-096). */
 export class GuestWhatsappDto extends GuestLookupDto {
   @ApiProperty() @IsBoolean() enabled!: boolean;

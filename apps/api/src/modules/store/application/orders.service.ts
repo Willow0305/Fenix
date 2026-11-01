@@ -1947,6 +1947,68 @@ export class OrdersService implements OnModuleInit {
    * análise. Depois de pago, vale a desistência em 7 dias (DT-070).
    */
   /**
+   * "Esqueci o código" (DT-096): reenvia o acesso (número, código e link fixo) dos pedidos sem
+   * conta deste e-mail nos últimos 12 meses, até 10, pela fila de avisos. Não revela se o
+   * e-mail comprou: quem chama recebe sempre a mesma resposta. Um reenvio por pedido por dia.
+   */
+  async resendGuestAccess(emailInput: string, meta: RequestMeta): Promise<void> {
+    const email = normalizeEmail(emailInput);
+    const orders = await this.prisma.order.findMany({
+      where: {
+        customerUserId: null,
+        customerEmail: { equals: email, mode: 'insensitive' },
+        guestAccessTokenHash: { not: null },
+        createdAt: { gte: new Date(Date.now() - 365 * 86_400_000) }
+      },
+      orderBy: { createdAt: 'desc' },
+      take: 10,
+      select: {
+        id: true,
+        orderNumber: true,
+        customerUserId: true,
+        customerEmail: true,
+        customerPhone: true,
+        guestWhatsappOptInAt: true,
+        guestAccessCodeEncrypted: true
+      }
+    });
+    const day = new Date().toISOString().slice(0, 10);
+
+    for (const order of orders) {
+      let code = order.guestAccessCodeEncrypted
+        ? decryptField(order.guestAccessCodeEncrypted, this.config.values.dataEncryptionKey)
+        : null;
+
+      // Pedido de antes do código guardado: recebe um código novo (o antigo deixa de valer).
+      if (code === null) {
+        code = generateGuestCode();
+        await this.prisma.order.update({
+          where: { id: order.id },
+          data: {
+            guestAccessTokenHash: guestCodeHash(code),
+            guestAccessCodeEncrypted: encryptField(code, this.config.values.dataEncryptionKey)
+          }
+        });
+      }
+
+      await this.guestMessages.enqueue(
+        this.prisma,
+        order,
+        `resend:${day}`,
+        `Acesso ao pedido ${order.orderNumber}`,
+        `Você pediu o acesso ao seu pedido. Número: ${order.orderNumber}. Código de acesso: ${formatGuestCode(code)}.`
+      );
+      await this.audit.record({
+        actorUserId: null,
+        action: 'order.guest_access.resent',
+        entityType: 'Order',
+        entityId: order.id,
+        meta
+      });
+    }
+  }
+
+  /**
    * Quem comprou sem conta liga ou desliga os avisos do pedido por WhatsApp (DT-096, DT-048:
    * consentimento registrado e revogável). Desligar cancela os avisos ainda na fila.
    */

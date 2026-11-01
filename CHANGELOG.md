@@ -6,6 +6,12 @@ O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) e o 
 
 ## [Não publicado]
 
+### Pedidos sem conta: "Esqueci o código" (2026-11-01)
+
+#### Adicionado
+
+- na consulta de pedido, "Esqueci o código ou perdi o link" reenvia para o e-mail da compra o acesso de cada pedido sem conta, sem revelar se o e-mail comprou na loja (DT-096).
+
 ### Pedidos sem conta: avisos por e-mail e WhatsApp (2026-11-01)
 
 #### Adicionado

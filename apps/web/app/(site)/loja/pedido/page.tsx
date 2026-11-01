@@ -6,6 +6,7 @@ import { OrderPayment } from '../../../../components/payment-instructions';
 import { OrderRightsPanel } from '../../../../components/order-rights';
 import { CancelOrder } from '../../../../components/cancel-order';
 import { GuestOrderAlerts } from '../../../../components/guest-order-alerts';
+import { GuestResend } from '../../../../components/guest-resend';
 import { DeliveryTracking } from '../../../../components/delivery-tracking';
 import { OrderSummary } from '../../../../components/order-summary';
 import { ErrorSummary, PageHeader, TextField, useSubmit } from '../../../../components/ui';
@@ -157,6 +158,7 @@ export default function GuestOrderPage() {
           </button>
         </div>
       </form>
+      {order ? null : <GuestResend />}
       {order ? (
         <>
           <OrderSummary order={order} />

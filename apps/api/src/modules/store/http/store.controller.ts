@@ -81,6 +81,7 @@ import {
   UpdatePersonalizationFieldDto,
   CheckoutDto,
   GuestLookupDto,
+  GuestResendDto,
   GuestWhatsappDto,
   GuestProofDto,
   ImageBodyDto,
@@ -406,6 +407,22 @@ export class StorefrontController {
   @Throttle({ default: { limit: 10, ttl: 60_000 } })
   guestCancel(@Body() body: GuestLookupDto): Promise<OrderView> {
     return this.orders.cancelByBuyer({ orderNumber: body.orderNumber, code: body.code });
+  }
+
+  @Post('public/orders/resend-access')
+  @Public()
+  @HttpCode(202)
+  @Throttle({ default: { limit: 3, ttl: 60_000 } })
+  async guestResend(
+    @Body() body: GuestResendDto,
+    @ReqMeta() meta: RequestMeta
+  ): Promise<{ message: string }> {
+    await this.orders.resendGuestAccess(body.email, meta);
+
+    return {
+      message:
+        'Se houver pedidos sem conta com este e-mail, enviamos o acesso em instantes. Olhe também a caixa de spam.'
+    };
   }
 
   @Post('public/orders/whatsapp')
