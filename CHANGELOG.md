@@ -6,6 +6,12 @@ O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) e o 
 
 ## [Não publicado]
 
+### Fênix do carrossel (2026-11-01)
+
+#### Alterado
+
+- a transição da pré-venda usa a fênix em ataque enviada pela diretoria, maior que o cartão, e ficou mais lenta (1,1 s) (DT-090).
+
 ### Responsável e canais (2026-11-01)
 
 #### Documentação

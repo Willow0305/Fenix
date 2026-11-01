@@ -97,7 +97,7 @@ export function CampaignHighlight({ campaigns }: { readonly campaigns: readonly 
       setRun((value) => value + 1);
       // Garante a limpeza mesmo se o evento de fim da animação não vier (aba em segundo plano).
       window.clearTimeout(settleTimer.current);
-      settleTimer.current = window.setTimeout(() => setLeaving(null), 1200);
+      settleTimer.current = window.setTimeout(() => setLeaving(null), 1800);
     },
     [count, index]
   );
@@ -186,7 +186,7 @@ export function CampaignHighlight({ campaigns }: { readonly campaigns: readonly 
         <div key={run} className={`campaign-phoenix is-${direction}`} aria-hidden="true">
           <span className="campaign-phoenix-body">
             <span className="campaign-phoenix-flip">
-              <img src="/brand/fenix-voo.webp" alt="" width={131} height={220} />
+              <img src="/brand/fenix-ataque.svg" alt="" width={265} height={204} />
             </span>
           </span>
         </div>
