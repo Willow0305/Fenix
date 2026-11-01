@@ -188,15 +188,20 @@ describe('Fase 2 — atletas, equipes, interessados e seletivas', () => {
       { displayName: 'Ana Lima', position: 'Líbero', photoUrl: null }
     ]);
 
-    // Perfil público: a foto entra no elenco e abre para todos.
-    for (const who of [adult, minor]) {
-      await ctx
-        .http()
-        .put('/api/v1/me/profile-visibility')
-        .set(auth(who.token))
-        .send({ public: true })
-        .expect(200);
-    }
+    // Perfil público: a foto entra no elenco e abre para todos. Conta de menor fica com o
+    // perfil privado até os 18 anos (DT-092).
+    await ctx
+      .http()
+      .put('/api/v1/me/profile-visibility')
+      .set(auth(adult.token))
+      .send({ public: true })
+      .expect(200);
+    await ctx
+      .http()
+      .put('/api/v1/me/profile-visibility')
+      .set(auth(minor.token))
+      .send({ public: true })
+      .expect(403);
 
     await ctx.http().get(photo).expect(200);
     expect(await roster()).toEqual([

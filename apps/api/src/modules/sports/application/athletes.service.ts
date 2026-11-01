@@ -5,7 +5,8 @@ import type { AthleteStatus, Gender, Prisma } from '../../../generated/prisma/cl
 import { AuditService } from '../../../common/audit/audit.service';
 import { AppConfig } from '../../../common/config/app-config';
 import { decryptField, encryptField } from '../../../common/crypto/data-cipher';
-import { sha256Hex } from '../../../common/crypto/tokens';
+import { hashPassword } from '../../../common/crypto/password-hasher';
+import { generateOpaqueToken, sha256Hex } from '../../../common/crypto/tokens';
 import {
   ageOn,
   civilToDate,
@@ -20,7 +21,9 @@ import { type Page, pageArgs, type PageQueryDto, toPage } from '../../../common/
 import type { Principal, RequestMeta } from '../../../common/http/request-context';
 import { PrismaService, type PrismaTx } from '../../../common/prisma/prisma.service';
 import { SYSTEM_ROLES } from '../../access/domain/permission-catalog';
-import { normalizeEmail } from '../../auth/domain/auth-rules';
+import { AuthService } from '../../auth/application/auth.service';
+import { assertPhoneAvailable } from '../../auth/application/phone-availability';
+import { normalizeAccountPhone, normalizeEmail } from '../../auth/domain/auth-rules';
 import { NotificationsService } from '../../notifications/application/notifications.service';
 import {
   ADULT_AGE,
@@ -32,7 +35,15 @@ import {
   periodsOverlap,
   validateGuardian
 } from '../domain/sports-rules';
-import { mediaUrl } from '../../media/application/media.service';
+import {
+  DOCUMENT_POLICY,
+  type IncomingFile,
+  MediaService,
+  mediaUrl
+} from '../../media/application/media.service';
+
+/** Declaração assinada pelo responsável para a conta do atleta menor (DT-092). */
+export const GUARDIAN_DECLARATION = 'GUARDIAN_ACCOUNT_DECLARATION';
 
 export interface AthleteInput {
   readonly fullName: string;
@@ -119,6 +130,8 @@ export interface AthleteDetail extends AthleteSummary {
     readonly visibleOnSite: boolean;
   };
   readonly memberships: readonly MembershipView[];
+  /** Declaração do responsável que autorizou a conta do atleta menor (DT-092). */
+  readonly guardianDeclaration: { readonly id: string; readonly uploadedAt: string } | null;
   readonly createdAt: string;
   readonly updatedAt: string;
 }
@@ -135,6 +148,12 @@ const DETAIL_INCLUDE = {
   teamMemberships: {
     orderBy: { startsOn: 'desc' },
     include: { team: { select: { id: true, name: true, type: true } } }
+  },
+  documents: {
+    where: { documentType: GUARDIAN_DECLARATION, deletedAt: null },
+    orderBy: { createdAt: 'desc' },
+    take: 1,
+    select: { id: true, createdAt: true }
   }
 } satisfies Prisma.AthleteInclude;
 
@@ -166,7 +185,9 @@ export class AthletesService {
     private readonly prisma: PrismaService,
     private readonly audit: AuditService,
     private readonly config: AppConfig,
-    private readonly notifications: NotificationsService
+    private readonly notifications: NotificationsService,
+    private readonly media: MediaService,
+    private readonly auth: AuthService
   ) {}
 
   /** Exibe o CPF mascarado; documento legado (RG ou inválido) fica marcado para revisão. */
@@ -225,6 +246,9 @@ export class AthletesService {
           }
         : null,
       publicProfile: this.publicProfileView(row),
+      guardianDeclaration: row.documents[0]
+        ? { id: row.documents[0].id, uploadedAt: row.documents[0].createdAt.toISOString() }
+        : null,
       memberships: row.teamMemberships.map((membership) => ({
         id: membership.id,
         team: membership.team,
@@ -959,6 +983,149 @@ export class AthletesService {
     });
 
     return this.get(id);
+  }
+
+  /**
+   * Conta do atleta menor (DT-092): só para quem já é atleta do time (ativo, com vínculo
+   * aberto em equipe ativa), criada pela diretoria com a declaração assinada pelo responsável.
+   * A senha inicial é aleatória e descartada; o link para definir a senha vai ao e-mail. A
+   * conta não participa do fórum e o perfil fica privado enquanto o atleta for menor.
+   */
+  async createMinorAccount(
+    actor: Principal,
+    id: string,
+    input: { email: string; phone?: string | undefined },
+    file: IncomingFile | undefined,
+    meta: RequestMeta
+  ): Promise<AthleteDetail> {
+    const email = normalizeEmail(input.email);
+    const phone = normalizeAccountPhone(input.phone);
+    const athlete = await this.prisma.athlete.findFirst({
+      where: { id, deletedAt: null },
+      select: {
+        fullName: true,
+        birthDate: true,
+        status: true,
+        userId: true,
+        teamMemberships: {
+          where: { status: 'ACTIVE', endsOn: null, team: { isActive: true, deletedAt: null } },
+          select: { id: true },
+          take: 1
+        }
+      }
+    });
+
+    if (athlete === null) {
+      throw AppError.notFound('Atleta não encontrado.');
+    }
+
+    if (athlete.userId !== null) {
+      throw AppError.conflict('ATHLETE_HAS_ACCOUNT', 'Este atleta já tem uma conta vinculada.');
+    }
+
+    if (athlete.birthDate === null) {
+      throw AppError.validation(
+        'ATHLETE_BIRTH_DATE_REQUIRED',
+        'Informe a data de nascimento na ficha antes de criar a conta.'
+      );
+    }
+
+    if (ageOn(dateToCivil(athlete.birthDate), this.today()) >= ADULT_AGE) {
+      throw AppError.validation(
+        'ATHLETE_ADULT',
+        'Atleta maior de idade cria a própria conta no site; depois, vincule pelo e-mail.'
+      );
+    }
+
+    if (athlete.status !== 'ACTIVE' || athlete.teamMemberships.length === 0) {
+      throw AppError.validation(
+        'ATHLETE_NOT_IN_TEAM',
+        'Conta de menor só para atleta ativo que faz parte de uma equipe do time.'
+      );
+    }
+
+    if ((await this.prisma.user.findUnique({ where: { email }, select: { id: true } })) !== null) {
+      throw AppError.conflict('EMAIL_IN_USE', 'Este e-mail já possui cadastro. Use outro.');
+    }
+
+    await assertPhoneAvailable(
+      this.prisma,
+      phone,
+      'Este celular já está em outra conta. Use outro número.'
+    );
+
+    const passwordHash = await hashPassword(generateOpaqueToken(24));
+
+    await this.prisma.$transaction(async (tx) => {
+      const declaration = await this.media.store(
+        file,
+        { ...DOCUMENT_POLICY, kind: 'DOCUMENT', classification: 'CONFIDENTIAL' },
+        actor.userId,
+        tx
+      );
+      const roles = await tx.role.findMany({
+        where: { code: { in: [SYSTEM_ROLES.user, SYSTEM_ROLES.athlete] }, deletedAt: null },
+        select: { id: true }
+      });
+      const user = await tx.user.create({
+        data: {
+          name: athlete.fullName,
+          email,
+          phone,
+          passwordHash,
+          status: 'ACTIVE',
+          profilePublic: false,
+          userRoles: {
+            create: roles.map((role) => ({ roleId: role.id, grantedById: actor.userId }))
+          }
+        },
+        select: { id: true }
+      });
+
+      await tx.athlete.update({ where: { id }, data: { userId: user.id } });
+      await tx.athleteDocument.create({
+        data: { athleteId: id, mediaFileId: declaration.id, documentType: GUARDIAN_DECLARATION }
+      });
+      await this.audit.record(
+        {
+          actorUserId: actor.userId,
+          action: 'athlete.minor_account.created',
+          entityType: 'Athlete',
+          entityId: id,
+          after: { userId: user.id, guardianDeclaration: true },
+          meta
+        },
+        tx
+      );
+    });
+
+    await this.auth.requestPasswordReset(email, meta);
+
+    return this.get(id);
+  }
+
+  /** Declaração do responsável: leitura restrita e registrada na auditoria (DT-092). */
+  async guardianDeclarationFile(actor: Principal, id: string, meta: RequestMeta) {
+    const doc = await this.prisma.athleteDocument.findFirst({
+      where: { athleteId: id, documentType: GUARDIAN_DECLARATION, deletedAt: null },
+      orderBy: { createdAt: 'desc' },
+      select: { id: true, mediaFileId: true }
+    });
+
+    if (doc === null) {
+      throw AppError.notFound('Declaração não encontrada.');
+    }
+
+    await this.audit.record({
+      actorUserId: actor.userId,
+      action: 'athlete.guardian_declaration.read',
+      entityType: 'Athlete',
+      entityId: id,
+      after: { documentId: doc.id },
+      meta
+    });
+
+    return this.media.read(doc.mediaFileId, actor, true);
   }
 
   async unlinkUser(

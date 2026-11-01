@@ -3091,6 +3091,32 @@ details.collapsible {
   background: #b3261e;
 }
 
+// Declaração do responsável para imprimir (DT-092): linhas em branco para preencher à mão.
+.guardian-declaration {
+  max-width: 44rem;
+  padding: 1.5rem;
+  line-height: 1.9;
+
+  .blank {
+    display: inline-block;
+    min-width: 12rem;
+    border-bottom: 1px solid currentcolor;
+    vertical-align: bottom;
+
+    &.short {
+      min-width: 6rem;
+    }
+
+    &.long {
+      min-width: 18rem;
+    }
+  }
+
+  .signature-lines {
+    margin-top: 1.5rem;
+  }
+}
+
 @media print {
   .no-print,
   .whatsapp-float,

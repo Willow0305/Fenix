@@ -31,6 +31,7 @@ import {
   visibleTopicStatuses
 } from '../domain/content-rules';
 import { softDeleteIfUnused } from '../../../common/domain/safe-delete';
+import { isMinorAccount } from '../../auth/application/minor-account';
 import { ContentAlertsService } from './content-alerts.service';
 
 export interface ForumCategoryView {
@@ -181,6 +182,7 @@ export class ForumService {
 
   async categories(principal: Principal | undefined, includeInactive = false) {
     const viewer = this.viewer(principal);
+    const writer = await this.canWrite(principal);
     const rows = await this.prisma.forumCategory.findMany({
       where: {
         deletedAt: null,
@@ -217,8 +219,7 @@ export class ForumService {
         visibility: row.visibility,
         isActive: row.isActive,
         topicCount: row._count.topics,
-        canPost:
-          viewer.authenticated && row.isActive && (row.visibility !== 'STAFF' || viewer.staff),
+        canPost: writer && row.isActive && (row.visibility !== 'STAFF' || viewer.staff),
         lastTopic: last ? { ...last.topic, lastActivityAt: last.createdAt.toISOString() } : null
       };
     });
@@ -344,6 +345,7 @@ export class ForumService {
     query: PageQueryDto
   ): Promise<{ category: ForumCategoryView; topics: Page<TopicSummary> }> {
     const viewer = this.viewer(principal);
+    const writer = await this.canWrite(principal);
     const category = await this.readableCategory(slug, viewer);
     const { skip, take, page, pageSize } = pageArgs(query);
     const where: Prisma.ForumTopicWhereInput = {
@@ -380,10 +382,7 @@ export class ForumService {
         visibility: category.visibility,
         isActive: category.isActive,
         topicCount: total,
-        canPost:
-          viewer.authenticated &&
-          category.isActive &&
-          (category.visibility !== 'STAFF' || viewer.staff)
+        canPost: writer && category.isActive && (category.visibility !== 'STAFF' || viewer.staff)
       },
       topics: toPage(
         rows.map((row) => ({
@@ -445,12 +444,25 @@ export class ForumService {
     return text;
   }
 
+  /** Pode escrever no fórum: conta autenticada que não seja de menor (DT-092). */
+  private async canWrite(principal: Principal | undefined): Promise<boolean> {
+    return principal !== undefined && !(await isMinorAccount(this.prisma, principal.userId));
+  }
+
+  /** Conta de menor não participa do fórum (DT-092, ECA Digital); denunciar continua possível. */
+  private async assertCanParticipate(principal: Principal): Promise<void> {
+    if (await isMinorAccount(this.prisma, principal.userId)) {
+      throw AppError.forbidden('Contas de menores de idade não participam do fórum.');
+    }
+  }
+
   async createTopic(
     principal: Principal,
     slug: string,
     input: { title: string; content: string; pinned?: boolean },
     meta: RequestMeta
   ): Promise<TopicDetail> {
+    await this.assertCanParticipate(principal);
     const viewer = this.viewer(principal);
     const category = await this.readableCategory(slug, viewer);
 
@@ -575,7 +587,8 @@ export class ForumService {
       lastAuthor: lastPost?.authorUser?.name ?? null,
       createdAt: topic.createdAt.toISOString(),
       category: { id: topic.category.id, name: topic.category.name, slug: topic.category.slug },
-      canReply: viewer.authenticated && topic.status === 'PUBLISHED' && topic.category.isActive,
+      canReply:
+        (await this.canWrite(principal)) && topic.status === 'PUBLISHED' && topic.category.isActive,
       canModerate: viewer.staff,
       posts: toPage(
         rows.map((post) => {
@@ -621,6 +634,7 @@ export class ForumService {
     input: { content: string; parentPostId?: string },
     meta: RequestMeta
   ): Promise<PostView> {
+    await this.assertCanParticipate(principal);
     const viewer = this.viewer(principal);
     const topic = await this.readableTopic(topicId, viewer);
 
@@ -805,6 +819,7 @@ export class ForumService {
 
   /** Reação idempotente: uma por pessoa e mensagem; repetir o mesmo tipo não duplica. */
   async react(principal: Principal, id: string, type: ForumReactionType | null): Promise<PostView> {
+    await this.assertCanParticipate(principal);
     const post = await this.readablePost(id, this.viewer(principal));
 
     if (post.status !== 'PUBLISHED') {

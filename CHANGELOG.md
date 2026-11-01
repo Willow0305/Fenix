@@ -6,6 +6,12 @@ O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) e o 
 
 ## [Não publicado]
 
+### Conta de atleta menor (2026-11-01)
+
+#### Adicionado
+
+- a diretoria cria a conta do atleta menor do time com a declaração assinada pelo responsável, com modelo para imprimir; a conta não participa do fórum e o perfil fica privado até os 18 anos (DT-092).
+
 ### Convite para jogar (2026-11-01)
 
 #### Adicionado

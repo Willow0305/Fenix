@@ -26,14 +26,14 @@ import {
 import { plural } from '../../../../lib/format';
 import { Avatar } from '../../../../components/avatar';
 import { NewsTime } from '../../../../components/news-card';
-import { BoardBadge, JoinForumCard } from '../join-forum-card';
+import { BoardBadge, JoinForumCard, MinorForumNotice } from '../join-forum-card';
 import { useResource } from '../../../../lib/use-resource';
 import { Icon } from '../../../../components/icon';
 
 export default function ForumCategoryPage() {
   const { slug } = useParams<{ slug: string }>();
   const router = useRouter();
-  const { status, can } = useAuth();
+  const { status, can, profile } = useAuth();
   const [page, setPage] = useState(1);
   const data = useResource<{ category: ForumCategory; topics: Page<TopicSummary> }>(
     status === 'loading' ? null : `/forum/categories/${slug}/topics`,
@@ -85,6 +85,7 @@ export default function ForumCategoryPage() {
       </div>
       {category.description ? <p className="m-0">{category.description}</p> : null}
       {status === 'anonymous' ? <JoinForumCard next={`/forum/${slug}`} /> : null}
+      {profile?.minorAccount ? <MinorForumNotice /> : null}
 
       {writing ? (
         <form className="form card" onSubmit={(event) => void create.submit(event)}>

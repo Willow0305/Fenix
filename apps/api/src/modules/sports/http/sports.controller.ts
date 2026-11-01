@@ -11,10 +11,12 @@ import {
   Post,
   Put,
   Query,
+  Res,
   UploadedFile,
   UseInterceptors
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
+import type { Response } from 'express';
 import { ApiBearerAuth, ApiConsumes, ApiTags } from '@nestjs/swagger';
 import { Throttle } from '@nestjs/throttler';
 
@@ -30,6 +32,7 @@ import { defined } from '../../../common/util/defined';
 import { PERMISSIONS } from '../../access/domain/permission-catalog';
 import { Public, RequirePermissions } from '../../auth/http/auth.decorators';
 import type { IncomingFile } from '../../media/application/media.service';
+import { sendFile } from '../../finance/http/finance.controller';
 import { UPLOAD_LIMITS } from '../../settings/http/settings.controller';
 import {
   type AthleteDetail,
@@ -63,6 +66,7 @@ import {
   TryoutListQueryDto,
   InterestedStatusDto,
   LinkUserDto,
+  MinorAccountDto,
   MembershipDto,
   PublicProfileConsentDto,
   RegistrationQueryDto,
@@ -365,6 +369,37 @@ export class AthletesController {
     @ReqMeta() meta: RequestMeta
   ): Promise<AthleteDetail> {
     return this.athletes.unlinkUser(actor, id, body.reason, meta);
+  }
+
+  @Post(':id/minor-account')
+  @ApiConsumes('multipart/form-data')
+  @RequirePermissions(PERMISSIONS.athletesUpdate, PERMISSIONS.filesUpload)
+  @UseInterceptors(FileInterceptor('file', UPLOAD_LIMITS))
+  createMinorAccount(
+    @CurrentPrincipal() actor: Principal,
+    @Param('id', new ParseUUIDPipe()) id: string,
+    @Body() body: MinorAccountDto,
+    @UploadedFile() file: IncomingFile | undefined,
+    @ReqMeta() meta: RequestMeta
+  ): Promise<AthleteDetail> {
+    return this.athletes.createMinorAccount(
+      actor,
+      id,
+      { email: body.email, phone: body.phone },
+      file,
+      meta
+    );
+  }
+
+  @Get(':id/guardian-declaration')
+  @RequirePermissions(PERMISSIONS.athletesRead, PERMISSIONS.filesReadRestricted)
+  async guardianDeclaration(
+    @CurrentPrincipal() actor: Principal,
+    @Param('id', new ParseUUIDPipe()) id: string,
+    @ReqMeta() meta: RequestMeta,
+    @Res() res: Response
+  ): Promise<void> {
+    sendFile(res, await this.athletes.guardianDeclarationFile(actor, id, meta));
   }
 
   @Post(':id/memberships')

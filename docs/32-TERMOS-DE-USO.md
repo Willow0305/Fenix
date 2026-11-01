@@ -50,10 +50,11 @@ decidir se uma versão nova exige novo aceite de quem já tem conta (`PEN-071`).
 
 ## 3. Conta, idade e segurança
 
-A conta própria é só para maiores de 18 anos (`DT-088`): o cadastro exige essa declaração,
-e uma conta não pode ser vinculada a atleta menor de idade. O atleta menor participa pelo
-responsável, junto à diretoria, que registra os dados do responsável no cadastro esportivo;
-esses campos não criam uma conta de responsável nem concedem acesso aos dados do atleta.
+O cadastro pelo site é só para maiores de 18 anos (`DT-088`). O atleta menor que faz parte do
+time só tem conta se a diretoria a criar, com a declaração assinada por um dos responsáveis;
+essa conta não participa do fórum e o perfil fica privado até os 18 anos (`DT-092`). Os
+dados do responsável registrados no cadastro esportivo não criam uma conta de responsável nem
+concedem acesso aos dados do atleta.
 
 O uso por crianças e adolescentes depende da análise jurídica de melhor interesse, LGPD
 e ECA Digital, incluindo idade, supervisão e participação do responsável quando aplicável.

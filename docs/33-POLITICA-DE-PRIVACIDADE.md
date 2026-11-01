@@ -75,10 +75,12 @@ públicas guardam versão do aviso e instante de consentimento conforme o fluxo.
 
 ## 4. Crianças, adolescentes e imagem
 
-A conta própria é só para maiores de 18 anos (`DT-088`): o cadastro exige essa declaração,
-e uma conta não pode ser vinculada a atleta menor de idade. Atletas menores são cadastrados
-pela diretoria, com dados do responsável; menor de 12 anos, com registro de ciência do
-responsável. A declaração não equivale a verificação de identidade ou de idade, e o registro
+O cadastro pelo site é só para maiores de 18 anos (`DT-088`). A conta de atleta menor que
+faz parte do time só é criada pela diretoria, com a declaração assinada por um dos
+responsáveis, guardada como documento confidencial de acesso restrito e registrado; essa
+conta não participa do fórum e o perfil fica privado até os 18 anos (`DT-092`). Atletas
+menores são cadastrados pela diretoria, com dados do responsável; menor de 12 anos, com
+registro de ciência do responsável. A declaração não equivale a verificação de identidade ou de idade, e o registro
 de ciência não resolve automaticamente a base legal, representação, supervisão ou todos os
 deveres legais.
 

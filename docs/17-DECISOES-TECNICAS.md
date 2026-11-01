@@ -1875,3 +1875,22 @@ O ECA Digital (Lei 15.211/2025, em vigor desde 17/03/2026; Decreto 12.880/2026) 
 
 - `team_settings.join_invite_enabled` (padrão ligado; migração `20261101100000_convite_jogar`), alterado em Configurações → "Convite para jogar", com efeito imediato e auditoria das configurações públicas;
 - a página Times mostra o convite quando ele está ligado **ou** quando há seletiva aceitando inscrição (`showJoinInvite`); desligado e sem seletiva, não aparece.
+
+## DT-092 — Conta de atleta menor criada pela diretoria com declaração do responsável
+
+- **Estado:** Aceita; implementada em 2026-11-01 (amplia `DT-088`)
+- **Data:** 2026-11-01
+- **Aprovador:** responsável do projeto ("permita cadastro de pessoas maiores de idade apenas, mas a diretoria pode cadastrar menores na aplicação (anexando uma declaração dos pais)"; escolheu "só atletas do time")
+
+### Decisão
+
+- o cadastro pelo site continua só para maiores de 18 (`DT-088`); a diretoria cria a conta do atleta menor em **Atletas → ficha → Conta de acesso**, só para atleta Ativo com vínculo aberto em equipe ativa, com a **declaração assinada por um dos responsáveis** (imagem ou PDF até 10 MB, validação de tipo real) — `POST /athletes/:id/minor-account`;
+- a declaração vira `AthleteDocument` do tipo `GUARDIAN_ACCOUNT_DECLARATION`, com o arquivo confidencial; a leitura (`GET /athletes/:id/guardian-declaration`) exige `athletes.read` e `files.read.restricted` e fica na auditoria (`athlete.guardian_declaration.read`); a criação registra `athlete.minor_account.created`;
+- a conta nasce com os papéis `user` e `athlete`, perfil privado e senha aleatória descartada; o link para definir a senha vai ao e-mail informado;
+- **conta de menor** (atleta vinculado menor de 18 ou sem nascimento): não publica, responde nem reage no fórum (`canPost`/`canReply` falsos e recusa 403 na API; denunciar continua possível) e não torna o perfil público; as restrições acabam sozinhas aos 18 anos. `GET /me` informa `minorAccount`;
+- modelo de declaração para imprimir em `/imprimir/declaracao-responsavel/:id`, já com nome e nascimento do atleta e linhas para o responsável preencher; **texto provisório, para revisão jurídica** (`PEN-010`).
+
+### Consequências
+
+- vincular conta existente a atleta menor continua recusado (`DT-088`); menores de fora do time não têm conta (pode ser reaberto depois);
+- a ficha mostra quando a declaração foi enviada e o botão "Ver declaração".

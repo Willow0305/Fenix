@@ -31,6 +31,8 @@ export interface Profile {
   /** Foto de perfil; enquanto privada, só abre com login (DT-044). */
   readonly avatarUrl: string | null;
   readonly profilePublic: boolean;
+  /** Conta de menor (DT-092): sem fórum e com o perfil privado até os 18 anos. */
+  readonly minorAccount?: boolean;
   readonly publicProfile: {
     readonly isAthlete: boolean;
     readonly needsGuardianConsent: boolean;

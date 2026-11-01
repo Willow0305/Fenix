@@ -188,6 +188,15 @@ export class LinkUserDto {
   @ApiProperty() @IsEmail() @MaxLength(180) email!: string;
 }
 
+/** Conta do atleta menor criada pela diretoria, com a declaração do responsável (DT-092). */
+export class MinorAccountDto {
+  @ApiProperty() @IsEmail() @MaxLength(180) email!: string;
+  @ApiPropertyOptional({ example: '(68) 99999-0000' })
+  @IsOptional()
+  @IsMobilePhoneBr()
+  phone?: string;
+}
+
 export class MembershipDto {
   @ApiProperty() @IsUUID() teamId!: string;
   @ApiProperty({ example: '2026-01-15' })

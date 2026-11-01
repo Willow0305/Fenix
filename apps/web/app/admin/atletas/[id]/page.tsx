@@ -19,8 +19,10 @@ import {
 import { Avatar } from '../../../../components/avatar';
 import { ContactActions } from '../../../../components/contact-actions';
 import { Icon } from '../../../../components/icon';
+import { MinorAccountForm } from '../../../../components/minor-account-form';
 import { api } from '../../../../lib/api-client';
 import { ageFrom } from '../../../../lib/age';
+import { openProtectedFile } from '../../../../lib/download';
 import type { AuditLog, Page } from '../../../../lib/api-types';
 import { useAuth } from '../../../../lib/auth-context';
 import { formatDate, formatDateTime, todayCivil, plural } from '../../../../lib/format';
@@ -232,7 +234,46 @@ export default function AthleteDetailPage() {
                 </div>
               ) : null}
             </div>
+            {a.guardianDeclaration ? (
+              <div className="row">
+                <span className="muted">
+                  Conta de menor criada com a declaração do responsável enviada em{' '}
+                  {formatDateTime(a.guardianDeclaration.uploadedAt)}.
+                </span>
+                {can('files.read.restricted') ? (
+                  <button
+                    type="button"
+                    className="btn btn-secondary btn-sm"
+                    onClick={() =>
+                      void openProtectedFile(`/athletes/${id}/guardian-declaration`).catch(
+                        (error: unknown) =>
+                          setNotice(
+                            error instanceof Error ? error.message : 'Não foi possível abrir.'
+                          )
+                      )
+                    }
+                  >
+                    <Icon name="file-earmark-text" /> Ver declaração
+                  </button>
+                ) : null}
+              </div>
+            ) : null}
           </>
+        ) : can('athletes.update') && athleteAge === null ? (
+          <p className="muted m-0">
+            Informe a data de nascimento em Dados cadastrais para criar ou vincular a conta: menor
+            de 18 anos só tem conta criada pela diretoria (DT-092).
+          </p>
+        ) : can('athletes.update') && athleteAge !== null && athleteAge < 18 ? (
+          <MinorAccountForm
+            athlete={a}
+            onCreated={(updated) => {
+              athlete.setData(updated);
+              setNotice(
+                'Conta criada. O atleta recebeu no e-mail o link para definir a senha e já acessa a área do atleta.'
+              );
+            }}
+          />
         ) : can('athletes.update') ? (
           <form className="row" onSubmit={(event) => void link.submit(event)}>
             <TextField

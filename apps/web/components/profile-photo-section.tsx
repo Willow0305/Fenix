@@ -113,27 +113,37 @@ export function ProfilePhotoSection({ profile }: { readonly profile: Profile }) 
         </div>
       </div>
 
-      <label className="checkbox">
-        <input
-          type="checkbox"
-          checked={profile.profilePublic}
-          disabled={action.pending}
-          onChange={(event) => {
-            const value = event.target.checked;
+      {profile.minorAccount ? (
+        <p className="muted m-0">
+          <Icon name="lock" /> Seu perfil fica privado enquanto você for menor de idade: a foto não
+          aparece para outras pessoas nem no elenco. Isso muda quando você completar 18 anos.
+        </p>
+      ) : (
+        <label className="checkbox">
+          <input
+            type="checkbox"
+            checked={profile.profilePublic}
+            disabled={action.pending}
+            onChange={(event) => {
+              const value = event.target.checked;
 
-            start(
-              () =>
-                api<Profile>('/me/profile-visibility', { method: 'PUT', body: { public: value } }),
-              value ? 'Perfil público ativado.' : 'Seu perfil agora é privado.'
-            );
-          }}
-        />
-        <span>
-          <strong>Perfil público.</strong> Qualquer pessoa pode ver minha foto e, se eu for atleta
-          do time, ela aparece no elenco em Times (sem ela, aparece a logo do Fênix). Idade e
-          contato nunca aparecem.
-        </span>
-      </label>
+              start(
+                () =>
+                  api<Profile>('/me/profile-visibility', {
+                    method: 'PUT',
+                    body: { public: value }
+                  }),
+                value ? 'Perfil público ativado.' : 'Seu perfil agora é privado.'
+              );
+            }}
+          />
+          <span>
+            <strong>Perfil público.</strong> Qualquer pessoa pode ver minha foto e, se eu for atleta
+            do time, ela aparece no elenco em Times (sem ela, aparece a logo do Fênix). Idade e
+            contato nunca aparecem.
+          </span>
+        </label>
+      )}
       <p className="muted m-0" aria-live="polite">
         {action.pending ? 'Salvando…' : status}
       </p>

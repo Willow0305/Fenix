@@ -11,6 +11,16 @@ export function BoardBadge() {
   );
 }
 
+/** Conta de menor acompanha o fórum, mas não publica (DT-092, ECA Digital). */
+export function MinorForumNotice() {
+  return (
+    <p className="alert alert-info m-0">
+      Contas de menores de idade acompanham o fórum, mas não publicam, respondem nem reagem. Isso
+      muda sozinho quando você completar 18 anos.
+    </p>
+  );
+}
+
 /** Convite para entrar e participar, no lugar de uma frase solta (Onda 4). */
 export function JoinForumCard({ next }: { readonly next: string }) {
   const encoded = encodeURIComponent(next);

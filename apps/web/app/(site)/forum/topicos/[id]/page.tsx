@@ -26,7 +26,7 @@ import {
 import { plural } from '../../../../../lib/format';
 import { Avatar } from '../../../../../components/avatar';
 import { NewsTime } from '../../../../../components/news-card';
-import { BoardBadge, JoinForumCard } from '../../join-forum-card';
+import { BoardBadge, JoinForumCard, MinorForumNotice } from '../../join-forum-card';
 import { useResource } from '../../../../../lib/use-resource';
 import { Icon } from '../../../../../components/icon';
 
@@ -197,7 +197,7 @@ function PostItem({
 
 export default function TopicPage() {
   const { id } = useParams<{ id: string }>();
-  const { status } = useAuth();
+  const { status, profile } = useAuth();
   const [page, setPage] = useState(1);
   const topic = useResource<TopicDetail>(status === 'loading' ? null : `/forum/topics/${id}`, {
     page
@@ -301,6 +301,7 @@ export default function TopicPage() {
         noun={['mensagem', 'mensagens']}
       />
 
+      {profile?.minorAccount ? <MinorForumNotice /> : null}
       {t.canReply ? (
         <form className="form card" onSubmit={(event) => void send.submit(event)}>
           <ErrorSummary error={send.error} />

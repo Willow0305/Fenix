@@ -58,7 +58,7 @@ enquadramento.
 
 | Tema | Decisão | Registro |
 |---|---|---|
-| Contas de menores | Conta própria só para maiores de 18 anos. O atleta menor continua cadastrado pela diretoria, e o responsável usa a conta dele. Sem conta, menor não participa do fórum. | `PEN-010`, `DT-088` |
+| Contas de menores | Cadastro pelo site só para maiores de 18 anos. A diretoria cria a conta do atleta menor **do time** com a declaração assinada por um responsável; a conta não participa do fórum e o perfil fica privado até os 18 (decisão complementar de 01/11/2026). | `PEN-010`, `DT-088`, `DT-092` |
 | Remessa abaixo do mínimo | Devolução de 100% do valor pago, **sem** opção de crédito na loja. | `PEN-032` |
 | Versão dos termos aceita | Implementar já, sem depender do texto final. | `PEN-071`, `DT-089` |
 

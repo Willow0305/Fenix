@@ -83,6 +83,8 @@ export interface AthleteDetail extends AthleteSummary {
     visibleOnSite: boolean;
   };
   memberships: Membership[];
+  /** Declaração do responsável que autorizou a conta do atleta menor (DT-092). */
+  guardianDeclaration?: { id: string; uploadedAt: string } | null;
   createdAt: string;
   updatedAt: string;
 }

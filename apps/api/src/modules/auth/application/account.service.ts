@@ -12,6 +12,7 @@ import {
   mediaUrl
 } from '../../media/application/media.service';
 import { normalizeAccountPhone, REVOCATION } from '../domain/auth-rules';
+import { ADULT_ACCOUNT_AGE, isMinorAccount } from './minor-account';
 import { assertPhoneAvailable } from './phone-availability';
 
 export interface ProfileView {
@@ -25,6 +26,8 @@ export interface ProfileView {
   /** Foto de perfil; abre só para a própria pessoa e a diretoria enquanto privada (DT-044). */
   readonly avatarUrl: string | null;
   readonly profilePublic: boolean;
+  /** Conta de menor (DT-092): sem fórum e com o perfil privado até os 18 anos. */
+  readonly minorAccount: boolean;
   /**
    * Para atleta menor de 18 (ou sem data de nascimento): o perfil só aparece no site
    * depois de a diretoria registrar a autorização do responsável.
@@ -83,10 +86,11 @@ export class AccountService {
       }
     });
     const athlete = user.athlete && user.athlete.deletedAt === null ? user.athlete : null;
-    const needsGuardianConsent =
+    const minor =
       athlete !== null &&
-      (athlete.birthDate === null || ageOn(dateToCivil(athlete.birthDate), todayIn()) < 18) &&
-      athlete.publicProfileConsentAt === null;
+      (athlete.birthDate === null ||
+        ageOn(dateToCivil(athlete.birthDate), todayIn()) < ADULT_ACCOUNT_AGE);
+    const needsGuardianConsent = minor && athlete.publicProfileConsentAt === null;
 
     return {
       id: user.id,
@@ -98,6 +102,7 @@ export class AccountService {
       athleteId: athlete?.id ?? null,
       avatarUrl: user.avatarMediaFileId ? mediaUrl(user.avatarMediaFileId) : null,
       profilePublic: user.profilePublic,
+      minorAccount: minor,
       publicProfile: {
         isAthlete: athlete !== null,
         needsGuardianConsent,
@@ -253,6 +258,13 @@ export class AccountService {
       where: { id: principal.userId },
       select: { avatarMediaFileId: true, profilePublic: true }
     });
+
+    // Conta de menor fica com o perfil privado até completar 18 anos (DT-092, ECA Digital).
+    if (isPublic && (await isMinorAccount(this.prisma, principal.userId))) {
+      throw AppError.forbidden(
+        'Conta de menor de idade fica com o perfil privado. A foto aparece a partir dos 18 anos.'
+      );
+    }
 
     await this.prisma.$transaction(async (tx) => {
       await tx.user.update({ where: { id: principal.userId }, data: { profilePublic: isPublic } });
