@@ -39,8 +39,9 @@ test('entrega em casa do pedido ao código do motoboy', async ({ page, browser, 
   await page.getByRole('button', { name: /confirmar pedido/i }).click();
   await expect(page.getByRole('heading', { name: /^Pedido .+ realizado$/ })).toBeVisible();
 
-  const notice = page.locator('.alert', { hasText: 'Guarde o código de acesso' });
-  const [guestCode, orderNumber] = await notice.locator('strong').allInnerTexts();
+  // Aviso de acesso ao pedido (DT-096): título, número e código, nessa ordem.
+  const notice = page.locator('.alert', { hasText: 'Guarde o acesso ao seu pedido' });
+  const [, orderNumber, guestCode] = await notice.locator('strong').allInnerTexts();
 
   await page.getByRole('button', { name: /gerar qr pix/i }).click();
   await page.getByRole('button', { name: /simular pagamento/i }).click();

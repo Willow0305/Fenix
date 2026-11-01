@@ -3,7 +3,6 @@ import type { CardChargeStatus, Prisma } from '../../../generated/prisma/client'
 
 import { AuditService } from '../../../common/audit/audit.service';
 import { AppConfig } from '../../../common/config/app-config';
-import { sha256Hex } from '../../../common/crypto/tokens';
 import { type MoneyView, money, moneyView, round2 } from '../../../common/domain/money';
 import { AppError } from '../../../common/errors/app-error';
 import type { Principal, RequestMeta } from '../../../common/http/request-context';
@@ -26,6 +25,7 @@ import {
   rejectionMessage
 } from '../domain/card-payment';
 import { MercadoPagoCardProvider, SandboxCardProvider } from '../infrastructure/card-providers';
+import { guestCodeHash } from '../../store/domain/guest-access';
 
 export type CardOwner =
   { readonly userId: string } | { readonly orderNumber: string; readonly code: string };
@@ -176,7 +176,7 @@ export class CardService implements OnModuleInit {
           ? { id: orderId ?? '', customerUserId: owner.userId }
           : {
               orderNumber: owner.orderNumber.trim().toUpperCase(),
-              guestAccessTokenHash: sha256Hex(`order:${owner.code.trim()}`)
+              guestAccessTokenHash: guestCodeHash(owner.code)
             },
       select: {
         id: true,
@@ -443,7 +443,7 @@ export class CardService implements OnModuleInit {
             : {
                 id: charge.orderId,
                 orderNumber: owner.orderNumber.trim().toUpperCase(),
-                guestAccessTokenHash: sha256Hex(`order:${owner.code.trim()}`)
+                guestAccessTokenHash: guestCodeHash(owner.code)
               }
       })) > 0;
 

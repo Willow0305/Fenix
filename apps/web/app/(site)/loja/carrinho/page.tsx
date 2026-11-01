@@ -33,6 +33,7 @@ import { ConsumerRights } from '../../../../components/consumer-rights';
 import { DeliveryChoice, type DeliveryState } from '../../../../components/delivery-choice';
 import { addressBody, EMPTY_ADDRESS } from '../../../../lib/delivery-types';
 import { useResource } from '../../../../lib/use-resource';
+import { GuestOrderAccess } from '../../../../components/guest-order-access';
 
 export default function CartPage() {
   const { status, profile } = useAuth();
@@ -145,14 +146,14 @@ export default function CartPage() {
       <div className="container stack" style={{ paddingTop: '2rem', maxWidth: 860 }}>
         <PageHeader
           title={`Pedido ${order.orderNumber} realizado`}
-          description="Enviamos os detalhes para o seu e-mail."
+          description={
+            guestAccessCode
+              ? 'Enviamos os detalhes para o seu e-mail. Se não chegar em alguns minutos, olhe a caixa de spam.'
+              : 'Enviamos os detalhes para o seu e-mail.'
+          }
         />
         {guestAccessCode ? (
-          <Alert kind="warning">
-            Guarde o código de acesso <strong>{guestAccessCode}</strong>. Ele e o número{' '}
-            <strong>{order.orderNumber}</strong> são necessários para consultar o pedido em{' '}
-            <Link href="/loja/pedido">Consultar pedido</Link>.
-          </Alert>
+          <GuestOrderAccess orderNumber={order.orderNumber} code={guestAccessCode} />
         ) : (
           <Alert kind="info">
             Acompanhe em <Link href={`/minha-conta/pedidos/${order.id}`}>Meus pedidos</Link>.

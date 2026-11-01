@@ -3,7 +3,6 @@ import type { Prisma, ReturnResolution } from '../../../generated/prisma/client'
 
 import { AuditService } from '../../../common/audit/audit.service';
 import { type MoneyView, money, moneyView, sum } from '../../../common/domain/money';
-import { sha256Hex } from '../../../common/crypto/tokens';
 import { AppError } from '../../../common/errors/app-error';
 import { type Page, pageArgs, type PageQueryDto, toPage } from '../../../common/http/pagination';
 import type { Principal, RequestMeta } from '../../../common/http/request-context';
@@ -24,6 +23,7 @@ import { requiresStock } from '../domain/store-rules';
 import { InventoryService } from './inventory.service';
 import { personalizationOfItem } from './orders.service';
 import { strongerProof } from '../domain/delivery';
+import { guestCodeHash } from '../domain/guest-access';
 
 /** Quem pede: conta logada ou visitante com número e código do pedido. */
 export type ReturnOwner =
@@ -155,7 +155,7 @@ export class ReturnsService {
         ? { id: orderId ?? '', customerUserId: owner.userId }
         : {
             orderNumber: owner.orderNumber.toUpperCase(),
-            guestAccessTokenHash: sha256Hex(`order:${owner.code}`)
+            guestAccessTokenHash: guestCodeHash(owner.code)
           };
     const order = await db.order.findFirst({ where, select: ORDER_SELECT });
 

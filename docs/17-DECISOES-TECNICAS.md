@@ -1953,3 +1953,16 @@ Pesquisa de 01/11/2026 (`docs/35` §1.3): jurisprudência dividida. Decisões do
 ### Consequências
 
 - risco jurídico de reclamação ou processo, aceito pelo responsável; recomenda-se revisão do advogado antes de dados reais (`PEN-071`).
+
+## DT-096 — Acompanhamento de pedidos de quem compra sem conta
+
+- **Estado:** Aceita; em implementação a partir de 2026-11-01
+- **Data:** 2026-11-01
+- **Aprovador:** responsável do projeto ("Link direto: gostei, mas tem que ser fixo para não mudar"; "enviar informações por WhatsApp também"; "Lembrar no aparelho: ok"; "Código mais fácil: ok"; "Reenviar o código: ok"; "Mais avisos por e-mail e WhatsApp: ok, lembrar o usuário de verificar a caixa de spam"; "Trazer os pedidos para a conta: ok")
+
+### Decisão
+
+- **código fácil:** 8 caracteres de um alfabeto sem os que se confundem (`23456789ABCDEFGHJKMNPQRSTUVWXYZ`, 31 símbolos, cerca de 40 bits), mostrado em dois grupos (`K7QH-3MXP`); a conferência aceita minúsculas, espaços e traço; códigos antigos continuam valendo como foram enviados. A consulta exige também o número do pedido e mantém o limite de tentativas;
+- **link fixo:** `/loja/pedido#pedido=<número>&codigo=<código>`; número e código vão depois do `#`, que o navegador não envia ao servidor nem a outros sites. O link é sempre o mesmo para o mesmo pedido: o código fica guardado cifrado (`orders.guest_access_code_encrypted`, AES-256-GCM, migração `20261101110000_codigo_pedido_visitante`) além do hash usado na conferência;
+- **lembrar no aparelho:** depois da compra e de cada consulta (com a caixa marcada), o pedido fica guardado neste navegador por 90 dias desde a última consulta, até 10 pedidos; a página lista os pedidos lembrados com "Abrir" e "Esquecer" e avisa para não lembrar em computador compartilhado;
+- a tela de "pedido realizado" mostra número, código, "Abrir meu pedido" e "Copiar link", e lembra de olhar a caixa de spam.

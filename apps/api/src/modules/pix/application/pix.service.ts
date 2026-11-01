@@ -6,7 +6,6 @@ import QRCode from 'qrcode';
 
 import { AuditService } from '../../../common/audit/audit.service';
 import { AppConfig } from '../../../common/config/app-config';
-import { sha256Hex } from '../../../common/crypto/tokens';
 import { type MoneyView, money, moneyView, round2 } from '../../../common/domain/money';
 import { AppError } from '../../../common/errors/app-error';
 import type { Principal, RequestMeta } from '../../../common/http/request-context';
@@ -19,6 +18,7 @@ import { StaffAlertsService } from '../../notifications/application/staff-alerts
 import { OrdersService } from '../../store/application/orders.service';
 import { mercadoPagoSignatureValid, type PixProvider } from '../domain/pix-provider';
 import { MercadoPagoPixProvider, SandboxPixProvider } from '../infrastructure/pix-providers';
+import { guestCodeHash } from '../../store/domain/guest-access';
 
 /** Mensalidade: QR vale 24 h; pedido: enquanto a reserva valer (DT-071). */
 const FEE_TTL_MS = 24 * 3_600_000;
@@ -134,7 +134,7 @@ export class PixService implements OnModuleInit {
           ? { id: orderId ?? '', customerUserId: owner.userId }
           : {
               orderNumber: owner.orderNumber.toUpperCase(),
-              guestAccessTokenHash: sha256Hex(`order:${owner.code}`)
+              guestAccessTokenHash: guestCodeHash(owner.code)
             },
       select: {
         id: true,
@@ -329,7 +329,7 @@ export class PixService implements OnModuleInit {
             where: {
               id: charge.orderId,
               orderNumber: owner.orderNumber.toUpperCase(),
-              guestAccessTokenHash: sha256Hex(`order:${owner.code}`)
+              guestAccessTokenHash: guestCodeHash(owner.code)
             }
           })) > 0;
 

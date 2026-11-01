@@ -6,6 +6,12 @@ O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) e o 
 
 ## [Não publicado]
 
+### Pedidos sem conta: código fácil, link fixo e lembrar no aparelho (2026-11-01)
+
+#### Alterado
+
+- o código do pedido de quem compra sem conta ficou mais fácil (`K7QH-3MXP`, aceita minúsculas e sem traço); o pedido tem um link fixo que abre direto; a consulta lembra os pedidos neste aparelho por 90 dias, com opção de esquecer (DT-096).
+
 ### Personalizados: diretoria pode recusar a desistência (2026-11-01)
 
 #### Alterado

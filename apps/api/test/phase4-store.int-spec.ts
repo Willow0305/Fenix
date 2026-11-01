@@ -278,8 +278,20 @@ describe('Fase 4 — loja, estoque, carrinho e pedidos', () => {
 
     expect(order.status).toBe('AWAITING_PAYMENT');
     expect(order.totalAmount.amount).toBe('100.00');
-    expect(checkout.body.guestAccessCode).toEqual(expect.any(String));
+    // Código fácil em dois grupos, sem caracteres que se confundem (DT-096).
+    expect(checkout.body.guestAccessCode).toMatch(/^[2-9A-HJKMNP-Z]{4}-[2-9A-HJKMNP-Z]{4}$/);
     expect(await stockOf(p.variantId)).toBe(3);
+
+    const stored = await ctx.prisma.order.findUniqueOrThrow({
+      where: { id: order.id },
+      select: { guestAccessCodeEncrypted: true, guestAccessTokenHash: true }
+    });
+
+    // Cifrado (para o link fixo e o reenvio), nunca em texto puro.
+    expect(stored.guestAccessCodeEncrypted).toEqual(expect.any(String));
+    expect(stored.guestAccessCodeEncrypted).not.toContain(
+      String(checkout.body.guestAccessCode).replace('-', '')
+    );
 
     // Mudança de preço posterior não altera o pedido.
     await ctx
@@ -296,6 +308,15 @@ describe('Fase 4 — loja, estoque, carrinho e pedidos', () => {
       .expect(200);
 
     expect(looked.body.items[0].unitPrice.amount).toBe('50.00');
+    // Minúsculas e sem o traço também valem.
+    await ctx
+      .http()
+      .post('/api/v1/public/orders/lookup')
+      .send({
+        orderNumber: order.orderNumber.toLowerCase(),
+        code: String(checkout.body.guestAccessCode).replace('-', '').toLowerCase()
+      })
+      .expect(200);
     await ctx
       .http()
       .post('/api/v1/public/orders/lookup')

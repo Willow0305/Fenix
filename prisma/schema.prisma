@@ -1834,6 +1834,8 @@ model Order {
   status                   OrderStatus        @default(CREATED)
   notes                    String?            @db.Text
   guestAccessTokenHash     String?            @unique @map("guest_access_token_hash") @db.Char(64)
+  /// Código do pedido sem conta, cifrado: mantém o link fixo e permite reenviar (DT-096).
+  guestAccessCodeEncrypted String?            @map("guest_access_code_encrypted") @db.Text
   reservationExpiresAt     DateTime?          @map("reservation_expires_at") @db.Timestamptz(6)
   paidAt                   DateTime?          @map("paid_at") @db.Timestamptz(6)
   readyForPickupAt         DateTime?          @map("ready_for_pickup_at") @db.Timestamptz(6)

@@ -8,7 +8,7 @@ import type {
 } from '../../../generated/prisma/client';
 
 import { AuditService } from '../../../common/audit/audit.service';
-import { generateOpaqueToken, sha256Hex } from '../../../common/crypto/tokens';
+import { sha256Hex } from '../../../common/crypto/tokens';
 import {
   formatBrl,
   money,
@@ -81,9 +81,15 @@ import {
   notReceivedDeadline,
   strongerProof
 } from '../domain/delivery';
-import { decryptField } from '../../../common/crypto/data-cipher';
+import { decryptField, encryptField } from '../../../common/crypto/data-cipher';
 import { beneficiariesOf, beneficiaryProblems, resizeBeneficiaries } from '../domain/cart-details';
 import { plural } from '../../../common/domain/plural';
+import {
+  formatGuestCode,
+  generateGuestCode,
+  guestCodeHash,
+  guestOrderPath
+} from '../domain/guest-access';
 
 export interface OrderItemView {
   readonly id: string;
@@ -465,7 +471,7 @@ export class OrdersService implements OnModuleInit {
       );
     }
 
-    const guestAccessCode = principal ? null : generateOpaqueToken(12);
+    const guestAccessCode = principal ? null : generateGuestCode();
 
     const orderId = await this.prisma.$transaction(async (tx) => {
       const cart = await this.carts.findActive(owner, tx);
@@ -697,7 +703,10 @@ export class OrdersService implements OnModuleInit {
           currency: 'BRL',
           status: total.greaterThan(0) ? 'AWAITING_PAYMENT' : 'PAID',
           notes: input.notes?.trim() || null,
-          guestAccessTokenHash: guestAccessCode ? sha256Hex(`order:${guestAccessCode}`) : null,
+          guestAccessTokenHash: guestAccessCode ? guestCodeHash(guestAccessCode) : null,
+          guestAccessCodeEncrypted: guestAccessCode
+            ? encryptField(guestAccessCode, this.config.values.dataEncryptionKey)
+            : null,
           paymentChoice: input.paymentChoice ?? 'PIX',
           reservationExpiresAt: new Date(
             now.getTime() + this.reservationMs(input.paymentChoice ?? 'PIX')
@@ -851,7 +860,8 @@ export class OrdersService implements OnModuleInit {
           ...(guestAccessCode
             ? [
                 '',
-                `Para acompanhar, acesse ${this.config.values.webOrigin}/loja/pedido e informe o número do pedido e o código: ${guestAccessCode}`
+                `Acompanhe o pedido por este link, que não muda: ${this.config.values.webOrigin}${guestOrderPath(order.orderNumber, guestAccessCode)}`,
+                `Ou acesse ${this.config.values.webOrigin}/loja/pedido e informe o número ${order.orderNumber} e o código ${formatGuestCode(guestAccessCode)}.`
               ]
             : [`Acompanhe em ${this.config.values.webOrigin}/minha-conta/pedidos`])
         ].join('\n')
@@ -872,7 +882,7 @@ export class OrdersService implements OnModuleInit {
       key: `staff-order:${order.id}`
     });
 
-    return { order, guestAccessCode };
+    return { order, guestAccessCode: guestAccessCode ? formatGuestCode(guestAccessCode) : null };
   }
 
   /** Limite máximo da campanha (RCF-009), contando pedidos não cancelados. */
@@ -998,7 +1008,7 @@ export class OrdersService implements OnModuleInit {
     const row = await this.prisma.order.findFirst({
       where: {
         orderNumber: orderNumber.trim().toUpperCase(),
-        guestAccessTokenHash: sha256Hex(`order:${code.trim()}`)
+        guestAccessTokenHash: guestCodeHash(code)
       },
       include: ORDER_INCLUDE
     });
@@ -1884,7 +1894,7 @@ export class OrdersService implements OnModuleInit {
           ? { id: orderId ?? '', customerUserId: owner.userId }
           : {
               orderNumber: owner.orderNumber.trim().toUpperCase(),
-              guestAccessTokenHash: sha256Hex(`order:${owner.code.trim()}`)
+              guestAccessTokenHash: guestCodeHash(owner.code)
             },
       select: { id: true }
     });

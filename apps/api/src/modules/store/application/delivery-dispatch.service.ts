@@ -36,6 +36,7 @@ import {
 } from '../domain/delivery';
 import { orderStatusCountsAsUnread } from '../domain/store-rules';
 import { OrdersService, type OrderView } from './orders.service';
+import { guestCodeHash } from '../domain/guest-access';
 
 export interface CourierInput {
   readonly name: string;
@@ -832,7 +833,7 @@ export class DeliveryDispatchService implements OnModuleInit {
           ? { id: orderId ?? '', customerUserId: owner.userId }
           : {
               orderNumber: owner.orderNumber.trim().toUpperCase(),
-              guestAccessTokenHash: sha256Hex(`order:${owner.code.trim()}`)
+              guestAccessTokenHash: guestCodeHash(owner.code)
             },
       select: { id: true }
     });

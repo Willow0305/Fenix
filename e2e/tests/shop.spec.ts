@@ -28,6 +28,21 @@ test('visitante compra e paga com PIX automático', async ({ page }) => {
   await expectNoHorizontalScroll(page);
   await page.getByRole('button', { name: /simular pagamento/i }).click();
   await expect(page.getByText('Pagamento confirmado. Obrigado!')).toBeVisible();
+
+  // Link fixo (DT-096): abre o pedido sem digitar nada, e ele fica lembrado no aparelho.
+  const orderNumber = (
+    await page.getByRole('heading', { name: /^Pedido .+ realizado$/ }).innerText()
+  )
+    .replace(/^Pedido /, '')
+    .replace(/ realizado$/, '');
+
+  await page.getByRole('link', { name: 'Abrir meu pedido' }).click();
+  await page.waitForURL('**/loja/pedido#pedido=*');
+  await expect(page.getByText('Pago').first()).toBeVisible();
+  await expect(
+    page.getByRole('region', { name: 'Pedidos lembrados neste aparelho' }).getByText(orderNumber)
+  ).toBeVisible();
+  await expectNoHorizontalScroll(page);
   expect(watcher.problems).toEqual([]);
 });
 
