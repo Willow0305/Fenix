@@ -4,6 +4,7 @@ import { Fragment, useState } from 'react';
 
 import { Alert, Empty, Loading, PageHeader, Pagination } from '../../../components/ui';
 import type { AuditLog, Page } from '../../../lib/api-types';
+import { auditActionLabel, auditActionOptions, auditEntityLabel } from '../../../lib/audit-labels';
 import { formatDateTime } from '../../../lib/format';
 import { useResource } from '../../../lib/use-resource';
 
@@ -57,7 +58,7 @@ function AuditDetail({ id }: { readonly id: string }) {
         <div>
           <dt className="muted">Entidade</dt>
           <dd>
-            {d.entityType} <code>{d.entityId ?? '—'}</code>
+            {auditEntityLabel(d.entityType)} <code>{d.entityId ?? '—'}</code>
           </dd>
         </div>
         <div>
@@ -92,7 +93,8 @@ function AuditDetail({ id }: { readonly id: string }) {
           <ul>
             {d.related.map((r) => (
               <li key={r.id}>
-                <code>{r.action}</code> · {r.entityType} · {formatDateTime(r.occurredAt)}
+                <span title={r.action}>{auditActionLabel(r.action)}</span> ·{' '}
+                {auditEntityLabel(r.entityType)} · {formatDateTime(r.occurredAt)}
               </li>
             ))}
           </ul>
@@ -130,13 +132,15 @@ export default function AuditPage() {
       >
         <div className="form-grid">
           <label className="field">
-            <span className="label">Ação começa com</span>
-            <input
-              maxLength={140}
-              value={filters.action}
-              onChange={set('action')}
-              placeholder="ex.: finance."
-            />
+            <span className="label">Ação</span>
+            <select value={filters.action} onChange={set('action')}>
+              <option value="">Todas</option>
+              {auditActionOptions().map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
+            </select>
           </label>
           <label className="field">
             <span className="label">Entidade</span>
@@ -144,7 +148,7 @@ export default function AuditPage() {
               <option value="">Todas</option>
               {(types.data ?? []).map((type) => (
                 <option key={type} value={type}>
-                  {type}
+                  {auditEntityLabel(type)}
                 </option>
               ))}
             </select>
@@ -212,10 +216,11 @@ export default function AuditPage() {
                     <td data-label="Quando">{formatDateTime(log.occurredAt)}</td>
                     <td data-label="Quem">{log.actor?.name ?? 'Sistema/anônimo'}</td>
                     <td data-label="Ação">
-                      <code>{log.action}</code>
+                      {/* O código técnico fica no texto de ajuda, para o suporte. */}
+                      <span title={log.action}>{auditActionLabel(log.action)}</span>
                     </td>
                     <td data-label="Entidade">
-                      {log.entityType}
+                      {auditEntityLabel(log.entityType)}
                       {log.entityId ? (
                         <small className="muted"> {log.entityId.slice(0, 8)}</small>
                       ) : null}

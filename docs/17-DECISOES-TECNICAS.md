@@ -1971,3 +1971,17 @@ Pesquisa de 01/11/2026 (`docs/35` §1.3): jurisprudência dividida. Decisões do
 - a página do pedido mostra para qual e-mail vão os avisos e lembra de olhar a caixa de spam.
 - **"Esqueci o código" (etapa 3):** na página de consulta, a pessoa informa o e-mail da compra e `POST /public/orders/resend-access` reenvia, pela fila (e-mail e, com consentimento, WhatsApp), o número, o código e o link fixo dos pedidos sem conta desse e-mail nos últimos 12 meses (até 10). A resposta é sempre a mesma, exista ou não pedido (não revela quem comprou); no máximo um reenvio por pedido por dia; limite de 3 pedidos por minuto; auditoria `order.guest_access.resent`. Pedido antigo, sem o código guardado, recebe um código novo.
 - **trazer pedidos para a conta (etapa 4):** o sistema passou a confirmar o e-mail das contas (antes o campo `email_verified_at` existia, mas nada o preenchia): o cadastro envia um link de confirmação (vale 7 dias; `POST /auth/verify-email`), Minha conta mostra o aviso com "Reenviar o link" (`POST /me/email-verification`), e definir a senha pelo link do e-mail também confirma. Ao confirmar, os pedidos sem conta com o mesmo e-mail passam para a conta (`order.linked_to_account` na auditoria); sem confirmação, nada passa, para ninguém criar conta com o e-mail de outra pessoa e ver os pedidos dela. A página de confirmação pede um clique, porque verificadores de link dos provedores abrem a página sozinhos. Também, logado, quem abre um pedido sem conta pelo número e código pode trazê-lo para a conta (`POST /me/orders/claim`); pedido de outra conta não muda. Pedido trazido para a conta deixa de receber os avisos da fila sem conta e passa a usar os da conta.
+
+## DT-097 — Auditoria em português
+
+- **Estado:** Aceita; implementada em 2026-11-01
+- **Data:** 2026-11-01
+- **Aprovador:** responsável do projeto ("em auditoria, na coluna de ação, traduza para o português essas ações para facilitar o entendimento dos usuários")
+
+### Decisão
+
+- o banco continua gravando o código técnico da ação (`order.created`); a tela mostra o texto em português (`apps/web/lib/audit-labels.ts`, 267 ações), com o código no texto de ajuda (ao passar o mouse), para o suporte;
+- a coluna "Entidade" também passou a português (`Order` → Pedido, `User` → Conta…), na lista, no detalhe e no filtro;
+- o filtro "Ação começa com", que exigia digitar o código, virou uma lista com as ações em português, em ordem alfabética;
+- o histórico da ficha do atleta usa os mesmos textos;
+- ação nova sem tradução mostra um texto montado a partir do código ("Pedido: criado") e, se nem isso der, o próprio código; um teste lê o código da API e falha se alguma ação gravada não tiver tradução.

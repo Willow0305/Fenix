@@ -22,6 +22,7 @@ import { Icon } from '../../../../components/icon';
 import { MinorAccountForm } from '../../../../components/minor-account-form';
 import { api } from '../../../../lib/api-client';
 import { ageFrom } from '../../../../lib/age';
+import { auditActionLabel } from '../../../../lib/audit-labels';
 import { openProtectedFile } from '../../../../lib/download';
 import type { AuditLog, Page } from '../../../../lib/api-types';
 import { useAuth } from '../../../../lib/auth-context';
@@ -407,7 +408,8 @@ export default function AthleteDetailPage() {
           <ul>
             {history.data.data.map((log) => (
               <li key={log.id}>
-                {formatDateTime(log.occurredAt)} — <code>{log.action}</code> por{' '}
+                {formatDateTime(log.occurredAt)} —{' '}
+                <span title={log.action}>{auditActionLabel(log.action)}</span> por{' '}
                 {log.actor?.name ?? 'sistema'}
                 {log.reason ? ` · motivo: ${log.reason}` : ''}
                 {log.after ? <small className="muted"> {JSON.stringify(log.after)}</small> : null}

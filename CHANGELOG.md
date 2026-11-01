@@ -6,6 +6,12 @@ O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) e o 
 
 ## [Não publicado]
 
+### Auditoria em português (2026-11-01)
+
+#### Alterado
+
+- a auditoria mostra as ações e as entidades em português ("Pedido criado", "Senha redefinida"…), e o filtro de ação virou uma lista com esses textos (DT-097).
+
 ### Pedidos sem conta: trazer para a conta e confirmação de e-mail (2026-11-01)
 
 #### Adicionado
