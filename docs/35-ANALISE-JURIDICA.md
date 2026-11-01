@@ -63,13 +63,33 @@ enquadramento.
 | Remessa abaixo do mínimo | Devolução de 100% do valor pago, **sem** opção de crédito na loja. | `PEN-032` |
 | Versão dos termos aceita | Implementar já, sem depender do texto final. | `PEN-071`, `DT-089` |
 
-## 3. Perguntas ainda abertas para o responsável
+## 3. Respostas do responsável (01/11/2026)
 
-1. **O Fênix tem CNPJ?** Associação, empresa ou outra forma? Sem CNPJ, quem responde pelo
-   time? Define o controlador, o enquadramento de pequeno porte e o rodapé da loja (`PEN-006`).
-2. **Produto personalizado:** aceitar o arrependimento em 7 dias para tudo? (`PEN-071`)
-3. **E-mail de privacidade e segurança** e o nome de quem responde por ele (`PEN-011`,
-   `PEN-014`).
+1. **CNPJ:** ainda não há; está em andamento. Até lá, quem responde pelo time é a
+   **presidente em exercício**, como pessoa física, e isso pode mudar com a eleição do time.
+   Consequências (orientação geral):
+   - a presidente é a controladora dos dados enquanto não houver pessoa jurídica; a
+     identificação dela entra nos documentos e precisa ser trocada a cada mudança de presidência;
+   - para vender pela internet, o Decreto 7.962/2013 exige nome e CPF (ou CNPJ) e endereço em
+     destaque. Expor o CPF e o endereço pessoais da presidente é um custo de privacidade;
+     **recomendação: só abrir a loja ao público depois do CNPJ**, e confirmar com o contador a
+     situação fiscal das vendas sem CNPJ;
+   - sem pessoa jurídica, o enquadramento como agente de pequeno porte (Resolução CD/ANPD
+     2/2022) também precisa de confirmação; o canal do titular é obrigatório de qualquer forma.
+2. **Produto personalizado:** desistência de 7 dias para tudo, com conferência da diretoria
+   (`DT-093`).
+3. **E-mails:** sem e-mail personalizado por enquanto (sem custo). Recomendação: **duas contas
+   gratuitas** (por exemplo, Gmail) criadas só para o time, nunca uma conta pessoal:
+   - **contato do time** (ex.: `fenixvolei.contato@gmail.com`, se disponível): atendimento,
+     loja e e-mail público do site (Configurações → E-mail público);
+   - **privacidade e segurança** (ex.: `fenixvolei.privacidade@gmail.com`, se disponível): canal
+     do titular (LGPD), pedidos de dados e avisos de incidente; entra na Política de Privacidade
+     no lugar de "[PREENCHER CANAL OFICIAL DE PRIVACIDADE]";
+   - em ambas: verificação em duas etapas ligada, acesso da presidente e de um substituto da
+     diretoria, e telefone de recuperação do time; ao trocar a presidência, trocar a senha e o
+     acesso. Quem responde pelo canal de privacidade: a presidente, até haver encarregado.
+4. **Ainda falta:** os endereços criados, para configurar no site e nos documentos (`PEN-006`,
+   `PEN-011`, `PEN-014`).
 
 ## 4. Prazos de guarda propostos — `PEN-011`
 

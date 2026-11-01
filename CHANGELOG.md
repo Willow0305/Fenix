@@ -6,6 +6,12 @@ O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) e o 
 
 ## [Não publicado]
 
+### Responsável e canais (2026-11-01)
+
+#### Documentação
+
+- respostas do responsável registradas em `docs/35`: sem CNPJ por enquanto (responde a presidente), recomendação de abrir a loja só depois do CNPJ e duas contas de e-mail gratuitas do time (contato e privacidade/segurança).
+
 ### Novo aceite dos termos (2026-11-01)
 
 #### Adicionado

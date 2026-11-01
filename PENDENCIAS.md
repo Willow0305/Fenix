@@ -23,6 +23,7 @@ Prioridades:
 - **Bloqueia:** aceite, produção e resposta a incidentes
 - **Questão:** não há responsáveis nominais nem alçadas de decisão.
 - **Recomendação:** designar pelo menos Product Owner, responsável financeiro, responsável técnico, encarregado/canal de privacidade e contato de segurança.
+- **Andamento (01/11/2026):** a presidente em exercício responde pelo time e pelo canal de privacidade até haver CNPJ e encarregado (`docs/35` §3).
 
 ### PEN-003 — Dados existentes e migração
 
@@ -53,6 +54,7 @@ Prioridades:
 - **Bloqueia:** páginas públicas e cadastro
 - **Questão:** faltam nome oficial, CNPJ/representação quando aplicável, endereço, contatos, redes, história aprovada, versão final de termos e política de privacidade, instruções de retirada e dados bancários/PIX autorizados. Há rascunhos em `docs/32-TERMOS-DE-USO.md` e `docs/33-POLITICA-DE-PRIVACIDADE.md`; eles não estão aprovados nem publicados.
 - **Recomendação:** diretoria e assessoria jurídica preencherem e aprovarem os documentos, definirem canais de atendimento e configurarem o texto aprovado nas páginas públicas. Separar claramente dado público de configuração financeira restrita. Registrar a versão efetivamente aceita pelo usuário.
+- **Andamento (01/11/2026):** ainda sem CNPJ (em andamento); responde pelo time a presidente em exercício, como pessoa física, o que pode mudar com a eleição. Recomendação registrada em `docs/35` §3: abrir a loja ao público só depois do CNPJ, porque o Decreto 7.962/2013 exigiria o CPF e o endereço da presidente em destaque; confirmar com o contador as vendas sem CNPJ. E-mails: duas contas gratuitas do time (contato e privacidade/segurança), aguardando os endereços criados.
 
 ## 3. Pessoas, acesso e LGPD
 
@@ -111,6 +113,7 @@ Prioridades:
 - **Bloqueia:** produção
 - **Questão:** não existe endereço privado, chave de criptografia, escala de severidade, SLA nem equipe de resposta.
 - **Recomendação:** criar canal `security@` ou equivalente, habilitar MFA, definir triagem, escalonamento e comunicação LGPD.
+- **Andamento (01/11/2026):** o responsável optou por e-mail gratuito, sem domínio próprio por enquanto; recomendada uma conta só do time para privacidade e segurança, com duas etapas e acesso da presidente e de um substituto (`docs/35` §3). Aguarda o endereço criado.
 
 ## 4. Esportivo e inscrições
 
