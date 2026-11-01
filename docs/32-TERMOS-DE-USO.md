@@ -44,17 +44,16 @@ não representa, por si só, consentimento genérico para todo tratamento de dad
 
 Alterações relevantes devem ser publicadas com nova versão e data. Quando a lei ou a
 natureza da alteração exigir nova aceitação, o sistema deve apresentar a versão nova antes
-de continuar. O registro técnico atual guarda um evento de aceitação, mas não associa esse
-evento a uma versão ou hash dos documentos; essa limitação está registrada em
-[`PENDENCIAS.md`](../PENDENCIAS.md) e precisa ser resolvida antes de depender do aceite
-como prova de uma versão específica.
+de continuar. Desde 01/11/2026 (`DT-089`), cada texto publicado vira uma versão numerada,
+com data e hash, e o cadastro registra qual versão de cada documento a pessoa aceitou. Falta
+decidir se uma versão nova exige novo aceite de quem já tem conta (`PEN-071`).
 
 ## 3. Conta, idade e segurança
 
-O cadastro de conta disponível exige declaração de que a pessoa tem pelo menos 12 anos.
-O sistema não cria conta própria para menores de 12. Para atletas menores de 18, o cadastro
-esportivo prevê dados de responsável; a existência desses campos não cria automaticamente
-uma conta de responsável nem concede acesso aos dados do atleta.
+A conta própria é só para maiores de 18 anos (`DT-088`): o cadastro exige essa declaração,
+e uma conta não pode ser vinculada a atleta menor de idade. O atleta menor participa pelo
+responsável, junto à diretoria, que registra os dados do responsável no cadastro esportivo;
+esses campos não criam uma conta de responsável nem concedem acesso aos dados do atleta.
 
 O uso por crianças e adolescentes depende da análise jurídica de melhor interesse, LGPD
 e ECA Digital, incluindo idade, supervisão e participação do responsável quando aplicável.
@@ -148,9 +147,9 @@ afiliações). O fundamento e a aplicação dessas condições precisam de valid
 antes de serem reproduzidos como regra definitiva; ver `PEN-071`. O fluxo de estorno do
 sistema mantém o histórico financeiro e deve ser usado sem afastar direitos obrigatórios.
 
-Para remessas, o que ocorre se a campanha não alcançar o mínimo, os prazos e a forma de
-reembolso devem constar na oferta antes da compra. Essa política ainda depende de decisão
-(`PEN-032`).
+Em remessas, se a campanha não alcançar o mínimo, ela é cancelada e o comprador recebe de
+volta 100% do valor pago, sem conversão em crédito na loja (decisão de 01/11/2026,
+`PEN-032`). A forma e o prazo da devolução constam na oferta antes da compra.
 
 ## 7. Afiliações, carteirinhas e benefícios
 
@@ -216,7 +215,7 @@ aplicáveis na medida permitida pela legislação.
 
 - preencher identificação jurídica, endereço e canais oficiais (`PEN-006`);
 - aprovar esta versão com o responsável e assessoria jurídica;
-- definir e registrar a versão do texto aceito pelo usuário (`PEN-071`);
+- decidir se uma versão nova exige novo aceite de quem já tem conta (`PEN-071`);
 - revisar a regra de arrependimento, itens personalizados e afiliações (`PEN-071`);
 - aprovar políticas de remessa, parceiro e convivência (`PEN-032`, `PEN-034`, `PEN-039`);
 - concluir a análise de menores e ECA Digital (`PEN-010`);
@@ -228,6 +227,7 @@ aplicáveis na medida permitida pela legislação.
 Fontes oficiais para revisão, consultadas em 30/10/2026:
 
 - [Código de Defesa do Consumidor — Lei nº 8.078/1990](https://www.planalto.gov.br/ccivil_03/leis/l8078compilado.htm);
+- [Comércio eletrônico — Decreto nº 7.962/2013](https://www.planalto.gov.br/ccivil_03/_ato2011-2014/2013/decreto/d7962.htm) (identificação do fornecedor, resumo do contrato, atendimento e meios para o arrependimento);
 - [Lei Geral de Proteção de Dados — Lei nº 13.709/2018](https://www.planalto.gov.br/ccivil_03/_ato2015-2018/2018/lei/l13709.htm);
 - [Marco Civil da Internet — Lei nº 12.965/2014](https://www.planalto.gov.br/ccivil_03/_ato2011-2014/2014/lei/l12965.htm);
 - [ECA Digital — Lei nº 15.211/2025](https://www.planalto.gov.br/ccivil_03/_ato2023-2026/2025/lei/l15211.htm) e [orientações da ANPD](https://www.gov.br/anpd/pt-br/assuntos/eca-digital).

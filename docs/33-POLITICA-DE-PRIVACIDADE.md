@@ -69,18 +69,18 @@ cada finalidade às hipóteses legais aplicáveis na LGPD e distinguir, entre ou
   determinadas comunicações ou exposição pública de perfil.
 
 Marcar que leu a política não transforma automaticamente todo tratamento em consentimento.
-O cadastro atual exige aceite dos documentos e registra um evento de aceite, porém não
-vincula o evento à versão ou hash do texto. Inscrições e manifestações públicas guardam
-versão do aviso e instante de consentimento conforme o fluxo. A diferença precisa ser
-tratada antes de usar esses registros como prova de uma versão (`PEN-071`).
+O cadastro exige aceite dos documentos e, desde 01/11/2026 (`DT-089`), registra qual versão
+de cada um a pessoa aceitou (número, data e hash do texto). Inscrições e manifestações
+públicas guardam versão do aviso e instante de consentimento conforme o fluxo.
 
 ## 4. Crianças, adolescentes e imagem
 
-O sistema exige declaração de idade mínima de 12 anos para criação de conta, prevê dados
-de responsável para atletas menores de 18 e permite que a diretoria cadastre atleta menor
-de 12 com registro de ciência do responsável. A declaração não equivale a verificação de
-identidade ou de idade, e o registro de ciência não resolve automaticamente a base legal,
-representação, supervisão ou todos os deveres legais.
+A conta própria é só para maiores de 18 anos (`DT-088`): o cadastro exige essa declaração,
+e uma conta não pode ser vinculada a atleta menor de idade. Atletas menores são cadastrados
+pela diretoria, com dados do responsável; menor de 12 anos, com registro de ciência do
+responsável. A declaração não equivale a verificação de identidade ou de idade, e o registro
+de ciência não resolve automaticamente a base legal, representação, supervisão ou todos os
+deveres legais.
 
 O Fênix é um serviço esportivo com acesso provável por crianças e adolescentes. A
 aplicabilidade da LGPD, do melhor interesse e do ECA Digital (Lei nº 15.211/2025 e
@@ -224,6 +224,6 @@ os prazos vigentes antes de aprovar a política.
 - operadores, fornecedores, localização dos dados e transferências (`PEN-042`);
 - canal de titulares sem conta, autenticação e prazos de resposta (`PEN-011`);
 - resposta a incidentes e canal de segurança (`PEN-014`);
-- versionamento do documento aceito na criação da conta (`PEN-071`);
+- regra de novo aceite quando uma versão nova for publicada (`PEN-071`);
 - coerência entre política, termos, telas de inscrição, checkout, notificações e configurações
   públicas do sistema.

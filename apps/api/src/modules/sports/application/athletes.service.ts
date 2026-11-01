@@ -881,7 +881,7 @@ export class AthletesService {
     await this.prisma.$transaction(async (tx) => {
       const athlete = await tx.athlete.findFirst({
         where: { id, deletedAt: null },
-        select: { userId: true }
+        select: { userId: true, birthDate: true }
       });
       const user = await tx.user.findFirst({
         where: { email: normalizeEmail(email), deletedAt: null },
@@ -890,6 +890,22 @@ export class AthletesService {
 
       if (athlete === null) {
         throw AppError.notFound('Atleta não encontrado.');
+      }
+
+      // Conta própria só a partir de 18 anos (DT-088, ECA Digital): menor participa pelo
+      // responsável, junto à diretoria. Sem nascimento, não há como saber a idade.
+      if (athlete.birthDate === null) {
+        throw AppError.validation(
+          'ATHLETE_BIRTH_DATE_REQUIRED',
+          'Informe a data de nascimento na ficha antes de vincular uma conta.'
+        );
+      }
+
+      if (ageOn(dateToCivil(athlete.birthDate), this.today()) < ADULT_AGE) {
+        throw AppError.validation(
+          'ATHLETE_MINOR',
+          'Atleta menor de 18 anos não tem conta própria. O responsável acompanha junto à diretoria.'
+        );
       }
 
       if (user === null) {

@@ -114,7 +114,9 @@ export class AuthController {
         name: body.name,
         email: body.email,
         password: body.password,
-        ...(body.phone === undefined ? {} : { phone: body.phone })
+        ...(body.phone === undefined ? {} : { phone: body.phone }),
+        termsVersionId: body.termsVersionId,
+        privacyVersionId: body.privacyVersionId
       },
       meta
     );

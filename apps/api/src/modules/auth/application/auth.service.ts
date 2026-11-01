@@ -26,6 +26,11 @@ import {
   REVOCATION,
   validatePassword
 } from '../domain/auth-rules';
+import {
+  acceptLegalVersions,
+  currentLegalVersions
+} from '../../settings/application/legal-documents';
+import { SETTINGS_KEY } from '../../settings/application/settings.service';
 import { assertPhoneAvailable } from './phone-availability';
 import { MfaService } from './mfa.service';
 import { TrustedDevicesService } from './trusted-devices.service';
@@ -57,6 +62,9 @@ export interface RegisterInput {
   readonly email: string;
   readonly password: string;
   readonly phone?: string;
+  /** Versões em vigor que a pessoa leu ao aceitar (DT-089). */
+  readonly termsVersionId?: string | undefined;
+  readonly privacyVersionId?: string | undefined;
 }
 
 const INVALID_CREDENTIALS = 'E-mail ou senha inválidos.';
@@ -178,13 +186,33 @@ export class AuthService {
         select: { id: true }
       });
 
+      const settings = await tx.teamSettings.findUnique({
+        where: { singletonKey: SETTINGS_KEY },
+        select: { termsOfUse: true, privacyPolicy: true }
+      });
+      const acceptedVersions = await acceptLegalVersions(
+        tx,
+        user.id,
+        await currentLegalVersions(tx, {
+          termsOfUse: settings?.termsOfUse ?? null,
+          privacyPolicy: settings?.privacyPolicy ?? null
+        }),
+        { termsOfUse: input.termsVersionId, privacyPolicy: input.privacyVersionId },
+        'SIGNUP'
+      );
+
       await this.audit.record(
         {
           actorUserId: user.id,
           action: 'user.registered',
           entityType: 'User',
           entityId: user.id,
-          after: { role: SYSTEM_ROLES.user, termsAccepted: true, minimumAgeDeclared: 12 },
+          after: {
+            role: SYSTEM_ROLES.user,
+            termsAccepted: true,
+            acceptedVersions,
+            minimumAgeDeclared: 18
+          },
           meta
         },
         tx

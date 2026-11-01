@@ -5,6 +5,7 @@ import {
   IsEmail,
   IsOptional,
   IsString,
+  IsUUID,
   MaxLength,
   MinLength
 } from 'class-validator';
@@ -38,10 +39,20 @@ export class RegisterDto {
   @Equals(true, { message: 'É necessário aceitar os termos e a política de privacidade.' })
   acceptTerms!: boolean;
 
-  @ApiProperty({ description: 'Declaração de idade mínima de 12 anos (DT-026).' })
+  @ApiProperty({ description: 'Declaração de ter 18 anos ou mais (DT-088).' })
   @IsBoolean()
-  @Equals(true, { message: 'É necessário declarar ter 12 anos ou mais.' })
+  @Equals(true, { message: 'É necessário declarar ter 18 anos ou mais.' })
   minimumAgeConfirmed!: boolean;
+
+  @ApiPropertyOptional({ description: 'Versão dos termos de uso lida e aceita (DT-089).' })
+  @IsOptional()
+  @IsUUID()
+  termsVersionId?: string;
+
+  @ApiPropertyOptional({ description: 'Versão da política de privacidade lida e aceita (DT-089).' })
+  @IsOptional()
+  @IsUUID()
+  privacyVersionId?: string;
 }
 
 export class LoginDto {

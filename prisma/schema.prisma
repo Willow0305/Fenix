@@ -546,6 +546,8 @@ model User {
   forumReactions                  ForumReaction[]
   memberCards                     MemberCard[]             @relation("MemberCardHolder")
   memberCardsPurchased            MemberCard[]             @relation("MemberCardBuyer")
+  legalAcceptances                LegalAcceptance[]
+  legalVersionsPublished          LegalDocumentVersion[]   @relation("LegalVersionPublisher")
   returnRequests                  ReturnRequest[]          @relation("ReturnRequester")
   returnRequestsDecided           ReturnRequest[]          @relation("ReturnDecider")
   forumReports                    ForumReport[]            @relation("ForumReportReporter")
@@ -3169,4 +3171,48 @@ model CardCharge {
   @@index([status, createdAt])
   @@index([orderId])
   @@map("card_charges")
+}
+
+/// Termos de uso e política de privacidade (DT-089): cada texto publicado vira uma versão
+/// imutável, com o conteúdo e o hash, para saber exatamente o que cada pessoa aceitou.
+enum LegalDocumentKind {
+  TERMS_OF_USE
+  PRIVACY_POLICY
+}
+
+model LegalDocumentVersion {
+  id                String            @id @default(uuid()) @db.Uuid
+  kind              LegalDocumentKind
+  /// Sequencial por tipo (1, 2, 3…).
+  version           Int
+  content           String            @db.Text
+  /// SHA-256 do conteúdo (UTF-8), em hexadecimal.
+  contentHash       String            @map("content_hash") @db.Char(64)
+  publishedAt       DateTime          @default(now()) @map("published_at") @db.Timestamptz(6)
+  publishedByUserId String?           @map("published_by_user_id") @db.Uuid
+  createdAt         DateTime          @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  publishedBy User?             @relation("LegalVersionPublisher", fields: [publishedByUserId], references: [id], onDelete: SetNull, onUpdate: Cascade)
+  acceptances LegalAcceptance[]
+
+  @@unique([kind, version])
+  @@index([kind, publishedAt])
+  @@map("legal_document_versions")
+}
+
+/// Aceite de uma versão por uma conta (DT-089). Prova do aceite: não é apagado nem alterado.
+model LegalAcceptance {
+  id                String   @id @default(uuid()) @db.Uuid
+  userId            String   @map("user_id") @db.Uuid
+  documentVersionId String   @map("document_version_id") @db.Uuid
+  /// Onde aconteceu o aceite (`SIGNUP`).
+  context           String   @db.VarChar(20)
+  acceptedAt        DateTime @default(now()) @map("accepted_at") @db.Timestamptz(6)
+
+  user            User                 @relation(fields: [userId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+  documentVersion LegalDocumentVersion @relation(fields: [documentVersionId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+
+  @@unique([userId, documentVersionId])
+  @@index([documentVersionId])
+  @@map("legal_acceptances")
 }

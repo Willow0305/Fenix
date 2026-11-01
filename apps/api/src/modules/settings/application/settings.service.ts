@@ -16,6 +16,7 @@ import {
   MediaService,
   mediaUrl
 } from '../../media/application/media.service';
+import { currentLegalVersions, type LegalVersions, publishLegalVersions } from './legal-documents';
 
 export const SETTINGS_KEY = 'default';
 
@@ -46,6 +47,8 @@ export interface PublicTeamSettings {
   readonly timeZone: string;
   readonly termsOfUse: string | null;
   readonly privacyPolicy: string | null;
+  /** Versão em vigor de cada texto, mostrada no site e enviada no aceite (DT-089). */
+  readonly legalVersions: LegalVersions;
   readonly monthlyFeeRules: string | null;
   readonly storeRules: string | null;
   readonly pickupInstructions: string | null;
@@ -156,7 +159,7 @@ export class SettingsService {
     });
   }
 
-  private toPublic(row: SettingsRow): PublicTeamSettings {
+  private toPublic(row: SettingsRow, legalVersions: LegalVersions): PublicTeamSettings {
     return {
       teamName: row.teamName,
       officialName: row.officialName,
@@ -179,6 +182,7 @@ export class SettingsService {
       timeZone: row.timeZone,
       termsOfUse: row.termsOfUse,
       privacyPolicy: row.privacyPolicy,
+      legalVersions,
       monthlyFeeRules: row.monthlyFeeRules,
       storeRules: row.storeRules,
       pickupInstructions: row.pickupInstructions,
@@ -196,8 +200,18 @@ export class SettingsService {
     };
   }
 
+  private async withLegal(row: SettingsRow): Promise<PublicTeamSettings> {
+    return this.toPublic(
+      row,
+      await currentLegalVersions(this.prisma, {
+        termsOfUse: row.termsOfUse,
+        privacyPolicy: row.privacyPolicy
+      })
+    );
+  }
+
   async getPublic(): Promise<PublicTeamSettings> {
-    return this.toPublic(await this.load());
+    return this.withLegal(await this.load());
   }
 
   private decrypt(value: string | null): string | null {
@@ -209,7 +223,7 @@ export class SettingsService {
     const canSeeFinancial = principal.permissions.has(PERMISSIONS.settingsFinancialManage);
 
     return {
-      ...this.toPublic(row),
+      ...(await this.withLegal(row)),
       updatedAt: row.updatedAt.toISOString(),
       updatedBy: row.updatedBy?.name ?? null,
       financial: canSeeFinancial
@@ -248,6 +262,30 @@ export class SettingsService {
       };
 
       await tx.teamSettings.update({ where: { singletonKey: SETTINGS_KEY }, data });
+
+      // Termos e política alterados viram uma nova versão imutável (DT-089).
+      const published = await publishLegalVersions(
+        tx,
+        {
+          ...('termsOfUse' in patch ? { termsOfUse: patch.termsOfUse ?? null } : {}),
+          ...('privacyPolicy' in patch ? { privacyPolicy: patch.privacyPolicy ?? null } : {})
+        },
+        principal.userId
+      );
+
+      for (const { id, ...version } of published) {
+        await this.audit.record(
+          {
+            actorUserId: principal.userId,
+            action: 'legal.version.published',
+            entityType: 'LegalDocumentVersion',
+            entityId: id,
+            after: version,
+            meta
+          },
+          tx
+        );
+      }
 
       const changedKeys = Object.keys(patch) as (keyof PublicSettingsPatch)[];
 

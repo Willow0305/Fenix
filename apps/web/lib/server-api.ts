@@ -40,6 +40,7 @@ export const FALLBACK_TEAM: PublicTeam = {
   timeZone: 'America/Rio_Branco',
   termsOfUse: null,
   privacyPolicy: null,
+  legalVersions: { termsOfUse: null, privacyPolicy: null },
   monthlyFeeRules: null,
   storeRules: null,
   pickupInstructions: null,

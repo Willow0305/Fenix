@@ -120,7 +120,7 @@ export default function CampaignsPage() {
             maxLength={4000}
             value={form.refundPolicy}
             onChange={set('refundPolicy')}
-            hint="Exibida antes da compra (PEN-032). Ex.: valores pagos são devolvidos integralmente por PIX em até 7 dias."
+            hint="Exibida antes da compra. A devolução é sempre de 100% do valor pago, sem crédito na loja (PEN-032); informe aqui a forma e o prazo. Ex.: por PIX em até 7 dias."
           />
           <div className="form-actions">
             <button type="submit" className="btn btn-primary" disabled={create.pending}>

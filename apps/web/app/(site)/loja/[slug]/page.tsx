@@ -98,7 +98,8 @@ export default async function ProductPage({
               {campaign?.minimumQuantity ? (
                 <span>
                   A encomenda só acontece se forem atingidas {campaign.minimumQuantity} unidades
-                  pagas.
+                  pagas. Se não forem, a remessa é cancelada e você recebe de volta 100% do valor
+                  pago.
                 </span>
               ) : null}
               {campaign?.expectedArrivalOn ? (

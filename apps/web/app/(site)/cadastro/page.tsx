@@ -5,7 +5,10 @@ import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 
 import { ErrorSummary, PhoneField, TextField, useSubmit } from '../../../components/ui';
+import { ApiError } from '../../../lib/api-client';
+import type { PublicTeam } from '../../../lib/api-types';
 import { useAuth } from '../../../lib/auth-context';
+import { useResource } from '../../../lib/use-resource';
 
 export default function RegisterPage() {
   const { register } = useAuth();
@@ -14,15 +17,30 @@ export default function RegisterPage() {
   const [acceptTerms, setAcceptTerms] = useState(false);
   const [ageOk, setAgeOk] = useState(false);
   const [mismatch, setMismatch] = useState(false);
+  // Versões em vigor: o aceite fica registrado com o texto exato que a pessoa leu (DT-089).
+  const team = useResource<PublicTeam>('/public/team');
+  const versions = team.data?.legalVersions;
   const action = useSubmit(async () => {
-    await register({
-      name: form.name,
-      email: form.email,
-      password: form.password,
-      ...(form.phone.trim() ? { phone: form.phone.trim() } : {}),
-      acceptTerms,
-      minimumAgeConfirmed: ageOk
-    });
+    try {
+      await register({
+        name: form.name,
+        email: form.email,
+        password: form.password,
+        ...(form.phone.trim() ? { phone: form.phone.trim() } : {}),
+        acceptTerms,
+        minimumAgeConfirmed: ageOk,
+        ...(versions?.termsOfUse ? { termsVersionId: versions.termsOfUse.id } : {}),
+        ...(versions?.privacyPolicy ? { privacyVersionId: versions.privacyPolicy.id } : {})
+      });
+    } catch (error) {
+      // Texto atualizado enquanto a pessoa preenchia: busca a versão nova e pede o aceite de novo.
+      if (error instanceof ApiError && error.problem.code === 'LEGAL_VERSION_CHANGED') {
+        setAcceptTerms(false);
+        await team.reload();
+      }
+
+      throw error;
+    }
     router.push('/minha-conta');
   });
   const set = (key: keyof typeof form) => (event: { target: { value: string } }) =>
@@ -96,7 +114,10 @@ export default function RegisterPage() {
         />
         <label className="checkbox">
           <input type="checkbox" checked={ageOk} onChange={(e) => setAgeOk(e.target.checked)} />
-          <span>Declaro ter 12 anos ou mais. Menores de 18 devem ter ciência do responsável.</span>
+          <span>
+            Declaro ter 18 anos ou mais. Menores de idade participam pelo responsável, junto à
+            diretoria do time.
+          </span>
         </label>
         <label className="checkbox">
           <input

@@ -41,7 +41,13 @@ Cada item traz o que precisa ser decidido, o que o sistema já faz hoje, a recom
   - restringe perfilamento e publicidade direcionada a menores.
   - **Os detalhes e o Decreto 12.880/2026 precisam ser conferidos por advogado.**
 
-**O que o sistema já faz (`DT-026`):**
+**Decidido em 01/11/2026 (`DT-088`, revê `DT-026`):** conta própria só para maiores de 18 anos
+(opção A). O atleta menor continua cadastrado pela diretoria, e o responsável usa a conta dele;
+sem conta, menor não participa do fórum. Conta não pode ser vinculada a atleta menor ou sem data
+de nascimento. As perguntas ao advogado abaixo continuam valendo para os dados que a diretoria
+cadastra. Análise em `35-ANALISE-JURIDICA.md`.
+
+**O que o sistema fazia antes (`DT-026`):**
 
 - conta própria só a partir de 12 anos, com declaração de idade;
 - atleta menor de 18 exige nome e telefone do responsável;
@@ -58,7 +64,7 @@ Cada item traz o que precisa ser decidido, o que o sistema já faz hoje, a recom
 
 **Opções até ter o parecer:**
 
-- **(a) Recomendada:** piloto só com adultos.
+- **(a) Recomendada e escolhida em 01/11/2026:** contas só de adultos.
 - **(b)** Manter a regra atual, assumindo o risco até o parecer.
 
 ## 2. Bases legais, retenção e direitos do titular — `PEN-011`
@@ -111,9 +117,13 @@ Falta só o **texto da política**, para publicar em Termos e no checkout.
 
 ## 5. Remessa que não atinge o mínimo — `PEN-032`
 
+**Decidido em 01/11/2026:** devolução de **100% do valor pago**, sem opção de crédito na loja. A
+página do produto em pré-venda já informa isso; em cada remessa, a diretoria informa só a forma e
+o prazo da devolução.
+
 **O que decidir:**
 
-- o texto que aparece antes da compra explicando o que acontece se a remessa for cancelada (devolução integral? em quantos dias? quem paga taxas?).
+- forma e prazo da devolução em cada remessa (ex.: PIX em até 7 dias).
 
 **O que o sistema já faz:**
 

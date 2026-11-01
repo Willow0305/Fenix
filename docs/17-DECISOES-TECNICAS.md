@@ -498,7 +498,7 @@ Listas administrativas usam `page`/`pageSize` (máximo 100) e retornam `{ data, 
 
 ## DT-026 — Menores de idade
 
-- **Estado:** Provisória (requer revisão jurídica antes de dados reais)
+- **Estado:** Revista por `DT-088` em 2026-11-01 (idade mínima da conta própria passou a 18 anos)
 - **Data:** 2026-10-18
 
 ### Decisão
@@ -1805,3 +1805,44 @@ Aprovada pelo responsável ("posição na ficha do atleta: sim"):
 ### Consequências
 
 - tela nova usa as classes em vez de `style={{…}}` com esses valores.
+
+## DT-088 — Conta própria só para maiores de 18 anos
+
+- **Estado:** Aceita; implementada em 2026-11-01 (revê `DT-026`)
+- **Data:** 2026-11-01
+- **Aprovador:** responsável do projeto ("opção A (conta própria só para maiores de 18)")
+
+### Contexto
+
+O ECA Digital (Lei 15.211/2025, em vigor desde 17/03/2026; Decreto 12.880/2026) alcança serviços com acesso provável de crianças e adolescentes e não aceita autodeclaração como verificação de idade. O cadastro criava conta a partir de 12 anos só com declaração, e o site tem fórum (interação entre usuários). Análise em `docs/35-ANALISE-JURIDICA.md`.
+
+### Decisão
+
+- o cadastro exige declarar 18 anos ou mais ("Declaro ter 18 anos ou mais. Menores de idade participam pelo responsável, junto à diretoria do time."); a auditoria do cadastro registra `minimumAgeDeclared: 18`;
+- conta não é vinculada a atleta menor de 18 (`ATHLETE_MINOR`) nem a atleta sem data de nascimento (`ATHLETE_BIRTH_DATE_REQUIRED`), porque o vínculo dá acesso próprio à área do atleta;
+- o atleta menor continua cadastrado pela diretoria, com os dados do responsável (`DT-026`); a inscrição em seletiva continua com as regras de menor de 12 anos (feita pelo responsável junto à diretoria);
+- sem conta, menor não participa do fórum.
+
+### Consequências
+
+- vínculos de conta com atletas menores feitos antes desta decisão não são desfeitos automaticamente: a diretoria deve revisá-los antes de dados reais (`PEN-010`);
+- a declaração continua sendo autodeclaração; a assessoria jurídica deve confirmar se basta para um serviço só de adultos ou se é preciso aferição de idade proporcional.
+
+## DT-089 — Versões dos termos e da política e aceite por versão
+
+- **Estado:** Aceita; implementada em 2026-11-01
+- **Data:** 2026-11-01
+- **Aprovador:** responsável do projeto ("posso implementar já o registro de qual versão dos termos cada pessoa aceitou? sim")
+
+### Decisão
+
+- tabelas `legal_document_versions` (tipo, versão sequencial, conteúdo, SHA-256, publicação e autor) e `legal_acceptances` (conta, versão, contexto `SIGNUP`, instante; única por conta e versão), com chave UUID; aceite com `onDelete: Restrict` (prova de aceite não some com a conta);
+- salvar um texto diferente da última versão em Configurações cria a próxima versão, na mesma transação, com auditoria `legal.version.published`; texto igual (mesmo hash) não cria versão; texto apagado deixa o documento sem versão em vigor. A migração `20261101090000_versoes_dos_termos` transforma os textos existentes na versão 1;
+- `GET /public/team` informa `legalVersions` (id, versão e publicação). O cadastro envia `termsVersionId` e `privacyVersionId`; a API recusa com 409 `LEGAL_VERSION_CHANGED` quando não é a versão em vigor, e o site busca a versão nova e pede o aceite de novo;
+- `/termos` e `/privacidade` mostram "Versão N, em vigor desde dd/mm/aaaa"; as configurações avisam que salvar cria nova versão;
+- versões e aceites não têm rota de alteração nem de exclusão.
+
+### Consequências
+
+- contas criadas antes não têm aceite por versão (só o evento de auditoria);
+- falta decidir se uma nova versão exige novo aceite de quem já tem conta (`PEN-071`).

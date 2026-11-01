@@ -400,7 +400,7 @@ describe('Fase 2 — atletas, equipes, interessados e seletivas', () => {
         .http()
         .post('/api/v1/athletes')
         .set(auth(board.token))
-        .send({ fullName: `Conta ${Date.now()}` })
+        .send({ fullName: `Conta ${Date.now()}`, birthDate: '2000-05-10' })
         .expect(201);
 
       await ctx
@@ -422,6 +422,38 @@ describe('Fase 2 — atletas, equipes, interessados e seletivas', () => {
         .get('/api/v1/me/athlete')
         .set(auth(await login(ctx, other.email)))
         .expect(404);
+    });
+  });
+
+  describe('conta própria só a partir de 18 anos (DT-088)', () => {
+    it('recusa vincular conta a atleta menor ou sem data de nascimento', async () => {
+      const person = await createUser(ctx.prisma, ['user']);
+      const minorBirth = `${new Date().getUTCFullYear() - 15}-01-15`;
+
+      for (const [body, code] of [
+        [
+          { birthDate: minorBirth, guardianName: 'Rita Teste', guardianPhone: '(68) 99999-1234' },
+          'ATHLETE_MINOR'
+        ],
+        [{}, 'ATHLETE_BIRTH_DATE_REQUIRED']
+      ] as const) {
+        const athlete = await ctx
+          .http()
+          .post('/api/v1/athletes')
+          .set(auth(board.token))
+          .send({ fullName: `Menor ${Date.now()}`, ...body })
+          .expect(201);
+        const refused = await ctx
+          .http()
+          .put(`/api/v1/athletes/${athlete.body.id}/user`)
+          .set(auth(board.token))
+          .send({ email: person.email })
+          .expect(422);
+
+        expect(refused.body.code).toBe(code);
+      }
+
+      expect(await ctx.prisma.athlete.count({ where: { userId: person.id } })).toBe(0);
     });
   });
 

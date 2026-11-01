@@ -243,6 +243,7 @@ Prioridades:
 - **Bloqueia:** cobrança em campanhas
 - **Questão:** quando cobrar, prazo e método de reembolso e quem absorve taxas não foram definidos.
 - **Recomendação:** preferir autorização/cobrança somente ao atingir condição quando o gateway permitir; no fluxo manual, publicar regra clara antes da venda.
+- **Decisão (01/11/2026, responsável):** remessa cancelada por não atingir o mínimo devolve 100% do valor pago, sem opção de crédito na loja. A página do produto em pré-venda informa isso; em cada remessa, a diretoria informa a forma e o prazo da devolução. Continuam abertos o prazo padrão e quem absorve taxas do meio de pagamento (`docs/35`).
 
 ### PEN-033 — Produto digital
 
@@ -554,6 +555,7 @@ Prioridades:
 - **Questão:** `DT-070` e a interface da loja (`apps/web/components/consumer-rights.tsx`) afirmam que itens personalizados não admitem arrependimento e contam o prazo a partir da entrega comprovada (ou da ativação para afiliação). A aplicação dessas condições e seu termo inicial devem ser conferidos à luz do CDC antes de serem publicados como regra; a documentação técnica reconhece que a exceção para personalizados não está expressa no texto legal. Além disso, o cadastro registra `termsAccepted: true`, mas não associa o evento a uma versão/hash dos termos e da política.
 - **Recomendação:** assessoria jurídica validar os cenários de produto personalizado, afiliação, contrato e prazos; preservar e informar os direitos legais sem criar renúncia genérica. Até a aprovação, não tratar a redação atual da interface como interpretação jurídica definitiva. Definir versão/data/hash imutável, guardar qual versão foi aceita e apresentar a versão aplicável antes do aceite.
 - **Impacto:** `docs/32-TERMOS-DE-USO.md`, `docs/33-POLITICA-DE-PRIVACIDADE.md`, `apps/web/components/consumer-rights.tsx`, cadastro, checkout e registro de aceite.
+- **Andamento (01/11/2026):** aceite versionado implementado (`DT-089`): cada texto salvo nas configurações vira versão imutável com conteúdo e SHA-256; o cadastro guarda as versões aceitas e recusa versão desatualizada; termos e política mostram a versão em vigor. Falta definir se uma nova versão exige novo aceite de quem já tem conta. **Arrependimento em personalizados segue aberto:** a pesquisa de 01/11/2026 encontrou decisões estaduais (TJMS, TJRS) que aplicam o art. 49 também a personalizados e nenhuma do STJ confirmando a exceção; recomendação ao responsável: aceitar 7 dias para tudo (`docs/35`).
 
 ## 11. Critério de resolução
 
@@ -576,7 +578,7 @@ As entradas acima permanecem como histórico da questão original. As decisões 
 | PEN-004 | Paleta oficial derivada do brasão enviado pelo responsável: `#CD151D` (vermelho), `#9E0F16` (vermelho escuro), `#0B0613` (preto) e branco. | Responsável do projeto | `12-IDENTIDADE-VISUAL.md` |
 | PEN-007 | Matriz adotada conforme `05-PERFIS-E-PERMISSOES.md` com papéis de sistema `admin`, `board` (diretoria), `athlete` e `user`; negação por padrão. | Delegada | `DT-022` |
 | PEN-008 | Cadastro livre cria conta `user` ativa; atleta, diretoria e administrador são atribuídos somente por administrador e auditados. Interessado/inscrição não criam acesso automaticamente. Verificação de e-mail não bloqueia o login nesta versão. | Responsável do projeto | `DT-022` |
-| PEN-010 | Parcialmente resolvida: conta própria exige declaração de idade mínima de 12 anos; atleta menor de 18 exige nome e telefone do responsável; atleta menor de 12 só é cadastrado pela diretoria com registro de ciência do responsável. **Revisão jurídica recomendada antes de dados reais.** | Responsável do projeto | `DT-026` |
+| PEN-010 | Revisto em 01/11/2026 (`DT-088`): conta própria só para maiores de 18 anos (declaração no cadastro) e conta não é vinculada a atleta menor ou sem nascimento; menor participa pelo responsável, junto à diretoria. Antes: conta própria exigia declaração de idade mínima de 12 anos; atleta menor de 18 exige nome e telefone do responsável; atleta menor de 12 só é cadastrado pela diretoria com registro de ciência do responsável. **Revisão jurídica recomendada antes de dados reais.** | Responsável do projeto | `DT-026`, `DT-088` |
 | PEN-013 | Access token de 15 min em memória; refresh opaco rotativo de 30 dias em cookie `HttpOnly`/`SameSite=Strict`, com hash no banco, revogação e detecção de reuso; rate limiting nas rotas de autenticação. MFA administrativo permanece pendente antes da produção. | Delegada | `DT-022` |
 | PEN-018 | Sem multa ou juros automáticos; descontos e isenções são manuais e motivados; valor da cobrança é preservado. | Responsável do projeto | `DT-027` |
 | PEN-019 | Pagamentos parciais permitidos; cobrança fica `PARTIALLY_PAID` até a soma confirmada atingir o valor e então `PAID`; excedente é recusado. Confirmação é idempotente. | Responsável do projeto | `DT-027` |
@@ -590,7 +592,7 @@ As entradas acima permanecem como histórico da questão original. As decisões 
 | PEN-028 | Checkout de visitante permitido com dados mínimos; retirada combinada com o time; frete fora do escopo atual. | Delegada | `DT-031` |
 | PEN-029 | Estoque e SKU na variação; preço por variação; promoção simples (sem período); limite por comprador; preço congelado no item. | Delegada | `DT-031` |
 | PEN-031 | Máquina de estados de remessa, extensão por reabertura, configuração imutável após encomenda e relatório conferível. Reabertura após encomenda não é permitida (cancelar e criar nova). | Delegada | `DT-032` |
-| PEN-032 | Parcialmente resolvida: cobrança antes da encomenda, mínimo pago verificado, estorno vinculado; o texto da política de devolução precisa ser aprovado e publicado em cada remessa. | Delegada | `DT-032` |
+| PEN-032 | Parcialmente resolvida: cobrança antes da encomenda, mínimo pago verificado, estorno vinculado. Em 01/11/2026 o responsável decidiu devolução de 100% sem crédito na loja; forma e prazo informados em cada remessa. | Delegada; responsável do projeto | `DT-032`, `docs/35` |
 | PEN-034 | Parcialmente resolvida: aprovação exige vigência; venda e publicação só dentro da vigência; documentos confidenciais com acesso auditado. Textos contratuais, tributação e responsabilidades seguem com o responsável. | Delegada | `DT-033` |
 | PEN-035 | Comissão percentual, fixa por unidade ou nenhuma, com sobreposição por produto e snapshot no item; repasse agrupado, aprovado e pago com saída única no Caixa. Documento fiscal fica fora do sistema. | Delegada | `DT-033` |
 | PEN-036 | Parceiro sem login nesta versão; a diretoria opera; o profissional recebe e-mail de confirmação e cancelamento. | Delegada | `DT-033` |

@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 
+import { LegalVersionNote } from '../../../components/legal-version';
 import { getPublicTeam } from '../../../lib/server-api';
 
 export const metadata: Metadata = { title: 'Política de privacidade' };
@@ -18,6 +19,7 @@ export default async function PrivacyPage() {
   return (
     <div className="container stack pt-xl">
       <h1>Política de privacidade</h1>
+      {team.privacyPolicy ? <LegalVersionNote version={team.legalVersions?.privacyPolicy} /> : null}
       <div className="card prose">{team.privacyPolicy ?? DEFAULT_POLICY}</div>
     </div>
   );

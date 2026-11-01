@@ -83,12 +83,23 @@ export interface PublicTeam {
   readonly timeZone: string;
   readonly termsOfUse: string | null;
   readonly privacyPolicy: string | null;
+  /** Versão em vigor de cada texto (DT-089); nula quando o texto não está publicado. */
+  readonly legalVersions?: {
+    readonly termsOfUse: LegalVersion | null;
+    readonly privacyPolicy: LegalVersion | null;
+  };
   readonly monthlyFeeRules: string | null;
   readonly storeRules: string | null;
   readonly pickupInstructions: string | null;
   readonly brandAssets: Partial<Record<BrandContext, { url: string; altText: string | null }>>;
   /** Fotos do clube na página Sobre (DT-081). */
   readonly photos?: readonly { id: string; url: string; altText: string | null }[];
+}
+
+export interface LegalVersion {
+  readonly id: string;
+  readonly version: number;
+  readonly publishedAt: string;
 }
 
 export interface AdminTeam extends PublicTeam {

@@ -6,6 +6,18 @@ O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) e o 
 
 ## [Não publicado]
 
+### Contas de adultos, versões dos termos e análise jurídica (2026-11-01)
+
+#### Adicionado
+
+- versões dos termos de uso e da política de privacidade: cada texto salvo vira uma versão imutável com hash; o cadastro guarda qual versão a pessoa aceitou e pede nova leitura se o texto mudou; as páginas mostram a versão em vigor (DT-089; migração `20261101090000_versoes_dos_termos`);
+- análise jurídica dos rascunhos, decisões e perguntas abertas (`docs/35-ANALISE-JURIDICA.md`).
+
+#### Alterado
+
+- conta própria só para maiores de 18 anos, e conta não é vinculada a atleta menor ou sem data de nascimento (DT-088, ECA Digital);
+- pré-venda: a página do produto informa que, sem o mínimo, a remessa é cancelada com devolução de 100% do valor pago (PEN-032).
+
 ### Logs, métricas e carrinho (2026-11-01)
 
 #### Adicionado

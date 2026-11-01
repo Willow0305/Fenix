@@ -269,6 +269,7 @@ export default function CampaignDetailPage() {
             maxLength={4000}
             value={editing.refundPolicy}
             onChange={setField('refundPolicy')}
+            hint="Exibida antes da compra. A devolução é sempre de 100% do valor pago, sem crédito na loja (PEN-032); informe aqui a forma e o prazo."
           />
           <div className="form-actions">
             <button type="submit" className="btn btn-primary" disabled={save.pending}>

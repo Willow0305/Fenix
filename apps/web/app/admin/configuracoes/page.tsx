@@ -15,7 +15,7 @@ import {
 } from '../../../components/ui';
 import { api } from '../../../lib/api-client';
 import { ImageGalleryManager } from '../../../components/image-gallery-manager';
-import type { AdminTeam, BrandContext } from '../../../lib/api-types';
+import type { AdminTeam, BrandContext, LegalVersion } from '../../../lib/api-types';
 import { useAuth } from '../../../lib/auth-context';
 import { formatDateTime } from '../../../lib/format';
 import { useResource } from '../../../lib/use-resource';
@@ -44,6 +44,13 @@ type PublicForm = {
   storeRules: string;
   pickupInstructions: string;
 };
+
+/** Cada alteração salva vira uma nova versão, que quem se cadastra passa a aceitar (DT-089). */
+function legalHint(version: LegalVersion | null | undefined): string {
+  return version
+    ? `Em vigor: versão ${version.version}. Ao salvar uma alteração, ela vira a versão ${version.version + 1}, e os novos cadastros passam a aceitá-la.`
+    : 'Ao salvar o texto, ele vira a versão 1, aceita em cada novo cadastro.';
+}
 
 function toForm(team: AdminTeam): PublicForm {
   return {
@@ -267,12 +274,14 @@ export default function SettingsPage() {
           <TextArea
             label="Termos de uso"
             maxLength={50000}
+            hint={legalHint(settings.data?.legalVersions?.termsOfUse)}
             value={form.termsOfUse}
             onChange={set('termsOfUse')}
           />
           <TextArea
             label="Política de privacidade"
             maxLength={50000}
+            hint={legalHint(settings.data?.legalVersions?.privacyPolicy)}
             value={form.privacyPolicy}
             onChange={set('privacyPolicy')}
           />

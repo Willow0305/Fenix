@@ -40,6 +40,9 @@ export interface RegisterInput {
   readonly phone?: string;
   readonly acceptTerms: boolean;
   readonly minimumAgeConfirmed: boolean;
+  /** Versões lidas e aceitas (DT-089). */
+  readonly termsVersionId?: string;
+  readonly privacyVersionId?: string;
 }
 
 interface AuthState {
