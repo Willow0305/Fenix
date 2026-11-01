@@ -3453,19 +3453,21 @@ details.collapsible {
     visibility: visible;
   }
 
-  // A que sai é puxada pela fênix e some; a nova surge depois, de transparente a visível.
+  // Deslize padrão de carrossel: a atual sai para um lado enquanto a próxima entra pelo outro.
   &.is-leaving {
-    z-index: 2;
-    animation: campaign-pull-forward var(--campaign-sweep) var(--ease-in-out) both;
+    animation: campaign-out-forward var(--campaign-sweep) var(--ease-in-out) both;
   }
 
   &.is-entering {
-    z-index: 1;
-    animation: campaign-arrive var(--campaign-sweep) var(--ease-out) both;
+    animation: campaign-in-forward var(--campaign-sweep) var(--ease-in-out) both;
   }
 
   .is-back > &.is-leaving {
-    animation-name: campaign-pull-back;
+    animation-name: campaign-out-back;
+  }
+
+  .is-back > &.is-entering {
+    animation-name: campaign-in-back;
   }
 }
 
@@ -3535,46 +3537,49 @@ details.collapsible {
   }
 }
 
-// Carrossel da pré-venda (DT-090): a remessa antiga desliza para o lado e some; a nova surge
-// em seguida, de transparente a visível. Voltando, o deslize é para o lado oposto. Anima só
-// `transform` e `opacity`.
+// Carrossel da pré-venda (DT-090): deslize horizontal padrão. Avançando, a remessa atual sai
+// pela esquerda e a próxima entra pela direita; voltando, o contrário. Só `transform`.
 .campaign-highlight {
-  --campaign-sweep: 900ms;
+  --campaign-sweep: 500ms;
 }
 
-@keyframes campaign-pull-forward {
+@keyframes campaign-out-forward {
   from {
-    opacity: 1;
     transform: translateX(0);
   }
 
   to {
-    opacity: 0;
-    transform: translateX(12%);
+    transform: translateX(-100%);
   }
 }
 
-@keyframes campaign-pull-back {
+@keyframes campaign-in-forward {
   from {
-    opacity: 1;
+    transform: translateX(100%);
+  }
+
+  to {
+    transform: translateX(0);
+  }
+}
+
+@keyframes campaign-out-back {
+  from {
     transform: translateX(0);
   }
 
   to {
-    opacity: 0;
-    transform: translateX(-12%);
+    transform: translateX(100%);
   }
 }
 
-// A nova aparece quando a antiga já está saindo.
-@keyframes campaign-arrive {
-  0%,
-  40% {
-    opacity: 0;
+@keyframes campaign-in-back {
+  from {
+    transform: translateX(-100%);
   }
 
-  100% {
-    opacity: 1;
+  to {
+    transform: translateX(0);
   }
 }
 

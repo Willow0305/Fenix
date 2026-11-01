@@ -54,8 +54,8 @@ function CampaignSlide({ campaign, titleId }: { campaign: Campaign; titleId: str
 
 /**
  * Destaque das pré-vendas abertas no topo da loja (Onda 1, docs/31; carrossel DT-090): uma
- * remessa por vez, com prazo e mínimo vindos da remessa. Com mais de uma, a remessa antiga
- * desliza para o lado e some, e a próxima surge em seguida; voltar desliza para o lado oposto.
+ * remessa por vez, com prazo e mínimo vindos da remessa. Com mais de uma, troca com o deslize
+ * padrão de carrossel: a atual sai por um lado e a próxima entra pelo outro.
  * A troca automática para com o mouse, o toque ou o foco no cartão
  * (WCAG 2.2.2) e não acontece com "reduzir movimento". O botão fica parado: só o conteúdo da
  * remessa troca.
@@ -98,7 +98,7 @@ export function CampaignHighlight({ campaigns }: { readonly campaigns: readonly 
       setRun((value) => value + 1);
       // Garante a limpeza mesmo se o evento de fim da animação não vier (aba em segundo plano).
       window.clearTimeout(settleTimer.current);
-      settleTimer.current = window.setTimeout(() => setLeaving(null), 1800);
+      settleTimer.current = window.setTimeout(() => setLeaving(null), 1000);
     },
     [count, index]
   );
