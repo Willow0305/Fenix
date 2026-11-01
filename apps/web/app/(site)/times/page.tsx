@@ -58,10 +58,10 @@ export default async function TeamsPage({
   const teamCount = roster.reduce((total, group) => total + group.teams.length, 0);
 
   return (
-    <div className="container stack" style={{ paddingTop: '2.5rem' }}>
+    <div className="container stack pt-xl">
       <div className="row">
         <BrandLogo src={headingLogo} alt="" size={64} />
-        <h1 style={{ margin: 0 }}>
+        <h1 className="m-0">
           {type === 'MALE'
             ? 'Time masculino'
             : type === 'FEMALE'

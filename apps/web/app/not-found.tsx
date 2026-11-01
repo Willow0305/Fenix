@@ -10,7 +10,7 @@ export default function NotFound() {
       <BrandLogo size={96} />
       <h1>Página não encontrada</h1>
       <p className="muted">O endereço pode ter mudado ou o conteúdo foi retirado do ar.</p>
-      <div className="row" style={{ justifyContent: 'center' }}>
+      <div className="row justify-center">
         <Link href="/" className="btn btn-primary">
           <Icon name="house" /> Ir para o início
         </Link>

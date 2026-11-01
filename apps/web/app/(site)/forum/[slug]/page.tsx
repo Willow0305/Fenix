@@ -56,7 +56,7 @@ export default function ForumCategoryPage() {
 
   if (data.error || !data.data) {
     return (
-      <div className="container" style={{ paddingTop: '2rem' }}>
+      <div className="container pt-lg">
         <Alert kind="error">{data.error ?? 'Categoria não encontrada.'}</Alert>
         <Link href="/forum" className="back-link">
           <Icon name="chevron-left" /> Fórum
@@ -68,14 +68,14 @@ export default function ForumCategoryPage() {
   const { category, topics } = data.data;
 
   return (
-    <div className="container stack" style={{ paddingTop: '2rem' }}>
+    <div className="container stack pt-lg">
       <p>
         <Link href="/forum" className="back-link">
           <Icon name="chevron-left" /> Fórum
         </Link>
       </p>
       <div className="row">
-        <h1 style={{ margin: 0 }}>{category.name}</h1>
+        <h1 className="m-0">{category.name}</h1>
         <span className="spacer" />
         {category.canPost ? (
           <button type="button" className="btn btn-primary" onClick={() => setWriting((v) => !v)}>

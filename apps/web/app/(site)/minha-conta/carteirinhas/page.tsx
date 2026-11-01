@@ -51,13 +51,13 @@ function CardBlock({ card, design }: { readonly card: MemberCard; readonly desig
 
   return (
     <section className="card stack" aria-labelledby={`cart-${card.id}`}>
-      <h2 id={`cart-${card.id}`} style={{ margin: 0 }}>
+      <h2 id={`cart-${card.id}`} className="m-0">
         {CARD_TYPE[card.type]}
         {card.purchasedForOther ? ` · comprada para ${card.holderName}` : ''}
       </h2>
       <MemberCardFront card={card} design={design} qr={valid ? <LiveQr card={card} /> : null} />
       {valid ? (
-        <p className="muted" style={{ margin: 0 }}>
+        <p className="muted m-0">
           Mostre o QR na entrada dos jogos ou na loja parceira. Ele muda a cada minuto: print não
           vale.
         </p>

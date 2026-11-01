@@ -112,9 +112,7 @@ export default function PlansPage() {
                   <td data-label="Plano">
                     <Link href={`/admin/planos/${plan.id}`}>{plan.name}</Link>
                     {plan.description ? (
-                      <div className="muted line-clamp-2" style={{ fontWeight: 400 }}>
-                        {plan.description}
-                      </div>
+                      <div className="muted line-clamp-2 fw-normal">{plan.description}</div>
                     ) : null}
                   </td>
                   <td data-label="Valor" className="num">
@@ -131,7 +129,7 @@ export default function PlansPage() {
                   </td>
                   {manage ? (
                     <td data-label="Ações">
-                      <div className="row" style={{ gap: '0.5rem' }}>
+                      <div className="row gap-sm">
                         <Link
                           href={`/admin/planos/${plan.id}`}
                           className="btn btn-secondary btn-sm"

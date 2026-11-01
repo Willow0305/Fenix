@@ -47,7 +47,7 @@ export default async function PartnerPage({
   }
 
   return (
-    <div className="container stack" style={{ paddingTop: '2rem' }}>
+    <div className="container stack pt-lg">
       <p>
         <Link href="/parceiros">
           <Icon name="arrow-left" /> Parceiros
@@ -64,10 +64,8 @@ export default async function PartnerPage({
         <div className="partner-hero-body">
           <PartnerLogo src={partner.logoUrl} name={partner.displayName} size={112} />
           <div>
-            <h1 style={{ margin: 0 }}>{partner.displayName}</h1>
-            <span className="badge" style={{ justifySelf: 'start' }}>
-              {PARTNER_TYPE[partner.type]}
-            </span>
+            <h1 className="m-0">{partner.displayName}</h1>
+            <span className="badge self-start">{PARTNER_TYPE[partner.type]}</span>
             {partner.websiteUrl ? (
               <a href={partner.websiteUrl} target="_blank" rel="noopener noreferrer nofollow">
                 <Icon name="box-arrow-up-right" /> Site do parceiro
@@ -76,11 +74,11 @@ export default async function PartnerPage({
           </div>
         </div>
       </header>
-      {partner.description ? <p style={{ whiteSpace: 'pre-line' }}>{partner.description}</p> : null}
+      {partner.description ? <p className="pre-line">{partner.description}</p> : null}
 
       {benefits.length > 0 ? (
         <section className="card stack" aria-labelledby="beneficios">
-          <h2 id="beneficios" style={{ margin: 0 }}>
+          <h2 id="beneficios" className="m-0">
             Desconto com a carteirinha do Fênix
           </h2>
           <ul className="stack" style={{ gap: '0.4rem', paddingLeft: '1.1rem', margin: 0 }}>
@@ -106,7 +104,7 @@ export default async function PartnerPage({
           {partner.services.map((service) => (
             <article key={service.id} className="card stack">
               <div className="row">
-                <h3 style={{ margin: 0 }}>{service.name}</h3>
+                <h3 className="m-0">{service.name}</h3>
                 <span className="muted">
                   {service.durationMinutes} min ·{' '}
                   {service.price ? formatMoney(service.price.amount) : 'valor a combinar'}
@@ -115,11 +113,10 @@ export default async function PartnerPage({
               {service.professional ? (
                 <small className="muted">Com {service.professional.fullName}</small>
               ) : null}
-              {service.description ? <p style={{ margin: 0 }}>{service.description}</p> : null}
+              {service.description ? <p className="m-0">{service.description}</p> : null}
               <Link
                 href={`/parceiros/servicos/${service.id}`}
-                className="btn btn-primary"
-                style={{ justifySelf: 'start' }}
+                className="btn btn-primary self-start"
               >
                 <Icon name="calendar-plus" /> Solicitar horário
               </Link>
@@ -135,7 +132,7 @@ export default async function PartnerPage({
             <article key={pro.id} className="card stack">
               <strong>{pro.fullName}</strong>
               <span className="muted">{pro.profession}</span>
-              {pro.publicBio ? <p style={{ margin: 0 }}>{pro.publicBio}</p> : null}
+              {pro.publicBio ? <p className="m-0">{pro.publicBio}</p> : null}
               {pro.email || pro.phone ? (
                 <small>
                   {[pro.phone ? formatPhoneDisplay(pro.phone) : null, pro.email]

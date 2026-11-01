@@ -60,7 +60,7 @@ export default function MyAthletePage() {
           .map(([label, value]) => (
             <div key={label}>
               <dt className="muted">{label}</dt>
-              <dd style={{ margin: 0 }}>{value}</dd>
+              <dd className="m-0">{value}</dd>
             </div>
           ))}
       </dl>

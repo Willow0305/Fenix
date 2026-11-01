@@ -297,7 +297,7 @@ export default function CashPage() {
                     <td data-label="Data">{formatDate(t.occurredOn)}</td>
                     <td data-label="Descrição">
                       {t.description}
-                      <div className="muted" style={{ fontSize: '0.8rem' }}>
+                      <div className="muted text-xs">
                         {ORIGIN_LABEL[t.origin]}
                         {t.createdBy ? ` · por ${t.createdBy}` : ''}
                         {t.reversesTransactionId ? ' · estorno' : ''}
@@ -371,7 +371,7 @@ export default function CashPage() {
                           </button>
                         ))}
                         {can('transactions.create', 'files.upload') ? (
-                          <label className="btn btn-link" style={{ cursor: 'pointer' }}>
+                          <label className="btn btn-link cursor-pointer">
                             Anexar
                             <input
                               type="file"

@@ -58,7 +58,7 @@ export function CouponBox({
   if (applied) {
     return (
       <div className="alert alert-success row" role="status">
-        <span style={{ flex: '1 1 14rem' }}>
+        <span className="flex-14">
           <Icon name="ticket-perforated" /> Cupom <strong>{applied.code}</strong>: −
           {formatMoney(applied.discount.amount)}
         </span>

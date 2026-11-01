@@ -145,9 +145,7 @@ export default function UsersPage() {
                       {STATUS_LABEL[user.status]}
                     </span>
                     {user.mfaEnabled ? (
-                      <span className="badge badge-success" style={{ marginLeft: 4 }}>
-                        2 etapas
-                      </span>
+                      <span className="badge badge-success ml-2xs">2 etapas</span>
                     ) : null}
                   </td>
                   <td data-label="Último acesso">{formatDateTime(user.lastLoginAt)}</td>

@@ -74,10 +74,10 @@ export function PersonalizationFieldsManager({
 
   return (
     <section className="card stack" aria-labelledby="personalizacao">
-      <h2 id="personalizacao" style={{ margin: 0 }}>
+      <h2 id="personalizacao" className="m-0">
         Personalização
       </h2>
-      <p className="muted" style={{ margin: 0 }}>
+      <p className="muted m-0">
         Com algum campo ativo, o produto vira personalizado: o cliente preenche na compra, cada
         personalização é uma linha do carrinho e o item não tem troca por arrependimento.
       </p>

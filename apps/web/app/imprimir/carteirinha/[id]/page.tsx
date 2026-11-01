@@ -28,8 +28,8 @@ function PrintableCard() {
   return (
     <div className="stack" style={{ padding: '1.5rem', alignItems: 'flex-start' }}>
       <div className="no-print stack" style={{ maxWidth: '40rem' }}>
-        <h1 style={{ margin: 0 }}>Imprimir carteirinha</h1>
-        <p className="muted" style={{ margin: 0 }}>
+        <h1 className="m-0">Imprimir carteirinha</h1>
+        <p className="muted m-0">
           Imprima em tamanho real (100%, sem ajustar à página), recorte e plastifique se quiser. O
           QR impresso vale até a diretoria reemitir a carteirinha; se perder, peça a reemissão.
         </p>

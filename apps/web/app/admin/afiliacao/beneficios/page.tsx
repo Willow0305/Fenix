@@ -179,7 +179,7 @@ function BenefitsAdmin() {
 
       {editing !== null ? (
         <form className="form card" onSubmit={(event) => void save.submit(event)}>
-          <h2 style={{ margin: 0 }}>
+          <h2 className="m-0">
             {editing === 'new' ? 'Novo benefício' : `Editar: ${editing.title}`}
           </h2>
           <ErrorSummary error={save.error} />
@@ -382,7 +382,7 @@ function BenefitsAdmin() {
                     </span>
                   </td>
                   <td data-label="Ações">
-                    <div className="row" style={{ gap: '0.4rem' }}>
+                    <div className="row gap-xs">
                       <button
                         type="button"
                         className="btn btn-secondary btn-sm"

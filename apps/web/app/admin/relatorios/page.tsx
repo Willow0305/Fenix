@@ -140,7 +140,7 @@ export default function ReportsPage() {
       {report.loading && !report.data ? <Loading /> : null}
       {report.data ? (
         <section className="card stack" aria-labelledby="resultado">
-          <h2 id="resultado" style={{ margin: 0 }}>
+          <h2 id="resultado" className="m-0">
             {report.data.title}
           </h2>
           <small className="muted">

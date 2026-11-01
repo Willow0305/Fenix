@@ -297,7 +297,7 @@ function CouponForm({
       </div>
 
       {form.scope === 'PRODUCTS' ? (
-        <div className="stack" style={{ gap: '0.5rem' }}>
+        <div className="stack gap-sm">
           <label className="field">
             <span className="label">Buscar produto</span>
             <input
@@ -340,7 +340,7 @@ function CouponForm({
           />
         )
       ) : null}
-      <p className="muted" style={{ margin: 0 }}>
+      <p className="muted m-0">
         <Icon name="info-circle" /> Um cupom por pedido. Produtos de parceiros nunca recebem
         desconto, para não alterar comissão e repasse.
       </p>
@@ -454,9 +454,7 @@ export default function CouponsPage() {
                   <td data-label="Cupom">
                     <code>{coupon.code}</code>
                     {coupon.description ? (
-                      <div className="muted line-clamp-2" style={{ fontWeight: 400 }}>
-                        {coupon.description}
-                      </div>
+                      <div className="muted line-clamp-2 fw-normal">{coupon.description}</div>
                     ) : null}
                   </td>
                   <td data-label="Desconto">{describe(coupon)}</td>
@@ -468,7 +466,7 @@ export default function CouponsPage() {
                   <td data-label="Usos" className="num">
                     {coupon.redemptions}
                     {coupon.maxRedemptions ? ` / ${coupon.maxRedemptions}` : ''}
-                    <div className="muted" style={{ fontSize: '0.8rem' }}>
+                    <div className="muted text-xs">
                       {formatMoney(coupon.totalDiscount.amount)} em descontos
                     </div>
                   </td>
@@ -478,7 +476,7 @@ export default function CouponsPage() {
                     </span>
                   </td>
                   <td data-label="Ações">
-                    <div className="row" style={{ gap: '0.4rem' }}>
+                    <div className="row gap-xs">
                       <button
                         type="button"
                         className="btn btn-secondary btn-sm"
@@ -519,7 +517,7 @@ export default function CouponsPage() {
       {viewing ? (
         <section className="card stack" aria-labelledby="usos">
           <div className="row">
-            <h2 id="usos" style={{ margin: 0 }}>
+            <h2 id="usos" className="m-0">
               Pedidos com o cupom {viewing.code}
             </h2>
             <span className="spacer" />
@@ -539,9 +537,7 @@ export default function CouponsPage() {
                   <a href={`/admin/pedidos/${r.orderId}`}>{r.orderNumber}</a> · {r.customerName} · −
                   {formatMoney(r.discountAmount.amount)} · {formatDateTime(r.createdAt)}
                   {r.status === 'RELEASED' ? (
-                    <span className="badge" style={{ marginLeft: 6 }}>
-                      liberado (pedido cancelado)
-                    </span>
+                    <span className="badge ml-xs">liberado (pedido cancelado)</span>
                   ) : null}
                 </li>
               ))}

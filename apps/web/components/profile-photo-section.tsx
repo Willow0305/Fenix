@@ -65,8 +65,8 @@ export function ProfilePhotoSection({ profile }: { readonly profile: Profile }) 
       <ErrorSummary error={action.error} />
       <div className="row">
         <Avatar src={profile.avatarUrl} name={profile.name} size={96} authenticated />
-        <div className="stack" style={{ gap: '0.5rem', flex: '1 1 16rem' }}>
-          <label htmlFor={inputId} className="label" style={{ fontWeight: 600 }}>
+        <div className="stack gap-sm flex-16">
+          <label htmlFor={inputId} className="label fw-semibold">
             {profile.avatarUrl ? 'Trocar foto' : 'Enviar foto'}
           </label>
           <input
@@ -134,7 +134,7 @@ export function ProfilePhotoSection({ profile }: { readonly profile: Profile }) 
           contato nunca aparecem.
         </span>
       </label>
-      <p className="muted" style={{ margin: 0 }} aria-live="polite">
+      <p className="muted m-0" aria-live="polite">
         {action.pending ? 'Salvando…' : status}
       </p>
     </section>

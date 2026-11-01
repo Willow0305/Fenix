@@ -22,7 +22,7 @@ function Benefits({ items }: { readonly items: readonly Benefit[] }) {
 
   return (
     <section className="card stack" aria-labelledby="beneficios">
-      <h2 id="beneficios" style={{ margin: 0 }}>
+      <h2 id="beneficios" className="m-0">
         Benefícios desta carteirinha
       </h2>
       <ul className="stack" style={{ gap: '0.4rem', paddingLeft: '1.1rem', margin: 0 }}>
@@ -45,7 +45,7 @@ function Verdict({ valid, label }: { readonly valid: boolean; readonly label: st
     >
       <Icon name={valid ? 'check-circle-fill' : 'x-octagon-fill'} />
       <h1>{valid ? 'VÁLIDA' : 'INVÁLIDA'}</h1>
-      {valid || label === 'Inválida' ? null : <p style={{ margin: 0 }}>{label}</p>}
+      {valid || label === 'Inválida' ? null : <p className="m-0">{label}</p>}
     </div>
   );
 }
@@ -68,7 +68,7 @@ function PublicCheck({ token }: { readonly token: string }) {
       {card ? (
         <section className="card row" aria-label="Titular">
           <Avatar src={card.photo} name={card.name} size={96} />
-          <div className="stack" style={{ gap: '0.25rem' }}>
+          <div className="stack gap-2xs">
             <strong style={{ fontSize: '1.4rem' }}>{card.name}</strong>
             <span>Carteirinha de {CARD_TYPE[card.type].toLowerCase()}</span>
             {card.endsOn ? <span>Válida até {formatDate(card.endsOn)}</span> : null}
@@ -100,7 +100,7 @@ function StaffCheck({ token }: { readonly token: string }) {
       {card ? (
         <section className="card row" aria-label="Titular">
           <Avatar src={card.photo} name={card.holderName} size={96} />
-          <div className="stack" style={{ gap: '0.25rem' }}>
+          <div className="stack gap-2xs">
             <strong style={{ fontSize: '1.4rem' }}>{card.holderName}</strong>
             <span>
               {CARD_TYPE[card.type]} · {card.code} · {card.stateLabel}

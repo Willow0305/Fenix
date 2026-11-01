@@ -241,7 +241,7 @@ export default function ProductsAdminPage() {
                   <tr key={p.id}>
                     <td data-label="Produto">
                       <Link href={`/admin/produtos/${p.id}`}>{p.name}</Link>
-                      <div className="muted" style={{ fontSize: '0.8rem' }}>
+                      <div className="muted text-xs">
                         {p.category.name} · {plural(p.variants.length, 'variação', 'variações')}
                       </div>
                     </td>
@@ -251,11 +251,7 @@ export default function ProductsAdminPage() {
                     </td>
                     <td data-label="Estoque disponível" className="num">
                       {p.fulfillmentType === 'STOCK' ? available : '—'}
-                      {low ? (
-                        <span className="badge badge-warning" style={{ marginLeft: 4 }}>
-                          baixo
-                        </span>
-                      ) : null}
+                      {low ? <span className="badge badge-warning ml-2xs">baixo</span> : null}
                     </td>
                     <td data-label="Situação">
                       <span className={`badge ${PRODUCT_STATUS[p.status].badge}`}>

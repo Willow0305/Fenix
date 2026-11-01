@@ -71,7 +71,7 @@ export default function ReturnsAdminPage() {
       {list.loading && !list.data ? <Skeleton lines={4} /> : null}
       {list.data?.data.length === 0 ? <Empty>Nada por aqui.</Empty> : null}
       {list.data?.data.map((r) => (
-        <article key={r.id} className="card stack" style={{ gap: '0.4rem' }}>
+        <article key={r.id} className="card stack gap-xs">
           <div className="row">
             <strong>{r.kind === 'WITHDRAWAL' ? 'Desistência' : 'Defeito'}</strong>
             <Link href={`/admin/pedidos/${r.orderId}`}>{r.orderNumber}</Link>

@@ -1789,3 +1789,19 @@ Aprovada pelo responsável ("posição na ficha do atleta: sim"):
 
 - métricas zeram a cada reinício e, com mais de uma instância, cada uma expõe as suas: o coletor precisa raspar todas;
 - testes: unidade de `Metrics`, `JsonLogger` e registro de acesso; rota de métricas com e sem token.
+
+## DT-087 — Classes utilitárias no lugar de estilos inline
+
+- **Estado:** Aceita; implementada em 2026-11-01
+- **Data:** 2026-11-01
+- **Aprovador:** responsável do projeto (Etapa 9, `docs/30` R-09; "quero resolver todas as pendências ao meu alcance")
+
+### Decisão
+
+- os padrões repetidos de `style={{…}}` viram classes pequenas em `apps/web/app/globals.scss` (`m-0`, `p-0`, `gap-2xs|xs|sm|md`, `pt-lg|xl`, `pb-sm|md`, `ml-2xs|xs`, `self-start`, `justify-center`, `items-start`, `flex-12|14|16`, `text-xs|sm`, `fw-normal|semibold`, `pre-wrap`, `pre-line`, `list-none`, `cursor-pointer`, `border-b`). 165 dos 247 estilos inline foram trocados, em 72 telas, só quando **todas** as declarações tinham classe equivalente;
+- as classes usam `!important` porque substituem estilo inline, que vence qualquer regra de componente (ex.: `.card h2`); assim a aparência fica idêntica. Fora desse papel, não se cria utilitário com `!important`;
+- ficam inline (82) os estilos calculados (`width: size`, `objectFit: fit`, cores de gráfico) e os que aparecem uma única vez; esses saem aos poucos, na tela que for corrigida (`docs/29`).
+
+### Consequências
+
+- tela nova usa as classes em vez de `style={{…}}` com esses valores.

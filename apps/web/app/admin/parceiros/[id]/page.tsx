@@ -97,7 +97,7 @@ function DocumentsPanel({
       </p>
       {fileError ? <Alert kind="error">{fileError}</Alert> : null}
       {partner.documents && partner.documents.length > 0 ? (
-        <ul className="stack" style={{ listStyle: 'none', padding: 0 }}>
+        <ul className="stack list-none p-0">
           {partner.documents.map((doc) => (
             <li key={doc.id} className="row">
               <strong>{doc.documentType}</strong>

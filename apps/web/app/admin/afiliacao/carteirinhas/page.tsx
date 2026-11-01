@@ -78,7 +78,7 @@ function CardDetail({ id, onChanged }: { readonly id: string; readonly onChanged
   }
 
   return (
-    <div className="stack" style={{ gap: '0.75rem' }}>
+    <div className="stack gap-md">
       <dl className="row" style={{ gap: '0.5rem 1.5rem', margin: 0 }}>
         <div>
           <dt className="muted">Número</dt>
@@ -102,7 +102,7 @@ function CardDetail({ id, onChanged }: { readonly id: string; readonly onChanged
         ) : null}
       </dl>
       {manage && available.length > 0 ? (
-        <div className="row" style={{ gap: '0.5rem' }}>
+        <div className="row gap-sm">
           {available.map((a) => (
             <button
               key={a}
@@ -266,7 +266,7 @@ function CardsList() {
       {list.loading && !list.data ? <Skeleton lines={5} /> : null}
       {list.data?.data.length === 0 ? <Empty>Nenhuma carteirinha encontrada.</Empty> : null}
       {list.data && list.data.data.length > 0 ? (
-        <div className="stack" style={{ gap: '0.5rem' }}>
+        <div className="stack gap-sm">
           {list.data.data.map((c) => (
             <details
               key={c.id}
@@ -278,7 +278,7 @@ function CardsList() {
                 setOpen(isOpen ? c.id : open === c.id ? null : open);
               }}
             >
-              <summary className="row" style={{ cursor: 'pointer' }}>
+              <summary className="row cursor-pointer">
                 <strong>{c.holderName}</strong>
                 <span className="muted">{CARD_TYPE[c.type]}</span>
                 <span className="muted">{c.code}</span>

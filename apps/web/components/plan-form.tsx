@@ -87,7 +87,7 @@ export function PlanForm({
         hint="Ex.: quem se encaixa neste plano, o que inclui."
       />
       {source ? (
-        <p className="muted" style={{ margin: 0 }}>
+        <p className="muted m-0">
           Mudanças de valor e vencimento valem para as próximas cobranças geradas. Para mudar uma
           cobrança já gerada, use o detalhe da mensalidade.
         </p>

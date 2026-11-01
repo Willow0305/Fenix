@@ -77,8 +77,8 @@ export function ImageUpload<T>({
           fit={ratio === '1/1' ? 'contain' : 'cover'}
           fallbackTone="light"
         />
-        <div className="stack" style={{ gap: '0.5rem' }}>
-          <label htmlFor={inputId} className="label" style={{ fontWeight: 600 }}>
+        <div className="stack gap-sm">
+          <label htmlFor={inputId} className="label fw-semibold">
             {currentUrl ? 'Trocar imagem' : 'Escolher imagem'}
           </label>
           <input

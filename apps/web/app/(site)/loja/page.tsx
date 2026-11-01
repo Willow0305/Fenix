@@ -69,7 +69,7 @@ export default async function StorePage({
   };
 
   return (
-    <div className="container stack" style={{ paddingTop: '2.5rem' }}>
+    <div className="container stack pt-xl">
       <LiveRefresh topics={['store']} />
       <div className="page-header">
         <div>

@@ -56,7 +56,7 @@ function AthletePicker({
   });
 
   return (
-    <div className="stack" style={{ gap: '0.75rem' }}>
+    <div className="stack gap-md">
       <form
         className="row filter-bar"
         role="search"
@@ -216,7 +216,7 @@ export default function PlanDetailPage() {
 
       <section className="card stack" aria-labelledby="vigentes">
         <div className="row">
-          <h2 id="vigentes" style={{ margin: 0 }}>
+          <h2 id="vigentes" className="m-0">
             Quem paga este plano ({current.length})
           </h2>
           <span className="spacer" />
@@ -233,14 +233,14 @@ export default function PlanDetailPage() {
             </button>
           ) : null}
         </div>
-        <p className="muted" style={{ margin: 0 }}>
+        <p className="muted m-0">
           Só atletas com status Ativo recebem cobrança ao gerar o mês. Pendentes entram no plano,
           mas só são cobrados depois de ativados.
         </p>
 
         {adding ? (
           <div className="card stack">
-            <h3 style={{ margin: 0 }}>Adicionar atletas ao plano</h3>
+            <h3 className="m-0">Adicionar atletas ao plano</h3>
             <AthletePicker
               selected={selected}
               currentIds={currentIds}
@@ -259,7 +259,7 @@ export default function PlanDetailPage() {
               }
             />
             {selected.size > 0 ? (
-              <p style={{ margin: 0 }}>
+              <p className="m-0">
                 <strong>{plural(selected.size, 'selecionado', 'selecionados')}:</strong>{' '}
                 {[...selected.values()].join(', ')}
               </p>

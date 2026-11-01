@@ -5,7 +5,7 @@
 export function ConsumerRights({ compact = false }: { readonly compact?: boolean }) {
   if (compact) {
     return (
-      <p className="muted" style={{ margin: 0 }}>
+      <p className="muted m-0">
         Compra pela internet: você pode desistir em até 7 dias depois de receber, com estorno
         integral (exceto itens personalizados). Todo item tem garantia contra defeito por 90 dias.
       </p>
@@ -14,10 +14,10 @@ export function ConsumerRights({ compact = false }: { readonly compact?: boolean
 
   return (
     <section className="card stack" aria-labelledby="direitos-loja">
-      <h2 id="direitos-loja" style={{ margin: 0 }}>
+      <h2 id="direitos-loja" className="m-0">
         Seus direitos nas compras da loja
       </h2>
-      <ul className="stack" style={{ gap: '0.4rem', margin: 0 }}>
+      <ul className="stack gap-xs m-0">
         <li>
           <strong>Desistência (art. 49 do CDC):</strong> até 7 dias depois de receber o pedido (ou
           da ativação, na afiliação), sem precisar dizer o motivo, com estorno integral. Peça em

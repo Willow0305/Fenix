@@ -510,8 +510,8 @@ Prioridades:
 - **Questão:** a etapa foi pausada a pedido do responsável em 27/10/2026. Estado deixado:
   - **E2E (R-10):** estrutura pronta em `e2e/` (`npm run e2e` recria o banco `<dev>_e2e`, compila o site e roda no Edge em 390 px e 1280 px). **Em 2026-10-28 todos os 56 testes (28 em cada tamanho) passam**: rolagem lateral do `/admin` no celular corrigida (DT-072), seletor de "Notícias do clube" ajustado e clique em "Adicionar ao carrinho" agora espera a página carregar (o clique antes do React assumir o botão se perdia).
   - **Logs e métricas (R-07):** concluído em 2026-11-01: testes de `Metrics`, `JsonLogger`, registro de acesso e da rota `/api/v1/metrics`; variáveis no `.env.example`; `DT-086`; `docs/15` §11.1.
-  - **Estilos inline (R-09):** não iniciado.
-- **Recomendação:** R-07 e o registro de E2E e observabilidade (`DT-086`, `README`, `docs/COMO-EXECUTAR.md`) concluídos em 2026-11-01; falta o R-09.
+  - **Estilos inline (R-09):** concluído em 2026-11-01: 165 dos 247 trocados por classes utilitárias (`DT-087`); os 82 restantes são calculados ou únicos e saem aos poucos, na tela corrigida.
+- **Recomendação:** R-07 e o registro de E2E e observabilidade (`DT-086`, `README`, `docs/COMO-EXECUTAR.md`) concluídos em 2026-11-01; R-09 concluído no mesmo dia (`DT-087`). **Etapa 9 concluída**; mover para Resolvidas depois da verificação.
 - **Impacto:** `docs/16` (Etapa 9), `docs/17`, `CHANGELOG.md`, `.env.example`.
 
 ### PEN-067 — Cartão: "sem juros" por produto no Mercado Pago

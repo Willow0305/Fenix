@@ -115,13 +115,13 @@ export function PixPayment({
 
   return (
     <section className="card stack" aria-labelledby="pix-automatico">
-      <h2 id="pix-automatico" style={{ margin: 0 }}>
+      <h2 id="pix-automatico" className="m-0">
         <Icon name="qr-code" /> Pagar com PIX (confirmação automática)
       </h2>
       {error ? <Alert kind="error">{error}</Alert> : null}
       {charge === null ? (
         <>
-          <p className="muted" style={{ margin: 0 }}>
+          <p className="muted m-0">
             Gere o QR e pague no app do seu banco: a confirmação chega sozinha, sem enviar
             comprovante.
           </p>
@@ -150,7 +150,7 @@ export function PixPayment({
           <div style={{ width: '12rem', background: '#fff', padding: '0.5rem', borderRadius: 8 }}>
             <QrImage svg={charge.qrSvg} label="QR do PIX" />
           </div>
-          <div className="stack" style={{ flex: '1 1 16rem', gap: '0.5rem' }}>
+          <div className="stack flex-16 gap-sm">
             <strong>{formatMoney(charge.amount.amount)}</strong>
             <small className="muted">Válido até {formatDateTime(charge.expiresAt)}.</small>
             <label className="field">

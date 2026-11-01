@@ -189,7 +189,7 @@ export default function AthleteDetailPage() {
           <>
             <div className="row">
               <Avatar src={a.user.avatarUrl} name={a.user.name} size={56} authenticated />
-              <span style={{ flex: '1 1 14rem' }}>
+              <span className="flex-14">
                 Vinculado a <strong>{a.user.name}</strong> ({a.user.email})
               </span>
               {can('athletes.update') ? (
@@ -202,7 +202,7 @@ export default function AthleteDetailPage() {
                 </button>
               ) : null}
             </div>
-            <div className="stack" style={{ gap: '0.4rem' }}>
+            <div className="stack gap-xs">
               <span>
                 <Icon name={a.publicProfile.visibleOnSite ? 'eye' : 'eye-slash'} />{' '}
                 {a.publicProfile.visibleOnSite
@@ -327,7 +327,7 @@ export default function AthleteDetailPage() {
               />
             </div>
             {ageWarning ? (
-              <div className="alert alert-warning stack" style={{ gap: '0.5rem' }}>
+              <div className="alert alert-warning stack gap-sm">
                 <span>
                   <Icon name="exclamation-triangle" /> {ageWarning}
                 </span>

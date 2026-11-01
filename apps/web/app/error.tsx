@@ -25,7 +25,7 @@ export default function PageError({
         Não foi possível carregar esta página. Tente de novo; se continuar, avise a diretoria.
         {error.digest ? ` Código para suporte: ${error.digest}.` : ''}
       </p>
-      <div className="row" style={{ justifyContent: 'center' }}>
+      <div className="row justify-center">
         <button type="button" className="btn btn-primary" onClick={reset}>
           <Icon name="arrow-clockwise" /> Tentar de novo
         </button>

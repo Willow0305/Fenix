@@ -96,7 +96,7 @@ function AvailabilityPanel({ professional }: { readonly professional: Profession
       {slots.error ? <Alert kind="error">{slots.error}</Alert> : null}
       {slots.data?.length === 0 ? <p className="muted">Nenhum horário cadastrado.</p> : null}
       {slots.data && slots.data.length > 0 ? (
-        <ul className="stack" style={{ listStyle: 'none', padding: 0 }}>
+        <ul className="stack list-none p-0">
           {slots.data.map((slot) => (
             <li key={slot.id} className="row">
               <span>

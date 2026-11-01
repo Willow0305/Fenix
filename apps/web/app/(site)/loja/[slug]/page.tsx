@@ -86,11 +86,7 @@ export default async function ProductPage({
             {FULFILLMENT[product.fulfillmentType]}
           </span>
           {product.campaign ? (
-            <section
-              className="alert alert-info stack"
-              aria-labelledby="prevenda"
-              style={{ gap: '0.4rem' }}
-            >
+            <section className="alert alert-info stack gap-xs" aria-labelledby="prevenda">
               <strong id="prevenda">
                 <Icon name="clock-history" /> Pré-venda até{' '}
                 {formatDateTime(product.campaign.salesEndAt)}
@@ -114,7 +110,7 @@ export default async function ProductPage({
             </section>
           ) : null}
           {product.fulfillmentType === 'MEMBERSHIP' ? (
-            <section className="alert alert-info stack" style={{ gap: '0.4rem' }}>
+            <section className="alert alert-info stack gap-xs">
               <strong>
                 <Icon name="person-vcard" /> Carteirinha de afiliado
                 {product.membershipMonths ? `, válida por ${product.membershipMonths} meses` : ''}
@@ -158,9 +154,7 @@ export default async function ProductPage({
           {product.pickupInstructions ? (
             <div className="card">
               <strong>Retirada</strong>
-              <p className="prose" style={{ margin: 0 }}>
-                {product.pickupInstructions}
-              </p>
+              <p className="prose m-0">{product.pickupInstructions}</p>
             </div>
           ) : null}
         </div>

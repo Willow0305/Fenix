@@ -53,7 +53,7 @@ export function TrustedDevicesSection() {
       {devices.error ? <Alert kind="error">{devices.error}</Alert> : null}
       {devices.data && list.length === 0 ? <Empty>Nenhum dispositivo lembrado.</Empty> : null}
       {list.length > 0 ? (
-        <ul className="stack gap-sm m-0" style={{ listStyle: 'none', padding: 0 }}>
+        <ul className="stack gap-sm m-0 list-none p-0">
           {list.map((device) => (
             <li key={device.id} className="row">
               <span className="stack m-0" style={{ gap: '0.1rem', flex: '1 1 16rem' }}>

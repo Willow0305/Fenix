@@ -94,11 +94,7 @@ export default function OrdersAdminPage() {
                   </td>
                   <td data-label="Cliente">
                     {order.customerName}
-                    {order.isGuest ? (
-                      <span className="badge" style={{ marginLeft: 4 }}>
-                        visitante
-                      </span>
-                    ) : null}
+                    {order.isGuest ? <span className="badge ml-2xs">visitante</span> : null}
                   </td>
                   <td data-label="Data">{formatDateTime(order.createdAt)}</td>
                   <td data-label="Total" className="num">
@@ -109,9 +105,7 @@ export default function OrdersAdminPage() {
                       {ORDER_STATUS[order.status].label}
                     </span>
                     {order.pendingAmount.amount !== '0.00' ? (
-                      <span className="badge badge-warning" style={{ marginLeft: 4 }}>
-                        comprovante
-                      </span>
+                      <span className="badge badge-warning ml-2xs">comprovante</span>
                     ) : null}
                   </td>
                 </tr>

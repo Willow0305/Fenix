@@ -47,7 +47,7 @@ export default function ServiceRequestPage() {
 
   if (data.error || !data.data) {
     return (
-      <div className="container" style={{ paddingTop: '2rem' }}>
+      <div className="container pt-lg">
         <Alert kind="error">{data.error ?? 'Serviço não encontrado.'}</Alert>
       </div>
     );
@@ -80,8 +80,7 @@ export default function ServiceRequestPage() {
           <p>Para solicitar um horário, entre na sua conta.</p>
           <Link
             href={`/entrar?next=/parceiros/servicos/${id}`}
-            className="btn btn-primary"
-            style={{ justifySelf: 'start' }}
+            className="btn btn-primary self-start"
           >
             Entrar
           </Link>

@@ -107,7 +107,7 @@ function PostItem({
       </div>
       {error ? <Alert kind="error">{error}</Alert> : null}
       {post.content === null ? (
-        <p className="muted" style={{ margin: 0 }}>
+        <p className="muted m-0">
           {post.status === 'DELETED' ? 'Mensagem removida.' : 'Mensagem indisponível.'}
         </p>
       ) : editing ? (
@@ -134,9 +134,7 @@ function PostItem({
           </div>
         </form>
       ) : (
-        <p className="prose" style={{ margin: 0 }}>
-          {post.content}
-        </p>
+        <p className="prose m-0">{post.content}</p>
       )}
       {post.status === 'PUBLISHED' ? (
         <div className="row">
@@ -221,7 +219,7 @@ export default function TopicPage() {
 
   if (topic.error || !topic.data) {
     return (
-      <div className="container" style={{ paddingTop: '2rem' }}>
+      <div className="container pt-lg">
         <Alert kind="error">{topic.error ?? 'Tópico não encontrado.'}</Alert>
         <Link href="/forum" className="back-link">
           <Icon name="chevron-left" /> Fórum

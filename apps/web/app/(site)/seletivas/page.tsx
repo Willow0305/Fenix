@@ -13,7 +13,7 @@ export default async function TryoutsPage() {
   const tryouts = (await serverGet<Tryout[]>('/public/tryouts', 30)) ?? [];
 
   return (
-    <div className="container stack" style={{ paddingTop: '2.5rem' }}>
+    <div className="container stack pt-xl">
       <LiveRefresh topics={['tryouts']} />
       <h1>Seletivas</h1>
       <p className="muted">Horários exibidos no fuso do time (Rio Branco).</p>
@@ -36,17 +36,13 @@ export default async function TryoutsPage() {
                   {tryoutPublicBadge(tryout).label}
                 </span>
               </div>
-              <p className="muted" style={{ margin: 0 }}>
+              <p className="muted m-0">
                 {tryout.team ? `${tryout.team.name} · ` : ''}
                 {tryout.startsAt ? formatDateTime(tryout.startsAt) : 'Data a definir'}
                 {tryout.location ? ` · ${tryout.location}` : ''}
               </p>
               {tryout.acceptingRegistrations ? (
-                <Link
-                  href={`/seletivas/${tryout.slug}`}
-                  className="btn btn-primary"
-                  style={{ justifySelf: 'start' }}
-                >
+                <Link href={`/seletivas/${tryout.slug}`} className="btn btn-primary self-start">
                   Inscrever-se
                 </Link>
               ) : tryout.blockReason ? (

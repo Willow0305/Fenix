@@ -38,17 +38,16 @@ export default function MyPrivacyPage() {
       {notice ? <Alert kind="success">{notice}</Alert> : null}
 
       <section className="card stack" aria-labelledby="copia">
-        <h2 id="copia" style={{ margin: 0 }}>
+        <h2 id="copia" className="m-0">
           Cópia dos seus dados
         </h2>
-        <p style={{ margin: 0 }}>
+        <p className="m-0">
           Baixe um arquivo com seus dados de conta, atleta, inscrições, pedidos, agendamentos,
           mensagens e notificações. Senhas e dados de outras pessoas não são incluídos.
         </p>
         <button
           type="button"
-          className="btn btn-secondary"
-          style={{ justifySelf: 'start' }}
+          className="btn btn-secondary self-start"
           onClick={() => void exportData()}
         >
           Baixar meus dados
@@ -56,18 +55,17 @@ export default function MyPrivacyPage() {
       </section>
 
       <section className="card stack" aria-labelledby="eliminacao">
-        <h2 id="eliminacao" style={{ margin: 0 }}>
+        <h2 id="eliminacao" className="m-0">
           Excluir minha conta
         </h2>
-        <p style={{ margin: 0 }}>
+        <p className="m-0">
           A diretoria analisa o pedido e anonimiza sua conta. Pedidos, pagamentos e registros com
           obrigação legal de guarda são mantidos pelo prazo exigido, sem uso para outras
           finalidades.
         </p>
         <button
           type="button"
-          className="btn btn-danger"
-          style={{ justifySelf: 'start' }}
+          className="btn btn-danger self-start"
           onClick={() => setErasing(true)}
         >
           Pedir exclusão
@@ -76,17 +74,17 @@ export default function MyPrivacyPage() {
 
       {requests.data && requests.data.length > 0 ? (
         <section className="card stack" aria-labelledby="pedidos">
-          <h2 id="pedidos" style={{ margin: 0 }}>
+          <h2 id="pedidos" className="m-0">
             Seus pedidos
           </h2>
-          <ul style={{ margin: 0 }}>
+          <ul className="m-0">
             {requests.data.map((request) => (
               <li key={request.id}>
                 {PRIVACY_TYPE[request.type]} · {formatDateTime(request.createdAt)} ·{' '}
                 <span className={`badge ${PRIVACY_STATUS[request.status].badge}`}>
                   {PRIVACY_STATUS[request.status].label}
                 </span>
-                {request.resolution ? <p style={{ margin: 0 }}>{request.resolution}</p> : null}
+                {request.resolution ? <p className="m-0">{request.resolution}</p> : null}
               </li>
             ))}
           </ul>

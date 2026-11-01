@@ -78,7 +78,7 @@ export default function NotificationsPage() {
             <span className="spacer" />
             <small className="muted">{formatDateTime(item.createdAt)}</small>
           </div>
-          <p style={{ margin: 0 }}>{item.message}</p>
+          <p className="m-0">{item.message}</p>
           <div className="row">
             {item.link ? <Link href={item.link}>Ver detalhes</Link> : null}
             {item.readAt ? null : (

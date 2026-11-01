@@ -14,7 +14,7 @@ export default async function AboutPage() {
   const photos = team.photos ?? [];
 
   return (
-    <div className="container stack" style={{ paddingTop: '2.5rem' }}>
+    <div className="container stack pt-xl">
       {photos.length > 0 ? (
         <PhotoCarousel photos={photos} />
       ) : cover ? (

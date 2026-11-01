@@ -94,7 +94,7 @@ export default async function EventsPage({
   const filtered = Boolean(filters.type || filters.region || filters.origin);
 
   return (
-    <div className="container stack" style={{ paddingTop: '2.5rem' }}>
+    <div className="container stack pt-xl">
       <header className="stack gap-sm">
         <h1 className="m-0">Agenda</h1>
         <p className="muted m-0">

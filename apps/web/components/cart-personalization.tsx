@@ -32,7 +32,7 @@ export function CartPersonalization({
 
   if (!editing) {
     return (
-      <div className="row" style={{ gap: '0.4rem' }}>
+      <div className="row gap-xs">
         <small>
           {line.personalization.length > 0
             ? line.personalization.map((p) => `${p.label}: ${p.value}`).join(' · ')

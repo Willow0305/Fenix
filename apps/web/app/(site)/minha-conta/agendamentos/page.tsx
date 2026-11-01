@@ -44,8 +44,7 @@ export default function MyAppointmentsPage() {
           new Date(a.scheduledStartsAt) > new Date() ? (
             <button
               type="button"
-              className="btn btn-secondary btn-sm"
-              style={{ justifySelf: 'start' }}
+              className="btn btn-secondary btn-sm self-start"
               onClick={() => setCancelling(a)}
             >
               Cancelar

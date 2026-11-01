@@ -165,9 +165,7 @@ export function ProductPurchase({ product }: { readonly product: ProductDetail }
       {product.sizeGuide ? (
         <details className="collapsible">
           <summary>Guia de medidas</summary>
-          <p className="prose" style={{ margin: 0 }}>
-            {product.sizeGuide}
-          </p>
+          <p className="prose m-0">{product.sizeGuide}</p>
         </details>
       ) : null}
       {fields.length > 0 ? (

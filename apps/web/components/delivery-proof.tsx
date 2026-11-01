@@ -38,7 +38,7 @@ export function DeliveryProof({
 
   return (
     <section className="card stack" aria-labelledby="entrega-comprovada">
-      <h2 id="entrega-comprovada" style={{ margin: 0 }}>
+      <h2 id="entrega-comprovada" className="m-0">
         Entrega comprovada
       </h2>
       {order.deliveryConfirmedAt ? (

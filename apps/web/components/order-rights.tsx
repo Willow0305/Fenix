@@ -100,7 +100,7 @@ export function OrderRightsPanel({ target }: { readonly target: Target }) {
 
   return (
     <section className="card stack" aria-labelledby="direitos">
-      <h2 id="direitos" style={{ margin: 0 }}>
+      <h2 id="direitos" className="m-0">
         Entrega, troca e devolução
       </h2>
       {rights.awaitingReceipt ? (
@@ -123,13 +123,13 @@ export function OrderRightsPanel({ target }: { readonly target: Target }) {
         </div>
       ) : null}
       {rights.withdrawalUntil ? (
-        <p className="muted" style={{ margin: 0 }}>
+        <p className="muted m-0">
           Entrega comprovada em {formatDateTime(rights.deliveryConfirmedAt)}. Desistência até{' '}
           {formatDateTime(rights.withdrawalUntil)}; garantia contra defeito até{' '}
           {formatDateTime(rights.defectUntil)}.
         </p>
       ) : rights.canWithdraw ? (
-        <p className="muted" style={{ margin: 0 }}>
+        <p className="muted m-0">
           Mudou de ideia? Você pode desistir da compra (exceto itens personalizados) até 7 dias
           depois de receber, com estorno integral.
         </p>
@@ -167,7 +167,7 @@ export function OrderRightsPanel({ target }: { readonly target: Target }) {
           <ErrorSummary error={send.error} />
           {eligible.map((item) => (
             <label key={item.orderItemId} className="row">
-              <span style={{ flex: '1 1 12rem' }}>{item.productName}</span>
+              <span className="flex-12">{item.productName}</span>
               <select
                 aria-label={`Quantidade de ${item.productName}`}
                 value={quantities[item.orderItemId] ?? 0}

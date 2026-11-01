@@ -109,7 +109,7 @@ export default function MyFeesPage() {
       {fees.loading && !fees.data ? <Loading /> : null}
       {fees.data?.length === 0 ? <Empty>Nenhuma mensalidade gerada para você.</Empty> : null}
       {fees.data?.map((fee) => (
-        <article key={fee.id} className="card stack" style={{ gap: '0.5rem' }}>
+        <article key={fee.id} className="card stack gap-sm">
           <div className="row">
             <strong>{formatMonth(fee.referenceMonth)}</strong>
             <span className={`badge ${FEE_STATUS[fee.status].badge}`}>

@@ -201,7 +201,7 @@ export function AthleteForm({
       {isMinor ? (
         <fieldset className="form-section card" aria-describedby="guardian-note">
           <legend>Responsável (menor de 18 anos)</legend>
-          <p id="guardian-note" className="muted" style={{ margin: 0 }}>
+          <p id="guardian-note" className="muted m-0">
             Obrigatório para atletas menores de idade.
           </p>
           <div className="form-grid">

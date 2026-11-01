@@ -549,13 +549,115 @@ img {
   color: var(--color-text-muted);
 }
 
-// Utilitários pequenos, no lugar de `style={{…}}` (R-09).
+// Utilitários pequenos, no lugar de `style={{…}}` (R-09, DT-087). Valem como o estilo
+// inline que substituem, que vencia qualquer regra de componente; por isso `!important`.
+
 .m-0 {
-  margin: 0;
+  margin: 0 !important;
+}
+
+.p-0 {
+  padding: 0 !important;
+}
+
+.gap-2xs {
+  gap: 0.25rem !important;
+}
+
+.gap-xs {
+  gap: 0.4rem !important;
 }
 
 .gap-sm {
-  gap: 0.5rem;
+  gap: 0.5rem !important;
+}
+
+.gap-md {
+  gap: 0.75rem !important;
+}
+
+.pt-lg {
+  padding-top: 2rem !important;
+}
+
+.pt-xl {
+  padding-top: 2.5rem !important;
+}
+
+.pb-sm {
+  padding-bottom: 0.5rem !important;
+}
+
+.pb-md {
+  padding-bottom: 0.75rem !important;
+}
+
+.ml-2xs {
+  margin-left: 4px !important;
+}
+
+.ml-xs {
+  margin-left: 6px !important;
+}
+
+.self-start {
+  justify-self: start !important;
+}
+
+.justify-center {
+  justify-content: center !important;
+}
+
+.items-start {
+  align-items: flex-start !important;
+}
+
+.flex-12 {
+  flex: 1 1 12rem !important;
+}
+
+.flex-14 {
+  flex: 1 1 14rem !important;
+}
+
+.flex-16 {
+  flex: 1 1 16rem !important;
+}
+
+.text-xs {
+  font-size: 0.8rem !important;
+}
+
+.text-sm {
+  font-size: 0.85rem !important;
+}
+
+.fw-normal {
+  font-weight: 400 !important;
+}
+
+.fw-semibold {
+  font-weight: 600 !important;
+}
+
+.pre-wrap {
+  white-space: pre-wrap !important;
+}
+
+.pre-line {
+  white-space: pre-line !important;
+}
+
+.list-none {
+  list-style: none !important;
+}
+
+.cursor-pointer {
+  cursor: pointer !important;
+}
+
+.border-b {
+  border-bottom: 1px solid var(--color-border) !important;
 }
 
 .h-small {

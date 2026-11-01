@@ -119,30 +119,22 @@ export default function ClosingsPage() {
           </form>
           {preview ? (
             <div className="stack">
-              <dl className="stat-grid" style={{ margin: 0 }}>
+              <dl className="stat-grid m-0">
                 <div className="stat">
                   <dt className="stat-label">Saldo anterior</dt>
-                  <dd className="stat-value" style={{ margin: 0 }}>
-                    {formatMoney(preview.openingBalance.amount)}
-                  </dd>
+                  <dd className="stat-value m-0">{formatMoney(preview.openingBalance.amount)}</dd>
                 </div>
                 <div className="stat">
                   <dt className="stat-label">Entradas</dt>
-                  <dd className="stat-value" style={{ margin: 0 }}>
-                    {formatMoney(preview.income.amount)}
-                  </dd>
+                  <dd className="stat-value m-0">{formatMoney(preview.income.amount)}</dd>
                 </div>
                 <div className="stat">
                   <dt className="stat-label">Saídas</dt>
-                  <dd className="stat-value" style={{ margin: 0 }}>
-                    {formatMoney(preview.expense.amount)}
-                  </dd>
+                  <dd className="stat-value m-0">{formatMoney(preview.expense.amount)}</dd>
                 </div>
                 <div className="stat">
                   <dt className="stat-label">Saldo esperado</dt>
-                  <dd className="stat-value" style={{ margin: 0 }}>
-                    {formatMoney(preview.expectedBalance.amount)}
-                  </dd>
+                  <dd className="stat-value m-0">{formatMoney(preview.expectedBalance.amount)}</dd>
                 </div>
               </dl>
               {preview.pendingTransactions > 0 ? (
@@ -242,7 +234,7 @@ export default function ClosingsPage() {
                       {c.status === 'CLOSED' ? (
                         <>
                           <span className="badge badge-success">Fechado</span>
-                          <div className="muted" style={{ fontSize: '0.8rem' }}>
+                          <div className="muted text-xs">
                             por {c.closedBy} em {formatDateTime(c.closedAt)}
                           </div>
                           {can('cash.reopen') ? (
@@ -258,7 +250,7 @@ export default function ClosingsPage() {
                       ) : (
                         <>
                           <span className="badge badge-warning">Reaberto</span>
-                          <div className="muted" style={{ fontSize: '0.8rem' }}>
+                          <div className="muted text-xs">
                             {c.reopenedBy}: {c.reopeningReason}
                           </div>
                         </>

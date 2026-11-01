@@ -34,7 +34,7 @@ export default async function TryoutPage({
     <div className="container stack" style={{ paddingTop: '2.5rem', maxWidth: 860 }}>
       <LiveRefresh topics={['tryouts']} />
       <div className="row">
-        <h1 style={{ margin: 0 }}>{tryout.title}</h1>
+        <h1 className="m-0">{tryout.title}</h1>
         <span className={`badge ${tryoutPublicBadge(tryout).badge}`}>
           {tryoutPublicBadge(tryout).label}
         </span>
@@ -43,12 +43,12 @@ export default async function TryoutPage({
         {tryout.team ? (
           <div>
             <dt className="muted">Equipe</dt>
-            <dd style={{ margin: 0 }}>{tryout.team.name}</dd>
+            <dd className="m-0">{tryout.team.name}</dd>
           </div>
         ) : null}
         <div>
           <dt className="muted">Data e horário</dt>
-          <dd style={{ margin: 0 }}>
+          <dd className="m-0">
             {tryout.startsAt
               ? `${formatDateTime(tryout.startsAt)} (horário de Rio Branco)`
               : 'A definir'}
@@ -57,19 +57,19 @@ export default async function TryoutPage({
         {tryout.location ? (
           <div>
             <dt className="muted">Local</dt>
-            <dd style={{ margin: 0 }}>{tryout.location}</dd>
+            <dd className="m-0">{tryout.location}</dd>
           </div>
         ) : null}
         {tryout.registrationEndsAt ? (
           <div>
             <dt className="muted">Inscrições até</dt>
-            <dd style={{ margin: 0 }}>{formatDateTime(tryout.registrationEndsAt)}</dd>
+            <dd className="m-0">{formatDateTime(tryout.registrationEndsAt)}</dd>
           </div>
         ) : null}
         {tryout.maxSlots ? (
           <div>
             <dt className="muted">Vagas</dt>
-            <dd style={{ margin: 0 }}>
+            <dd className="m-0">
               {Math.max(0, tryout.maxSlots - tryout.usedSlots)} de {tryout.maxSlots} disponíveis
             </dd>
           </div>

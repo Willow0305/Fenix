@@ -17,6 +17,10 @@ O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) e o 
 
 - carrinho: duas leituras simultâneas logo depois de entrar na conta juntavam o carrinho de visitante duas vezes e dobravam as quantidades; agora só uma junta (PEN-070).
 
+#### Alterado
+
+- 165 dos 247 estilos inline das telas trocados por classes utilitárias, sem mudança visual (R-09, DT-087).
+
 ### Revisão de interface das ondas (2026-10-30)
 
 #### Corrigido

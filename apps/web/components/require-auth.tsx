@@ -41,7 +41,7 @@ export function RequireAuth({
     !profile.mfa.verified
   ) {
     return (
-      <div className="container" style={{ paddingTop: '2rem' }}>
+      <div className="container pt-lg">
         <Alert kind="warning">
           {profile.mfa.enabled
             ? 'Esta sessão não passou pela verificação em duas etapas. Saia e entre novamente.'
@@ -60,7 +60,7 @@ export function RequireAuth({
 
   if (permissions.length > 0 && !can(...permissions)) {
     return (
-      <div className="container" style={{ paddingTop: '2rem' }}>
+      <div className="container pt-lg">
         <Alert kind="warning">Você não tem permissão para acessar esta área.</Alert>
       </div>
     );

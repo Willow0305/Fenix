@@ -30,13 +30,13 @@ export default async function PartnersPage() {
   const informal = benefits.filter((benefit) => benefit.partner.id === null);
 
   return (
-    <div className="container stack" style={{ paddingTop: '2.5rem' }}>
+    <div className="container stack pt-xl">
       <h1>Parceiros</h1>
       <p className="muted">
         Empresas e profissionais aprovados pela diretoria do Fênix Vôlei, com contrato vigente.
       </p>
       {benefits.length > 0 ? (
-        <p className="card" style={{ margin: 0 }}>
+        <p className="card m-0">
           <Icon name="person-vcard" /> Com a carteirinha do Fênix (atleta ou afiliado), você tem
           desconto nos parceiros marcados. Mostre o QR em{' '}
           <Link href="/minha-conta/carteirinhas">Minha conta › Carteirinhas</Link>.
@@ -63,11 +63,9 @@ export default async function PartnersPage() {
                 <h2 className="content-card-title line-clamp-2" title={partner.displayName}>
                   <Link href={`/parceiros/${partner.id}`}>{partner.displayName}</Link>
                 </h2>
-                <span className="badge" style={{ justifySelf: 'start' }}>
-                  {PARTNER_TYPE[partner.type]}
-                </span>
+                <span className="badge self-start">{PARTNER_TYPE[partner.type]}</span>
                 {bestDiscount.has(partner.id) ? (
-                  <span className="badge badge-success" style={{ justifySelf: 'start' }}>
+                  <span className="badge badge-success self-start">
                     Até {bestDiscount.get(partner.id)}% com a carteirinha
                   </span>
                 ) : null}

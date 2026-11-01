@@ -77,7 +77,7 @@ export default function PrivacyAdminPage() {
               {request.user.name} · {request.user.email}
             </span>
           ) : null}
-          {request.details ? <p style={{ margin: 0 }}>{request.details}</p> : null}
+          {request.details ? <p className="m-0">{request.details}</p> : null}
           {request.resolution ? (
             <small>
               Resposta ({request.handledBy ?? '—'}, {formatDateTime(request.handledAt)}):{' '}

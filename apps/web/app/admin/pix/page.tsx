@@ -69,10 +69,10 @@ export default function PixAdminPage() {
       />
       {notice ? <Alert kind="success">{notice}</Alert> : null}
       <section className="card stack" aria-labelledby="pix-situacao">
-        <h2 id="pix-situacao" style={{ margin: 0 }}>
+        <h2 id="pix-situacao" className="m-0">
           Situação
         </h2>
-        <p style={{ margin: 0 }}>
+        <p className="m-0">
           Intermediário: <strong>{PROVIDER[p.provider]}</strong>
           {p.enabled
             ? ''
@@ -99,10 +99,10 @@ export default function PixAdminPage() {
       </section>
 
       <section className="card stack" aria-labelledby="pix-revisar">
-        <h2 id="pix-revisar" style={{ margin: 0 }}>
+        <h2 id="pix-revisar" className="m-0">
           PIX para revisar ({p.review.length})
         </h2>
-        <p className="muted" style={{ margin: 0 }}>
+        <p className="muted m-0">
           Dinheiro que chegou, mas não foi baixado: o pedido já tinha sido cancelado ou o valor não
           batia. Estorne no painel do intermediário ou registre o pagamento manualmente e marque
           como resolvido.

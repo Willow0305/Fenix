@@ -21,7 +21,7 @@ export default async function ContactPage() {
   const mailto = mailtoLink(team.email, `Contato pelo site — ${team.teamName}`);
 
   return (
-    <div className="container stack" style={{ paddingTop: '2.5rem' }}>
+    <div className="container stack pt-xl">
       <h1>Contato</h1>
       {whatsapp || mailto ? (
         <div className="card stack">

@@ -143,11 +143,7 @@ export default function FeeDetailPage() {
         <h2 id="pagamentos">Pagamentos</h2>
         {f.payments.length === 0 ? <p className="muted">Nenhum pagamento registrado.</p> : null}
         {f.payments.map((payment) => (
-          <div
-            key={payment.id}
-            className="row"
-            style={{ borderBottom: '1px solid var(--color-border)', paddingBottom: '0.5rem' }}
-          >
+          <div key={payment.id} className="row border-b pb-sm">
             <strong>{formatMoney(payment.amount.amount)}</strong>
             <span>{payment.method.name}</span>
             <span className="muted">{payment.paidAt ? formatDateTime(payment.paidAt) : ''}</span>

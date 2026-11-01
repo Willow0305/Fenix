@@ -115,7 +115,7 @@ function InterestedList() {
         </Empty>
       ) : null}
       {list.data?.data.map((person) => (
-        <article key={person.id} className="card stack" style={{ gap: '0.5rem' }}>
+        <article key={person.id} className="card stack gap-sm">
           <div className="row">
             <strong>{person.fullName}</strong>
             <span className={`badge ${INTERESTED_STATUS[person.status].badge}`}>
@@ -140,11 +140,7 @@ function InterestedList() {
               <ContactActions phone={person.guardianPhone} who="responsável" />
             ) : null}
           </div>
-          {person.notes ? (
-            <p className="prose" style={{ margin: 0 }}>
-              {person.notes}
-            </p>
-          ) : null}
+          {person.notes ? <p className="prose m-0">{person.notes}</p> : null}
           <div className="row">
             {can('registrations.review')
               ? INTERESTED_NEXT[person.status].map((next) => (

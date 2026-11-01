@@ -338,7 +338,7 @@ export default function SettingsPage() {
       {can('logos.manage') ? (
         <section className="stack" aria-labelledby="marca">
           <h2 id="marca">Marca e logos</h2>
-          <p className="muted" style={{ margin: 0 }}>
+          <p className="muted m-0">
             A logo de cada time (masculino, feminino, 4x4…) é enviada em{' '}
             <Link href="/admin/equipes">Equipes</Link>, na edição do próprio time.
           </p>

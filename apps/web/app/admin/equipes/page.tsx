@@ -250,7 +250,7 @@ export default function TeamsAdminPage() {
                     </td>
                     {manage ? (
                       <td data-label="Ações">
-                        <div className="row" style={{ gap: '0.5rem' }}>
+                        <div className="row gap-sm">
                           <button
                             type="button"
                             className="btn btn-secondary btn-sm"
@@ -279,7 +279,7 @@ export default function TeamsAdminPage() {
         ) : teams.data ? (
           <p className="muted">Nenhuma equipe cadastrada.</p>
         ) : null}
-        <p className="muted" style={{ margin: 0 }}>
+        <p className="muted m-0">
           “Vínculos atuais” conta atletas com vínculo aberto na equipe, qualquer que seja o status
           do atleta.
         </p>
@@ -287,7 +287,7 @@ export default function TeamsAdminPage() {
 
       <section className="card stack" aria-labelledby="categorias">
         <h2 id="categorias">Categorias</h2>
-        <p className="muted" style={{ margin: 0 }}>
+        <p className="muted m-0">
           A faixa etária é informativa: ao vincular um atleta fora dela, o painel avisa, mas não
           impede.
         </p>

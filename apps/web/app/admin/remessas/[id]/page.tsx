@@ -386,7 +386,7 @@ export default function CampaignDetailPage() {
 
       <section className="card stack" aria-labelledby="consolidado">
         <div className="row">
-          <h2 id="consolidado" style={{ margin: 0 }}>
+          <h2 id="consolidado" className="m-0">
             Consolidado (pedidos pagos)
           </h2>
           <span className="spacer" />

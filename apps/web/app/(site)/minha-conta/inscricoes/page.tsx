@@ -25,7 +25,7 @@ export default function MyRegistrationsPage() {
       ) : null}
       {registrations.data?.map((registration) => (
         <article key={registration.id} className="card row">
-          <div className="stack" style={{ gap: '0.25rem' }}>
+          <div className="stack gap-2xs">
             <strong>
               <Link href={`/seletivas/${registration.tryout.slug}`}>
                 {registration.tryout.title}

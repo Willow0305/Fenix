@@ -194,9 +194,7 @@ function FeesList() {
                         {FEE_STATUS[fee.status].label}
                       </span>
                       {fee.pendingAmount.amount !== '0.00' ? (
-                        <span className="badge badge-warning" style={{ marginLeft: 4 }}>
-                          comprovante
-                        </span>
+                        <span className="badge badge-warning ml-2xs">comprovante</span>
                       ) : null}
                     </td>
                   </tr>

@@ -124,7 +124,7 @@ function AthletesList() {
       ) : null}
       {athletes.data && athletes.data.data.length > 0 ? (
         <>
-          <p className="muted" aria-live="polite" style={{ margin: 0 }}>
+          <p className="muted m-0" aria-live="polite">
             {plural(athletes.data.meta.total, 'atleta', 'atletas')}
           </p>
           <div className="table-wrap">
@@ -144,7 +144,7 @@ function AthletesList() {
                     <td data-label="Nome">
                       <Link href={`/admin/atletas/${athlete.id}`}>{athlete.fullName}</Link>
                       {athlete.hasAccount ? (
-                        <span className="badge" style={{ marginLeft: 6 }}>
+                        <span className="badge ml-xs">
                           <Icon name="person-check" /> com conta
                         </span>
                       ) : null}

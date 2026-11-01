@@ -143,7 +143,7 @@ function Reports() {
   return (
     <section className="card stack" aria-labelledby="denuncias">
       <div className="row">
-        <h2 id="denuncias" style={{ margin: 0 }}>
+        <h2 id="denuncias" className="m-0">
           Denúncias
         </h2>
         <span className="spacer" />
@@ -169,11 +169,7 @@ function Reports() {
       {reports.loading && !reports.data ? <Loading /> : null}
       {reports.data?.data.length === 0 ? <Empty>Nenhuma denúncia.</Empty> : null}
       {reports.data?.data.map((report) => (
-        <article
-          key={report.id}
-          className="stack"
-          style={{ borderBottom: '1px solid var(--color-border)', paddingBottom: '0.75rem' }}
-        >
+        <article key={report.id} className="stack border-b pb-md">
           <div className="row">
             <span className={`badge ${REPORT_STATUS[report.status].badge}`}>
               {REPORT_STATUS[report.status].label}
@@ -192,7 +188,7 @@ function Reports() {
           {report.excerpt ? (
             <blockquote className="prose muted">{report.excerpt}</blockquote>
           ) : null}
-          {report.details ? <p style={{ margin: 0 }}>{report.details}</p> : null}
+          {report.details ? <p className="m-0">{report.details}</p> : null}
           {report.resolution ? <small>Decisão: {report.resolution}</small> : null}
           {report.status === 'OPEN' || report.status === 'UNDER_REVIEW' ? (
             <div className="row">

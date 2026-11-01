@@ -9,7 +9,7 @@ export function OrderSummary({ order }: { readonly order: Order }) {
   return (
     <section className="card stack" aria-label={`Pedido ${order.orderNumber}`}>
       <div className="row">
-        <h2 style={{ margin: 0 }}>{order.orderNumber}</h2>
+        <h2 className="m-0">{order.orderNumber}</h2>
         <span className={`badge ${ORDER_STATUS[order.status].badge}`}>
           {ORDER_STATUS[order.status].label}
         </span>
@@ -37,20 +37,18 @@ export function OrderSummary({ order }: { readonly order: Order }) {
               <tr key={item.id}>
                 <td data-label="Item">
                   {item.productName}
-                  <div className="muted" style={{ fontSize: '0.8rem' }}>
+                  <div className="muted text-xs">
                     {item.variantName} · {item.sku}
                     {item.campaign ? ` · remessa ${item.campaign.name}` : ''}
                     {item.pickedUpAt ? ` · retirado em ${formatDateTime(item.pickedUpAt)}` : ''}
                   </div>
                   {item.personalization.length > 0 ? (
-                    <div style={{ fontSize: '0.85rem' }}>
+                    <div className="text-sm">
                       {item.personalization.map((p) => `${p.label}: ${p.value}`).join(' · ')}
                     </div>
                   ) : null}
                   {item.beneficiaries.length > 0 ? (
-                    <div style={{ fontSize: '0.85rem' }}>
-                      Beneficiários: {item.beneficiaries.join(', ')}
-                    </div>
+                    <div className="text-sm">Beneficiários: {item.beneficiaries.join(', ')}</div>
                   ) : null}
                 </td>
                 <td data-label="Qtd." className="num">
@@ -132,7 +130,7 @@ export function OrderSummary({ order }: { readonly order: Order }) {
         )}
       </p>
       {order.payments.length > 0 ? (
-        <ul style={{ margin: 0 }}>
+        <ul className="m-0">
           {order.payments.map((payment) => (
             <li key={payment.id}>
               {formatMoney(payment.amount.amount)} · {payment.method.name} ·{' '}

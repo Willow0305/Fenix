@@ -78,7 +78,7 @@ export function CategoryManager<T extends ManagedCategory>({
   }
 
   return (
-    <div className="stack" style={{ gap: '0.5rem' }}>
+    <div className="stack gap-sm">
       {notice ? <Alert kind="success">{notice}</Alert> : null}
       <ul className="category-list">
         {items.map((item) => (
@@ -116,7 +116,7 @@ export function CategoryManager<T extends ManagedCategory>({
               </form>
             ) : (
               <div className="row">
-                <div style={{ flex: '1 1 14rem' }}>
+                <div className="flex-14">
                   <strong>{item.name}</strong>{' '}
                   {item.locked ? <span className="badge">sistema</span> : null}{' '}
                   {item.isActive ? null : <span className="badge">inativa</span>}
@@ -127,7 +127,7 @@ export function CategoryManager<T extends ManagedCategory>({
                 </div>
                 {rowExtra ? rowExtra(item) : null}
                 {manage ? (
-                  <div className="row" style={{ gap: '0.4rem' }}>
+                  <div className="row gap-xs">
                     <button
                       type="button"
                       className="btn btn-secondary btn-sm"

@@ -141,7 +141,7 @@ export default function TryoutDetailPage() {
 
       <section className="stack" aria-labelledby="inscricoes">
         <div className="row">
-          <h2 id="inscricoes" style={{ margin: 0 }}>
+          <h2 id="inscricoes" className="m-0">
             Inscrições
           </h2>
           <span className="spacer" />
@@ -164,7 +164,7 @@ export default function TryoutDetailPage() {
         {registrations.loading && !registrations.data ? <Loading /> : null}
         {registrations.data?.data.length === 0 ? <Empty>Nenhuma inscrição.</Empty> : null}
         {registrations.data?.data.map((r) => (
-          <article key={r.id} className="card stack" style={{ gap: '0.4rem' }}>
+          <article key={r.id} className="card stack gap-xs">
             <div className="row">
               <strong>{r.fullName}</strong>
               <span className={`badge ${REGISTRATION_STATUS[r.status].badge}`}>
@@ -188,11 +188,7 @@ export default function TryoutDetailPage() {
                 <ContactActions phone={r.guardianPhone} who="responsável" />
               ) : null}
             </div>
-            {r.experience ? (
-              <p className="prose" style={{ margin: 0 }}>
-                {r.experience}
-              </p>
-            ) : null}
+            {r.experience ? <p className="prose m-0">{r.experience}</p> : null}
             {r.reviewReason ? <span>Motivo: {r.reviewReason}</span> : null}
             <div className="row">
               {reviewer

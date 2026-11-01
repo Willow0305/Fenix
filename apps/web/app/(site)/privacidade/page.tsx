@@ -16,7 +16,7 @@ export default async function PrivacyPage() {
   const team = await getPublicTeam();
 
   return (
-    <div className="container stack" style={{ paddingTop: '2.5rem' }}>
+    <div className="container stack pt-xl">
       <h1>Política de privacidade</h1>
       <div className="card prose">{team.privacyPolicy ?? DEFAULT_POLICY}</div>
     </div>

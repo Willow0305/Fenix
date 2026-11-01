@@ -9,7 +9,7 @@ export default async function TermsPage() {
   const team = await getPublicTeam();
 
   return (
-    <div className="container stack" style={{ paddingTop: '2.5rem' }}>
+    <div className="container stack pt-xl">
       <h1>Termos de uso</h1>
       <div className="card prose">
         {team.termsOfUse ??
