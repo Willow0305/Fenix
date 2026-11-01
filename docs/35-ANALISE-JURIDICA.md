@@ -47,6 +47,20 @@ O prazo contado a partir da entrega está de acordo com a lei.
 **Decidido em 01/11/2026 (`DT-093`):** 7 dias para tudo, com conferência da diretoria; dentro
 do prazo a desistência não pode ser negada.
 
+**Pesquisa complementar (01/11/2026, a pedido do responsável):** a jurisprudência está
+**dividida**. Há decisões do TJSP (juizados e turmas recursais) e do TJDF que **negam** a
+desistência de produto personalizado (dificuldade de revenda, compra consciente), e outras dos
+mesmos tribunais, do TJMS e do TJRS que a **reconhecem**, porque o art. 49 não distingue a
+natureza do produto. Não foi encontrado precedente do STJ sobre personalizados (o REsp
+1.340.604/RJ trata só da devolução integral dos valores). O PL 3.514/2015, que atualizaria o
+CDC para o comércio eletrônico, não teve a situação atual confirmada. Conclusão: negar é uma
+opção defensável, mas **com risco**; quem nega costuma ter informado com destaque, antes da
+compra, que o item personalizado não tem desistência. Fontes:
+[Jusbrasil — jurisprudência](https://www.jusbrasil.com.br/jurisprudencia/busca?q=direito+de+arrependimento+produto+personalizado),
+[Jusbrasil — artigo](https://www.jusbrasil.com.br/artigos/a-in-aplicabilidade-do-direito-ao-arrependimento-na-compra-de-produtos-personalizados/1828026698),
+[Migalhas](https://www.migalhas.com.br/depeso/435789/quando-o-consumidor-nao-pode-desistir-da-compra),
+[STJ — REsp 1.340.604](https://www.stj.jus.br/sites/portalp/Paginas/Comunicacao/Noticias-antigas/2015/2015-05-03_08-00_Consumidor-que-compra-pela-internet-tem-assegurado-o-direito-de-se-arrepender.aspx).
+
 ### 1.4 Encarregado de dados — `PEN-002`, `PEN-011`
 
 Se o Fênix for associação sem fins lucrativos, a

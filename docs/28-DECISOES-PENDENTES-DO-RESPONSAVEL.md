@@ -99,6 +99,19 @@ cadastra. Análise em `35-ANALISE-JURIDICA.md`.
 
 **Recomendação:** um e-mail dedicado e um responsável e um substituto nomeados. O passo a passo já está em `13-SEGURANCA-E-LGPD.md`.
 
+**Decidido em 01/11/2026 — instruções para criar os e-mails** (sem custo, sem domínio próprio por enquanto):
+
+1. Criar **duas contas gratuitas** (por exemplo, no Gmail), usadas **só pelo time**, nunca uma conta pessoal:
+   - **contato do time** (ex.: `fenixvolei.contato@gmail.com`, se o nome estiver livre): atendimento, loja e e-mail público do site;
+   - **privacidade e segurança** (ex.: `fenixvolei.privacidade@gmail.com`, se o nome estiver livre): pedidos de dados pessoais (LGPD) e avisos de incidente de segurança.
+2. Em cada conta, **ligar a verificação em duas etapas** e cadastrar um telefone de recuperação do time.
+3. Dar acesso à **presidente** e a **um substituto da diretoria**; até haver encarregado, a presidente responde pelo canal de privacidade.
+4. **Ao trocar a presidência:** trocar a senha, revisar quem tem acesso e o telefone de recuperação.
+5. Depois de criar, **informar os endereços** para configurar:
+   - o de contato em **Configurações → E-mail público**;
+   - o de privacidade na Política de Privacidade, no lugar de "[PREENCHER CANAL OFICIAL DE PRIVACIDADE]".
+6. Quando houver CNPJ e orçamento, avaliar e-mail com domínio próprio (ex.: `privacidade@dominiodotime`).
+
 ## 4. Política de cancelamento e reembolso da loja — `PEN-030`
 
 **O que decidir:**
@@ -172,6 +185,17 @@ o prazo da devolução.
 - chave PIX oficial.
 
 Tudo isso é preenchido pelo próprio painel (Configurações), sem programação.
+
+**Decidido em 01/11/2026 — instruções enquanto não houver CNPJ:**
+
+1. **Quem responde pelo time:** a **presidente em exercício**, como pessoa física. Ela é a responsável (controladora) pelos dados pessoais enquanto não houver pessoa jurídica.
+2. **A cada mudança de presidência** (eleição): atualizar o nome do responsável nos termos de uso e na política de privacidade (que gera uma versão nova para todos aceitarem) e transferir o acesso aos e-mails do time.
+3. **Loja:** para vender pela internet, o Decreto 7.962/2013 exige mostrar em destaque nome, CPF ou CNPJ e endereço. Sem CNPJ, seriam o CPF e o endereço pessoais da presidente. **Recomendação: só abrir a loja ao público depois do CNPJ.**
+4. **Contador:** confirmar com o contador como ficam as vendas e os recebimentos (PIX, cartão) feitos antes do CNPJ.
+5. **LGPD:** o canal de privacidade é obrigatório desde já, com ou sem CNPJ (ver seção 3). O enquadramento como agente de pequeno porte deve ser confirmado pelo advogado quando houver pessoa jurídica.
+6. **Quando o CNPJ sair:** informar nome oficial, CNPJ e endereço para preencher em Configurações e nos documentos, e trocar o responsável nos termos e na política.
+
+Detalhes e fontes em `35-ANALISE-JURIDICA.md` §3.
 
 ## 9. Hospedagem, e-mail e arquivos — `PEN-042`, `PEN-041`, `PEN-045`
 
