@@ -409,6 +409,17 @@ export class StorefrontController {
     return this.orders.cancelByBuyer({ orderNumber: body.orderNumber, code: body.code });
   }
 
+  @Post('me/orders/claim')
+  @HttpCode(200)
+  @Throttle({ default: { limit: 10, ttl: 60_000 } })
+  claimGuestOrder(
+    @CurrentPrincipal() principal: Principal,
+    @Body() body: GuestLookupDto,
+    @ReqMeta() meta: RequestMeta
+  ): Promise<OrderView> {
+    return this.orders.claimGuestOrder(principal, body.orderNumber, body.code, meta);
+  }
+
   @Post('public/orders/resend-access')
   @Public()
   @HttpCode(202)

@@ -111,6 +111,17 @@ export class MeController {
     return this.account.setProfileVisibility(principal, body.public, meta);
   }
 
+  @Post('email-verification')
+  @HttpCode(202)
+  @Throttle({ default: { limit: 3, ttl: 60_000 } })
+  async resendEmailVerification(
+    @CurrentPrincipal() principal: Principal
+  ): Promise<{ message: string }> {
+    await this.auth.sendEmailVerification(principal.userId);
+
+    return { message: 'Enviamos o link de confirmação. Olhe também a caixa de spam.' };
+  }
+
   @Post('password')
   @HttpCode(204)
   async changePassword(

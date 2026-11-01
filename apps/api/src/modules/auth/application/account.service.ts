@@ -34,6 +34,8 @@ export interface ProfileView {
   readonly profilePublic: boolean;
   /** Conta de menor (DT-092): sem fórum e com o perfil privado até os 18 anos. */
   readonly minorAccount: boolean;
+  /** E-mail confirmado pelo link (DT-096); confirmar traz os pedidos feitos sem conta. */
+  readonly emailVerified: boolean;
   /** Termos ou política em vigor que a conta ainda não aceitou (DT-094). */
   readonly pendingLegal: readonly {
     readonly field: 'termsOfUse' | 'privacyPolicy';
@@ -79,6 +81,7 @@ export class AccountService {
     const user = await this.prisma.user.findUniqueOrThrow({
       where: { id: principal.userId },
       select: {
+        emailVerifiedAt: true,
         id: true,
         name: true,
         email: true,
@@ -116,6 +119,7 @@ export class AccountService {
       avatarUrl: user.avatarMediaFileId ? mediaUrl(user.avatarMediaFileId) : null,
       profilePublic: user.profilePublic,
       minorAccount: minor,
+      emailVerified: user.emailVerifiedAt !== null,
       pendingLegal: await pendingLegalVersions(this.prisma, user.id),
       publicProfile: {
         isAthlete: athlete !== null,

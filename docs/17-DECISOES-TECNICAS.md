@@ -1956,7 +1956,7 @@ Pesquisa de 01/11/2026 (`docs/35` §1.3): jurisprudência dividida. Decisões do
 
 ## DT-096 — Acompanhamento de pedidos de quem compra sem conta
 
-- **Estado:** Aceita; em implementação a partir de 2026-11-01
+- **Estado:** Aceita; implementada em 2026-11-01
 - **Data:** 2026-11-01
 - **Aprovador:** responsável do projeto ("Link direto: gostei, mas tem que ser fixo para não mudar"; "enviar informações por WhatsApp também"; "Lembrar no aparelho: ok"; "Código mais fácil: ok"; "Reenviar o código: ok"; "Mais avisos por e-mail e WhatsApp: ok, lembrar o usuário de verificar a caixa de spam"; "Trazer os pedidos para a conta: ok")
 
@@ -1970,3 +1970,4 @@ Pesquisa de 01/11/2026 (`docs/35` §1.3): jurisprudência dividida. Decisões do
 - **consentimento do WhatsApp:** caixa opcional no checkout de quem não tem conta ("Quero receber os avisos deste pedido também pelo WhatsApp"), registrada no pedido (`guest_whatsapp_opt_in_at`) e na auditoria da criação; a página do pedido liga e desliga (`POST /public/orders/whatsapp`, auditado); desligar cancela os avisos de WhatsApp ainda na fila. O WhatsApp respeita o horário de 8h às 21h e usa o modelo aprovado da Meta;
 - a página do pedido mostra para qual e-mail vão os avisos e lembra de olhar a caixa de spam.
 - **"Esqueci o código" (etapa 3):** na página de consulta, a pessoa informa o e-mail da compra e `POST /public/orders/resend-access` reenvia, pela fila (e-mail e, com consentimento, WhatsApp), o número, o código e o link fixo dos pedidos sem conta desse e-mail nos últimos 12 meses (até 10). A resposta é sempre a mesma, exista ou não pedido (não revela quem comprou); no máximo um reenvio por pedido por dia; limite de 3 pedidos por minuto; auditoria `order.guest_access.resent`. Pedido antigo, sem o código guardado, recebe um código novo.
+- **trazer pedidos para a conta (etapa 4):** o sistema passou a confirmar o e-mail das contas (antes o campo `email_verified_at` existia, mas nada o preenchia): o cadastro envia um link de confirmação (vale 7 dias; `POST /auth/verify-email`), Minha conta mostra o aviso com "Reenviar o link" (`POST /me/email-verification`), e definir a senha pelo link do e-mail também confirma. Ao confirmar, os pedidos sem conta com o mesmo e-mail passam para a conta (`order.linked_to_account` na auditoria); sem confirmação, nada passa, para ninguém criar conta com o e-mail de outra pessoa e ver os pedidos dela. A página de confirmação pede um clique, porque verificadores de link dos provedores abrem a página sozinhos. Também, logado, quem abre um pedido sem conta pelo número e código pode trazê-lo para a conta (`POST /me/orders/claim`); pedido de outra conta não muda. Pedido trazido para a conta deixa de receber os avisos da fila sem conta e passa a usar os da conta.

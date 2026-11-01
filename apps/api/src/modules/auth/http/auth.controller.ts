@@ -35,7 +35,8 @@ import {
   MfaLoginDto,
   RefreshDto,
   RegisterDto,
-  ResetPasswordDto
+  ResetPasswordDto,
+  VerifyEmailDto
 } from './auth.dto';
 
 export const REFRESH_COOKIE = 'fenix_rt';
@@ -227,6 +228,16 @@ export class AuthController {
   @Throttle(STRICT_LIMIT)
   async reset(@Body() body: ResetPasswordDto, @ReqMeta() meta: RequestMeta): Promise<void> {
     await this.auth.resetPassword(body.token, body.password, meta);
+  }
+
+  @Post('verify-email')
+  @HttpCode(200)
+  @Throttle(STRICT_LIMIT)
+  verifyEmail(
+    @Body() body: VerifyEmailDto,
+    @ReqMeta() meta: RequestMeta
+  ): Promise<{ linkedOrders: number }> {
+    return this.auth.verifyEmail(body.token, meta);
   }
 }
 

@@ -236,4 +236,82 @@ describe('avisos do pedido sem conta', () => {
       })
     ).toBe(2);
   });
+
+  describe('trazer pedidos feitos sem conta para a conta', () => {
+    const PASSWORD = 'senha-de-teste-2026';
+    const verificationToken = (email: string): string => {
+      const text = readdirSync(ctx.outboxDir)
+        .map((file) => readFileSync(join(ctx.outboxDir, file), 'utf8'))
+        .find((content) => content.includes(email) && content.includes('confirmar-email?token='));
+      const match = /confirmar-email\?token=([A-Za-z0-9_%-]+)/.exec(text ?? '');
+
+      return decodeURIComponent(match?.[1] ?? '');
+    };
+
+    it('ao confirmar o e-mail, os pedidos sem conta do mesmo e-mail passam para a conta', async () => {
+      const email = `traz-${randomUUID().slice(0, 6)}@exemplo.test`;
+      const { order } = await checkout({ customerEmail: email });
+      const signup = await ctx
+        .http()
+        .post('/api/v1/auth/register')
+        .send({
+          name: 'Rita Visitante',
+          email: email.toUpperCase(),
+          password: PASSWORD,
+          acceptTerms: true,
+          minimumAgeConfirmed: true
+        })
+        .expect(201);
+      const token = signup.body.accessToken as string;
+      const me = async () =>
+        (await ctx.http().get('/api/v1/me').set(auth(token)).expect(200)).body as {
+          emailVerified: boolean;
+        };
+
+      // Sem confirmar, nada muda: o e-mail ainda não foi provado.
+      expect((await me()).emailVerified).toBe(false);
+      expect(
+        (await ctx.prisma.order.findUniqueOrThrow({ where: { id: order.id } })).customerUserId
+      ).toBeNull();
+
+      const verified = await ctx
+        .http()
+        .post('/api/v1/auth/verify-email')
+        .send({ token: verificationToken(email.toLowerCase()) })
+        .expect(200);
+
+      expect(verified.body.linkedOrders).toBe(1);
+      expect((await me()).emailVerified).toBe(true);
+
+      const mine = await ctx.http().get('/api/v1/me/orders').set(auth(token)).expect(200);
+
+      expect(JSON.stringify(mine.body)).toContain(order.orderNumber);
+      await ctx
+        .http()
+        .post('/api/v1/auth/verify-email')
+        .send({ token: verificationToken(email.toLowerCase()) })
+        .expect(422);
+    });
+
+    it('com número e código, quem está logado traz o pedido; outra conta não', async () => {
+      const { order, guestAccessCode } = await checkout({});
+      const first = await tokenFor(ctx, ['user']);
+      const second = await tokenFor(ctx, ['user']);
+      const claim = (token: string) =>
+        ctx
+          .http()
+          .post('/api/v1/me/orders/claim')
+          .set(auth(token))
+          .send({ orderNumber: order.orderNumber, code: guestAccessCode });
+
+      expect((await claim(first.token).expect(200)).body.orderNumber).toBe(order.orderNumber);
+      await claim(first.token).expect(200);
+      expect((await claim(second.token).expect(409)).body.code).toBe('ORDER_IN_OTHER_ACCOUNT');
+      await ctx
+        .http()
+        .post('/api/v1/me/orders/claim')
+        .send({ orderNumber: order.orderNumber, code: guestAccessCode })
+        .expect(401);
+    });
+  });
 });

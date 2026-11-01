@@ -5,6 +5,7 @@ import { useEffect, useRef, useState } from 'react';
 import { OrderPayment } from '../../../../components/payment-instructions';
 import { OrderRightsPanel } from '../../../../components/order-rights';
 import { CancelOrder } from '../../../../components/cancel-order';
+import { ClaimGuestOrder } from '../../../../components/claim-guest-order';
 import { GuestOrderAlerts } from '../../../../components/guest-order-alerts';
 import { GuestResend } from '../../../../components/guest-resend';
 import { DeliveryTracking } from '../../../../components/delivery-tracking';
@@ -162,6 +163,7 @@ export default function GuestOrderPage() {
       {order ? (
         <>
           <OrderSummary order={order} />
+          <ClaimGuestOrder order={order} access={current} />
           <GuestOrderAlerts order={order} access={current} onChanged={setOrder} />
           <DeliveryTracking
             order={order}

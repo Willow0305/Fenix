@@ -6,6 +6,12 @@ O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) e o 
 
 ## [Não publicado]
 
+### Pedidos sem conta: trazer para a conta e confirmação de e-mail (2026-11-01)
+
+#### Adicionado
+
+- confirmação do e-mail da conta por link (no cadastro e em Minha conta); ao confirmar, as compras feitas sem conta com o mesmo e-mail passam para a conta; logado, a consulta de pedido oferece "Trazer para minha conta" (DT-096).
+
 ### Pedidos sem conta: "Esqueci o código" (2026-11-01)
 
 #### Adicionado

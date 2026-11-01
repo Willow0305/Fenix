@@ -7,6 +7,8 @@ export const PASSWORD_MAX_LENGTH = 128;
 export const MINIMUM_ACCOUNT_AGE = 12;
 export const ROTATION_GRACE_SECONDS = 10;
 export const PASSWORD_RESET_TTL_SECONDS = 60 * 60;
+/** Link de confirmação de e-mail vale 7 dias (DT-096). */
+export const EMAIL_VERIFICATION_TTL_SECONDS = 7 * 24 * 60 * 60;
 
 export function normalizeEmail(email: string): string {
   return email.trim().toLowerCase();

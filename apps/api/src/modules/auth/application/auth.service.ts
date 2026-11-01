@@ -22,6 +22,7 @@ import {
   MFA_CHALLENGE_TTL_SECONDS,
   normalizeAccountPhone,
   normalizeEmail,
+  EMAIL_VERIFICATION_TTL_SECONDS,
   PASSWORD_RESET_TTL_SECONDS,
   REVOCATION,
   validatePassword
@@ -31,6 +32,7 @@ import {
   currentLegalVersions,
   publishedLegalTexts
 } from '../../settings/application/legal-documents';
+import { linkGuestOrdersByEmail } from '../../store/application/guest-orders-link';
 import { assertPhoneAvailable } from './phone-availability';
 import { MfaService } from './mfa.service';
 import { TrustedDevicesService } from './trusted-devices.service';
@@ -137,8 +139,128 @@ export class AuthService {
     };
   }
 
-  /** Cadastro livre (PEN-008): cria conta `user` ativa; papéis privilegiados nunca vêm do cliente. */
   async register(input: RegisterInput, meta: RequestMeta): Promise<IssuedSession> {
+    const session = await this.createAccount(input, meta);
+
+    const created = await this.prisma.user.findUnique({
+      where: { email: normalizeEmail(input.email) },
+      select: { id: true }
+    });
+
+    // Confirmação do e-mail (DT-096): falha no envio não impede o cadastro.
+    if (created) {
+      await this.sendEmailVerification(created.id).catch(() => undefined);
+    }
+
+    return session;
+  }
+
+  /**
+   * Envia o link de confirmação do e-mail. Confirmar traz para a conta os pedidos feitos sem
+   * conta com o mesmo e-mail (DT-096). Conta já confirmada não recebe nada.
+   */
+  async sendEmailVerification(userId: string): Promise<void> {
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+      select: { id: true, name: true, email: true, emailVerifiedAt: true, deletedAt: true }
+    });
+
+    if (user === null || user.emailVerifiedAt !== null || user.deletedAt !== null) {
+      return;
+    }
+
+    const token = generateOpaqueToken();
+
+    await this.prisma.$transaction(async (tx) => {
+      await tx.userToken.updateMany({
+        where: { userId: user.id, type: 'EMAIL_VERIFICATION', consumedAt: null },
+        data: { consumedAt: new Date() }
+      });
+      await tx.userToken.create({
+        data: {
+          userId: user.id,
+          type: 'EMAIL_VERIFICATION',
+          tokenHash: sha256Hex(token),
+          expiresAt: new Date(Date.now() + EMAIL_VERIFICATION_TTL_SECONDS * 1000)
+        }
+      });
+    });
+
+    const link = `${this.config.values.webOrigin}/confirmar-email?token=${encodeURIComponent(token)}`;
+
+    await this.mail.send({
+      to: user.email,
+      subject: 'Confirme seu e-mail — Fênix Vôlei',
+      text: [
+        `Olá, ${user.name}.`,
+        '',
+        'Confirme seu e-mail para proteger sua conta e trazer para ela as compras que você fez na loja sem conta, com este mesmo e-mail:',
+        link,
+        '',
+        'O link vale 7 dias. Se não foi você que criou a conta, ignore esta mensagem.'
+      ].join('\n')
+    });
+  }
+
+  /** Confirma o e-mail pelo link e traz os pedidos sem conta do mesmo e-mail (DT-096). */
+  async verifyEmail(token: string, meta: RequestMeta): Promise<{ linkedOrders: number }> {
+    const record = await this.prisma.userToken.findUnique({
+      where: { tokenHash: sha256Hex(token) },
+      select: {
+        id: true,
+        type: true,
+        expiresAt: true,
+        consumedAt: true,
+        user: { select: { id: true, email: true } }
+      }
+    });
+
+    if (
+      record === null ||
+      record.type !== 'EMAIL_VERIFICATION' ||
+      record.consumedAt !== null ||
+      record.expiresAt <= new Date()
+    ) {
+      throw AppError.validation(
+        'INVALID_VERIFICATION_TOKEN',
+        'Link de confirmação inválido ou expirado. Peça um novo em Minha conta.'
+      );
+    }
+
+    return this.prisma.$transaction(async (tx) => {
+      const consumed = await tx.userToken.updateMany({
+        where: { id: record.id, consumedAt: null },
+        data: { consumedAt: new Date() }
+      });
+
+      if (consumed.count !== 1) {
+        throw AppError.validation(
+          'INVALID_VERIFICATION_TOKEN',
+          'Link de confirmação inválido ou expirado. Peça um novo em Minha conta.'
+        );
+      }
+
+      await tx.user.update({
+        where: { id: record.user.id },
+        data: { emailVerifiedAt: new Date() }
+      });
+      await this.audit.record(
+        {
+          actorUserId: record.user.id,
+          action: 'auth.email.verified',
+          entityType: 'User',
+          entityId: record.user.id,
+          meta
+        },
+        tx
+      );
+
+      return { linkedOrders: await linkGuestOrdersByEmail(tx, this.audit, record.user, meta) };
+    });
+  }
+
+  /** Cadastro livre (PEN-008): cria conta `user` ativa; papéis privilegiados nunca vêm do cliente. */
+  private async createAccount(input: RegisterInput, meta: RequestMeta): Promise<IssuedSession> {
     const email = normalizeEmail(input.email);
     const name = input.name.trim();
 
@@ -570,7 +692,7 @@ export class AuthService {
         type: true,
         expiresAt: true,
         consumedAt: true,
-        user: { select: { id: true, email: true, name: true } }
+        user: { select: { id: true, email: true, name: true, emailVerifiedAt: true } }
       }
     });
 
@@ -599,7 +721,16 @@ export class AuthService {
         );
       }
 
-      await tx.user.update({ where: { id: record.user.id }, data: { passwordHash } });
+      // O link chegou ao e-mail: vale como confirmação dele (DT-096).
+      await tx.user.update({
+        where: { id: record.user.id },
+        data: { passwordHash, emailVerifiedAt: record.user.emailVerifiedAt ?? new Date() }
+      });
+
+      if (record.user.emailVerifiedAt === null) {
+        await linkGuestOrdersByEmail(tx, this.audit, record.user, meta);
+      }
+
       await tx.userSession.updateMany({
         where: { userId: record.user.id, revokedAt: null },
         data: { revokedAt: new Date(), revocationReason: REVOCATION.passwordReset }

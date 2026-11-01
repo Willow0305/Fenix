@@ -84,6 +84,15 @@ export class ForgotPasswordDto {
   email!: string;
 }
 
+/** Link de confirmação do e-mail (DT-096). */
+export class VerifyEmailDto {
+  @ApiProperty()
+  @IsString()
+  @MinLength(20)
+  @MaxLength(200)
+  token!: string;
+}
+
 export class ResetPasswordDto {
   @ApiProperty()
   @IsString()

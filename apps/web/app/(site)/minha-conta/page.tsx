@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 
+import { EmailVerificationNotice } from '../../../components/email-verification-notice';
 import { ProfilePhotoSection } from '../../../components/profile-photo-section';
 import {
   Alert,
@@ -50,6 +51,7 @@ export default function AccountOverviewPage() {
           </span>
         ))}
       </div>
+      <EmailVerificationNotice profile={profile} />
       <ProfilePhotoSection profile={profile} />
       <form className="form card" onSubmit={(event) => void action.submit(event)}>
         <h2>Meus dados</h2>

@@ -1947,6 +1947,58 @@ export class OrdersService implements OnModuleInit {
    * análise. Depois de pago, vale a desistência em 7 dias (DT-070).
    */
   /**
+   * Quem está logado traz para a conta um pedido feito sem conta, com o número e o código
+   * (DT-096). Pedido já de outra conta não muda.
+   */
+  async claimGuestOrder(
+    principal: Principal,
+    orderNumber: string,
+    code: string,
+    meta: RequestMeta
+  ): Promise<OrderView> {
+    const found = await this.prisma.order.findFirst({
+      where: {
+        orderNumber: orderNumber.trim().toUpperCase(),
+        guestAccessTokenHash: guestCodeHash(code)
+      },
+      select: { id: true, customerUserId: true }
+    });
+
+    if (found === null) {
+      throw AppError.notFound('Pedido não encontrado. Confira o número e o código.');
+    }
+
+    if (found.customerUserId !== null && found.customerUserId !== principal.userId) {
+      throw AppError.conflict('ORDER_IN_OTHER_ACCOUNT', 'Este pedido já está em outra conta.');
+    }
+
+    if (found.customerUserId === null) {
+      await this.prisma.$transaction(async (tx) => {
+        const claimed = await tx.order.updateMany({
+          where: { id: found.id, customerUserId: null },
+          data: { customerUserId: principal.userId }
+        });
+
+        if (claimed.count === 1) {
+          await this.audit.record(
+            {
+              actorUserId: principal.userId,
+              action: 'order.linked_to_account',
+              entityType: 'Order',
+              entityId: found.id,
+              after: { via: 'numero-e-codigo' },
+              meta
+            },
+            tx
+          );
+        }
+      });
+    }
+
+    return this.getOwn(principal.userId, found.id);
+  }
+
+  /**
    * "Esqueci o código" (DT-096): reenvia o acesso (número, código e link fixo) dos pedidos sem
    * conta deste e-mail nos últimos 12 meses, até 10, pela fila de avisos. Não revela se o
    * e-mail comprou: quem chama recebe sempre a mesma resposta. Um reenvio por pedido por dia.
