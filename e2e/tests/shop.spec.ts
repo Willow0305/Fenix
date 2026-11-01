@@ -141,7 +141,7 @@ test('visitante paga com cartão pelo site', async ({ page }, info) => {
   expect(watcher.problems).toEqual([]);
 });
 
-/** Pré-vendas em carrossel (DT-090): a fênix revela a próxima remessa; o botão não troca. */
+/** Pré-vendas em carrossel (DT-090): a remessa troca com deslize e esmaecimento; o botão não. */
 test('destaque da pré-venda alterna as remessas abertas', async ({ page }, info) => {
   const watcher = watch(page);
   const card = page.getByRole('region', { name: 'Pré-vendas abertas' });
@@ -161,7 +161,7 @@ test('destaque da pré-venda alterna as remessas abertas', async ({ page }, info
   await card.screenshot({ path: info.outputPath(`carrossel-${shots}-1.png`) });
   await page.waitForTimeout(200);
   await card.screenshot({ path: info.outputPath(`carrossel-${shots}-2.png`) });
-  await expect(card.locator('.campaign-phoenix')).toHaveCount(0);
+  await expect(card.locator('.campaign-slide.is-leaving')).toHaveCount(0);
   await expect(card.locator('.campaign-slide:not([aria-hidden="true"]) h2')).toHaveText(
     'Agasalhos de viagem'
   );

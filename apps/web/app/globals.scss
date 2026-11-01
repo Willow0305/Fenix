@@ -3535,186 +3535,46 @@ details.collapsible {
   }
 }
 
-// Carrossel da pré-venda (DT-090): a fênix atravessa o cartão em chamas puxando a remessa
-// antiga junto; a nova surge em seguida, de transparente a visível. Voltando, tudo vem do lado
-// oposto. Anima só `transform` e `opacity`.
+// Carrossel da pré-venda (DT-090): a remessa antiga desliza para o lado e some; a nova surge
+// em seguida, de transparente a visível. Voltando, o deslize é para o lado oposto. Anima só
+// `transform` e `opacity`.
 .campaign-highlight {
-  --campaign-sweep: 1100ms;
+  --campaign-sweep: 900ms;
 }
 
-// A remessa antiga espera a fênix chegar e é arrastada com ela para fora do cartão.
 @keyframes campaign-pull-forward {
-  0%,
-  22% {
+  from {
     opacity: 1;
     transform: translateX(0);
   }
 
-  100% {
+  to {
     opacity: 0;
-    transform: translateX(115%);
+    transform: translateX(12%);
   }
 }
 
 @keyframes campaign-pull-back {
-  0%,
-  22% {
+  from {
     opacity: 1;
     transform: translateX(0);
   }
 
-  100% {
+  to {
     opacity: 0;
-    transform: translateX(-115%);
+    transform: translateX(-12%);
   }
 }
 
-// A nova aparece depois que a fênix passou.
+// A nova aparece quando a antiga já está saindo.
 @keyframes campaign-arrive {
   0%,
-  55% {
+  40% {
     opacity: 0;
   }
 
   100% {
     opacity: 1;
-  }
-}
-
-// Trilho do tamanho do cartão; a cabeça fica na borda dianteira dele.
-@keyframes campaign-phoenix-forward {
-  from {
-    transform: translateX(-100%);
-  }
-
-  to {
-    transform: translateX(0);
-  }
-}
-
-@keyframes campaign-phoenix-back {
-  from {
-    transform: translateX(100%);
-  }
-
-  to {
-    transform: translateX(0);
-  }
-}
-
-// Ao chegar na borda a fênix segue em frente e some, sem parar.
-@keyframes campaign-phoenix-exit {
-  0%,
-  72% {
-    opacity: 1;
-    transform: translateX(0);
-  }
-
-  100% {
-    opacity: 0;
-    transform: translateX(7rem);
-  }
-}
-
-@keyframes campaign-phoenix-exit-back {
-  0%,
-  72% {
-    opacity: 1;
-    transform: translateX(0);
-  }
-
-  100% {
-    opacity: 0;
-    transform: translateX(-7rem);
-  }
-}
-
-@keyframes campaign-flame-flicker {
-  from {
-    transform: scale(1, 1);
-  }
-
-  to {
-    transform: scale(1.08, 0.9);
-  }
-}
-
-.campaign-phoenix {
-  position: absolute;
-  inset: 0;
-  z-index: 3;
-  pointer-events: none;
-  animation: campaign-phoenix-forward var(--campaign-sweep) var(--ease-in-out) both;
-
-  &.is-back {
-    animation-name: campaign-phoenix-back;
-  }
-}
-
-.campaign-phoenix-body {
-  position: absolute;
-  top: 50%;
-  right: 0;
-  // Bem maior que o cartão: a altura acompanha a dele; o excesso é cortado na borda.
-  height: 160%;
-  aspect-ratio: 302 / 261;
-  // No celular o cartão é alto: a largura não passa do dobro da dele.
-  max-width: 200%;
-  translate: 30% -50%;
-  animation: campaign-phoenix-exit var(--campaign-sweep) linear both;
-
-  .is-back > & {
-    right: auto;
-    left: 0;
-    translate: -30% -50%;
-    animation-name: campaign-phoenix-exit-back;
-  }
-}
-
-// Espelhada ao voltar: a cabeça aponta para a esquerda, voltando de onde veio.
-.campaign-phoenix-flip {
-  position: absolute;
-  inset: 0;
-
-  .is-back & {
-    scale: -1 1;
-  }
-
-  img {
-    position: relative;
-    z-index: 1;
-    width: 100%;
-    height: 100%;
-    // O desenho olha para a esquerda: espelhado, a cabeça vai na dianteira (para a direita); ao
-    // voltar, o trilho inteiro é espelhado e ela olha para a esquerda. Erguida para o bico ficar
-    // na horizontal; o brilho fica parado.
-    object-fit: contain;
-    scale: -1 1;
-    rotate: -20deg;
-    filter: drop-shadow(0 0 0.6rem rgb(255 150 40 / 85%))
-      drop-shadow(0 0 1.6rem rgb(205 21 29 / 70%));
-  }
-
-  // Rastro de fogo atrás da fênix.
-  &::before {
-    content: '';
-    position: absolute;
-    top: 50%;
-    right: 45%;
-    width: 40rem;
-    height: 40%;
-    border-radius: 50%;
-    background: linear-gradient(
-      to left,
-      rgb(255 236 170 / 95%) 0%,
-      rgb(255 170 50 / 90%) 12%,
-      rgb(245 90 30 / 75%) 30%,
-      rgb(205 21 29 / 45%) 55%,
-      rgb(205 21 29 / 0%) 100%
-    );
-    filter: blur(10px);
-    transform-origin: right center;
-    animation: campaign-flame-flicker 110ms linear infinite alternate;
   }
 }
 
@@ -3817,16 +3677,7 @@ details.collapsible {
   }
 }
 
-// Celular: rastro sem desfoque nem tremulação (mais leve).
-@media (max-width: 40rem) {
-  .campaign-phoenix-flip::before {
-    width: 26rem;
-    filter: none;
-    animation: none;
-  }
-}
-
-// Reduzir movimento: sem fênix e sem troca automática (no componente); a remessa só aparece.
+// Reduzir movimento: sem deslize e sem troca automática (no componente); a remessa só aparece.
 @media (prefers-reduced-motion: reduce) {
   .campaign-slide.is-entering,
   .is-back > .campaign-slide.is-entering {

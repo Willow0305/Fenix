@@ -8,7 +8,7 @@ import type { Campaign } from '../../../lib/campaign-types';
 import { formatDateTime, plural } from '../../../lib/format';
 
 /** Tempo de cada remessa na tela antes da troca automática. */
-const SLIDE_MS = 6000;
+const SLIDE_MS = 4000;
 /** Depois de um toque, a troca automática espera este tempo para voltar. */
 const TOUCH_RESUME_MS = 5000;
 
@@ -54,9 +54,9 @@ function CampaignSlide({ campaign, titleId }: { campaign: Campaign; titleId: str
 
 /**
  * Destaque das pré-vendas abertas no topo da loja (Onda 1, docs/31; carrossel DT-090): uma
- * remessa por vez, com prazo e mínimo vindos da remessa. Com mais de uma, a fênix atravessa
- * o cartão puxando a remessa antiga, e a próxima surge em seguida; voltar faz a fênix vir do
- * lado oposto, invertida. A troca automática para com o mouse, o toque ou o foco no cartão
+ * remessa por vez, com prazo e mínimo vindos da remessa. Com mais de uma, a remessa antiga
+ * desliza para o lado e some, e a próxima surge em seguida; voltar desliza para o lado oposto.
+ * A troca automática para com o mouse, o toque ou o foco no cartão
  * (WCAG 2.2.2) e não acontece com "reduzir movimento". O botão fica parado: só o conteúdo da
  * remessa troca.
  */
@@ -182,16 +182,6 @@ export function CampaignHighlight({ campaigns }: { readonly campaigns: readonly 
           );
         })}
       </div>
-
-      {multiple && leaving !== null && !reduced ? (
-        <div key={run} className={`campaign-phoenix is-${direction}`} aria-hidden="true">
-          <span className="campaign-phoenix-body">
-            <span className="campaign-phoenix-flip">
-              <img src="/brand/fenix-ataque.svg" alt="" width={302} height={261} />
-            </span>
-          </span>
-        </div>
-      ) : null}
 
       <div className="campaign-highlight-action">
         <Link href="/loja?prevenda=1" className="btn btn-primary">

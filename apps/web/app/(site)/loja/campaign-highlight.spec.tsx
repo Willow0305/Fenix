@@ -82,7 +82,7 @@ describe('carrossel das pré-vendas (DT-090)', () => {
     expect(screen.getAllByRole('button', { name: /Mostrar remessa/ })).toHaveLength(3);
     expect(screen.getAllByRole('link', { name: 'Ver produtos da pré-venda' })).toHaveLength(1);
 
-    act(() => jest.advanceTimersByTime(6000));
+    act(() => jest.advanceTimersByTime(4000));
     expect(visibleTitle()).toBe('Agasalhos');
     expect(screen.getByRole('button', { name: /Mostrar remessa 2 de 3/ })).toHaveAttribute(
       'aria-current',
@@ -96,11 +96,11 @@ describe('carrossel das pré-vendas (DT-090)', () => {
 
     fireEvent.click(screen.getByRole('button', { name: 'Remessa anterior' }));
     expect(visibleTitle()).toBe('Bonés');
-    expect(document.querySelector('.campaign-phoenix')).toHaveClass('is-back');
+    expect(document.querySelector('.campaign-stage')).toHaveClass('is-back');
 
     fireEvent.click(screen.getByRole('button', { name: 'Próxima remessa' }));
     expect(visibleTitle()).toBe('Uniformes 2027');
-    expect(document.querySelector('.campaign-phoenix')).not.toHaveClass('is-back');
+    expect(document.querySelector('.campaign-stage')).not.toHaveClass('is-back');
   });
 
   it('para de trocar com o mouse em cima e com o foco dentro (WCAG 2.2.2)', () => {
@@ -110,24 +110,23 @@ describe('carrossel das pré-vendas (DT-090)', () => {
     const card = screen.getByRole('region', { name: 'Pré-vendas abertas' });
 
     fireEvent.pointerEnter(card, { pointerType: 'mouse' });
-    act(() => jest.advanceTimersByTime(18000));
+    act(() => jest.advanceTimersByTime(12000));
     expect(visibleTitle()).toBe('Uniformes 2027');
 
     fireEvent.pointerLeave(card, { pointerType: 'mouse' });
     fireEvent.focus(screen.getByRole('link', { name: 'Ver produtos da pré-venda' }));
-    act(() => jest.advanceTimersByTime(18000));
+    act(() => jest.advanceTimersByTime(12000));
     expect(visibleTitle()).toBe('Uniformes 2027');
   });
 
-  it('com "reduzir movimento", não troca sozinha nem mostra a fênix', () => {
+  it('com "reduzir movimento", não troca sozinha', () => {
     mockReducedMotion(true);
     render(<CampaignHighlight campaigns={campaigns} />);
 
-    act(() => jest.advanceTimersByTime(18000));
+    act(() => jest.advanceTimersByTime(12000));
     expect(visibleTitle()).toBe('Uniformes 2027');
 
     fireEvent.click(screen.getByRole('button', { name: 'Próxima remessa' }));
     expect(visibleTitle()).toBe('Agasalhos');
-    expect(document.querySelector('.campaign-phoenix')).not.toBeInTheDocument();
   });
 });
