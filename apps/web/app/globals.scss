@@ -3378,15 +3378,16 @@ details.collapsible {
 
 // Destaque da pré-venda aberta no topo da loja (Onda 1).
 .campaign-highlight {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: flex-end;
-  justify-content: space-between;
-  gap: 1.25rem 2rem;
+  position: relative;
+  display: grid;
+  gap: 1rem;
   padding: clamp(1.25rem, 3vw, 2rem);
   border-radius: var(--radius-md);
   color: #fff;
   background: var(--brand-glow), var(--color-ink);
+  // A fênix e a remessa que entra ficam recortadas no cartão (DT-090).
+  overflow: hidden;
+  isolation: isolate;
 
   h2 {
     margin: 0.35rem 0;
@@ -3399,6 +3400,58 @@ details.collapsible {
     margin: 0;
     color: #e4e1ea;
   }
+
+  &.is-carousel {
+    padding-inline: clamp(3.5rem, 6vw, 4.25rem);
+    padding-bottom: 2.75rem;
+  }
+}
+
+// Todas as remessas ocupam a mesma célula: a altura é a da maior, sem pulo na troca.
+.campaign-stage {
+  display: grid;
+}
+
+.campaign-slide {
+  grid-area: 1 / 1;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 1.25rem 2rem;
+  visibility: hidden;
+
+  &.is-active,
+  &.is-entering,
+  &.is-leaving {
+    visibility: visible;
+  }
+
+  // A que sai some por baixo enquanto a nova é revelada atrás da fênix.
+  &.is-leaving {
+    z-index: 1;
+    animation: campaign-conceal-forward var(--campaign-sweep) var(--ease-in-out) both;
+  }
+
+  &.is-entering {
+    z-index: 2;
+    animation: campaign-reveal-forward var(--campaign-sweep) var(--ease-in-out) both;
+  }
+
+  .is-back > &.is-leaving {
+    animation-name: campaign-conceal-back;
+  }
+
+  .is-back > &.is-entering {
+    animation-name: campaign-reveal-back;
+  }
+}
+
+.campaign-highlight-action {
+  position: relative;
+  z-index: 4;
+  display: flex;
+  justify-content: flex-end;
 }
 
 .campaign-highlight-text {
@@ -3457,6 +3510,319 @@ details.collapsible {
     &::-moz-progress-bar {
       background: var(--color-primary);
     }
+  }
+}
+
+// Carrossel da pré-venda (DT-090): a fênix da logo atravessa o cartão em chamas e revela a
+// próxima remessa; voltando, vem do lado oposto. Anima só `transform`, `opacity` e
+// `clip-path`; a borda revelada e a cabeça da fênix usam a mesma curva e duração.
+.campaign-highlight {
+  --campaign-sweep: 720ms;
+}
+
+@keyframes campaign-reveal-forward {
+  from {
+    clip-path: inset(0 100% 0 0);
+  }
+
+  to {
+    clip-path: inset(0 0 0 0);
+  }
+}
+
+@keyframes campaign-conceal-forward {
+  from {
+    clip-path: inset(0 0 0 0);
+  }
+
+  to {
+    clip-path: inset(0 0 0 100%);
+  }
+}
+
+@keyframes campaign-reveal-back {
+  from {
+    clip-path: inset(0 0 0 100%);
+  }
+
+  to {
+    clip-path: inset(0 0 0 0);
+  }
+}
+
+@keyframes campaign-conceal-back {
+  from {
+    clip-path: inset(0 0 0 0);
+  }
+
+  to {
+    clip-path: inset(0 100% 0 0);
+  }
+}
+
+// Trilho do tamanho do cartão; a cabeça fica na borda dianteira dele.
+@keyframes campaign-phoenix-forward {
+  from {
+    transform: translateX(-100%);
+  }
+
+  to {
+    transform: translateX(0);
+  }
+}
+
+@keyframes campaign-phoenix-back {
+  from {
+    transform: translateX(100%);
+  }
+
+  to {
+    transform: translateX(0);
+  }
+}
+
+// Ao chegar na borda a fênix segue em frente e some, sem parar.
+@keyframes campaign-phoenix-exit {
+  0%,
+  72% {
+    opacity: 1;
+    transform: translateX(0);
+  }
+
+  100% {
+    opacity: 0;
+    transform: translateX(7rem);
+  }
+}
+
+@keyframes campaign-phoenix-exit-back {
+  0%,
+  72% {
+    opacity: 1;
+    transform: translateX(0);
+  }
+
+  100% {
+    opacity: 0;
+    transform: translateX(-7rem);
+  }
+}
+
+@keyframes campaign-flame-flicker {
+  from {
+    transform: scale(1, 1);
+  }
+
+  to {
+    transform: scale(1.08, 0.9);
+  }
+}
+
+.campaign-phoenix {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  pointer-events: none;
+  animation: campaign-phoenix-forward var(--campaign-sweep) var(--ease-in-out) both;
+
+  &.is-back {
+    animation-name: campaign-phoenix-back;
+  }
+}
+
+.campaign-phoenix-body {
+  position: absolute;
+  top: 50%;
+  right: 0;
+  width: clamp(7rem, 16vw, 11rem);
+  aspect-ratio: 131 / 220;
+  translate: 30% -55%;
+  animation: campaign-phoenix-exit var(--campaign-sweep) linear both;
+
+  .is-back > & {
+    right: auto;
+    left: 0;
+    translate: -30% -55%;
+    animation-name: campaign-phoenix-exit-back;
+  }
+}
+
+// Espelhada ao voltar: a cabeça aponta para a esquerda, voltando de onde veio.
+.campaign-phoenix-flip {
+  position: absolute;
+  inset: 0;
+
+  .is-back & {
+    scale: -1 1;
+  }
+
+  img {
+    position: relative;
+    z-index: 1;
+    width: 100%;
+    height: 100%;
+    // Inclinada para frente, cabeça na dianteira; o brilho de brasa fica parado.
+    rotate: 14deg;
+    filter: drop-shadow(0 0 0.6rem rgb(255 150 40 / 85%))
+      drop-shadow(0 0 1.6rem rgb(205 21 29 / 70%));
+  }
+
+  // Rastro de fogo atrás da fênix.
+  &::before {
+    content: '';
+    position: absolute;
+    top: 36%;
+    right: 40%;
+    width: 30rem;
+    height: 46%;
+    border-radius: 50%;
+    background: linear-gradient(
+      to left,
+      rgb(255 236 170 / 95%) 0%,
+      rgb(255 170 50 / 90%) 12%,
+      rgb(245 90 30 / 75%) 30%,
+      rgb(205 21 29 / 45%) 55%,
+      rgb(205 21 29 / 0%) 100%
+    );
+    filter: blur(10px);
+    transform-origin: right center;
+    animation: campaign-flame-flicker 110ms linear infinite alternate;
+  }
+}
+
+// Voltar e avançar: aparecem desfocadas com o mouse sobre o cartão ou com o foco do teclado;
+// no toque ficam sempre visíveis, mais discretas.
+.campaign-nav {
+  position: absolute;
+  top: 50%;
+  z-index: 5;
+  display: grid;
+  place-items: center;
+  width: 2.75rem;
+  height: 2.75rem;
+  translate: 0 -50%;
+  border: 1px solid rgb(255 255 255 / 22%);
+  border-radius: 50%;
+  color: #fff;
+  font-size: 1.25rem;
+  background: rgb(255 255 255 / 10%);
+  backdrop-filter: blur(8px);
+  opacity: 0;
+  cursor: pointer;
+  transition:
+    opacity var(--duration-fast) ease,
+    background-color var(--duration-fast) ease,
+    transform var(--duration-press) var(--ease-out);
+
+  &.is-prev {
+    left: 0.5rem;
+  }
+
+  &.is-next {
+    right: 0.5rem;
+  }
+
+  &:active {
+    transform: scale(0.94);
+  }
+
+  .campaign-highlight:focus-within & {
+    opacity: 1;
+  }
+
+  @media (hover: hover) and (pointer: fine) {
+    .campaign-highlight:hover & {
+      opacity: 1;
+    }
+
+    &:hover {
+      background: rgb(255 255 255 / 22%);
+    }
+  }
+
+  @media (hover: none) {
+    opacity: 0.7;
+  }
+}
+
+.campaign-dots {
+  position: absolute;
+  bottom: 0.6rem;
+  left: 50%;
+  z-index: 5;
+  display: flex;
+  gap: 0.15rem;
+  translate: -50% 0;
+}
+
+// Área de toque de 24 px (WCAG 2.5.8) com a bolinha no centro.
+.campaign-dot {
+  display: grid;
+  place-items: center;
+  width: 1.5rem;
+  height: 1.5rem;
+  padding: 0;
+  border: 0;
+  background: none;
+  cursor: pointer;
+
+  &::before {
+    content: '';
+    width: 0.5rem;
+    height: 0.5rem;
+    border-radius: 999px;
+    background: rgb(255 255 255 / 40%);
+    transition:
+      transform var(--duration-base) var(--ease-out),
+      background-color var(--duration-fast) ease;
+  }
+
+  &[aria-current='true']::before {
+    background: var(--color-primary);
+    transform: scale(1.35);
+  }
+
+  &:focus-visible {
+    border-radius: 999px;
+    outline: 2px solid #fff;
+    outline-offset: -2px;
+  }
+}
+
+// Celular: rastro sem desfoque nem tremulação (mais leve).
+@media (max-width: 40rem) {
+  .campaign-phoenix-flip::before {
+    width: 18rem;
+    filter: none;
+    animation: none;
+  }
+}
+
+// Reduzir movimento: sem fênix e sem troca automática (no componente); a remessa só aparece.
+@media (prefers-reduced-motion: reduce) {
+  .campaign-slide.is-entering,
+  .is-back > .campaign-slide.is-entering {
+    animation: campaign-fade var(--duration-fast) ease both;
+  }
+
+  .campaign-slide.is-leaving,
+  .is-back > .campaign-slide.is-leaving {
+    animation: none;
+    visibility: hidden;
+  }
+
+  .campaign-dot::before {
+    transition: none;
+  }
+}
+
+@keyframes campaign-fade {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
   }
 }
 

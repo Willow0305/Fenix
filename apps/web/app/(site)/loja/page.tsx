@@ -43,12 +43,12 @@ export default async function StorePage({
   const [products, categories, campaigns] = await Promise.all([
     serverGet<Page<ProductSummary>>(`/public/products?${query.toString()}`, 30),
     serverGet<StoreCategory[]>('/public/product-categories', 60),
-    // Só na vitrine (sem filtro): a pré-venda aberta que termina primeiro.
+    // Só na vitrine (sem filtro): as pré-vendas abertas, a que termina primeiro na frente.
     browsing ? serverGet<Campaign[]>('/public/campaigns', 30) : Promise.resolve(null)
   ]);
-  const campaign = [...(campaigns ?? [])].sort((a, b) =>
+  const openCampaigns = [...(campaigns ?? [])].sort((a, b) =>
     a.salesEndAt.localeCompare(b.salesEndAt)
-  )[0];
+  );
   const totalPages = products ? Math.ceil(products.meta.total / products.meta.pageSize) : 1;
   const link = (overrides: Record<string, string | undefined>) => {
     const next = new URLSearchParams();
@@ -78,7 +78,7 @@ export default async function StorePage({
         </div>
         <StoreToolbar />
       </div>
-      {campaign ? <CampaignHighlight campaign={campaign} /> : null}
+      {openCampaigns.length > 0 ? <CampaignHighlight campaigns={openCampaigns} /> : null}
       <nav aria-label="Categorias" className="row">
         <Link
           href={link({ categoria: undefined, prevenda: undefined, pagina: undefined })}

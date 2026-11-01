@@ -6,6 +6,12 @@ O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) e o 
 
 ## [Não publicado]
 
+### Pré-vendas em carrossel (2026-11-01)
+
+#### Alterado
+
+- o destaque da loja mostra todas as pré-vendas abertas, alternando sozinho; a fênix da logo atravessa o cartão em chamas revelando a próxima, e volta pelo lado oposto; setas e bolinhas para navegar; para com o mouse, o toque ou o foco, e não se move com "reduzir movimento" (DT-090).
+
 ### Contas de adultos, versões dos termos e análise jurídica (2026-11-01)
 
 #### Adicionado

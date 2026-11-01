@@ -270,6 +270,47 @@ async function main(): Promise<void> {
       });
     }
 
+    // Segunda pré-venda aberta: o destaque da loja vira carrossel (DT-090).
+    if (!(await prisma.product.findUnique({ where: { slug: 'agasalho-2027-demo' } }))) {
+      const jacket = await prisma.product.create({
+        data: {
+          slug: 'agasalho-2027-demo',
+          name: 'Agasalho de viagem 2027 (pré-venda)',
+          productCategoryId: category.id,
+          fulfillmentType: 'CAMPAIGN',
+          basePrice: D('189.90'),
+          currency: 'BRL',
+          status: 'ACTIVE',
+          description: 'Agasalho oficial produzido sob encomenda. Produto fictício de demonstração.'
+        }
+      });
+
+      for (const size of ['P', 'M', 'G']) {
+        await prisma.productVariant.create({
+          data: { productId: jacket.id, sku: `AGASALHO2027-${size}`, name: size, size }
+        });
+      }
+
+      const jackets = await prisma.salesCampaign.create({
+        data: {
+          slug: 'agasalhos-2027-demo',
+          name: 'Agasalhos de viagem',
+          description: 'O agasalho oficial para as viagens do time.',
+          salesStartAt: new Date(now.getTime() - day),
+          salesEndAt: new Date(now.getTime() + 35 * day),
+          currency: 'BRL',
+          minimumQuantity: 15,
+          refundPolicy:
+            'Se o mínimo não for atingido, os valores pagos são devolvidos integralmente por PIX em até 7 dias.',
+          status: 'OPEN'
+        }
+      });
+
+      await prisma.salesCampaignProduct.create({
+        data: { salesCampaignId: jackets.id, productId: jacket.id, campaignPrice: D('179.90') }
+      });
+    }
+
     // Pior caso da loja (Onda 7, break-ui): nome no limite de 160 caracteres, variações longas,
     // preço de quatro dígitos e uma única unidade em estoque.
     if (!(await prisma.product.findUnique({ where: { slug: 'kit-completo-pior-caso-demo' } }))) {

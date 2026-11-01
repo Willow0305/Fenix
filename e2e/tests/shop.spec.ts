@@ -140,3 +140,39 @@ test('visitante paga com cartão pelo site', async ({ page }, info) => {
   await expect(page.getByText(/Pagamento:/)).toHaveCount(0);
   expect(watcher.problems).toEqual([]);
 });
+
+/** Pré-vendas em carrossel (DT-090): a fênix revela a próxima remessa; o botão não troca. */
+test('destaque da pré-venda alterna as remessas abertas', async ({ page }, info) => {
+  const watcher = watch(page);
+  const card = page.getByRole('region', { name: 'Pré-vendas abertas' });
+  const shots = `${info.project.name}`;
+
+  await page.goto('/loja');
+  await expect(card).toBeVisible();
+  await expect(card.getByRole('button', { name: /Mostrar remessa/ })).toHaveCount(2);
+  await expect(card.locator('.campaign-slide:not([aria-hidden="true"]) h2')).toHaveText(
+    'Uniformes temporada 2027'
+  );
+  await expectNoHorizontalScroll(page);
+
+  await card.getByRole('button', { name: 'Próxima remessa' }).click();
+  // Quadros da travessia, para conferência visual (pasta do teste em test-results).
+  await page.waitForTimeout(250);
+  await card.screenshot({ path: info.outputPath(`carrossel-${shots}-1.png`) });
+  await page.waitForTimeout(200);
+  await card.screenshot({ path: info.outputPath(`carrossel-${shots}-2.png`) });
+  await expect(card.locator('.campaign-phoenix')).toHaveCount(0);
+  await expect(card.locator('.campaign-slide:not([aria-hidden="true"]) h2')).toHaveText(
+    'Agasalhos de viagem'
+  );
+  await card.screenshot({ path: info.outputPath(`carrossel-${shots}-3.png`) });
+  await expect(card.getByRole('link', { name: 'Ver produtos da pré-venda' })).toHaveCount(1);
+
+  await card.getByRole('button', { name: 'Remessa anterior' }).click();
+  await page.waitForTimeout(300);
+  await card.screenshot({ path: info.outputPath(`carrossel-${shots}-volta.png`) });
+  await expect(card.locator('.campaign-slide:not([aria-hidden="true"]) h2')).toHaveText(
+    'Uniformes temporada 2027'
+  );
+  expect(watcher.problems).toEqual([]);
+});

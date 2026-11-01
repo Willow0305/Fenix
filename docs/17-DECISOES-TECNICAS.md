@@ -1846,3 +1846,21 @@ O ECA Digital (Lei 15.211/2025, em vigor desde 17/03/2026; Decreto 12.880/2026) 
 
 - contas criadas antes não têm aceite por versão (só o evento de auditoria);
 - falta decidir se uma nova versão exige novo aceite de quem já tem conta (`PEN-071`).
+
+## DT-090 — Pré-vendas em carrossel com a fênix
+
+- **Estado:** Aceita; implementada em 2026-11-01
+- **Data:** 2026-11-01
+- **Aprovador:** responsável do projeto ("o card fica alternado com animação de transição [...] a fênix passa de um lado para o outro revelando o outro produto"; "uma remessa por slide, nada muda, mantém a mesma coisa, só muda o texto"; sem pré-venda o cartão "some"; "pausa discreta")
+
+### Decisão
+
+- o destaque da loja mostra **todas** as remessas abertas, uma por vez (a que termina primeiro na frente), no mesmo cartão; com uma só, nada muda; sem nenhuma, o cartão não aparece;
+- com mais de uma: troca automática a cada 6 s; setas de voltar e avançar aparecem desfocadas com o mouse sobre o cartão ou com o foco do teclado (no toque, sempre visíveis e discretas); uma bolinha por remessa;
+- transição: a fênix da logo (`public/brand/fenix-voo.webp`, gerada da própria `logo-fenix.png`, 8,5 KB) atravessa o cartão em chamas em 720 ms (`--ease-in-out`) e revela a próxima remessa logo atrás da cabeça (`clip-path` com a mesma curva e duração); ao voltar, vem espelhada do lado oposto. O botão "Ver produtos da pré-venda" fica parado; só o conteúdo da remessa troca. Anima só `transform`, `opacity` e `clip-path`; no celular o rastro perde o desfoque e a tremulação;
+- **pausa discreta (WCAG 2.2.2):** sem botão visível; a troca automática para com o mouse em cima, com o foco do teclado dentro e por 5 s depois de um toque; com "reduzir movimento", não troca sozinha, não mostra a fênix e a remessa só aparece (esmaecimento de 180 ms);
+- demonstração ganha uma segunda pré-venda (`agasalhos-2027-demo`) para o carrossel aparecer.
+
+### Consequências
+
+- teste ponta a ponta do carrossel em celular e computador guarda quadros da travessia na pasta do teste em `test-results`.
