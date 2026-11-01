@@ -3655,11 +3655,11 @@ details.collapsible {
   position: absolute;
   top: 50%;
   right: 0;
-  // Um pouco maior que o cartão: a altura acompanha a dele; o excesso é cortado na borda.
-  height: 120%;
-  aspect-ratio: 256 / 181;
-  // No celular o cartão é alto: a largura não passa de uma vez e meia a dele.
-  max-width: 150%;
+  // Bem maior que o cartão: a altura acompanha a dele; o excesso é cortado na borda.
+  height: 160%;
+  aspect-ratio: 302 / 261;
+  // No celular o cartão é alto: a largura não passa do dobro da dele.
+  max-width: 200%;
   translate: 30% -50%;
   animation: campaign-phoenix-exit var(--campaign-sweep) linear both;
 
@@ -3685,10 +3685,12 @@ details.collapsible {
     z-index: 1;
     width: 100%;
     height: 100%;
-    // Como no desenho, a cabeça vai na dianteira (para a direita); ao voltar, o trilho inteiro
-    // é espelhado. Levemente inclinada para o voo ficar na horizontal; o brilho fica parado.
+    // O desenho olha para a esquerda: espelhado, a cabeça vai na dianteira (para a direita); ao
+    // voltar, o trilho inteiro é espelhado e ela olha para a esquerda. Erguida para o bico ficar
+    // na horizontal; o brilho fica parado.
     object-fit: contain;
-    rotate: 8deg;
+    scale: -1 1;
+    rotate: -20deg;
     filter: drop-shadow(0 0 0.6rem rgb(255 150 40 / 85%))
       drop-shadow(0 0 1.6rem rgb(205 21 29 / 70%));
   }

@@ -187,7 +187,7 @@ export function CampaignHighlight({ campaigns }: { readonly campaigns: readonly 
         <div key={run} className={`campaign-phoenix is-${direction}`} aria-hidden="true">
           <span className="campaign-phoenix-body">
             <span className="campaign-phoenix-flip">
-              <img src="/brand/fenix-ataque.svg" alt="" width={256} height={181} />
+              <img src="/brand/fenix-ataque.svg" alt="" width={302} height={261} />
             </span>
           </span>
         </div>
