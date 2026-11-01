@@ -1847,7 +1847,7 @@ O ECA Digital (Lei 15.211/2025, em vigor desde 17/03/2026; Decreto 12.880/2026) 
 - contas criadas antes não têm aceite por versão (só o evento de auditoria);
 - falta decidir se uma nova versão exige novo aceite de quem já tem conta (`PEN-071`).
 
-## DT-090 — Pré-vendas em carrossel com a fênix
+## DT-090 — Pré-vendas em carrossel
 
 - **Estado:** Aceita; implementada em 2026-11-01
 - **Data:** 2026-11-01
