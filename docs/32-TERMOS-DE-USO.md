@@ -142,11 +142,11 @@ aplicáveis devem ser informados de forma clara e conferidos por assessoria jur�
 da publicação. Este rascunho **não declara que produtos personalizados perdem
 automaticamente o direito de arrependimento** e não reduz garantias legais.
 
-Há uma divergência que exige revisão: a interface atual afirma que itens personalizados não
-admitem arrependimento e conta o prazo a partir da entrega comprovada (ou da ativação para
-afiliações). O fundamento e a aplicação dessas condições precisam de validação jurídica
-antes de serem reproduzidos como regra definitiva; ver `PEN-071`. O fluxo de estorno do
-sistema mantém o histórico financeiro e deve ser usado sem afastar direitos obrigatórios.
+Desde 01/11/2026 (`DT-093`), a desistência em até 7 dias depois do recebimento vale para
+todos os itens, inclusive personalizados. O pedido de desistência é conferido pela diretoria
+(prazo e devolução do item) e, dentro do prazo, não pode ser negado; o estorno é integral. O
+prazo da afiliação conta da ativação. O fluxo de estorno do sistema mantém o histórico
+financeiro.
 
 Em remessas, se a campanha não alcançar o mínimo, ela é cancelada e o comprador recebe de
 volta 100% do valor pago, sem conversão em crédito na loja (decisão de 01/11/2026,

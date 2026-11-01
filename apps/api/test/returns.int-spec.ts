@@ -228,8 +228,8 @@ describe('Entrega comprovada, desistência e defeito (DT-070)', () => {
     }).expect(201);
   });
 
-  it('personalizado: sem desistência, mas com defeito resolvido por troca', async () => {
-    const order = await paidOrder(true, 1);
+  it('personalizado: com desistência (DT-093) e defeito resolvido por troca', async () => {
+    const order = await paidOrder(true, 2);
 
     await ctx
       .http()
@@ -243,12 +243,25 @@ describe('Entrega comprovada, desistência e defeito (DT-070)', () => {
       .set(auth(buyer.token))
       .expect(200);
 
-    const denied = await requestReturn(order.id, {
+    // Personalizado também tem desistência em 7 dias (DT-093); a diretoria recebe o item.
+    const withdrawal = await requestReturn(order.id, {
       kind: 'WITHDRAWAL',
       items: [{ orderItemId: order.itemId, quantity: 1 }]
-    }).expect(409);
+    }).expect(201);
 
-    expect(denied.body.code).toBe('PERSONALIZED_NO_WITHDRAWAL');
+    expect(withdrawal.body.returns[0]).toMatchObject({
+      kind: 'WITHDRAWAL',
+      status: 'AWAITING_ITEM'
+    });
+    // A diretoria confere, mas não pode negar a desistência (CDC art. 49).
+    expect(
+      (
+        await decide(withdrawal.body.returns[0].id, {
+          reject: true,
+          response: 'Item personalizado.'
+        }).expect(409)
+      ).body.code
+    ).toBe('WITHDRAWAL_CANNOT_BE_DENIED');
 
     const defect = await requestReturn(order.id, {
       kind: 'DEFECT',

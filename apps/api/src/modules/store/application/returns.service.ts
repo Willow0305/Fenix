@@ -362,12 +362,8 @@ export class ReturnsService {
           throw AppError.validation('INVALID_ITEM', 'Item não pertence ao pedido.');
         }
 
-        if (input.kind === 'WITHDRAWAL' && this.isPersonalized(item)) {
-          throw AppError.conflict(
-            'PERSONALIZED_NO_WITHDRAWAL',
-            `"${item.productName}" é personalizado: não tem desistência. Se houver defeito, use "Problema com o produto".`
-          );
-        }
+        // Personalizado também tem desistência em 7 dias (DT-093, revê DT-070): a diretoria
+        // confere o prazo e o item devolvido, mas não pode negar a desistência (CDC art. 49).
 
         if (choice.quantity > item.quantity - (held.get(item.id) ?? 0)) {
           throw AppError.conflict(

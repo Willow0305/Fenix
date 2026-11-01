@@ -501,8 +501,8 @@ export default function CartPage() {
                   required
                 />
                 <span>
-                  Estou ciente: item personalizado não tem troca ou devolução por arrependimento
-                  (continua com garantia contra defeito).
+                  Estou ciente: o item personalizado é feito sob medida com os dados que informei.
+                  Posso desistir em até 7 dias depois de receber, e ele tem garantia contra defeito.
                 </span>
               </label>
             ) : null}

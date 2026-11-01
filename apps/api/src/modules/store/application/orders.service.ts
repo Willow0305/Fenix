@@ -168,7 +168,7 @@ export interface CheckoutInput {
   readonly customerPhone?: string;
   readonly notes?: string;
   readonly couponCode?: string;
-  /** Ciência de que item personalizado não tem troca por arrependimento (DT-069). */
+  /** Ciência de que o item personalizado é feito sob medida com os dados informados (DT-093). */
   readonly acceptPersonalized?: boolean;
   /** Retirada (padrão) ou entrega em casa (DT-075). */
   readonly fulfillment?: OrderFulfillment;
@@ -623,7 +623,7 @@ export class OrdersService implements OnModuleInit {
           if (!input.acceptPersonalized) {
             throw AppError.validation(
               'PERSONALIZED_ACK_REQUIRED',
-              'Confirme que está ciente: item personalizado não tem troca ou devolução por arrependimento.'
+              'Confirme que está ciente: o item personalizado é feito sob medida com os dados que você informou.'
             );
           }
 

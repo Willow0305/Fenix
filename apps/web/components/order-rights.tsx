@@ -93,10 +93,9 @@ export function OrderRightsPanel({ target }: { readonly target: Target }) {
     return null;
   }
 
-  const eligible = rights.items.filter(
-    (item) => item.available > 0 && (mode !== 'WITHDRAWAL' || !item.personalized)
-  );
-  const withdrawable = rights.items.some((item) => item.available > 0 && !item.personalized);
+  // Personalizados também entram na desistência (DT-093).
+  const eligible = rights.items.filter((item) => item.available > 0);
+  const withdrawable = eligible.length > 0;
 
   return (
     <section className="card stack" aria-labelledby="direitos">
@@ -130,8 +129,8 @@ export function OrderRightsPanel({ target }: { readonly target: Target }) {
         </p>
       ) : rights.canWithdraw ? (
         <p className="muted m-0">
-          Mudou de ideia? Você pode desistir da compra (exceto itens personalizados) até 7 dias
-          depois de receber, com estorno integral.
+          Mudou de ideia? Você pode desistir da compra, inclusive de itens personalizados, até 7
+          dias depois de receber, com estorno integral.
         </p>
       ) : null}
       {send.message ? <Alert kind="success">{send.message}</Alert> : null}
@@ -161,7 +160,7 @@ export function OrderRightsPanel({ target }: { readonly target: Target }) {
           <strong>{mode === 'WITHDRAWAL' ? 'Desistir da compra' : 'Problema com o produto'}</strong>
           <small className="muted">
             {mode === 'WITHDRAWAL'
-              ? 'Não é preciso dizer o motivo. Itens personalizados não entram na desistência.'
+              ? 'Não é preciso dizer o motivo. A diretoria confere o pedido, recebe o item de volta e faz o estorno.'
               : 'Conte o que aconteceu; a diretoria responde com troca, conserto ou estorno.'}
           </small>
           <ErrorSummary error={send.error} />

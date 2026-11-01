@@ -6,6 +6,12 @@ O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) e o 
 
 ## [Não publicado]
 
+### Desistência de personalizados (2026-11-01)
+
+#### Alterado
+
+- itens personalizados também têm a desistência de 7 dias depois de receber; a diretoria confere o prazo e o item devolvido e faz o estorno integral, sem poder negar dentro do prazo; a ciência no checkout passa a avisar que o item é feito sob medida (DT-093).
+
 ### Conta de atleta menor (2026-11-01)
 
 #### Adicionado

@@ -1370,7 +1370,7 @@ Mesmo padrão da inativação de atleta (COR-018):
 
 ## DT-070 — Entrega comprovada, desistência e defeito
 
-- **Estado:** Aceita
+- **Estado:** Aceita; a exceção de itens personalizados foi revista por `DT-093` (2026-11-01)
 - **Data:** 2026-10-27
 - **Aprovador:** responsável do projeto ("ao comprar online qualquer item da loja o usuário tem direito a pedir reembolso com 7 dias [...] produtos feitos personalizadamente não têm reembolso"; prazo "da retirada do produto"; prova de entrega "foto ou confirmação")
 
@@ -1894,3 +1894,23 @@ O ECA Digital (Lei 15.211/2025, em vigor desde 17/03/2026; Decreto 12.880/2026) 
 
 - vincular conta existente a atleta menor continua recusado (`DT-088`); menores de fora do time não têm conta (pode ser reaberto depois);
 - a ficha mostra quando a declaração foi enviada e o botão "Ver declaração".
+
+## DT-093 — Desistência de 7 dias também para itens personalizados
+
+- **Estado:** Aceita; implementada em 2026-11-01 (revê a exceção de personalizados de `DT-070`)
+- **Data:** 2026-11-01
+- **Aprovador:** responsável do projeto ("aceitar o arrependimento em 7 dias para tudo? sim, mas sob aprovação da diretoria")
+
+### Contexto
+
+O art. 49 do CDC não traz exceção para produto personalizado; decisões estaduais encontradas (TJMS, TJRS) aplicam a desistência também a personalizados comprados pela internet (`docs/35`).
+
+### Decisão
+
+- a desistência em até 7 dias depois de receber vale para todos os itens, inclusive personalizados; o pedido de desistência vai para a diretoria, que confere o prazo e recebe o item de volta antes do estorno integral (fluxo de `DT-070`);
+- "sob aprovação da diretoria" é essa conferência: dentro do prazo, a desistência **não pode ser negada** (`WITHDRAWAL_CANNOT_BE_DENIED`, CDC art. 49);
+- a ciência no checkout passa a dizer que o item é feito sob medida com os dados informados e que tem desistência e garantia; textos da página do produto, do carrinho, dos direitos do comprador, do pedido e do painel atualizados.
+
+### Consequências
+
+- o clube assume o custo de item personalizado devolvido no prazo.

@@ -44,7 +44,8 @@ O prazo contado a partir da entrega está de acordo com a lei.
 
 **Recomendação:** aceitar o arrependimento em 7 dias para tudo, com devolução integral (art.
 49, parágrafo único), e avisar com clareza antes da compra que o item é feito sob medida.
-**Aguarda decisão do responsável.**
+**Decidido em 01/11/2026 (`DT-093`):** 7 dias para tudo, com conferência da diretoria; dentro
+do prazo a desistência não pode ser negada.
 
 ### 1.4 Encarregado de dados — `PEN-002`, `PEN-011`
 

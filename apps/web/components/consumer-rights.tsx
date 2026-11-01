@@ -7,7 +7,8 @@ export function ConsumerRights({ compact = false }: { readonly compact?: boolean
     return (
       <p className="muted m-0">
         Compra pela internet: você pode desistir em até 7 dias depois de receber, com estorno
-        integral (exceto itens personalizados). Todo item tem garantia contra defeito por 90 dias.
+        integral, inclusive de itens personalizados. Todo item tem garantia contra defeito por 90
+        dias.
       </p>
     );
   }
@@ -25,8 +26,9 @@ export function ConsumerRights({ compact = false }: { readonly compact?: boolean
           retirado também pode ser desistido.
         </li>
         <li>
-          <strong>Itens personalizados</strong> (nome, número etc.) são feitos sob medida e não têm
-          desistência por arrependimento.
+          <strong>Itens personalizados</strong> (nome, número etc.) são feitos sob medida e também
+          têm a desistência de 7 dias. A diretoria confere o pedido e o item devolvido e faz o
+          estorno.
         </li>
         <li>
           <strong>Defeito (arts. 18 e 26 do CDC):</strong> qualquer item, inclusive personalizado,
