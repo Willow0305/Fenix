@@ -288,6 +288,13 @@ Sinais mínimos:
 
 Alertas precisam de severidade, janela, canal e responsável. Logs não substituem métricas, e auditoria não deve ser usada como log genérico.
 
+### 11.1 O que a API já oferece (DT-086)
+
+- **logs em JSON**, uma linha por evento, em produção (`LOG_FORMAT=json|text`); sem dado pessoal, token ou corpo de requisição; pilha de erro só fora de produção;
+- **registro de acesso** por requisição (`ACCESS_LOG=on|off`, ligado junto com o JSON): método, modelo da rota (`/api/v1/store/orders/:id`, nunca ids ou busca), situação, duração em ms e `requestId`;
+- **métricas Prometheus** em `GET /api/v1/metrics`, só com `METRICS_TOKEN` em `Authorization: Bearer` (sem o token configurado, 404): `fenix_http_requests_total`, `fenix_http_request_duration_seconds` (histograma), `fenix_http_errors_total` (500 por rota e tipo), tempo de processo e memória. Os valores ficam em memória por processo e zeram ao reiniciar;
+- coletor, retenção dos logs e alertas dependem do provedor (`PEN-042`, `PEN-045`).
+
 ## 12. Segurança operacional
 
 - imagens e dependências atualizadas com janela definida;

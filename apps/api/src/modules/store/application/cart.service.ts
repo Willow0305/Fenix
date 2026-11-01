@@ -304,6 +304,17 @@ export class CartService {
       return;
     }
 
+    // Só uma requisição une o carrinho: duas leituras simultâneas logo após o login dobravam
+    // as quantidades (PEN-070).
+    const claimed = await this.prisma.cart.updateMany({
+      where: { id: guest.id, status: 'ACTIVE' },
+      data: { status: 'ABANDONED' }
+    });
+
+    if (claimed.count === 0) {
+      return;
+    }
+
     for (const item of guest.items) {
       const own = await this.findActive({ principal });
       const existing = own?.items.find(
@@ -322,8 +333,6 @@ export class CartService {
         // Itens indisponíveis não impedem a mesclagem dos demais.
       }
     }
-
-    await this.prisma.cart.update({ where: { id: guest.id }, data: { status: 'ABANDONED' } });
   }
 
   async view(owner: CartOwner): Promise<CartView> {

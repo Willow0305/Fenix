@@ -6,6 +6,17 @@ O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) e o 
 
 ## [Não publicado]
 
+### Logs, métricas e carrinho (2026-11-01)
+
+#### Adicionado
+
+- testes de unidade dos logs em JSON, das métricas e do registro de acesso, e teste da rota `/api/v1/metrics` com e sem token; `LOG_FORMAT`, `ACCESS_LOG` e `METRICS_TOKEN` no `.env.example`; decisão técnica de E2E e observabilidade (DT-086);
+- os testes de ponta a ponta guardam o log da API em `var/e2e-logs/api.log` (PEN-070).
+
+#### Corrigido
+
+- carrinho: duas leituras simultâneas logo depois de entrar na conta juntavam o carrinho de visitante duas vezes e dobravam as quantidades; agora só uma junta (PEN-070).
+
 ### Revisão de interface das ondas (2026-10-30)
 
 #### Corrigido

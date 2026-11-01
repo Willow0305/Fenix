@@ -144,6 +144,7 @@ No checkout, o CEP preenche a rua pelo ViaCEP, consultado pela API (o navegador 
 | `npm run capturas -- <rótulo> [filtro]` | capturas de tela do site e do painel em computador e celular, em `var/capturas/<rótulo>/` (com o site rodando) |
 | `npm run check` | verificação completa: formatação, lint, tipos, testes e build |
 | `npm run test:integration` | testes contra o banco (Docker precisa estar ligado) |
+| `npm run e2e` | testes no navegador (Edge), em celular e computador; se falhar, o log da API fica em `var/e2e-logs/api.log` |
 | `docker compose down` | desliga o banco **sem apagar** os dados |
 
 Não use `docker compose down -v`: o `-v` apaga o banco inteiro.

@@ -509,9 +509,9 @@ Prioridades:
 - **Bloqueia:** conclusão da Etapa 9 (`docs/16`)
 - **Questão:** a etapa foi pausada a pedido do responsável em 27/10/2026. Estado deixado:
   - **E2E (R-10):** estrutura pronta em `e2e/` (`npm run e2e` recria o banco `<dev>_e2e`, compila o site e roda no Edge em 390 px e 1280 px). **Em 2026-10-28 todos os 56 testes (28 em cada tamanho) passam**: rolagem lateral do `/admin` no celular corrigida (DT-072), seletor de "Notícias do clube" ajustado e clique em "Adicionar ao carrinho" agora espera a página carregar (o clique antes do React assumir o botão se perdia).
-  - **Logs e métricas (R-07):** ligados no código, mas sem testes nem documentação: registro de acesso por requisição (ligado com logs em JSON; `ACCESS_LOG=on|off` força), logs em JSON (`LOG_FORMAT`, padrão JSON em produção), contagem de erros 5xx e rota `/api/v1/metrics` em formato Prometheus, só com `METRICS_TOKEN` (sem ele responde 404). Faltam testes unitários de `Metrics` e `JsonLogger`, teste de integração da rota, `METRICS_TOKEN`/`LOG_FORMAT`/`ACCESS_LOG` no `.env.example` e decisão técnica.
+  - **Logs e métricas (R-07):** concluído em 2026-11-01: testes de `Metrics`, `JsonLogger`, registro de acesso e da rota `/api/v1/metrics`; variáveis no `.env.example`; `DT-086`; `docs/15` §11.1.
   - **Estilos inline (R-09):** não iniciado.
-- **Recomendação:** com o E2E verde, completar R-07 (testes e documentação) e depois o R-09; registrar a decisão técnica de E2E e observabilidade e atualizar `README`/`docs/COMO-EXECUTAR.md`.
+- **Recomendação:** R-07 e o registro de E2E e observabilidade (`DT-086`, `README`, `docs/COMO-EXECUTAR.md`) concluídos em 2026-11-01; falta o R-09.
 - **Impacto:** `docs/16` (Etapa 9), `docs/17`, `CHANGELOG.md`, `.env.example`.
 
 ### PEN-067 — Cartão: "sem juros" por produto no Mercado Pago
@@ -544,6 +544,7 @@ Prioridades:
 - **Bloqueia:** nada; aconteceu 1 vez em 4 execuções de `affiliation.spec.ts` (computador) em 2026-10-30, e as 3 seguintes passaram
 - **Questão:** o teste registrou "500 em /api/v1/cart". O log da API dos testes não é guardado, então a causa não foi confirmada. Hipótese: duas requisições simultâneas criando o carrinho do mesmo usuário (`cart.service.ts`, sem restrição de unicidade por usuário ativo).
 - **Recomendação:** guardar o log da API nos testes ponta a ponta (`e2e/start.cjs`) e, se a hipótese se confirmar, tornar a criação do carrinho idempotente por dono.
+- **Andamento (2026-11-01):** o log da API dos testes ponta a ponta passou a ser guardado em `var/e2e-logs/api.log` (JSON, com acesso e pilha dos erros). Na investigação apareceu um defeito real em `GET /api/v1/cart`: leituras simultâneas logo após entrar juntavam o carrinho de visitante várias vezes e dobravam as quantidades (reproduzido com 8 leituras: 4 itens em vez de 2). Corrigido: só a requisição que marca o carrinho de visitante como encerrado faz a junção; teste de integração em `phase4-store.int-spec.ts`. O 500 original não foi reproduzido; se voltar, o log mostrará o tipo do erro (hipótese restante: falta de conexão livre no banco sob carga, `P2024`).
 - **Impacto:** loja (carrinho), testes ponta a ponta. As mensagens do carrinho e do pedido com "unidade(s)" e "disponível(is)" foram corrigidas em 2026-10-30.
 
 ### PEN-071 — Revisão jurídica de arrependimento e aceite versionado

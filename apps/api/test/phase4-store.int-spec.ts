@@ -563,6 +563,28 @@ describe('Fase 4 — loja, estoque, carrinho e pedidos', () => {
     expect(merged.body.itemCount).toBe(2);
   });
 
+  it('une o carrinho de visitante uma vez só com leituras simultâneas após entrar (PEN-070)', async () => {
+    const p = await product({ stock: 10 });
+    const user = await createUser(ctx.prisma, ['user']);
+    const token = await login(ctx, user.email);
+    const agent = guest();
+
+    await agent.put('/api/v1/cart/items').send({ variantId: p.variantId, quantity: 2 }).expect(200);
+
+    const cookie = (await agent.get('/api/v1/cart').expect(200)).request.cookies;
+    const reads = await Promise.all(
+      Array.from({ length: 8 }, () =>
+        ctx.http().get('/api/v1/cart').set(auth(token)).set('Cookie', cookie).expect(200)
+      )
+    );
+
+    expect(reads.some((read) => read.body.itemCount === 2)).toBe(true);
+
+    const own = await ctx.http().get('/api/v1/cart').set(auth(token)).expect(200);
+
+    expect(own.body.itemCount).toBe(2);
+  });
+
   it('arquiva (exclui) produto só com motivo', async () => {
     const p = await product();
 

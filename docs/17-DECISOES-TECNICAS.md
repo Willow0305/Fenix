@@ -1770,3 +1770,22 @@ Aprovada pelo responsável ("posição na ficha do atleta: sim"):
 
 - clientes da API que enviavam `desiredPosition` (texto) passam a ter o campo ignorado; o único cliente é o próprio site, já atualizado.
 
+
+## DT-086 — Testes de ponta a ponta e observabilidade da API
+
+- **Estado:** Aceita; implementada em 2026-10-28 (E2E) e 2026-11-01 (testes e documentação de logs e métricas)
+- **Data:** 2026-11-01
+- **Aprovador:** responsável do projeto (Etapa 9, `docs/30` R-07 e R-10; "quero resolver todas as pendências ao meu alcance")
+
+### Decisão
+
+- **E2E (R-10):** Playwright com o Edge instalado (`E2E_CHANNEL`, padrão `msedge`), sem baixar navegador; dois projetos, celular (390 px) e computador (1280 px); `npm run e2e` compila a API, recria o banco `<banco>_e2e`, aplica migrações e o preparo, e sobe API e site em portas próprias (3433 e 3100), com PIX e cartão em modo de teste, CEP sem internet e limites de requisição desligados. Cada teste falha com erro de JavaScript ou resposta 5xx (`watch`). O log da API, em JSON com registro de acesso, fica em `var/e2e-logs/api.log` (fora do git), para investigar falhas intermitentes;
+- **logs (R-07):** `JsonLogger` próprio (implementa o `LoggerService` do Nest), uma linha JSON por evento, em vez de `nestjs-pino` sugerido em `docs/30`: evita duas dependências e mantém o mesmo `Logger` usado no código. `LOG_FORMAT=json|text` (JSON por padrão em produção). Mensagens nunca levam dado pessoal, token ou corpo; pilha de erro só fora de produção;
+- **registro de acesso:** middleware com método, modelo da rota, situação, duração e `requestId`; nunca o endereço completo. `ACCESS_LOG=on|off`, ligado por padrão junto com o JSON;
+- **métricas:** formato Prometheus em memória por processo, em `GET /api/v1/metrics`, protegido por `METRICS_TOKEN` comparado em tempo constante; sem token configurado, a rota responde 404 (não revela que existe). Erros 500 contados por rota e tipo pelo filtro de erros;
+- coletor de erros externo (Sentry ou similar) fica para a escolha de provedor (`PEN-042`, `PEN-045`).
+
+### Consequências
+
+- métricas zeram a cada reinício e, com mais de uma instância, cada uma expõe as suas: o coletor precisa raspar todas;
+- testes: unidade de `Metrics`, `JsonLogger` e registro de acesso; rota de métricas com e sem token.

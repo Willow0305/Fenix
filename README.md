@@ -154,6 +154,7 @@ O Next.js lê a porta do frontend pela variável padrão `PORT`; a API usa `API_
 | `npm run test:integration` | testes de integração da API em banco exclusivo `<banco>_test`, recriado a cada execução; nunca toca o banco de desenvolvimento |
 | `npm run backup` | backup do banco e dos arquivos em `BACKUP_DIR` (fora do projeto), com verificação e retenção |
 | `npm run db:clean-test-data` | simula a limpeza dos dados gravados por testes antigos; `-- --apply` aplica (exclusão lógica, auditada) |
+| `npm run e2e` | testes de ponta a ponta no Edge (390 px e 1280 px) em banco próprio `<banco>_e2e`, recriado a cada execução; log da API em `var/e2e-logs/api.log` |
 | `npm run smoke` | após o build, inicia web/API, valida web, health, Swagger e OpenAPI, e encerra os processos |
 | `npm run check` | executa o gate agregado: formatação, lint, tipos, testes, Prisma e build |
 
