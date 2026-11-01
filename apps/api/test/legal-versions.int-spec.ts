@@ -120,6 +120,61 @@ describe('versões dos termos de uso e da política de privacidade', () => {
     expect(missing.body.code).toBe('LEGAL_VERSION_CHANGED');
   });
 
+  it('quem já tem conta aceita de novo quando a versão muda (DT-094)', async () => {
+    const first = await publish({
+      termsOfUse: `Termos A ${Date.now()}`,
+      privacyPolicy: `Política A ${Date.now()}`
+    });
+    const signup = await register({
+      termsVersionId: first.termsOfUse?.id,
+      privacyVersionId: first.privacyPolicy?.id
+    }).expect(201);
+    const token = signup.body.accessToken as string;
+    const me = async () =>
+      (await ctx.http().get('/api/v1/me').set(auth(token)).expect(200)).body as {
+        pendingLegal: { field: string; id: string; version: number }[];
+      };
+
+    expect((await me()).pendingLegal).toEqual([]);
+
+    const second = await publish({ termsOfUse: `Termos B ${Date.now()}` });
+    const pending = (await me()).pendingLegal;
+
+    expect(pending).toEqual([
+      expect.objectContaining({ field: 'termsOfUse', id: second.termsOfUse?.id })
+    ]);
+
+    await ctx
+      .http()
+      .post('/api/v1/me/legal-acceptances')
+      .set(auth(token))
+      .send({ termsVersionId: first.termsOfUse?.id, privacyVersionId: first.privacyPolicy?.id })
+      .expect(409);
+
+    const accepted = await ctx
+      .http()
+      .post('/api/v1/me/legal-acceptances')
+      .set(auth(token))
+      .send({ termsVersionId: second.termsOfUse?.id, privacyVersionId: second.privacyPolicy?.id })
+      .expect(201);
+
+    expect(accepted.body.pendingLegal).toEqual([]);
+    expect(
+      await ctx.prisma.legalAcceptance.count({
+        where: { documentVersionId: second.termsOfUse?.id ?? '', context: 'UPDATE' }
+      })
+    ).toBe(1);
+
+    // Conta antiga, sem aceite registrado, também precisa aceitar.
+    const legacy = await tokenFor(ctx, ['user']);
+    const legacyMe = await ctx.http().get('/api/v1/me').set(auth(legacy.token)).expect(200);
+
+    expect(legacyMe.body.pendingLegal.map((row: { field: string }) => row.field).sort()).toEqual([
+      'privacyPolicy',
+      'termsOfUse'
+    ]);
+  });
+
   it('com o texto fora do ar, cadastra sem versão a aceitar', async () => {
     const none = await publish({ termsOfUse: null, privacyPolicy: null });
 

@@ -33,6 +33,13 @@ export interface Profile {
   readonly profilePublic: boolean;
   /** Conta de menor (DT-092): sem fórum e com o perfil privado até os 18 anos. */
   readonly minorAccount?: boolean;
+  /** Termos ou política em vigor que a conta ainda não aceitou (DT-094). */
+  readonly pendingLegal?: readonly {
+    readonly field: 'termsOfUse' | 'privacyPolicy';
+    readonly id: string;
+    readonly version: number;
+    readonly publishedAt: string;
+  }[];
   readonly publicProfile: {
     readonly isAthlete: boolean;
     readonly needsGuardianConsent: boolean;

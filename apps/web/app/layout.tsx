@@ -3,6 +3,7 @@ import { Barlow_Condensed, Inter } from 'next/font/google';
 import { headers } from 'next/headers';
 import type { ReactNode } from 'react';
 
+import { LegalUpdateGate } from '../components/legal-update-gate';
 import { AuthProvider } from '../lib/auth-context';
 import { CartProvider } from '../lib/cart-context';
 import { LiveToasts } from '../components/live-toasts';
@@ -61,6 +62,7 @@ export default async function RootLayout({ children }: RootLayoutProps) {
           <AuthProvider>
             <CartProvider>{children}</CartProvider>
             <LiveToasts />
+            <LegalUpdateGate />
           </AuthProvider>
         </QueryProvider>
       </body>

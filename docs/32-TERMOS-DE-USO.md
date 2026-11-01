@@ -45,8 +45,9 @@ não representa, por si só, consentimento genérico para todo tratamento de dad
 Alterações relevantes devem ser publicadas com nova versão e data. Quando a lei ou a
 natureza da alteração exigir nova aceitação, o sistema deve apresentar a versão nova antes
 de continuar. Desde 01/11/2026 (`DT-089`), cada texto publicado vira uma versão numerada,
-com data e hash, e o cadastro registra qual versão de cada documento a pessoa aceitou. Falta
-decidir se uma versão nova exige novo aceite de quem já tem conta (`PEN-071`).
+com data e hash, e o cadastro registra qual versão de cada documento a pessoa aceitou. Quando
+uma versão nova é publicada, quem já tem conta precisa lê-la e aceitá-la para continuar usando
+a conta (`DT-094`).
 
 ## 3. Conta, idade e segurança
 
@@ -216,7 +217,7 @@ aplicáveis na medida permitida pela legislação.
 
 - preencher identificação jurídica, endereço e canais oficiais (`PEN-006`);
 - aprovar esta versão com o responsável e assessoria jurídica;
-- decidir se uma versão nova exige novo aceite de quem já tem conta (`PEN-071`);
+- publicar as versões aprovadas: quem já tem conta aceitará no próximo acesso (`DT-094`);
 - revisar a regra de arrependimento, itens personalizados e afiliações (`PEN-071`);
 - aprovar políticas de remessa, parceiro e convivência (`PEN-032`, `PEN-034`, `PEN-039`);
 - concluir a análise de menores e ECA Digital (`PEN-010`);

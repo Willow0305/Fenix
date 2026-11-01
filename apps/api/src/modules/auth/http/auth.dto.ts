@@ -173,6 +173,12 @@ export class MfaPasswordCodeDto {
 }
 
 /** Perfil público: aparecer no elenco do site com foto, nome e posição (DT-044). */
+/** Aceite das versões novas dos termos e da política (DT-094). */
+export class LegalAcceptanceDto {
+  @ApiPropertyOptional() @IsOptional() @IsUUID() termsVersionId?: string;
+  @ApiPropertyOptional() @IsOptional() @IsUUID() privacyVersionId?: string;
+}
+
 export class ProfileVisibilityDto {
   @ApiProperty() @IsBoolean() public!: boolean;
 }

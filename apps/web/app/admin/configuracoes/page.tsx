@@ -45,11 +45,11 @@ type PublicForm = {
   pickupInstructions: string;
 };
 
-/** Cada alteração salva vira uma nova versão, que quem se cadastra passa a aceitar (DT-089). */
+/** Cada alteração salva vira uma nova versão, aceita no cadastro e por quem já tem conta (DT-089, DT-094). */
 function legalHint(version: LegalVersion | null | undefined): string {
   return version
-    ? `Em vigor: versão ${version.version}. Ao salvar uma alteração, ela vira a versão ${version.version + 1}, e os novos cadastros passam a aceitá-la.`
-    : 'Ao salvar o texto, ele vira a versão 1, aceita em cada novo cadastro.';
+    ? `Em vigor: versão ${version.version}. Ao salvar uma alteração, ela vira a versão ${version.version + 1}: os novos cadastros passam a aceitá-la, e quem já tem conta precisa aceitá-la para continuar.`
+    : 'Ao salvar o texto, ele vira a versão 1: aceita em cada novo cadastro e por quem já tem conta, no próximo acesso.';
 }
 
 function toForm(team: AdminTeam): PublicForm {

@@ -28,9 +28,9 @@ import {
 } from '../domain/auth-rules';
 import {
   acceptLegalVersions,
-  currentLegalVersions
+  currentLegalVersions,
+  publishedLegalTexts
 } from '../../settings/application/legal-documents';
-import { SETTINGS_KEY } from '../../settings/application/settings.service';
 import { assertPhoneAvailable } from './phone-availability';
 import { MfaService } from './mfa.service';
 import { TrustedDevicesService } from './trusted-devices.service';
@@ -186,17 +186,10 @@ export class AuthService {
         select: { id: true }
       });
 
-      const settings = await tx.teamSettings.findUnique({
-        where: { singletonKey: SETTINGS_KEY },
-        select: { termsOfUse: true, privacyPolicy: true }
-      });
       const acceptedVersions = await acceptLegalVersions(
         tx,
         user.id,
-        await currentLegalVersions(tx, {
-          termsOfUse: settings?.termsOfUse ?? null,
-          privacyPolicy: settings?.privacyPolicy ?? null
-        }),
+        await currentLegalVersions(tx, await publishedLegalTexts(tx)),
         { termsOfUse: input.termsVersionId, privacyPolicy: input.privacyVersionId },
         'SIGNUP'
       );

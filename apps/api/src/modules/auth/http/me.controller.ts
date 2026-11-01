@@ -32,6 +32,7 @@ import {
   MfaCodeDto,
   MfaPasswordCodeDto,
   MfaPasswordDto,
+  LegalAcceptanceDto,
   ProfileVisibilityDto,
   UpdateProfileDto
 } from './auth.dto';
@@ -86,6 +87,19 @@ export class MeController {
     @ReqMeta() meta: RequestMeta
   ): Promise<ProfileView> {
     return this.account.removeAvatar(principal, meta);
+  }
+
+  @Post('legal-acceptances')
+  acceptLegal(
+    @CurrentPrincipal() principal: Principal,
+    @Body() body: LegalAcceptanceDto,
+    @ReqMeta() meta: RequestMeta
+  ): Promise<ProfileView> {
+    return this.account.acceptLegal(
+      principal,
+      { termsVersionId: body.termsVersionId, privacyVersionId: body.privacyVersionId },
+      meta
+    );
   }
 
   @Put('profile-visibility')

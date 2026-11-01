@@ -6,6 +6,12 @@ O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) e o 
 
 ## [Não publicado]
 
+### Novo aceite dos termos (2026-11-01)
+
+#### Adicionado
+
+- quando os termos de uso ou a política de privacidade mudam, quem já tem conta lê e aceita a versão nova ao entrar (ou sai da conta); o aceite fica registrado por versão (DT-094).
+
 ### Desistência de personalizados (2026-11-01)
 
 #### Alterado

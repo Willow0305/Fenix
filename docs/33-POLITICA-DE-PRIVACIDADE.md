@@ -226,6 +226,6 @@ os prazos vigentes antes de aprovar a política.
 - operadores, fornecedores, localização dos dados e transferências (`PEN-042`);
 - canal de titulares sem conta, autenticação e prazos de resposta (`PEN-011`);
 - resposta a incidentes e canal de segurança (`PEN-014`);
-- regra de novo aceite quando uma versão nova for publicada (`PEN-071`);
+- publicar a versão aprovada; quem já tem conta aceita no próximo acesso (`DT-094`);
 - coerência entre política, termos, telas de inscrição, checkout, notificações e configurações
   públicas do sistema.

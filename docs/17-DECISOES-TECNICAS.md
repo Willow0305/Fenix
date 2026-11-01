@@ -1914,3 +1914,21 @@ O art. 49 do CDC não traz exceção para produto personalizado; decisões estad
 ### Consequências
 
 - o clube assume o custo de item personalizado devolvido no prazo.
+
+## DT-094 — Novo aceite quando os termos ou a política mudam
+
+- **Estado:** Aceita; implementada em 2026-11-01 (completa `DT-089`)
+- **Data:** 2026-11-01
+- **Aprovador:** responsável do projeto ("Quando os termos mudarem, quem já tem conta precisa aceitar a versão nova? sim")
+
+### Decisão
+
+- `GET /me` informa `pendingLegal`: as versões em vigor que a conta ainda não aceitou; conta antiga, sem aceite registrado, também entra;
+- ao entrar com versão pendente, o site abre um diálogo que não fecha com Esc, com os links dos documentos (em nova aba), "Li e aceito a versão nova" e as opções "Aceitar e continuar" ou "Sair da conta";
+- `POST /me/legal-acceptances` registra o aceite (contexto `UPDATE`, sem duplicar versão já aceita) e a auditoria `user.legal.accepted`; recusa com 409 `LEGAL_VERSION_CHANGED` se a versão enviada não for a que está em vigor;
+- as configurações avisam que salvar um texto novo exige o aceite de quem já tem conta.
+
+### Consequências
+
+- o bloqueio é da interface: a API registra e confere a versão aceita, mas não recusa as demais rotas para quem ainda não aceitou;
+- publicar o primeiro texto faz todas as contas existentes aceitarem no próximo acesso.

@@ -51,6 +51,56 @@ export async function currentLegalVersions(
   return Object.fromEntries(entries) as LegalVersions;
 }
 
+/** Textos publicados nas configurações, para saber as versões em vigor. */
+export async function publishedLegalTexts(
+  client: Client
+): Promise<Record<LegalField, string | null>> {
+  const settings = await client.teamSettings.findUnique({
+    where: { singletonKey: 'default' },
+    select: { termsOfUse: true, privacyPolicy: true }
+  });
+
+  return {
+    termsOfUse: settings?.termsOfUse ?? null,
+    privacyPolicy: settings?.privacyPolicy ?? null
+  };
+}
+
+/**
+ * Versões em vigor que a conta ainda não aceitou (DT-094): quem já tem conta aceita de novo
+ * quando os termos ou a política mudam. Conta antiga, sem aceite registrado, também entra.
+ */
+export async function pendingLegalVersions(
+  client: Client,
+  userId: string
+): Promise<(LegalVersionView & { readonly field: LegalField })[]> {
+  const current = await currentLegalVersions(client, await publishedLegalTexts(client));
+  const ids = LEGAL_DOCUMENTS.flatMap(({ field }) => {
+    const version = current[field];
+
+    return version === null ? [] : [version.id];
+  });
+
+  if (ids.length === 0) {
+    return [];
+  }
+
+  const accepted = new Set(
+    (
+      await client.legalAcceptance.findMany({
+        where: { userId, documentVersionId: { in: ids } },
+        select: { documentVersionId: true }
+      })
+    ).map((row) => row.documentVersionId)
+  );
+
+  return LEGAL_DOCUMENTS.flatMap(({ field }) => {
+    const version = current[field];
+
+    return version === null || accepted.has(version.id) ? [] : [{ field, ...version }];
+  });
+}
+
 /** Cria uma versão imutável para cada texto que mudou; devolve as versões criadas. */
 export async function publishLegalVersions(
   tx: PrismaTx,
@@ -88,7 +138,7 @@ export async function acceptLegalVersions(
   userId: string,
   current: LegalVersions,
   accepted: Partial<Record<LegalField, string | undefined>>,
-  context: 'SIGNUP'
+  context: 'SIGNUP' | 'UPDATE'
 ): Promise<Record<LegalField, number | null>> {
   const changed = LEGAL_DOCUMENTS.some(
     ({ field }) => current[field] !== null && current[field]?.id !== accepted[field]
@@ -108,8 +158,10 @@ export async function acceptLegalVersions(
   });
 
   if (versions.length > 0) {
+    // Versão já aceita antes (aceite repetido) não duplica: um aceite por conta e versão.
     await tx.legalAcceptance.createMany({
-      data: versions.map((documentVersionId) => ({ userId, documentVersionId, context }))
+      data: versions.map((documentVersionId) => ({ userId, documentVersionId, context })),
+      skipDuplicates: true
     });
   }
 

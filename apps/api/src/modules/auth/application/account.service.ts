@@ -12,6 +12,12 @@ import {
   mediaUrl
 } from '../../media/application/media.service';
 import { normalizeAccountPhone, REVOCATION } from '../domain/auth-rules';
+import {
+  acceptLegalVersions,
+  currentLegalVersions,
+  pendingLegalVersions,
+  publishedLegalTexts
+} from '../../settings/application/legal-documents';
 import { ADULT_ACCOUNT_AGE, isMinorAccount } from './minor-account';
 import { assertPhoneAvailable } from './phone-availability';
 
@@ -28,6 +34,13 @@ export interface ProfileView {
   readonly profilePublic: boolean;
   /** Conta de menor (DT-092): sem fórum e com o perfil privado até os 18 anos. */
   readonly minorAccount: boolean;
+  /** Termos ou política em vigor que a conta ainda não aceitou (DT-094). */
+  readonly pendingLegal: readonly {
+    readonly field: 'termsOfUse' | 'privacyPolicy';
+    readonly id: string;
+    readonly version: number;
+    readonly publishedAt: string;
+  }[];
   /**
    * Para atleta menor de 18 (ou sem data de nascimento): o perfil só aparece no site
    * depois de a diretoria registrar a autorização do responsável.
@@ -103,6 +116,7 @@ export class AccountService {
       avatarUrl: user.avatarMediaFileId ? mediaUrl(user.avatarMediaFileId) : null,
       profilePublic: user.profilePublic,
       minorAccount: minor,
+      pendingLegal: await pendingLegalVersions(this.prisma, user.id),
       publicProfile: {
         isAthlete: athlete !== null,
         needsGuardianConsent,
@@ -244,6 +258,40 @@ export class AccountService {
         );
       });
     }
+
+    return this.profile(principal);
+  }
+
+  /**
+   * Aceite da versão nova dos termos e da política por quem já tem conta (DT-094). A pessoa
+   * precisa ter lido exatamente as versões em vigor; se mudarem no meio, relê.
+   */
+  async acceptLegal(
+    principal: Principal,
+    input: { termsVersionId?: string | undefined; privacyVersionId?: string | undefined },
+    meta: RequestMeta
+  ): Promise<ProfileView> {
+    await this.prisma.$transaction(async (tx) => {
+      const accepted = await acceptLegalVersions(
+        tx,
+        principal.userId,
+        await currentLegalVersions(tx, await publishedLegalTexts(tx)),
+        { termsOfUse: input.termsVersionId, privacyPolicy: input.privacyVersionId },
+        'UPDATE'
+      );
+
+      await this.audit.record(
+        {
+          actorUserId: principal.userId,
+          action: 'user.legal.accepted',
+          entityType: 'User',
+          entityId: principal.userId,
+          after: { acceptedVersions: accepted },
+          meta
+        },
+        tx
+      );
+    });
 
     return this.profile(principal);
   }
