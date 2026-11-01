@@ -4,6 +4,7 @@ import {
   ArrayMaxSize,
   ArrayMinSize,
   IsArray,
+  IsBoolean,
   IsUUID,
   IsEmail,
   IsOptional,
@@ -78,6 +79,10 @@ export class UpdatePublicSettingsDto {
   @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(20000) monthlyFeeRules?: string;
   @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(20000) storeRules?: string;
   @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(5000) pickupInstructions?: string;
+  @ApiPropertyOptional({ description: 'Convite "Quer jogar com a gente?" ligado (DT-091).' })
+  @IsOptional()
+  @IsBoolean()
+  joinInviteEnabled?: boolean;
 }
 
 export class UpdateFinancialSettingsDto {

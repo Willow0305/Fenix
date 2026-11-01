@@ -3,6 +3,14 @@ import Link from 'next/link';
 import { Icon } from './icon';
 
 /**
+ * A diretoria pode desligar o convite (DT-091), mas com seletiva aberta ele aparece mesmo
+ * assim, para levar às inscrições. Sem a configuração (dados antigos), fica ligado.
+ */
+export function showJoinInvite(enabled: boolean | undefined, openTryouts: number): boolean {
+  return enabled !== false || openTryouts > 0;
+}
+
+/**
  * Convite para jogar no time, em destaque (página Times). Com seletiva aberta, o botão
  * principal leva às inscrições; sem nenhuma, o principal é deixar o contato.
  */

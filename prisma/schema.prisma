@@ -725,6 +725,8 @@ model TeamSettings {
   monthlyFeeRules         String?      @map("monthly_fee_rules") @db.Text
   storeRules              String?      @map("store_rules") @db.Text
   pickupInstructions      String?      @map("pickup_instructions") @db.Text
+  /// Convite "Quer jogar com a gente?" na página Times (DT-091); com seletiva aberta aparece sempre.
+  joinInviteEnabled       Boolean      @default(true) @map("join_invite_enabled")
   /// Entrega em casa (DT-075): ligada pela diretoria, só na cidade configurada.
   deliveryEnabled         Boolean      @default(false) @map("delivery_enabled")
   deliveryCity            String       @default("Rio Branco") @map("delivery_city") @db.VarChar(120)

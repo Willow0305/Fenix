@@ -91,6 +91,8 @@ export interface PublicTeam {
   readonly monthlyFeeRules: string | null;
   readonly storeRules: string | null;
   readonly pickupInstructions: string | null;
+  /** Convite "Quer jogar com a gente?" ligado (DT-091); ausente em dados antigos = ligado. */
+  readonly joinInviteEnabled?: boolean;
   readonly brandAssets: Partial<Record<BrandContext, { url: string; altText: string | null }>>;
   /** Fotos do clube na página Sobre (DT-081). */
   readonly photos?: readonly { id: string; url: string; altText: string | null }[];

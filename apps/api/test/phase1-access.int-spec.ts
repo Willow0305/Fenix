@@ -557,6 +557,34 @@ describe('Fase 1 — autenticação, permissões e configurações', () => {
       expect(payment.body.pixKey).toBe('pix@fenix.example');
     });
 
+    it('liga e desliga o convite "Quer jogar com a gente?" (DT-091)', async () => {
+      const admin = await tokenFor(ctx, ['admin']);
+
+      expect((await ctx.http().get('/api/v1/public/team').expect(200)).body.joinInviteEnabled).toBe(
+        true
+      );
+
+      for (const enabled of [false, true]) {
+        await ctx
+          .http()
+          .patch('/api/v1/team-settings')
+          .set('Authorization', `Bearer ${admin.token}`)
+          .send({ joinInviteEnabled: enabled })
+          .expect(200);
+
+        const pub = await ctx.http().get('/api/v1/public/team').expect(200);
+
+        expect(pub.body.joinInviteEnabled).toBe(enabled);
+      }
+
+      await ctx
+        .http()
+        .patch('/api/v1/team-settings')
+        .set('Authorization', `Bearer ${admin.token}`)
+        .send({ joinInviteEnabled: 'sim' })
+        .expect(422);
+    });
+
     it('envia logo validada e recusa arquivo disfarçado', async () => {
       const board = await tokenFor(ctx, ['board']);
       const uploaded = await ctx

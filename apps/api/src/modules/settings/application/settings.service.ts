@@ -52,6 +52,8 @@ export interface PublicTeamSettings {
   readonly monthlyFeeRules: string | null;
   readonly storeRules: string | null;
   readonly pickupInstructions: string | null;
+  /** Convite "Quer jogar com a gente?" ligado; com seletiva aberta o site mostra mesmo assim. */
+  readonly joinInviteEnabled: boolean;
   readonly brandAssets: Partial<Record<TeamBrandContext, { url: string; altText: string | null }>>;
   /** Fotos do clube na página Sobre, na ordem da diretoria (DT-081). */
   readonly photos: readonly { id: string; url: string; altText: string | null }[];
@@ -88,6 +90,7 @@ export type PublicSettingsPatch = Partial<{
   monthlyFeeRules: string | null;
   storeRules: string | null;
   pickupInstructions: string | null;
+  joinInviteEnabled: boolean;
 }>;
 
 const SETTINGS_INCLUDE = {
@@ -186,6 +189,7 @@ export class SettingsService {
       monthlyFeeRules: row.monthlyFeeRules,
       storeRules: row.storeRules,
       pickupInstructions: row.pickupInstructions,
+      joinInviteEnabled: row.joinInviteEnabled,
       brandAssets: Object.fromEntries(
         row.brandAssets.map((asset) => [
           asset.context,

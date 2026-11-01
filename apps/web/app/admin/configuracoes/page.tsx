@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 import {
   Alert,
@@ -165,6 +165,22 @@ export default function SettingsPage() {
     settings.setData(updated);
     savePublic.setMessage('Configurações públicas salvas. O site já reflete as alterações.');
   });
+  // Convite "Quer jogar com a gente?" (DT-091): liga e desliga na hora, sem o botão Salvar.
+  const inviteTarget = useRef(true);
+  const toggleInvite = useSubmit(async () => {
+    const enabled = inviteTarget.current;
+    const updated = await api<AdminTeam>('/team-settings', {
+      method: 'PATCH',
+      body: { joinInviteEnabled: enabled }
+    });
+
+    settings.setData(updated);
+    toggleInvite.setMessage(
+      enabled
+        ? 'Convite ligado: aparece na página Times.'
+        : 'Convite desligado: só aparece quando houver seletiva aberta.'
+    );
+  });
   const saveFinancial = useSubmit(async () => {
     const updated = await api<AdminTeam>('/team-settings/financial', {
       method: 'PUT',
@@ -314,6 +330,28 @@ export default function SettingsPage() {
           <Alert kind="info">Somente administradores podem alterar os dados públicos.</Alert>
         )}
       </form>
+
+      <section className="card stack" aria-labelledby="convites-site">
+        <h2 id="convites-site">Convite para jogar</h2>
+        {toggleInvite.message ? <Alert kind="success">{toggleInvite.message}</Alert> : null}
+        <ErrorSummary error={toggleInvite.error} />
+        <label className="checkbox">
+          <input
+            type="checkbox"
+            checked={settings.data.joinInviteEnabled !== false}
+            disabled={!editable || toggleInvite.pending}
+            onChange={(event) => {
+              inviteTarget.current = event.target.checked;
+              void toggleInvite.submit();
+            }}
+          />
+          <span>Mostrar o convite "Quer jogar com a gente?" na página Times</span>
+        </label>
+        <p className="muted m-0">
+          Desligado, o convite some enquanto não houver seletiva aberta. Com uma seletiva aberta,
+          ele aparece mesmo desligado, para levar às inscrições.
+        </p>
+      </section>
 
       {settings.data.financial ? (
         <form className="form card" onSubmit={(event) => void saveFinancial.submit(event)}>

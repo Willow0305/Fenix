@@ -6,6 +6,12 @@ O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) e o 
 
 ## [Não publicado]
 
+### Convite para jogar (2026-11-01)
+
+#### Adicionado
+
+- a diretoria pode desligar o convite "Quer jogar com a gente?" em Configurações; com seletiva aberta ele aparece mesmo desligado (DT-091).
+
 ### Pré-vendas em carrossel (2026-11-01)
 
 #### Alterado

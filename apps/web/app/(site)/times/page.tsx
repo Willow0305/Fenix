@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { Avatar } from '../../../components/avatar';
 import { BrandLogo } from '../../../components/brand-logo';
 import { Icon } from '../../../components/icon';
-import { JoinTeamCta } from '../../../components/join-team-cta';
+import { JoinTeamCta, showJoinInvite } from '../../../components/join-team-cta';
 import { firstTeamLogo, SYMBOL_SRC } from '../../../lib/brand';
 import { fixedSrcSet, responsiveSrcSet } from '../../../lib/image-url';
 import { getPublicTeam, serverGet } from '../../../lib/server-api';
@@ -82,7 +82,10 @@ export default async function TeamsPage({
         ))}
       </nav>
 
-      <JoinTeamCta openTryouts={openTryouts} />
+      {/* Desligado pela diretoria, só volta a aparecer com seletiva aberta (DT-091). */}
+      {showJoinInvite(club.joinInviteEnabled, openTryouts) ? (
+        <JoinTeamCta openTryouts={openTryouts} />
+      ) : null}
 
       {teamCount === 0 ? (
         <p className="card empty">

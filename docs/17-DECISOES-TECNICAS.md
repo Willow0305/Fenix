@@ -1864,3 +1864,14 @@ O ECA Digital (Lei 15.211/2025, em vigor desde 17/03/2026; Decreto 12.880/2026) 
 ### Consequências
 
 - teste ponta a ponta do carrossel em celular e computador guarda quadros da travessia na pasta do teste em `test-results`.
+
+## DT-091 — Convite "Quer jogar com a gente?" pode ser desligado
+
+- **Estado:** Aceita; implementada em 2026-11-01
+- **Data:** 2026-11-01
+- **Aprovador:** responsável do projeto ("deveria ser possível desativar, às vezes não queremos ninguém, mas toda vez que uma seletiva estiver aberta ela aparece (mesmo que esteja desativada)")
+
+### Decisão
+
+- `team_settings.join_invite_enabled` (padrão ligado; migração `20261101100000_convite_jogar`), alterado em Configurações → "Convite para jogar", com efeito imediato e auditoria das configurações públicas;
+- a página Times mostra o convite quando ele está ligado **ou** quando há seletiva aceitando inscrição (`showJoinInvite`); desligado e sem seletiva, não aparece.
