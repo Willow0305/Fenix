@@ -10,7 +10,7 @@ O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) e o 
 
 #### Alterado
 
-- a transição da pré-venda usa a fênix em ataque enviada pela diretoria, maior que o cartão, e ficou mais lenta (1,1 s) (DT-090).
+- a transição da pré-venda usa a fênix em ataque enviada pela diretoria, um pouco maior que o cartão e mais lenta (1,1 s): ela passa puxando a remessa antiga, e a nova surge de transparente a visível; na volta vem invertida (DT-090).
 
 ### Responsável e canais (2026-11-01)
 

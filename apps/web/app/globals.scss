@@ -3453,23 +3453,19 @@ details.collapsible {
     visibility: visible;
   }
 
-  // A que sai some por baixo enquanto a nova é revelada atrás da fênix.
+  // A que sai é puxada pela fênix e some; a nova surge depois, de transparente a visível.
   &.is-leaving {
-    z-index: 1;
-    animation: campaign-conceal-forward var(--campaign-sweep) var(--ease-in-out) both;
+    z-index: 2;
+    animation: campaign-pull-forward var(--campaign-sweep) var(--ease-in-out) both;
   }
 
   &.is-entering {
-    z-index: 2;
-    animation: campaign-reveal-forward var(--campaign-sweep) var(--ease-in-out) both;
+    z-index: 1;
+    animation: campaign-arrive var(--campaign-sweep) var(--ease-out) both;
   }
 
   .is-back > &.is-leaving {
-    animation-name: campaign-conceal-back;
-  }
-
-  .is-back > &.is-entering {
-    animation-name: campaign-reveal-back;
+    animation-name: campaign-pull-back;
   }
 }
 
@@ -3539,50 +3535,49 @@ details.collapsible {
   }
 }
 
-// Carrossel da pré-venda (DT-090): a fênix da logo atravessa o cartão em chamas e revela a
-// próxima remessa; voltando, vem do lado oposto. Anima só `transform`, `opacity` e
-// `clip-path`; a borda revelada e a cabeça da fênix usam a mesma curva e duração.
+// Carrossel da pré-venda (DT-090): a fênix atravessa o cartão em chamas puxando a remessa
+// antiga junto; a nova surge em seguida, de transparente a visível. Voltando, tudo vem do lado
+// oposto. Anima só `transform` e `opacity`.
 .campaign-highlight {
   --campaign-sweep: 1100ms;
 }
 
-@keyframes campaign-reveal-forward {
-  from {
-    clip-path: inset(0 100% 0 0);
+// A remessa antiga espera a fênix chegar e é arrastada com ela para fora do cartão.
+@keyframes campaign-pull-forward {
+  0%,
+  22% {
+    opacity: 1;
+    transform: translateX(0);
   }
 
-  to {
-    clip-path: inset(0 0 0 0);
-  }
-}
-
-@keyframes campaign-conceal-forward {
-  from {
-    clip-path: inset(0 0 0 0);
-  }
-
-  to {
-    clip-path: inset(0 0 0 100%);
+  100% {
+    opacity: 0;
+    transform: translateX(115%);
   }
 }
 
-@keyframes campaign-reveal-back {
-  from {
-    clip-path: inset(0 0 0 100%);
+@keyframes campaign-pull-back {
+  0%,
+  22% {
+    opacity: 1;
+    transform: translateX(0);
   }
 
-  to {
-    clip-path: inset(0 0 0 0);
+  100% {
+    opacity: 0;
+    transform: translateX(-115%);
   }
 }
 
-@keyframes campaign-conceal-back {
-  from {
-    clip-path: inset(0 0 0 0);
+// A nova aparece depois que a fênix passou.
+@keyframes campaign-arrive {
+  0%,
+  55% {
+    opacity: 0;
   }
 
-  to {
-    clip-path: inset(0 100% 0 0);
+  100% {
+    opacity: 1;
   }
 }
 
@@ -3660,16 +3655,18 @@ details.collapsible {
   position: absolute;
   top: 50%;
   right: 0;
-  // Maior que o cartão de propósito: o excesso é cortado na borda dele.
-  width: clamp(16rem, 38vw, 28rem);
-  aspect-ratio: 265 / 204;
-  translate: 30% -55%;
+  // Um pouco maior que o cartão: a altura acompanha a dele; o excesso é cortado na borda.
+  height: 120%;
+  aspect-ratio: 256 / 181;
+  // No celular o cartão é alto: a largura não passa de uma vez e meia a dele.
+  max-width: 150%;
+  translate: 30% -50%;
   animation: campaign-phoenix-exit var(--campaign-sweep) linear both;
 
   .is-back > & {
     right: auto;
     left: 0;
-    translate: -30% -55%;
+    translate: -30% -50%;
     animation-name: campaign-phoenix-exit-back;
   }
 }
@@ -3688,10 +3685,10 @@ details.collapsible {
     z-index: 1;
     width: 100%;
     height: 100%;
-    // A fênix em ataque olha para a esquerda: espelhada, a cabeça vai na dianteira; levemente
-    // erguida para o voo ficar na horizontal. O brilho de brasa fica parado.
-    scale: -1 1;
-    rotate: -18deg;
+    // Como no desenho, a cabeça vai na dianteira (para a direita); ao voltar, o trilho inteiro
+    // é espelhado. Levemente inclinada para o voo ficar na horizontal; o brilho fica parado.
+    object-fit: contain;
+    rotate: 8deg;
     filter: drop-shadow(0 0 0.6rem rgb(255 150 40 / 85%))
       drop-shadow(0 0 1.6rem rgb(205 21 29 / 70%));
   }

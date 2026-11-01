@@ -55,9 +55,10 @@ function CampaignSlide({ campaign, titleId }: { campaign: Campaign; titleId: str
 /**
  * Destaque das pré-vendas abertas no topo da loja (Onda 1, docs/31; carrossel DT-090): uma
  * remessa por vez, com prazo e mínimo vindos da remessa. Com mais de uma, a fênix atravessa
- * o cartão revelando a próxima; voltar faz a fênix vir do lado oposto. A troca automática
- * para com o mouse, o toque ou o foco no cartão (WCAG 2.2.2) e não acontece com "reduzir
- * movimento". O botão fica parado: só o conteúdo da remessa troca.
+ * o cartão puxando a remessa antiga, e a próxima surge em seguida; voltar faz a fênix vir do
+ * lado oposto, invertida. A troca automática para com o mouse, o toque ou o foco no cartão
+ * (WCAG 2.2.2) e não acontece com "reduzir movimento". O botão fica parado: só o conteúdo da
+ * remessa troca.
  */
 export function CampaignHighlight({ campaigns }: { readonly campaigns: readonly Campaign[] }) {
   const [index, setIndex] = useState(0);
@@ -186,7 +187,7 @@ export function CampaignHighlight({ campaigns }: { readonly campaigns: readonly 
         <div key={run} className={`campaign-phoenix is-${direction}`} aria-hidden="true">
           <span className="campaign-phoenix-body">
             <span className="campaign-phoenix-flip">
-              <img src="/brand/fenix-ataque.svg" alt="" width={265} height={204} />
+              <img src="/brand/fenix-ataque.svg" alt="" width={256} height={181} />
             </span>
           </span>
         </div>
