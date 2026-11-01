@@ -45,6 +45,9 @@ Quando as fontes divergirem, a divergência é mantida em [`PENDENCIAS.md`](../P
 | [29-CORRECAO-DE-TELAS](./29-CORRECAO-DE-TELAS.md) | padrão de correção de telas e registro das correções |
 | [30-REVISAO-GERAL](./30-REVISAO-GERAL.md) | revisão geral: versões, escala, segurança, operação e próximas funcionalidades |
 | [31-PLANO-DE-EXPERIENCIA](./31-PLANO-DE-EXPERIENCIA.md) | plano de experiência e conversão com as skills de design, por ondas |
+| [32-TERMOS-DE-USO](./32-TERMOS-DE-USO.md) | rascunho dos termos de uso para revisão jurídica |
+| [33-POLITICA-DE-PRIVACIDADE](./33-POLITICA-DE-PRIVACIDADE.md) | rascunho de privacidade baseado no tratamento implementado |
+| [34-RESUMO-DA-APLICACAO-PARA-IA](./34-RESUMO-DA-APLICACAO-PARA-IA.md) | contexto do sistema e instruções para revisões futuras por IA |
 | [diagramas/ERD](./diagramas/ERD.md) | relacionamentos Mermaid |
 
 ## Governança

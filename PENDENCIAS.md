@@ -51,8 +51,8 @@ Prioridades:
 
 - **Prioridade:** P1
 - **Bloqueia:** páginas públicas e cadastro
-- **Questão:** faltam nome oficial, CNPJ/representação quando aplicável, endereço, contatos, redes, história aprovada, termos, política de privacidade, retirada e dados bancários/PIX autorizados.
-- **Recomendação:** diretoria fornecer conteúdo aprovado e separar claramente dado público de configuração financeira restrita.
+- **Questão:** faltam nome oficial, CNPJ/representação quando aplicável, endereço, contatos, redes, história aprovada, versão final de termos e política de privacidade, instruções de retirada e dados bancários/PIX autorizados. Há rascunhos em `docs/32-TERMOS-DE-USO.md` e `docs/33-POLITICA-DE-PRIVACIDADE.md`; eles não estão aprovados nem publicados.
+- **Recomendação:** diretoria e assessoria jurídica preencherem e aprovarem os documentos, definirem canais de atendimento e configurarem o texto aprovado nas páginas públicas. Separar claramente dado público de configuração financeira restrita. Registrar a versão efetivamente aceita pelo usuário.
 
 ## 3. Pessoas, acesso e LGPD
 
@@ -545,6 +545,14 @@ Prioridades:
 - **Questão:** o teste registrou "500 em /api/v1/cart". O log da API dos testes não é guardado, então a causa não foi confirmada. Hipótese: duas requisições simultâneas criando o carrinho do mesmo usuário (`cart.service.ts`, sem restrição de unicidade por usuário ativo).
 - **Recomendação:** guardar o log da API nos testes ponta a ponta (`e2e/start.cjs`) e, se a hipótese se confirmar, tornar a criação do carrinho idempotente por dono.
 - **Impacto:** loja (carrinho), testes ponta a ponta. As mensagens do carrinho e do pedido com "unidade(s)" e "disponível(is)" foram corrigidas em 2026-10-30.
+
+### PEN-071 — Revisão jurídica de arrependimento e aceite versionado
+
+- **Prioridade:** P0
+- **Bloqueia:** publicação dos termos definitivos e ativação comercial sem informação jurídica revisada
+- **Questão:** `DT-070` e a interface da loja (`apps/web/components/consumer-rights.tsx`) afirmam que itens personalizados não admitem arrependimento e contam o prazo a partir da entrega comprovada (ou da ativação para afiliação). A aplicação dessas condições e seu termo inicial devem ser conferidos à luz do CDC antes de serem publicados como regra; a documentação técnica reconhece que a exceção para personalizados não está expressa no texto legal. Além disso, o cadastro registra `termsAccepted: true`, mas não associa o evento a uma versão/hash dos termos e da política.
+- **Recomendação:** assessoria jurídica validar os cenários de produto personalizado, afiliação, contrato e prazos; preservar e informar os direitos legais sem criar renúncia genérica. Até a aprovação, não tratar a redação atual da interface como interpretação jurídica definitiva. Definir versão/data/hash imutável, guardar qual versão foi aceita e apresentar a versão aplicável antes do aceite.
+- **Impacto:** `docs/32-TERMOS-DE-USO.md`, `docs/33-POLITICA-DE-PRIVACIDADE.md`, `apps/web/components/consumer-rights.tsx`, cadastro, checkout e registro de aceite.
 
 ## 11. Critério de resolução
 
