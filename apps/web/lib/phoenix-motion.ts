@@ -4,9 +4,6 @@
  * fica a logo parada sem fundo.
  */
 export const PHOENIX_LOOP_SRC = '/brand/animacoes/tela-inicial/fenix-loop.webm';
-export const PHOENIX_SUCCESS_SRC = '/brand/animacoes/login/fenix-sucesso.webm';
-/** Duração do vídeo de sucesso; serve de limite caso o evento de fim não chegue. */
-export const PHOENIX_SUCCESS_MS = 4500;
 
 export interface MotionEnvironment {
   readonly reducedMotion: boolean;

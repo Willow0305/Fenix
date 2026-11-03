@@ -10,7 +10,7 @@ O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) e o 
 
 #### Adicionado
 
-- a fênix da tela inicial e da tela de login ganhou vida (vídeo em loop); ao entrar, uma explosão de brasas leva para o sistema; em conexão lenta, aparelho fraco, movimento reduzido ou Safari/iPhone fica a logo parada (DT-098).
+- a fênix da tela inicial e da tela de login ganhou vida (vídeo em loop); no login ela fica à direita do formulário; em conexão lenta, aparelho fraco, movimento reduzido ou Safari/iPhone fica a logo parada (DT-098).
 
 ### Auditoria em português (2026-11-01)
 

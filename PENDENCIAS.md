@@ -560,12 +560,12 @@ Prioridades:
 - **Impacto:** `docs/32-TERMOS-DE-USO.md`, `docs/33-POLITICA-DE-PRIVACIDADE.md`, `apps/web/components/consumer-rights.tsx`, cadastro, checkout e registro de aceite.
 - **Andamento (01/11/2026):** aceite versionado implementado (`DT-089`): cada texto salvo nas configurações vira versão imutável com conteúdo e SHA-256; o cadastro guarda as versões aceitas e recusa versão desatualizada; termos e política mostram a versão em vigor. Falta definir se uma nova versão exige novo aceite de quem já tem conta. **Arrependimento em personalizados revisto em 01/11/2026 (`DT-095`, substitui `DT-093`):** com a jurisprudência dividida, o responsável decidiu que a diretoria pode recusar a desistência de itens personalizados, com motivo registrado e aviso destacado antes da compra; risco aceito, revisão do advogado recomendada. **Novo aceite em versão nova: decidido "sim" em 01/11/2026 e implementado (`DT-094`).** Resta da PEN-071 só a revisão jurídica dos textos finais dos documentos.
 
-### PEN-072 — Fênix animada: Safari/iPhone e peso do vídeo de sucesso
+### PEN-072 — Fênix animada no Safari e no iPhone
 
 - **Prioridade:** P3
-- **Bloqueia:** nada; nesses casos fica a logo parada (`DT-098`)
-- **Questão:** (1) Safari e todos os navegadores de iPhone/iPad não mostram a transparência do WebM; hoje eles veem a logo parada. (2) O vídeo de sucesso tem 18 MB (1280×720), pesado para dados móveis; ele só é baixado em conexão 4G ou melhor e só toca se já tiver carregado por inteiro. Não havia ferramenta de vídeo (ffmpeg) no computador para comprimir.
-- **Recomendação:** pedir à ferramenta que gerou a animação (ou exportar) uma versão HEVC com transparência (`.mov`/`.mp4` "HEVC with alpha") para Safari/iPhone, e uma versão do vídeo de sucesso com menos de 5 MB (menor resolução ou taxa de bits). Com os arquivos, basta acrescentar a segunda fonte no componente.
+- **Bloqueia:** nada; nesses navegadores fica a logo parada (`DT-098`)
+- **Questão:** Safari e todos os navegadores de iPhone/iPad não mostram a transparência do WebM; hoje eles veem a logo parada.
+- **Recomendação:** pedir à ferramenta que gerou a animação uma versão HEVC com transparência (`.mov`/`.mp4` "HEVC with alpha"); com o arquivo, basta acrescentar a segunda fonte no componente. GIF não serve: não tem transparência parcial (o brilho fica serrilhado) e sai maior que o WebM.
 - **Impacto:** `apps/web/components/phoenix-motion.tsx`, `apps/web/lib/phoenix-motion.ts`, `apps/web/public/brand/animacoes/`.
 
 ## 11. Critério de resolução

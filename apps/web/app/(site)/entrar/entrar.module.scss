@@ -1,0 +1,37 @@
+.page {
+  max-width: 960px;
+  padding-top: 2.5rem;
+}
+
+// Formulário à esquerda e a fênix à direita (DT-098). A fênix fica fora do fluxo para a
+// altura da linha vir só do formulário: ela acompanha o login e a verificação em duas etapas.
+.layout {
+  display: grid;
+  grid-template-columns: minmax(0, 480px) minmax(0, 1fr);
+  gap: 2rem;
+  align-items: stretch;
+}
+
+.phoenix {
+  position: relative;
+}
+
+.phoenix > .fill {
+  position: absolute;
+  inset: 0;
+  display: block;
+  --logo-size: 100%;
+}
+
+// No celular não há lado direito: a fênix fica pequena acima do formulário.
+@media (max-width: 760px) {
+  .layout {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 1rem;
+  }
+
+  .phoenix {
+    order: -1;
+    height: 120px;
+  }
+}

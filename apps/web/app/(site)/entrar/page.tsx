@@ -5,45 +5,23 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { Suspense, useState } from 'react';
 
 import { BrandLogo } from '../../../components/brand-logo';
-import {
-  PHOENIX_STAGE_CLASS,
-  PhoenixLoop,
-  usePhoenixSuccess
-} from '../../../components/phoenix-motion';
+import { PHOENIX_STAGE_CLASS, PhoenixLoop } from '../../../components/phoenix-motion';
 import { Alert, ErrorSummary, TextField, useSubmit } from '../../../components/ui';
 import { ApiError } from '../../../lib/api-client';
 import { useAuth } from '../../../lib/auth-context';
 import { safeInternalPath } from '../../../lib/safe-redirect';
+import styles from './entrar.module.scss';
 
-/** Formulário e a explosão de brasas fora dele: o vídeo carrega uma vez só (DT-098). */
 function LoginForm() {
-  const router = useRouter();
-  const params = useSearchParams();
-  const success = usePhoenixSuccess();
-  // A fênix abre as asas e as brasas levam para o sistema; sem vídeo, vai direto.
-  const goNext = () => {
-    const target = safeInternalPath(params.get('next'));
-
-    router.prefetch(target);
-    success.celebrate(() => router.push(target));
-  };
-
-  return (
-    <>
-      {success.overlay}
-      <LoginSteps goNext={goNext} />
-    </>
-  );
-}
-
-function LoginSteps({ goNext }: { readonly goNext: () => void }) {
   const { login, verifyMfa } = useAuth();
+  const router = useRouter();
   const params = useSearchParams();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [challenge, setChallenge] = useState<string | null>(null);
   const [code, setCode] = useState('');
   const [remember, setRemember] = useState(true);
+  const goNext = () => router.push(safeInternalPath(params.get('next')));
   const action = useSubmit(async () => {
     const result = await login(email, password);
 
@@ -156,17 +134,17 @@ function LoginSteps({ goNext }: { readonly goNext: () => void }) {
 
 export default function LoginPage() {
   return (
-    <div
-      className={`container ${PHOENIX_STAGE_CLASS}`}
-      style={{ maxWidth: 480, paddingTop: '2.5rem' }}
-    >
-      <div style={{ display: 'flex', justifyContent: 'center' }}>
-        <PhoenixLoop fallback={<BrandLogo alt="" size={120} />} />
-      </div>
+    <div className={`container ${styles.page}`}>
       <h1>Entrar</h1>
-      <Suspense>
-        <LoginForm />
-      </Suspense>
+      {/* Formulário à esquerda e a fênix à direita, da mesma altura do formulário (DT-098). */}
+      <div className={`${styles.layout} ${PHOENIX_STAGE_CLASS}`}>
+        <Suspense>
+          <LoginForm />
+        </Suspense>
+        <div className={styles.phoenix}>
+          <PhoenixLoop className={styles.fill} fallback={<BrandLogo alt="" size={320} />} />
+        </div>
+      </div>
     </div>
   );
 }
