@@ -28,8 +28,15 @@ self.addEventListener('activate', (event) => {
   );
 });
 
-/** Arquivos com hash no nome (imutáveis) e a pasta da marca. */
+/**
+ * Arquivos com hash no nome (imutáveis) e a pasta da marca. Os vídeos da fênix ficam de
+ * fora: são grandes, chegam em pedaços (respostas 206) e o cache do navegador já basta.
+ */
 function isStaticAsset(url) {
+  if (url.pathname.startsWith('/brand/animacoes/')) {
+    return false;
+  }
+
   return url.pathname.startsWith('/_next/static/') || url.pathname.startsWith('/brand/');
 }
 

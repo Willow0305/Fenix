@@ -1,0 +1,76 @@
+// Fênix animada (DT-098). A logo parada e o vídeo ocupam o mesmo lugar; um some quando o
+// outro aparece, sem mexer no layout.
+.loop {
+  position: relative;
+  display: inline-block;
+  line-height: 0;
+  transition: filter 320ms ease;
+}
+
+.still {
+  transition: opacity 400ms ease;
+}
+
+.video {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  opacity: 0;
+  pointer-events: none;
+  // O vídeo tem margem para o brilho: ampliado, a fênix fica do tamanho da logo parada.
+  transform: scale(1.15);
+  transition: opacity 400ms ease;
+}
+
+.loop[data-state='playing'] {
+  .still {
+    opacity: 0;
+  }
+
+  .video {
+    opacity: 1;
+  }
+}
+
+// Tela de login: a fênix brilha mais com o cursor (ou o foco) no botão Entrar.
+.stage:has(button[type='submit']:hover, button[type='submit']:focus-visible) .loop {
+  filter: brightness(1.18) drop-shadow(0 0 22px rgb(205 21 29 / 55%));
+}
+
+// Explosão de brasas do login: tela cheia, escura, e leva para o sistema no fim do vídeo.
+.success {
+  position: fixed;
+  inset: 0;
+  z-index: 2000;
+  background: var(--color-ink);
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transition:
+    opacity 280ms ease,
+    visibility 0s linear 280ms;
+}
+
+.success[data-playing='true'] {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+  transition: opacity 280ms ease;
+}
+
+.successVideo {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .loop,
+  .still,
+  .video,
+  .success {
+    transition: none;
+  }
+}

@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { BrandLogo } from '../../components/brand-logo';
 import { Icon } from '../../components/icon';
 import { MembershipCta } from '../../components/membership-cta';
+import { PhoenixLoop } from '../../components/phoenix-motion';
 import { firstTeamLogo, firstTeamPhoto } from '../../lib/brand';
 import { getPublicTeam, serverGet } from '../../lib/server-api';
 import type { Page } from '../../lib/api-types';
@@ -47,7 +48,9 @@ export default async function HomePage() {
             </div>
           </div>
           <div className={styles.heroLogo}>
-            <BrandLogo src={logo?.url} alt={logo?.altText ?? undefined} size={320} />
+            <PhoenixLoop
+              fallback={<BrandLogo src={logo?.url} alt={logo?.altText ?? undefined} size={320} />}
+            />
           </div>
         </div>
       </section>

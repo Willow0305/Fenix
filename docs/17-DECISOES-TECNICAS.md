@@ -1985,3 +1985,18 @@ Pesquisa de 01/11/2026 (`docs/35` §1.3): jurisprudência dividida. Decisões do
 - o filtro "Ação começa com", que exigia digitar o código, virou uma lista com as ações em português, em ordem alfabética;
 - o histórico da ficha do atleta usa os mesmos textos;
 - ação nova sem tradução mostra um texto montado a partir do código ("Pedido: criado") e, se nem isso der, o próprio código; um teste lê o código da API e falha se alguma ação gravada não tiver tradução.
+
+## DT-098 — Fênix animada no início e no login
+
+- **Estado:** Aceita; implementada em 2026-11-02
+- **Data:** 2026-11-02
+- **Aprovador:** responsável do projeto ("troque a fênix da tela inicial pela animada"; "se a conexão estiver lenta ou o sistema estiver pesado demais para certos dispositivos, troque para a logo sem fundo")
+
+### Decisão
+
+- os vídeos ficam em `apps/web/public/brand/animacoes/` (WebM com transparência, gerados por IA pelo responsável): `tela-inicial/fenix-loop.webm` (loop de 12 s) e `login/fenix-sucesso.webm` (4,5 s, explosão de brasas); as prévias em MP4 com fundo escuro ficam guardadas e não são usadas;
+- na tela inicial, o vídeo em loop substitui a logo do destaque; na tela de login, ele aparece acima do formulário e brilha mais com o cursor ou o foco no botão Entrar;
+- depois do login (com ou sem verificação em duas etapas), o vídeo de sucesso toca em tela cheia sobre fundo escuro e só no fim leva para o sistema; se o vídeo não estiver carregado por inteiro naquele momento, entra na hora, sem esperar;
+- a logo parada (sem fundo) fica no lugar quando: o sistema pede movimento reduzido; economia de dados ligada; conexão 3G ou mais lenta; aparelho com até 2 GB de memória ou até 2 núcleos; Safari e qualquer navegador de iPhone/iPad (mostram o WebM com fundo preto); o loop não começa em 4 s; ou o vídeo dá erro (`apps/web/lib/phoenix-motion.ts`);
+- a logo parada continua na página, invisível sob o vídeo, e é ela que dá o texto alternativo; os vídeos são decorativos (`aria-hidden`), sem som;
+- o service worker não guarda `/brand/animacoes/` (arquivos grandes, servidos em pedaços); fica com o cache do navegador.
