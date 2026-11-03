@@ -23,9 +23,14 @@ function useVideoAllowed(): boolean {
  */
 export function PhoenixLoop({
   fallback,
+  src = PHOENIX_LOOP_SRC,
+  padded = true,
   className
 }: {
   readonly fallback: ReactNode;
+  readonly src?: string;
+  /** O vídeo tem margem em volta para o brilho e precisa ser ampliado. */
+  readonly padded?: boolean;
   readonly className?: string | undefined;
 }) {
   const allowed = useVideoAllowed();
@@ -50,12 +55,13 @@ export function PhoenixLoop({
     <div
       className={`${styles.loop}${className ? ` ${className}` : ''}`}
       data-state={showVideo ? state : 'static'}
+      data-padded={padded}
     >
       <div className={styles.still}>{fallback}</div>
       {showVideo ? (
         <video
           className={styles.video}
-          src={PHOENIX_LOOP_SRC}
+          src={src}
           autoPlay
           muted
           loop

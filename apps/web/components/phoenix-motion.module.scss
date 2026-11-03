@@ -20,9 +20,12 @@
   object-fit: contain;
   opacity: 0;
   pointer-events: none;
-  // O vídeo tem margem para o brilho: ampliado, a fênix fica do tamanho da logo parada.
-  transform: scale(1.15);
   transition: opacity 400ms ease;
+}
+
+// O vídeo tem margem para o brilho: ampliado, a fênix fica do tamanho da logo parada.
+.loop[data-padded='true'] .video {
+  transform: scale(1.15);
 }
 
 .loop[data-state='playing'] {

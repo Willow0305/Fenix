@@ -9,6 +9,7 @@ import { PHOENIX_STAGE_CLASS, PhoenixLoop } from '../../../components/phoenix-mo
 import { Alert, ErrorSummary, TextField, useSubmit } from '../../../components/ui';
 import { ApiError } from '../../../lib/api-client';
 import { useAuth } from '../../../lib/auth-context';
+import { PHOENIX_LOGIN_SRC } from '../../../lib/phoenix-motion';
 import { safeInternalPath } from '../../../lib/safe-redirect';
 import styles from './entrar.module.scss';
 
@@ -142,7 +143,12 @@ export default function LoginPage() {
           <LoginForm />
         </Suspense>
         <div className={styles.phoenix}>
-          <PhoenixLoop className={styles.fill} fallback={<BrandLogo alt="" size={320} />} />
+          <PhoenixLoop
+            src={PHOENIX_LOGIN_SRC}
+            padded={false}
+            className={styles.fill}
+            fallback={<BrandLogo alt="" size={320} />}
+          />
         </div>
       </div>
     </div>

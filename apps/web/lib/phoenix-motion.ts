@@ -4,6 +4,8 @@
  * fica a logo parada sem fundo.
  */
 export const PHOENIX_LOOP_SRC = '/brand/animacoes/tela-inicial/fenix-loop.webm';
+/** Brasão completo animado da tela de login, sem margem em volta. */
+export const PHOENIX_LOGIN_SRC = '/brand/animacoes/login/fenix-login-loop.webm';
 
 export interface MotionEnvironment {
   readonly reducedMotion: boolean;

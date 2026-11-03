@@ -31,11 +31,29 @@ describe('fênix animada (DT-098)', () => {
 
     expect(video).not.toBeNull();
     expect(video).toHaveAttribute('disablepictureinpicture');
+    expect(video).toHaveAttribute('src', '/brand/animacoes/tela-inicial/fenix-loop.webm');
     expect(screen.getByAltText('Fênix')).toBeInTheDocument();
 
     act(() => jest.advanceTimersByTime(4000));
 
     expect(container.querySelector('video')).toBeNull();
     expect(screen.getByAltText('Fênix')).toBeInTheDocument();
+  });
+
+  it('toca o vídeo pedido, como o brasão da tela de login', () => {
+    mockReducedMotion(false);
+    const { container } = render(
+      <PhoenixLoop
+        src="/brand/animacoes/login/fenix-login-loop.webm"
+        padded={false}
+        fallback={<img alt="Fênix" />}
+      />
+    );
+
+    expect(container.querySelector('video')).toHaveAttribute(
+      'src',
+      '/brand/animacoes/login/fenix-login-loop.webm'
+    );
+    expect(container.firstElementChild).toHaveAttribute('data-padded', 'false');
   });
 });
