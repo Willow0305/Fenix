@@ -171,6 +171,10 @@ export const AUDIT_ACTION_LABELS: Readonly<Record<string, string>> = {
   'forum.moderation.reopen': 'Fórum: tópico reaberto',
   'forum.moderation.delete': 'Fórum: conteúdo excluído',
   'forum.moderation.edit': 'Fórum: conteúdo editado pela moderação',
+  'forum.sanction.warned': 'Fórum: advertência por quebra das regras',
+  'forum.sanction.suspended': 'Fórum: pessoa suspensa',
+  'forum.sanction.lifted': 'Fórum: suspensão encerrada',
+  'forum.rules.updated': 'Regras do fórum alteradas',
   // Interessados e seletivas
   'interested.created': 'Interessado cadastrado',
   'interested.status.changed': 'Situação do interessado alterada',
@@ -328,6 +332,7 @@ export const AUDIT_ENTITY_LABELS: Readonly<Record<string, string>> = {
   ForumCategory: 'Categoria do fórum',
   ForumPost: 'Mensagem do fórum',
   ForumReport: 'Denúncia do fórum',
+  ForumSanction: 'Advertência ou suspensão do fórum',
   ForumTopic: 'Tópico do fórum',
   InterestedPerson: 'Interessado',
   LegalDocumentVersion: 'Versão dos termos',

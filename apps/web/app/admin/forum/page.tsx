@@ -12,15 +12,23 @@ import {
   PageHeader,
   Pagination,
   SelectField,
+  Skeleton,
+  TextArea,
   TextField,
   useSubmit
 } from '../../../components/ui';
+import {
+  ForumSanctionDialog,
+  type SanctionTarget
+} from '../../../components/forum-sanction-dialog';
 import { api, errorMessage } from '../../../lib/api-client';
 import type { Page } from '../../../lib/api-types';
 import {
   FORUM_VISIBILITY,
   type ForumCategory,
   type ForumReport,
+  type ForumRules,
+  type ForumSanction,
   type ForumVisibility,
   type ModerationAction,
   REPORT_STATUS,
@@ -139,6 +147,8 @@ function Reports() {
     report: ForumReport;
     status: 'RESOLVED' | 'DISMISSED';
   } | null>(null);
+  const [sanction, setSanction] = useState<SanctionTarget | null>(null);
+  const [notice, setNotice] = useState<string | null>(null);
 
   return (
     <section className="card stack" aria-labelledby="denuncias">
@@ -165,6 +175,7 @@ function Reports() {
           </select>
         </label>
       </div>
+      {notice ? <Alert kind="success">{notice}</Alert> : null}
       {reports.error ? <Alert kind="error">{reports.error}</Alert> : null}
       {reports.loading && !reports.data ? <Loading /> : null}
       {reports.data?.data.length === 0 ? <Empty>Nenhuma denúncia.</Empty> : null}
@@ -190,8 +201,25 @@ function Reports() {
           ) : null}
           {report.details ? <p className="m-0">{report.details}</p> : null}
           {report.resolution ? <small>Decisão: {report.resolution}</small> : null}
+          {report.author ? <small className="muted">Escrito por {report.author.name}</small> : null}
           {report.status === 'OPEN' || report.status === 'UNDER_REVIEW' ? (
             <div className="row">
+              {report.author ? (
+                <button
+                  type="button"
+                  className="btn btn-secondary btn-sm"
+                  onClick={() =>
+                    setSanction({
+                      userId: report.author?.id ?? '',
+                      name: report.author?.name ?? '',
+                      topicId: report.topicId,
+                      postId: report.postId
+                    })
+                  }
+                >
+                  <Icon name="exclamation-triangle" /> Advertir ou suspender
+                </button>
+              ) : null}
               <button
                 type="button"
                 className="btn btn-secondary btn-sm"
@@ -234,7 +262,174 @@ function Reports() {
           await reports.reload();
         }}
       />
+      <ForumSanctionDialog
+        target={sanction}
+        onClose={() => setSanction(null)}
+        onDone={(message) => setNotice(message)}
+      />
     </section>
+  );
+}
+
+/**
+ * Advertências e suspensões (DT-108): em vigor primeiro; liberar pede motivo e avisa a
+ * pessoa. Nada é apagado.
+ */
+function Sanctions() {
+  const [onlyActive, setOnlyActive] = useState(true);
+  const [page, setPage] = useState(1);
+  const list = useResource<Page<ForumSanction>>('/forum/admin/sanctions', {
+    active: onlyActive ? 'true' : undefined,
+    page,
+    pageSize: 20
+  });
+  const [lifting, setLifting] = useState<ForumSanction | null>(null);
+  const [notice, setNotice] = useState<string | null>(null);
+
+  return (
+    <section className="card stack" aria-labelledby="sancoes">
+      <div className="row">
+        <h2 id="sancoes" className="m-0">
+          Advertências e suspensões
+        </h2>
+        <span className="spacer" />
+        <label className="checkbox">
+          <input
+            type="checkbox"
+            checked={onlyActive}
+            onChange={(event) => {
+              setPage(1);
+              setOnlyActive(event.target.checked);
+            }}
+          />
+          <span>Só suspensões em vigor</span>
+        </label>
+      </div>
+      <p className="muted m-0">
+        Para advertir ou suspender, use o botão na denúncia ou na mensagem do tópico.
+      </p>
+      {notice ? <Alert kind="success">{notice}</Alert> : null}
+      {list.error ? <Alert kind="error">{list.error}</Alert> : null}
+      {list.loading && !list.data ? <Loading /> : null}
+      {list.data?.data.length === 0 ? (
+        <Empty>
+          {onlyActive ? 'Ninguém está suspenso agora.' : 'Nenhuma advertência ou suspensão ainda.'}
+        </Empty>
+      ) : null}
+      {list.data?.data.map((row) => (
+        <article key={row.id} className="stack gap-xs border-b pb-md">
+          <div className="row">
+            <span
+              className={`badge ${row.kind === 'WARNING' ? 'badge-warning' : row.active ? 'badge-danger' : ''}`}
+            >
+              {row.kind === 'WARNING'
+                ? 'Advertência'
+                : row.active
+                  ? 'Suspensão em vigor'
+                  : 'Suspensão encerrada'}
+            </span>
+            <strong>{row.user.name}</strong>
+            <small className="muted">
+              por {row.createdBy} · {formatDateTime(row.createdAt)}
+            </small>
+          </div>
+          <span>
+            Regra: {row.rule}. {row.reason}
+          </span>
+          {row.kind === 'SUSPENSION' ? (
+            <small className="muted">
+              {row.liftedAt
+                ? `Liberada por ${row.liftedBy ?? 'diretoria'} em ${formatDateTime(row.liftedAt)}: ${row.liftReason ?? ''}`
+                : row.endsAt
+                  ? `${row.active ? 'Vale até' : 'Terminou em'} ${formatDateTime(row.endsAt)}`
+                  : 'Até a diretoria liberar'}
+            </small>
+          ) : null}
+          {row.topicId ? <Link href={`/forum/topicos/${row.topicId}`}>Ver o tópico</Link> : null}
+          {row.active ? (
+            <div>
+              <button
+                type="button"
+                className="btn btn-secondary btn-sm"
+                onClick={() => setLifting(row)}
+              >
+                Liberar
+              </button>
+            </div>
+          ) : null}
+        </article>
+      ))}
+      {list.data ? (
+        <Pagination
+          page={list.data.meta.page}
+          pageSize={list.data.meta.pageSize}
+          total={list.data.meta.total}
+          onChange={setPage}
+          noun={['registro', 'registros']}
+        />
+      ) : null}
+      <ConfirmDialog
+        open={lifting !== null}
+        title={`Liberar ${lifting?.user.name ?? ''} no fórum?`}
+        description="A pessoa volta a publicar, responder e reagir agora e recebe um aviso. A suspensão continua no histórico."
+        confirmLabel="Liberar"
+        requireReason
+        onClose={() => setLifting(null)}
+        onConfirm={async (reason) => {
+          await api(`/forum/admin/sanctions/${lifting?.id ?? ''}/lift`, {
+            method: 'POST',
+            body: { reason }
+          });
+          setNotice(`${lifting?.user.name ?? 'A pessoa'} foi liberada no fórum.`);
+          await list.reload();
+        }}
+      />
+    </section>
+  );
+}
+
+/** Regras do fórum (DT-108): a diretoria escreve; vazio volta ao texto inicial. */
+function RulesEditor() {
+  const rules = useResource<ForumRules>('/forum/rules');
+  const [text, setText] = useState<string | null>(null);
+  const save = useSubmit(async () => {
+    rules.setData(
+      await api<ForumRules>('/forum/admin/rules', { method: 'PUT', body: { text: text ?? '' } })
+    );
+    setText(null);
+    save.setMessage('Regras salvas. A página Regras do fórum já mostra o texto novo.');
+  });
+
+  if (!rules.data) {
+    return rules.error ? <Alert kind="error">{rules.error}</Alert> : <Skeleton lines={3} />;
+  }
+
+  return (
+    <form className="form card" onSubmit={(event) => void save.submit(event)}>
+      <h2>Regras do fórum</h2>
+      <p className="muted m-0">
+        Aparecem em <Link href="/forum/regras">Regras do fórum</Link> e no aviso de advertência. As
+        linhas numeradas, como &quot;1. Respeito: …&quot;, viram as sugestões de &quot;regra
+        quebrada&quot;.
+        {rules.data.custom ? '' : ' Hoje está o texto inicial do sistema: revise antes de usar.'}
+      </p>
+      {save.message ? <Alert kind="success">{save.message}</Alert> : null}
+      <ErrorSummary error={save.error} />
+      <TextArea
+        label="Texto das regras"
+        hint="Deixe em branco e salve para voltar ao texto inicial."
+        maxLength={20000}
+        rows={12}
+        value={text ?? rules.data.text}
+        onChange={(event) => setText(event.target.value)}
+        error={save.fieldError('text')}
+      />
+      <div className="form-actions">
+        <button type="submit" className="btn btn-primary" disabled={save.pending}>
+          {save.pending ? 'Salvando…' : 'Salvar regras'}
+        </button>
+      </div>
+    </form>
   );
 }
 
@@ -298,9 +493,11 @@ export default function ForumAdminPage() {
     <>
       <PageHeader
         title="Fórum e moderação"
-        description="Denúncias e categorias. Ocultar, fechar ou fixar é feito no próprio tópico."
+        description="Denúncias, advertências e suspensões, regras e categorias. Ocultar, fechar ou fixar é feito no próprio tópico."
       />
       <Reports />
+      <Sanctions />
+      <RulesEditor />
       <Categories />
       <History />
     </>

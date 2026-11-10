@@ -7,7 +7,7 @@ import { AppError } from '../../../common/errors/app-error';
 import { type Page, pageArgs, type PageQueryDto, toPage } from '../../../common/http/pagination';
 import { PrismaService, type PrismaTx } from '../../../common/prisma/prisma.service';
 import { RealtimeService } from '../../../common/realtime/realtime.service';
-import { categoryOf, channelsFor, whatsappNumber } from '../domain/channel-rules';
+import { categoryOf, channelsFor, mandatoryEmail, whatsappNumber } from '../domain/channel-rules';
 import { DeliveryService, recipientPhone } from './delivery.service';
 
 export interface NotifyInput {
@@ -131,7 +131,8 @@ export class NotificationsService {
           whatsapp: whatsappNumber(recipientPhone(user)),
           whatsappOptIn: user.whatsappOptInAt !== null
         },
-        available
+        available,
+        mandatoryEmail(type)
       );
 
       return channels.map((channel) => ({ notificationId: id, channel }));

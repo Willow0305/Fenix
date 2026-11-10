@@ -3,6 +3,7 @@ import { Module } from '@nestjs/common';
 import { AnnouncementsService } from './application/announcements.service';
 import { ContentAlertsService } from './application/content-alerts.service';
 import { EventsService } from './application/events.service';
+import { ForumSanctionsService } from './application/forum-sanctions.service';
 import { ForumService } from './application/forum.service';
 import { NewsGalleryService } from './application/news-gallery.service';
 import { NewsViewsService } from './application/news-views.service';
@@ -19,6 +20,7 @@ import { ContentController } from './http/content.controller';
     NewsViewsService,
     EventsService,
     ForumService,
+    ForumSanctionsService,
     AnnouncementsService,
     ContentAlertsService
   ]

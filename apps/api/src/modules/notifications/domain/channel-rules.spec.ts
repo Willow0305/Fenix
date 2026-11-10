@@ -5,6 +5,7 @@ import {
   feeReminderDueDates,
   feeReminderKind,
   feeReminderText,
+  mandatoryEmail,
   MAX_ATTEMPTS,
   retryDelayMs,
   whatsappNumber,
@@ -46,6 +47,15 @@ describe('channelsFor', () => {
     expect(channelsFor('NEWS', [], recipient, BOTH)).toEqual([]);
     expect(channelsFor('EVENTS', [], recipient, BOTH)).toEqual([]);
     expect(channelsFor('FORUM_TOPICS', [], recipient, BOTH)).toEqual([]);
+  });
+
+  it('advertência e suspensão do fórum vão por e-mail mesmo com o e-mail do fórum desligado (DT-108)', () => {
+    const off = [{ category: 'COMMUNITY' as const, channel: 'EMAIL', enabled: false }];
+
+    expect(mandatoryEmail('forum.sanction.warning')).toBe(true);
+    expect(mandatoryEmail('forum.reply')).toBe(false);
+    expect(channelsFor('COMMUNITY', off, recipient, BOTH, true)).toEqual(['EMAIL']);
+    expect(channelsFor('COMMUNITY', off, { ...recipient, email: null }, BOTH, true)).toEqual([]);
   });
 
   it('respeita a escolha registrada', () => {

@@ -98,15 +98,30 @@ export function preferenceEnabled(
   return chosen ? chosen.enabled : defaultEnabled(category);
 }
 
+/**
+ * Avisos que sempre vão por e-mail, mesmo com o e-mail da finalidade desligado: advertência,
+ * suspensão e liberação no fórum (DT-108). A pessoa precisa saber o que aconteceu com a
+ * conta; WhatsApp continua seguindo a escolha dela.
+ */
+const MANDATORY_EMAIL_PREFIXES: readonly string[] = ['forum.sanction.'];
+
+export function mandatoryEmail(type: string): boolean {
+  return MANDATORY_EMAIL_PREFIXES.some((prefix) => type.startsWith(prefix));
+}
+
 /** Canais externos em que o aviso deve sair, pela escolha da pessoa e pelo que é possível. */
 export function channelsFor(
   category: NotificationCategory,
   preferences: readonly ChannelPreference[],
   recipient: Recipient,
-  available: ReadonlySet<ExternalChannel>
+  available: ReadonlySet<ExternalChannel>,
+  forceEmail = false
 ): ExternalChannel[] {
   return EXTERNAL_CHANNELS.filter((channel) => {
-    if (!available.has(channel) || !preferenceEnabled(preferences, category, channel)) {
+    const chosen =
+      (channel === 'EMAIL' && forceEmail) || preferenceEnabled(preferences, category, channel);
+
+    if (!available.has(channel) || !chosen) {
       return false;
     }
 

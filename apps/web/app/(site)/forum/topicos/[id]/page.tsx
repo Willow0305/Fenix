@@ -26,9 +26,14 @@ import {
 import { plural } from '../../../../../lib/format';
 import { Avatar } from '../../../../../components/avatar';
 import { NewsTime } from '../../../../../components/news-card';
+import { ForumStandingNotice } from '../../forum-standing';
 import { BoardBadge, JoinForumCard, MinorForumNotice } from '../../join-forum-card';
 import { useResource } from '../../../../../lib/use-resource';
 import { Icon } from '../../../../../components/icon';
+import {
+  ForumSanctionDialog,
+  type SanctionTarget
+} from '../../../../../components/forum-sanction-dialog';
 
 type Moderation =
   | { kind: 'topic'; action: 'HIDE' | 'RESTORE' | 'CLOSE' | 'REOPEN' | 'PIN' | 'UNPIN' }
@@ -50,7 +55,8 @@ function PostItem({
   authenticated,
   onChanged,
   onModerate,
-  onReport
+  onReport,
+  onSanction
 }: {
   readonly post: ForumPost;
   readonly canModerate: boolean;
@@ -58,6 +64,8 @@ function PostItem({
   readonly onChanged: () => Promise<void>;
   readonly onModerate: (m: Moderation) => void;
   readonly onReport: (postId: string) => void;
+  /** Advertir ou suspender quem escreveu (DT-108); só para quem modera. */
+  readonly onSanction?: (target: SanctionTarget) => void;
 }) {
   const [editing, setEditing] = useState(false);
   const [text, setText] = useState(post.content ?? '');
@@ -189,6 +197,21 @@ function PostItem({
               {ACTION_LABEL[action]}
             </button>
           ))}
+          {post.author && onSanction ? (
+            <button
+              type="button"
+              className="btn btn-link"
+              onClick={() =>
+                onSanction({
+                  userId: post.author?.id ?? '',
+                  name: post.author?.name ?? '',
+                  postId: post.id
+                })
+              }
+            >
+              Advertir ou suspender quem escreveu
+            </button>
+          ) : null}
         </div>
       ) : null}
     </article>
@@ -205,6 +228,7 @@ export default function TopicPage() {
   const [reply, setReply] = useState('');
   const [moderation, setModeration] = useState<Moderation | null>(null);
   const [reporting, setReporting] = useState<string | null>(null);
+  const [sanction, setSanction] = useState<SanctionTarget | null>(null);
   const [reportReason, setReportReason] = useState('');
   const [notice, setNotice] = useState<string | null>(null);
   const send = useSubmit(async () => {
@@ -291,6 +315,7 @@ export default function TopicPage() {
             setReportReason('');
             setReporting(postId);
           }}
+          onSanction={(target) => setSanction({ ...target, topicId: t.id })}
         />
       ))}
       <Pagination
@@ -302,6 +327,7 @@ export default function TopicPage() {
       />
 
       {profile?.minorAccount ? <MinorForumNotice /> : null}
+      <ForumStandingNotice />
       {t.canReply ? (
         <form className="form card" onSubmit={(event) => void send.submit(event)}>
           <ErrorSummary error={send.error} />
@@ -376,6 +402,13 @@ export default function TopicPage() {
           onChange={(e) => setReportReason(e.target.value)}
         />
       </ConfirmDialog>
+      {t.canModerate ? (
+        <ForumSanctionDialog
+          target={sanction}
+          onClose={() => setSanction(null)}
+          onDone={(message) => setNotice(message)}
+        />
+      ) : null}
     </div>
   );
 }

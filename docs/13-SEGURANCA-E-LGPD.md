@@ -26,7 +26,7 @@ Este documento define controles mínimos e decisões bloqueadoras. Ele não cert
 | Inicialização | em produção, a API não inicia sem segredos válidos nem com adaptadores locais sem opt-in explícito |
 | Parceiros | CNPJ/CPF e registro profissional cifrados; documentos confidenciais com permissão própria e leitura auditada; contato de profissional público só com autorização |
 | Saúde | nenhum campo clínico; observação de agendamento limitada e com aviso explícito (RN-PAR-008) |
-| Conteúdo | texto simples (HTML removido) e renderização sempre como texto; visibilidade do fórum verificada no servidor, inclusive em listas e contagens; limites antiabuso de postagem e denúncia |
+| Conteúdo | texto simples (HTML removido) e renderização sempre como texto; visibilidade do fórum verificada no servidor, inclusive em listas e contagens; limites antiabuso de postagem e denúncia; advertência e suspensão (`DT-108`) com regra, motivo e autor registrados, sem apagar, conferidas no servidor antes de publicar, responder, editar e reagir; a pessoa recebe o motivo e vê as próprias advertências na cópia dos dados |
 | Exportações | permissão `reports.export` separada da leitura, auditoria de cada exportação e neutralização de fórmulas em CSV |
 | Titular | cópia dos próprios dados a qualquer momento; pedido de eliminação atendido por anonimização auditada que preserva registros com dever legal de guarda |
 

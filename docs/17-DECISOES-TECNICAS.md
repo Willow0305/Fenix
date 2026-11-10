@@ -2171,3 +2171,26 @@ O convite de Times só podia ser desligado pelo administrador (`settings.public.
 
 - testes: regra do convite e do botão (`join-team-cta.spec.tsx`) e integração (`interest-intake.int-spec.ts`: só quem tem a permissão fecha, o site público mostra fechado, contato novo recusado, reabrir volta a aceitar).
 
+## DT-108 — Advertência, suspensão e regras do fórum
+
+- **Estado:** Aceita; implementada em 2026-11-10
+- **Data:** 2026-11-10
+- **Aprovador:** responsável do projeto ("seria bom banir usuário do fórum e enviar aviso de quebra das regras do fórum"); escolheu "Prazo ou até liberar" e "Site + e-mail, com regras"
+
+### Contexto
+
+A moderação só ocultava, fechava ou removia conteúdo (`DT-035`). Não havia como avisar quem quebrou uma regra nem impedir que voltasse a publicar, e as regras de convivência não estavam escritas no site (o fórum apontava para os termos de uso).
+
+### Decisão
+
+- **advertência:** a diretoria (`forum.moderate`) escolhe a regra quebrada e escreve o motivo (10 a 1.000 caracteres); a pessoa continua participando;
+- **suspensão:** 7 dias, 30 dias ou até a diretoria liberar. Suspensa, a pessoa **lê o fórum, mas não publica, responde, edita nem reage**; denunciar continua possível. Com prazo, termina sozinha (a conferência é na hora, sem rotina). "Liberar" pede motivo e avisa a pessoa. Com várias em vigor, vale a mais longa. Ninguém adverte a própria conta;
+- **aviso:** no site e **sempre por e-mail**, mesmo com o e-mail do fórum desligado (`forum.sanction.*` em `mandatoryEmail`, `channel-rules.ts`): a pessoa precisa saber o que aconteceu com a conta. WhatsApp continua seguindo a escolha dela. O aviso traz a regra, o motivo e o link para as regras;
+- **onde agir:** botão "Advertir ou suspender" na denúncia (a denúncia agora mostra quem escreveu) e em cada mensagem do tópico, para quem modera; Painel → Fórum lista as suspensões em vigor e o histórico, com "Liberar";
+- **regras do fórum:** página pública `/forum/regras`; texto inicial do sistema até a diretoria escrever o seu em Painel → Fórum (`team_settings.forum_rules`; vazio volta ao inicial). As linhas numeradas ("1. Respeito: …") viram as sugestões de "regra quebrada". O responsável tinha escolhido editar em Configurações; ficou em Painel → Fórum porque Configurações é só do administrador e quem modera é a diretoria;
+- **registro:** tabela `forum_sanctions` (migração `20261110110000_forum_advertencias`) com regra, motivo, mensagem de origem, prazo, quem aplicou, quem liberou e por quê; o banco recusa apagar e exige motivo na liberação; auditoria `forum.sanction.warned`, `forum.sanction.suspended`, `forum.sanction.lifted` e `forum.rules.updated`. A pessoa vê as próprias advertências e suspensões na cópia dos dados (sem o nome de quem aplicou); ao anonimizar a conta, o registro continua ligado à conta anonimizada.
+
+### Consequências
+
+- testes: regras puras (`forum-sanctions.spec.ts`: prazo, em vigor, a mais longa, sugestões das regras), e-mail obrigatório (`channel-rules.spec.ts`) e integração (`forum-sanctions.int-spec.ts`: só quem modera aplica; advertência avisa no site e por e-mail sem bloquear; suspensão bloqueia publicar, responder, editar e reagir e deixa ler; liberar com motivo e só uma vez; sem prazo vale até liberar; prazo vencido libera sozinho; banco recusa apagar; regras editáveis e de volta ao inicial);
+- o texto inicial das regras precisa da revisão da diretoria (`PEN-075`).

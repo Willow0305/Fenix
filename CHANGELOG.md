@@ -6,6 +6,12 @@ O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) e o 
 
 ## [Não publicado]
 
+### Fórum: advertência, suspensão e regras (2026-11-10)
+
+#### Adicionado
+
+- a diretoria adverte ou suspende do fórum por 7 dias, 30 dias ou até liberar, com a regra quebrada e o motivo, a partir da denúncia ou da mensagem; a pessoa recebe o aviso no site e por e-mail, continua lendo e não publica, responde, edita nem reage durante a suspensão; página "Regras do fórum" com texto editável no painel (DT-108; migração `20261110110000_forum_advertencias`).
+
 ### Carteirinha da diretoria na conta (2026-11-10)
 
 #### Adicionado

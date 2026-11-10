@@ -26,6 +26,7 @@ import {
 import { plural } from '../../../../lib/format';
 import { Avatar } from '../../../../components/avatar';
 import { NewsTime } from '../../../../components/news-card';
+import { ForumStandingNotice } from '../forum-standing';
 import { BoardBadge, JoinForumCard, MinorForumNotice } from '../join-forum-card';
 import { useResource } from '../../../../lib/use-resource';
 import { Icon } from '../../../../components/icon';
@@ -86,6 +87,7 @@ export default function ForumCategoryPage() {
       {category.description ? <p className="m-0">{category.description}</p> : null}
       {status === 'anonymous' ? <JoinForumCard next={`/forum/${slug}`} /> : null}
       {profile?.minorAccount ? <MinorForumNotice /> : null}
+      <ForumStandingNotice />
 
       {writing ? (
         <form className="form card" onSubmit={(event) => void create.submit(event)}>

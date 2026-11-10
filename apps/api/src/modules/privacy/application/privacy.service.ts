@@ -171,6 +171,19 @@ export class PrivacyService {
           where: { status: { not: 'DELETED' } },
           select: { createdAt: true, content: true, topic: { select: { title: true } } }
         },
+        // Advertências e suspensões do fórum recebidas (DT-108): sem o nome de quem aplicou.
+        forumSanctions: {
+          select: {
+            kind: true,
+            rule: true,
+            reason: true,
+            createdAt: true,
+            endsAt: true,
+            liftedAt: true,
+            liftReason: true
+          },
+          orderBy: { createdAt: 'desc' }
+        },
         notifications: {
           where: { deletedAt: null },
           select: { createdAt: true, title: true, message: true, readAt: true },

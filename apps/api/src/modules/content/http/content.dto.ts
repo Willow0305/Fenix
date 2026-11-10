@@ -4,10 +4,11 @@ import {
   EventType,
   ForumReactionType,
   ForumReportStatus,
+  ForumSanctionKind,
   ForumVisibility,
   NewsStatus
 } from '../../../generated/prisma/client';
-import { Type } from 'class-transformer';
+import { Transform, Type } from 'class-transformer';
 import {
   ArrayMaxSize,
   ArrayMinSize,
@@ -378,4 +379,37 @@ export class BroadcastDto {
   @IsString()
   @MaxLength(300)
   link?: string;
+}
+
+// ---------- Advertências e suspensões do fórum (DT-108) ----------
+
+export class ForumSanctionDto {
+  @ApiProperty() @IsUUID() userId!: string;
+  @ApiProperty({ enum: ForumSanctionKind }) @IsEnum(ForumSanctionKind) kind!: ForumSanctionKind;
+  @ApiProperty() @IsString() @MinLength(2) @MaxLength(160) rule!: string;
+  @ApiProperty() @IsString() @MinLength(10) @MaxLength(1000) reason!: string;
+  /** Só na suspensão: 7 ou 30 dias; ausente ou nulo = até a diretoria liberar. */
+  @ApiPropertyOptional({ enum: [7, 30], nullable: true })
+  @IsOptional()
+  @IsIn([7, 30])
+  days?: 7 | 30 | null;
+  @ApiPropertyOptional() @IsOptional() @IsUUID() topicId?: string;
+  @ApiPropertyOptional() @IsOptional() @IsUUID() postId?: string;
+}
+
+export class LiftSanctionDto {
+  @ApiProperty() @IsString() @MinLength(3) @MaxLength(500) reason!: string;
+}
+
+export class ForumRulesDto {
+  @ApiProperty() @IsString() @MaxLength(20000) text!: string;
+}
+
+export class SanctionQueryDto extends PageQueryDto {
+  @ApiPropertyOptional() @IsOptional() @IsUUID() userId?: string;
+  @ApiPropertyOptional({ description: 'Só suspensões em vigor.' })
+  @IsOptional()
+  @Transform(({ value }) => value === true || value === 'true')
+  @IsBoolean()
+  active?: boolean;
 }

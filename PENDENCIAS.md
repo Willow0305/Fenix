@@ -586,6 +586,14 @@ Prioridades:
 - **Impacto:** `apps/web/components/tryout-highlight.tsx`, `apps/web/app/(site)/page.tsx`, `apps/api/src/modules/cards/domain/card-rules.ts`.
 - **Situação:** resolvida em 2026-11-09 (`DT-104`). Ver seção 12.
 
+### PEN-075 — Texto inicial das regras do fórum
+
+- **Prioridade:** P3
+- **Bloqueia:** nada; o fórum usa o texto inicial até a diretoria escrever o seu (`DT-108`)
+- **Questão:** as regras de `/forum/regras` começam com um texto escrito pelo sistema (respeito, sem discriminação, privacidade, menores de idade, assunto, verdade, e como funcionam advertência e suspensão). Ele não foi aprovado pela diretoria nem revisado pela assessoria jurídica; também falta definir por quanto tempo guardar advertências e suspensões antigas.
+- **Recomendação:** a diretoria revisa e salva o texto em Painel → Fórum antes de divulgar o fórum; guardar o histórico enquanto a conta existir, junto com a moderação (`DT-035`), até a definição de retenção da `PEN-073`.
+- **Impacto:** `apps/api/src/modules/content/domain/forum-sanctions.ts`, `docs/13-SEGURANCA-E-LGPD.md`, política de privacidade.
+
 ## 11. Critério de resolução
 
 Ao resolver uma pendência:

@@ -38,6 +38,12 @@ import {
 } from '../application/announcements.service';
 import { type EventView, EventsService } from '../application/events.service';
 import {
+  type ForumRulesView,
+  ForumSanctionsService,
+  type ForumStanding,
+  type SanctionView
+} from '../application/forum-sanctions.service';
+import {
   type ForumCategoryView,
   ForumService,
   type ModerationView,
@@ -62,15 +68,18 @@ import {
   EventQueryDto,
   EventStatusDto,
   ForumCategoryDto,
+  ForumRulesDto,
+  ForumSanctionDto,
+  LiftSanctionDto,
   ModerationQueryDto,
+  MostReadQueryDto,
   NewsCategoryDto,
   NewsDto,
-  MostReadQueryDto,
   NewsImageDto,
   NewsImageOrderDto,
   NewsQueryDto,
-  NewsTagDto,
   NewsStatusDto,
+  NewsTagDto,
   PostDto,
   PostModerationDto,
   PublicEventQueryDto,
@@ -80,6 +89,7 @@ import {
   ReportDto,
   ReportQueryDto,
   ReviewReportDto,
+  SanctionQueryDto,
   TopicDto,
   TopicModerationDto,
   UpdateEventDto,
@@ -102,7 +112,8 @@ export class ContentController {
     private readonly views: NewsViewsService,
     private readonly events: EventsService,
     private readonly forum: ForumService,
-    private readonly announcements: AnnouncementsService
+    private readonly announcements: AnnouncementsService,
+    private readonly sanctions: ForumSanctionsService
   ) {}
 
   // ---------- Notícias (público) ----------
@@ -641,6 +652,75 @@ export class ContentController {
     @ReqMeta() meta: RequestMeta
   ): Promise<void> {
     await this.forum.moderatePost(actor, id, body.action, body.reason, meta);
+  }
+
+  // ---------- Regras, advertências e suspensões (DT-108) ----------
+
+  @Get('forum/rules')
+  @Public()
+  forumRules(): Promise<ForumRulesView> {
+    return this.sanctions.rules();
+  }
+
+  @Put('forum/admin/rules')
+  @ApiBearerAuth()
+  @RequirePermissions(PERMISSIONS.forumModerate)
+  setForumRules(
+    @CurrentPrincipal() actor: Principal,
+    @Body() body: ForumRulesDto,
+    @ReqMeta() meta: RequestMeta
+  ): Promise<ForumRulesView> {
+    return this.sanctions.setRules(actor, body.text, meta);
+  }
+
+  /** Situação de quem está logado: suspensão em vigor, para o aviso nas páginas do fórum. */
+  @Get('forum/me/standing')
+  @ApiBearerAuth()
+  forumStanding(@CurrentPrincipal() principal: Principal): Promise<ForumStanding> {
+    return this.sanctions.standing(principal);
+  }
+
+  @Get('forum/admin/sanctions')
+  @ApiBearerAuth()
+  @RequirePermissions(PERMISSIONS.forumModerate)
+  forumSanctions(@Query() query: SanctionQueryDto): Promise<Page<SanctionView>> {
+    return this.sanctions.list(defined(query));
+  }
+
+  @Post('forum/admin/sanctions')
+  @ApiBearerAuth()
+  @RequirePermissions(PERMISSIONS.forumModerate)
+  createForumSanction(
+    @CurrentPrincipal() actor: Principal,
+    @Body() body: ForumSanctionDto,
+    @ReqMeta() meta: RequestMeta
+  ): Promise<SanctionView> {
+    return this.sanctions.create(
+      actor,
+      {
+        userId: body.userId,
+        kind: body.kind,
+        rule: body.rule,
+        reason: body.reason,
+        days: body.days ?? null,
+        topicId: body.topicId ?? null,
+        postId: body.postId ?? null
+      },
+      meta
+    );
+  }
+
+  @Post('forum/admin/sanctions/:id/lift')
+  @HttpCode(200)
+  @ApiBearerAuth()
+  @RequirePermissions(PERMISSIONS.forumModerate)
+  liftForumSanction(
+    @CurrentPrincipal() actor: Principal,
+    @Param('id', new ParseUUIDPipe()) id: string,
+    @Body() body: LiftSanctionDto,
+    @ReqMeta() meta: RequestMeta
+  ): Promise<SanctionView> {
+    return this.sanctions.lift(actor, id, body.reason, meta);
   }
 
   @Get('forum/reports')

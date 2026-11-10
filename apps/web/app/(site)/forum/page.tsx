@@ -8,6 +8,7 @@ import { useAuth } from '../../../lib/auth-context';
 import type { ForumCategory, NewsSummary } from '../../../lib/content-types';
 import { plural } from '../../../lib/format';
 import { NewsTime } from '../../../components/news-card';
+import { ForumStandingNotice } from './forum-standing';
 import { JoinForumCard } from './join-forum-card';
 import { useResource } from '../../../lib/use-resource';
 
@@ -32,12 +33,13 @@ export default function ForumPage() {
       <header className="stack gap-sm">
         <h1 className="m-0">Fórum</h1>
         <p className="muted m-0">
-          A conversa da torcida, das famílias e do time. Combinados de convivência nos{' '}
-          <Link href="/termos">termos de uso</Link>; a diretoria modera e responde com o selo
-          "Diretoria".
+          A conversa da torcida, das famílias e do time. Leia as{' '}
+          <Link href="/forum/regras">regras do fórum</Link>; a diretoria modera e responde com o
+          selo "Diretoria".
         </p>
       </header>
       {status === 'anonymous' ? <JoinForumCard next="/forum" /> : null}
+      <ForumStandingNotice />
 
       {notices.data && notices.data.data.length > 0 ? (
         <section className="card stack" aria-labelledby="comunicados">

@@ -116,6 +116,8 @@ O contrato completo e executável fica no OpenAPI (`/docs` fora de produção). 
 | `GET` | `/api/v1/forum/categories` · `categories/:slug/topics` · `topics/:id` | público conforme visibilidade | 7 |
 | `POST`/`PATCH`/`DELETE`/`PUT` | `/api/v1/forum/categories/:slug/topics` · `topics/:id/posts` · `posts/:id` · `posts/:id/reaction` · `forum/reports` | autenticado, limites antiabuso | 7 |
 | `GET`/`POST`/`PATCH`/`PUT` | `/api/v1/forum/admin/categories[/:id]` · `topics/:id/moderation` · `posts/:id/moderation` · `forum/reports[/:id]` · `forum/moderation-actions` | `forum.moderate` | 7 |
+| `GET` | `/api/v1/forum/rules` (regras do fórum; texto inicial enquanto a diretoria não escreve, `DT-108`) · `/api/v1/forum/me/standing` (suspensão em vigor de quem está logado) | público / autenticado | 9 |
+| `GET`/`POST`/`PUT` | `/api/v1/forum/admin/sanctions` (`?userId=&active=`) · `sanctions/:id/lift` (motivo) · `forum/admin/rules` (`DT-108`) | `forum.moderate` | 9 |
 | `POST`/`GET` | `/api/v1/notifications/broadcast` (Idempotency-Key) · `notifications/broadcasts` | `notifications.send` | 7 |
 | `GET` | `/api/v1/reports` · `reports/:key?from&to&groupBy` | `reports.read` | 8 |
 | `GET` | `/api/v1/reports/:key/csv` | `reports.read` + `reports.export` (auditado) | 8 |

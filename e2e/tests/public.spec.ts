@@ -12,6 +12,7 @@ const PAGES = [
   '/loja',
   '/parceiros',
   '/forum',
+  '/forum/regras',
   '/contato',
   '/termos',
   '/privacidade',
@@ -94,7 +95,8 @@ test('detalhe de notícia, evento, produto, parceiro e tópico do fórum', async
   await expectNoHorizontalScroll(page);
 
   await page.goto('/forum');
-  await page.locator('a[href^="/forum/"]').first().click();
+  // A primeira categoria (o link das regras do fórum, DT-108, também começa com /forum/).
+  await page.locator('a[href^="/forum/"]:not([href="/forum/regras"])').first().click();
   await expect(page.locator('h1')).toBeVisible();
   await page.locator('a[href^="/forum/topicos/"]').first().click();
   await expect(page.locator('h1')).toBeVisible();

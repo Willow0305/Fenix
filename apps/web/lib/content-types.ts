@@ -155,9 +155,43 @@ export interface ForumReport {
   details: string | null;
   status: ReportStatus;
   reporter: string;
+  /** Quem escreveu o que foi denunciado (DT-108). */
+  author: { id: string; name: string } | null;
   resolution: string | null;
   reviewedAt: string | null;
   createdAt: string;
+}
+
+/** Advertência ou suspensão do fórum (DT-108). */
+export interface ForumSanction {
+  readonly id: string;
+  readonly kind: 'WARNING' | 'SUSPENSION';
+  readonly user: { readonly id: string; readonly name: string };
+  readonly rule: string;
+  readonly reason: string;
+  readonly topicId: string | null;
+  readonly postId: string | null;
+  readonly endsAt: string | null;
+  readonly active: boolean;
+  readonly liftedAt: string | null;
+  readonly liftedBy: string | null;
+  readonly liftReason: string | null;
+  readonly createdBy: string;
+  readonly createdAt: string;
+}
+
+export interface ForumRules {
+  readonly text: string;
+  readonly custom: boolean;
+  readonly titles: readonly string[];
+}
+
+export interface ForumStanding {
+  readonly suspension: {
+    readonly until: string | null;
+    readonly rule: string;
+    readonly reason: string;
+  } | null;
 }
 
 export interface ModerationAction {

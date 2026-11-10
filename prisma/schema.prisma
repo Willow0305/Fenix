@@ -401,6 +401,11 @@ enum ForumReportStatus {
   DISMISSED
 }
 
+enum ForumSanctionKind {
+  WARNING
+  SUSPENSION
+}
+
 enum ModerationActionType {
   HIDE
   RESTORE
@@ -556,6 +561,9 @@ model User {
   forumReports                    ForumReport[]            @relation("ForumReportReporter")
   forumReportsReviewed            ForumReport[]            @relation("ForumReportReviewer")
   forumModerationActions          ForumModerationAction[]
+  forumSanctions                  ForumSanction[]          @relation("ForumSanctionSubject")
+  forumSanctionsIssued            ForumSanction[]          @relation("ForumSanctionIssuer")
+  forumSanctionsLifted            ForumSanction[]          @relation("ForumSanctionLifter")
   newsAuthored                    News[]
   notifications                   Notification[]
   notificationPreferences         NotificationPreference[]
@@ -732,6 +740,8 @@ model TeamSettings {
   joinInviteEnabled       Boolean      @default(true) @map("join_invite_enabled")
   /// "Quero jogar no Fênix" recebendo contatos (DT-107); fechado = elenco lotado.
   interestIntakeOpen      Boolean      @default(true) @map("interest_intake_open")
+  /// Regras do fórum escritas pela diretoria (DT-108); nulo = texto inicial do sistema.
+  forumRules              String?      @map("forum_rules") @db.Text
   /// Entrega em casa (DT-075): ligada pela diretoria, só na cidade configurada.
   deliveryEnabled         Boolean      @default(false) @map("delivery_enabled")
   deliveryCity            String       @default("Rio Branco") @map("delivery_city") @db.VarChar(120)
@@ -2369,6 +2379,7 @@ model ForumTopic {
   posts             ForumPost[]
   reports           ForumReport[]
   moderationActions ForumModerationAction[]
+  sanctions         ForumSanction[]
   news              News?
 
   @@index([categoryId, status, isPinned, createdAt])
@@ -2396,6 +2407,7 @@ model ForumPost {
   reactions         ForumReaction[]
   reports           ForumReport[]
   moderationActions ForumModerationAction[]
+  sanctions         ForumSanction[]
 
   @@index([topicId, status, createdAt])
   @@index([authorUserId, createdAt])
@@ -2463,6 +2475,36 @@ model ForumModerationAction {
   @@index([postId, createdAt])
   @@index([moderatorUserId, createdAt])
   @@map("forum_moderation_actions")
+}
+
+/// Advertência ou suspensão do fórum (DT-108). Nunca é apagada: liberar marca `liftedAt`.
+model ForumSanction {
+  id          String            @id @default(uuid()) @db.Uuid
+  userId      String            @map("user_id") @db.Uuid
+  kind        ForumSanctionKind
+  /// Regra quebrada, como a diretoria escreveu (ex.: "Respeito").
+  rule        String            @db.VarChar(160)
+  reason      String            @db.Text
+  /// Mensagem que motivou, quando veio de uma denúncia ou do tópico.
+  topicId     String?           @map("topic_id") @db.Uuid
+  postId      String?           @map("post_id") @db.Uuid
+  /// Fim da suspensão; nulo na suspensão até liberar e na advertência.
+  endsAt      DateTime?         @map("ends_at") @db.Timestamptz(6)
+  liftedAt    DateTime?         @map("lifted_at") @db.Timestamptz(6)
+  liftedById  String?           @map("lifted_by_id") @db.Uuid
+  liftReason  String?           @map("lift_reason") @db.Text
+  createdById String            @map("created_by_id") @db.Uuid
+  createdAt   DateTime          @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  user      User        @relation("ForumSanctionSubject", fields: [userId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+  createdBy User        @relation("ForumSanctionIssuer", fields: [createdById], references: [id], onDelete: Restrict, onUpdate: Cascade)
+  liftedBy  User?       @relation("ForumSanctionLifter", fields: [liftedById], references: [id], onDelete: SetNull, onUpdate: Cascade)
+  topic     ForumTopic? @relation(fields: [topicId], references: [id], onDelete: SetNull, onUpdate: Cascade)
+  post      ForumPost?  @relation(fields: [postId], references: [id], onDelete: SetNull, onUpdate: Cascade)
+
+  @@index([userId, kind, liftedAt])
+  @@index([createdAt])
+  @@map("forum_sanctions")
 }
 
 model News {

@@ -33,6 +33,7 @@ import {
 import { softDeleteIfUnused } from '../../../common/domain/safe-delete';
 import { isMinorAccount } from '../../auth/application/minor-account';
 import { ContentAlertsService } from './content-alerts.service';
+import { activeSuspension, suspendedMessage } from './forum-sanctions.service';
 
 export interface ForumCategoryView {
   readonly id: string;
@@ -95,6 +96,8 @@ export interface ReportView {
   readonly details: string | null;
   readonly status: ForumReportStatus;
   readonly reporter: string;
+  /** Quem escreveu o que foi denunciado: a diretoria pode advertir ou suspender (DT-108). */
+  readonly author: { id: string; name: string } | null;
   readonly resolution: string | null;
   readonly reviewedAt: string | null;
   readonly createdAt: string;
@@ -444,15 +447,31 @@ export class ForumService {
     return text;
   }
 
-  /** Pode escrever no fórum: conta autenticada que não seja de menor (DT-092). */
+  /**
+   * Pode escrever no fórum: conta autenticada que não seja de menor (DT-092) nem esteja
+   * suspensa (DT-108).
+   */
   private async canWrite(principal: Principal | undefined): Promise<boolean> {
-    return principal !== undefined && !(await isMinorAccount(this.prisma, principal.userId));
+    return (
+      principal !== undefined &&
+      !(await isMinorAccount(this.prisma, principal.userId)) &&
+      (await activeSuspension(this.prisma, principal.userId)) === null
+    );
   }
 
-  /** Conta de menor não participa do fórum (DT-092, ECA Digital); denunciar continua possível. */
+  /**
+   * Conta de menor não participa do fórum (DT-092, ECA Digital); suspensa também não, até o
+   * prazo ou até a diretoria liberar (DT-108). Denunciar continua possível nos dois casos.
+   */
   private async assertCanParticipate(principal: Principal): Promise<void> {
     if (await isMinorAccount(this.prisma, principal.userId)) {
       throw AppError.forbidden('Contas de menores de idade não participam do fórum.');
+    }
+
+    const suspension = await activeSuspension(this.prisma, principal.userId);
+
+    if (suspension) {
+      throw AppError.forbidden(suspendedMessage(suspension.endsAt));
     }
   }
 
@@ -759,6 +778,8 @@ export class ForumService {
     if (post.authorUserId !== principal.userId) {
       throw AppError.forbidden('Você só pode editar suas mensagens.');
     }
+
+    await this.assertCanParticipate(principal);
 
     if (post.status !== 'PUBLISHED' || !authorCanEdit(post.createdAt, new Date())) {
       throw AppError.conflict('EDIT_WINDOW_CLOSED', 'Esta mensagem não pode mais ser editada.');
@@ -1104,8 +1125,15 @@ export class ForumService {
         where,
         include: {
           reporterUser: { select: { name: true } },
-          topic: { select: { title: true } },
-          post: { select: { content: true, topicId: true, topic: { select: { title: true } } } }
+          topic: { select: { title: true, authorUser: { select: { id: true, name: true } } } },
+          post: {
+            select: {
+              content: true,
+              topicId: true,
+              topic: { select: { title: true } },
+              authorUser: { select: { id: true, name: true } }
+            }
+          }
         },
         orderBy: { createdAt: 'desc' },
         skip,
@@ -1126,6 +1154,7 @@ export class ForumService {
         details: row.details,
         status: row.status,
         reporter: row.reporterUser.name,
+        author: row.post?.authorUser ?? row.topic?.authorUser ?? null,
         resolution: row.resolution,
         reviewedAt: row.reviewedAt?.toISOString() ?? null,
         createdAt: row.createdAt.toISOString()
