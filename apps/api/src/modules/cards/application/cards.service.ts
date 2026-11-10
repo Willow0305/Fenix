@@ -68,6 +68,8 @@ export interface CardView {
   /** Foto embutida (data URL): a tag `<img>` não envia o token de acesso. */
   readonly photo: string | null;
   readonly team: { name: string; logoUrl: string | null } | null;
+  /** Cargo na diretoria, só na carteirinha de diretoria (DT-102). */
+  readonly boardPosition: string | null;
   /** Comprada para outra pessoa que ainda não tem conta (DT-068, afiliação). */
   readonly purchasedForOther: boolean;
   readonly benefits: readonly BenefitView[];
@@ -199,6 +201,7 @@ const CARD_INCLUDE = {
       avatarMediaFileId: true,
       status: true,
       deletedAt: true,
+      boardPosition: true,
       // Papel Diretoria da pessoa (DT-077): a validade é conferida em `boardActive`.
       userRoles: {
         where: { role: { code: SYSTEM_ROLES.board, deletedAt: null } },
@@ -600,6 +603,7 @@ export class CardsService implements OnModuleInit {
       team: team
         ? { name: team.name, logoUrl: team.logoMediaFileId ? mediaUrl(team.logoMediaFileId) : null }
         : null,
+      boardPosition: row.type === 'BOARD' ? (row.holderUser?.boardPosition ?? null) : null,
       purchasedForOther: viewerId !== null && row.holderUserId !== viewerId,
       benefits: state === 'VALID' ? await this.benefits.forCard(row.type, today) : []
     };

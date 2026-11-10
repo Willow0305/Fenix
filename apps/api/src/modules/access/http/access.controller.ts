@@ -34,6 +34,7 @@ import {
   AccessReasonDto,
   RoleDto,
   SetPermissionsDto,
+  SetBoardPositionDto,
   SetRolesDto,
   UpdateRoleDto,
   SetStatusDto,
@@ -89,6 +90,17 @@ export class UsersController {
     @ReqMeta() meta: RequestMeta
   ): Promise<AdminUserView> {
     return this.users.setRoles(actor, id, body.roles, body.reason, meta);
+  }
+
+  @Put(':id/board-position')
+  @RequirePermissions(PERMISSIONS.rolesAssign)
+  setBoardPosition(
+    @CurrentPrincipal() actor: Principal,
+    @Param('id', new ParseUUIDPipe()) id: string,
+    @Body() body: SetBoardPositionDto,
+    @ReqMeta() meta: RequestMeta
+  ): Promise<AdminUserView> {
+    return this.users.setBoardPosition(actor, id, body.boardPosition ?? null, body.reason, meta);
   }
 
   @Put(':id/status')

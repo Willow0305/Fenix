@@ -91,6 +91,8 @@ export interface MemberCard {
   endsOn: string | null;
   photo: string | null;
   team: { name: string; logoUrl: string | null } | null;
+  /** Cargo na diretoria, só na carteirinha de diretoria (DT-102). */
+  boardPosition?: string | null;
   purchasedForOther: boolean;
   benefits: Benefit[];
 }

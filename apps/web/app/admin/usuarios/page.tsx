@@ -39,7 +39,20 @@ type Dialog =
   | { kind: 'status'; user: AdminUser }
   | { kind: 'sessions'; user: AdminUser }
   | { kind: 'mfa'; user: AdminUser }
+  | { kind: 'position'; user: AdminUser }
   | null;
+
+/** Sugestões de cargo (DT-102); o campo aceita qualquer texto. */
+const BOARD_POSITIONS = [
+  'Presidente',
+  'Vice-presidente',
+  'Tesoureiro(a)',
+  'Secretário(a)',
+  'Diretor(a) técnico(a)',
+  'Diretor(a) de marketing',
+  'Diretor(a) de eventos',
+  'Conselheiro(a) fiscal'
+];
 
 export default function UsersPage() {
   const { can, profile } = useAuth();
@@ -61,6 +74,7 @@ export default function UsersPage() {
   const [dialog, setDialog] = useState<Dialog>(null);
   const [selectedRoles, setSelectedRoles] = useState<string[]>([]);
   const [status, setStatus] = useState<AdminUser['status']>('ACTIVE');
+  const [position, setPosition] = useState('');
   const [notice, setNotice] = useState<string | null>(null);
   const [newUser, setNewUser] = useState({ name: '', email: '', role: 'user' });
   const create = useSubmit(async () => {
@@ -139,6 +153,12 @@ export default function UsersPage() {
                         {roles.data?.find((r) => r.code === role)?.name ?? role}
                       </span>
                     ))}
+                    {user.boardPosition ? (
+                      <>
+                        <br />
+                        <span className="muted">Cargo: {user.boardPosition}</span>
+                      </>
+                    ) : null}
                   </td>
                   <td data-label="Status">
                     <span className={`badge ${STATUS_BADGE[user.status]}`}>
@@ -151,7 +171,21 @@ export default function UsersPage() {
                   <td data-label="Último acesso">{formatDateTime(user.lastLoginAt)}</td>
                   <td data-label="Ações">
                     {user.id === profile?.id ? (
-                      <span className="muted">Sua conta</span>
+                      <div className="row">
+                        <span className="muted">Sua conta</span>
+                        {can('roles.assign') && user.roles.includes('board') ? (
+                          <button
+                            type="button"
+                            className="btn btn-secondary btn-sm"
+                            onClick={() => {
+                              setPosition(user.boardPosition ?? '');
+                              setDialog({ kind: 'position', user });
+                            }}
+                          >
+                            Cargo
+                          </button>
+                        ) : null}
+                      </div>
                     ) : (
                       <div className="row">
                         {can('roles.assign') ? (
@@ -164,6 +198,18 @@ export default function UsersPage() {
                             }}
                           >
                             Papéis
+                          </button>
+                        ) : null}
+                        {can('roles.assign') && user.roles.includes('board') ? (
+                          <button
+                            type="button"
+                            className="btn btn-secondary btn-sm"
+                            onClick={() => {
+                              setPosition(user.boardPosition ?? '');
+                              setDialog({ kind: 'position', user });
+                            }}
+                          >
+                            Cargo
                           </button>
                         ) : null}
                         {can('users.update') ? (
@@ -283,6 +329,37 @@ export default function UsersPage() {
             </label>
           ))}
         </fieldset>
+      </ConfirmDialog>
+
+      <ConfirmDialog
+        open={dialog?.kind === 'position'}
+        title={`Cargo de ${dialog?.user.name ?? ''} na diretoria`}
+        description="Aparece na carteirinha da diretoria e nas assinaturas da prestação de contas. Deixe em branco para tirar o cargo. Quem também é atleta continua pagando a mensalidade."
+        confirmLabel="Salvar cargo"
+        requireReason
+        onClose={() => setDialog(null)}
+        onConfirm={async (reason) => {
+          await api(`/users/${dialog?.user.id ?? ''}/board-position`, {
+            method: 'PUT',
+            body: { boardPosition: position.trim() || null, reason }
+          });
+          setNotice('Cargo atualizado.');
+          await users.reload();
+        }}
+      >
+        <TextField
+          label="Cargo na diretoria"
+          hint="Escolha uma sugestão ou escreva outro cargo."
+          maxLength={80}
+          list="cargos-diretoria"
+          value={position}
+          onChange={(e) => setPosition(e.target.value)}
+        />
+        <datalist id="cargos-diretoria">
+          {BOARD_POSITIONS.map((item) => (
+            <option key={item} value={item} />
+          ))}
+        </datalist>
       </ConfirmDialog>
 
       <ConfirmDialog

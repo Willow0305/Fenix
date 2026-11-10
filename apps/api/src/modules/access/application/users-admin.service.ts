@@ -11,6 +11,7 @@ import { PrismaService, type PrismaTx } from '../../../common/prisma/prisma.serv
 import { AuthService } from '../../auth/application/auth.service';
 import { assertPhoneAvailable } from '../../auth/application/phone-availability';
 import { normalizeAccountPhone, normalizeEmail, REVOCATION } from '../../auth/domain/auth-rules';
+import { normalizeBoardPosition } from '../domain/board-position';
 import { SYSTEM_ROLES } from '../domain/permission-catalog';
 
 export interface AdminUserView {
@@ -23,6 +24,8 @@ export interface AdminUserView {
   readonly lastLoginAt: string | null;
   readonly createdAt: string;
   readonly mfaEnabled: boolean;
+  /** Cargo na diretoria (DT-102); só com o papel Diretoria. */
+  readonly boardPosition: string | null;
 }
 
 const USER_SELECT = {
@@ -34,6 +37,7 @@ const USER_SELECT = {
   lastLoginAt: true,
   createdAt: true,
   mfaEnabledAt: true,
+  boardPosition: true,
   userRoles: { select: { role: { select: { code: true } } } }
 } satisfies Prisma.UserSelect;
 
@@ -49,7 +53,8 @@ function toView(user: UserRow): AdminUserView {
     roles: user.userRoles.map((userRole) => userRole.role.code).sort(),
     lastLoginAt: user.lastLoginAt?.toISOString() ?? null,
     createdAt: user.createdAt.toISOString(),
-    mfaEnabled: user.mfaEnabledAt !== null
+    mfaEnabled: user.mfaEnabledAt !== null,
+    boardPosition: user.boardPosition
   };
 }
 
@@ -229,6 +234,14 @@ export class UsersAdminService {
         where: { userId, roleId: { notIn: roles.map((role) => role.id) } }
       });
 
+      // Sem o papel Diretoria, o cargo não vale mais (DT-102): sai junto, na mesma auditoria.
+      const leavingBoard =
+        current.boardPosition !== null && !roleCodes.includes(SYSTEM_ROLES.board);
+
+      if (leavingBoard) {
+        await tx.user.update({ where: { id: userId }, data: { boardPosition: null } });
+      }
+
       for (const role of roles) {
         await tx.userRole.upsert({
           where: { userId_roleId: { userId, roleId: role.id } },
@@ -244,8 +257,66 @@ export class UsersAdminService {
           entityType: 'User',
           entityId: userId,
           reason,
-          before: { roles: before },
-          after: { roles: [...new Set(roleCodes)].sort() },
+          before: {
+            roles: before,
+            ...(leavingBoard ? { boardPosition: current.boardPosition } : {})
+          },
+          after: {
+            roles: [...new Set(roleCodes)].sort(),
+            ...(leavingBoard ? { boardPosition: null } : {})
+          },
+          meta
+        },
+        tx
+      );
+
+      return tx.user.findUniqueOrThrow({ where: { id: userId }, select: USER_SELECT });
+    });
+
+    return toView(updated);
+  }
+
+  /** Cargo na diretoria (DT-102): só para quem tem o papel Diretoria; vazio remove. */
+  async setBoardPosition(
+    actor: Principal,
+    userId: string,
+    position: string | null,
+    reason: string,
+    meta: RequestMeta
+  ): Promise<AdminUserView> {
+    const next = normalizeBoardPosition(position);
+    const updated = await this.prisma.$transaction(async (tx) => {
+      const current = await tx.user.findFirst({
+        where: { id: userId, deletedAt: null },
+        select: USER_SELECT
+      });
+
+      if (current === null) {
+        throw AppError.notFound('Usuário não encontrado.');
+      }
+
+      if (next !== null && !current.userRoles.some((r) => r.role.code === SYSTEM_ROLES.board)) {
+        throw AppError.validation(
+          'NOT_BOARD',
+          'Só quem tem o papel Diretoria pode ter cargo na diretoria. Dê o papel primeiro.',
+          [{ field: 'boardPosition', code: 'NOT_BOARD', message: 'Dê o papel Diretoria primeiro.' }]
+        );
+      }
+
+      if (current.boardPosition === next) {
+        return current;
+      }
+
+      await tx.user.update({ where: { id: userId }, data: { boardPosition: next } });
+      await this.audit.record(
+        {
+          actorUserId: actor.userId,
+          action: 'user.board_position.changed',
+          entityType: 'User',
+          entityId: userId,
+          reason,
+          before: { boardPosition: current.boardPosition },
+          after: { boardPosition: next },
           meta
         },
         tx

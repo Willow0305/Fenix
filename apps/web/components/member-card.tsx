@@ -38,6 +38,7 @@ export function MemberCardFront({
         <Avatar src={card.photo} name={card.holderName} size={64} />
         <div className="member-card-info">
           <strong className="member-card-name">{card.holderName}</strong>
+          {card.boardPosition ? <span>{card.boardPosition}</span> : null}
           {card.team ? <span>{card.team.name}</span> : null}
           {card.endsOn ? <span>Válida até {formatDate(card.endsOn)}</span> : null}
           <span className="member-card-code">{card.code}</span>

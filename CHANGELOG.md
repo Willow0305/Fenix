@@ -6,6 +6,12 @@ O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) e o 
 
 ## [Não publicado]
 
+### Cargo na diretoria (2026-11-09)
+
+#### Adicionado
+
+- cargo na diretoria (Presidente, Tesoureiro(a)…) definido pelo administrador em Usuários, mostrado na carteirinha da diretoria; quem é atleta e da diretoria continua pagando a mensalidade, agora garantido por teste (DT-102).
+
 ### Carteirinha de atleta e mensalidade atrasada (2026-11-09)
 
 #### Alterado

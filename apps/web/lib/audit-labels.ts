@@ -53,6 +53,7 @@ export const AUDIT_ACTION_LABELS: Readonly<Record<string, string>> = {
   'user.avatar.updated': 'Foto de perfil alterada',
   'user.avatar.removed': 'Foto de perfil removida',
   'user.roles.changed': 'Papéis da conta alterados',
+  'user.board_position.changed': 'Cargo na diretoria alterado',
   'user.status.changed': 'Situação da conta alterada',
   'user.sessions.revoked': 'Sessões da conta encerradas',
   'user.phone_cleared_duplicate': 'Celular repetido removido da conta',

@@ -69,6 +69,15 @@ export class SetRolesDto extends AccessReasonDto {
   roles!: string[];
 }
 
+/** Cargo na diretoria (DT-102); vazio ou nulo remove. */
+export class SetBoardPositionDto extends AccessReasonDto {
+  @ApiPropertyOptional({ nullable: true, maxLength: 80, example: 'Tesoureiro(a)' })
+  @IsOptional()
+  @IsString()
+  @MaxLength(80)
+  boardPosition?: string | null;
+}
+
 export class SetStatusDto extends AccessReasonDto {
   @ApiProperty({ enum: UserStatus })
   @IsEnum(UserStatus)

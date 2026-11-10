@@ -83,6 +83,7 @@ export class PrivacyService {
         createdAt: true,
         lastLoginAt: true,
         whatsappOptInAt: true,
+        boardPosition: true,
         notificationPreferences: { select: { category: true, channel: true, enabled: true } },
         userRoles: { select: { role: { select: { name: true } } } },
         athlete: {
@@ -447,6 +448,7 @@ export class PrivacyService {
           email: `anonimizado+${userId}@invalid.local`,
           phone: null,
           whatsappOptInAt: null,
+          boardPosition: null,
           passwordHash,
           status: 'INACTIVE',
           emailVerifiedAt: null,

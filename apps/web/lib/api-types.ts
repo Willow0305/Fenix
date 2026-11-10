@@ -131,6 +131,8 @@ export interface AdminUser {
   readonly lastLoginAt: string | null;
   readonly createdAt: string;
   readonly mfaEnabled: boolean;
+  /** Cargo na diretoria (DT-102); só com o papel Diretoria. */
+  readonly boardPosition?: string | null;
 }
 
 export interface Role {

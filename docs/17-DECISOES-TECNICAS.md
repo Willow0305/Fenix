@@ -2063,3 +2063,16 @@ Sem conta, o nome do pedido é o que a pessoa digita. O titular do cartão (nome
 ### Consequências
 
 - testes: regra e limites de dia (`cards.spec.ts`), integração (`card-fee-overdue.int-spec.ts`: dentro da tolerância vale, depois suspende sem QR, aviso e auditoria uma vez, pagamento libera na hora com aviso, pagamento parcial não libera, prazo só com `cards.manage` e de 0 a 90).
+
+## DT-102 — Atleta na diretoria e cargo na diretoria
+
+- **Estado:** Aceita; implementada em 2026-11-09
+- **Data:** 2026-11-09
+- **Aprovador:** responsável do projeto, a pedido do comprador do site ("um atleta também pode ser da diretoria? ter algum cargo? se ele for da diretoria e atleta, então deve pagar mensalidade também"); escolheu "Sim, campo 'cargo'"
+
+### Decisão
+
+- **atleta e diretoria ao mesmo tempo já era possível** (papéis independentes, `DT-022`) e continua: a mensalidade segue o plano do atleta (RF-012) e **nunca depende de papel ou cargo**; não existe isenção por ser da diretoria. Fica garantido por teste de integração (`board-athlete.int-spec.ts`). Isenção, se um dia houver, é desconto manual e motivado (`DT-027`);
+- campo **"Cargo na diretoria"** na conta (`users.board_position`, até 80 caracteres; migração `20261109120000_cargo_diretoria`): texto livre com sugestões (Presidente, Vice-presidente, Tesoureiro(a), Secretário(a), Diretor(a) técnico(a), de marketing, de eventos, Conselheiro(a) fiscal);
+- só para quem tem o papel Diretoria (422 `NOT_BOARD`); definido por quem atribui papéis (`roles.assign`, o administrador) em Painel → Usuários → "Cargo", com motivo na auditoria (`user.board_position.changed`) — `PUT /users/:id/board-position`; vazio remove; quem perde o papel Diretoria perde o cargo na mesma alteração (auditado junto com os papéis);
+- o cargo aparece na **carteirinha da diretoria** (`DT-077`) e nas assinaturas da prestação de contas (`DT-103`); entra na exportação de dados do titular e é apagado na anonimização.

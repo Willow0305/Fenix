@@ -73,7 +73,7 @@ O catálogo executável está em `apps/api/src/modules/access/domain/permission-
 | Atleta | `athlete` | nenhuma administrativa; acesso aos próprios dados por titularidade |
 | Usuário | `user` | nenhuma administrativa; loja, favoritos, pedidos, inscrições e notificações próprias |
 
-O administrador pode ajustar as permissões dos papéis não fixos, **criar, renomear e excluir papéis próprios** para cada trabalho (ex.: Financeiro, Atendimento, Cadastro), com as permissões agrupadas por área (`DT-078`), e criar novas atribuições. Ninguém altera os próprios papéis nem o próprio status, e o sistema sempre mantém ao menos um administrador ativo. Permissões adicionadas no código posteriormente: `teams.manage`, `fees.plans.manage`, `fees.adjust`, `finance.setup` e `dashboard.read`.
+O administrador pode ajustar as permissões dos papéis não fixos, **criar, renomear e excluir papéis próprios** para cada trabalho (ex.: Financeiro, Atendimento, Cadastro), com as permissões agrupadas por área (`DT-078`), e criar novas atribuições. Ninguém altera os próprios papéis nem o próprio status, e o sistema sempre mantém ao menos um administrador ativo. Os papéis se somam: um atleta pode ser também da diretoria (e ter um **cargo na diretoria**, como Presidente ou Tesoureiro(a), definido pelo administrador) e continua pagando a mensalidade do seu plano (`DT-102`). Permissões adicionadas no código posteriormente: `teams.manage`, `fees.plans.manage`, `fees.adjust`, `finance.setup` e `dashboard.read`.
 
 ## Catálogo inicial de permissões
 

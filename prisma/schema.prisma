@@ -484,6 +484,8 @@ model User {
   phone                      String?           @unique @db.VarChar(30)
   status                     UserStatus        @default(PENDING)
   emailVerifiedAt            DateTime?         @map("email_verified_at") @db.Timestamptz(6)
+  /// Cargo na diretoria (Presidente, Tesoureiro(a)...), só para quem tem o papel Diretoria (DT-102).
+  boardPosition              String?           @map("board_position") @db.VarChar(80)
   lastLoginAt                DateTime?         @map("last_login_at") @db.Timestamptz(6)
   /// Segredo TOTP cifrado (AES-256-GCM, DATA_ENCRYPTION_KEY); nunca sai da API (DT-037).
   mfaSecretEncrypted         String?           @map("mfa_secret_encrypted") @db.Text
