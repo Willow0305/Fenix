@@ -2016,7 +2016,7 @@ Pesquisa de 01/11/2026 (`docs/35` §1.3): jurisprudência dividida. Decisões do
 - com mais de uma, o mesmo carrossel da pré-venda (`DT-090`): a que fecha primeiro na frente, troca a cada 4 s, setas, uma bolinha por seletiva, pausa com mouse, foco ou toque, sem troca automática com "reduzir movimento". O carrossel virou o componente comum `HighlightCarousel`, usado pela pré-venda e pelas seletivas;
 - **"ativa e dentro do período"** é a mesma regra das inscrições (RN-ATL-002, `registrationBlock`): situação Aberta, depois do início e antes do fim das inscrições e com vaga. A API decide (`GET /public/tryouts?scope=open`, regra pura `openTryoutsFirst`); lotada também sai, porque não aceita inscrição;
 - quando o prazo acaba com a página aberta, o cartão some sozinho (conferência a cada 30 s), e a página recarrega os dados quando as vagas mudam (`LiveRefresh`, tópico `tryouts`);
-- o botão "Quero jogar no Fênix" do Início passa a levar para Eventos; o convite "Quer jogar com a gente?" da página Times (`DT-091`) e "Minhas inscrições" levam a `/eventos#seletivas`;
+- o botão "Quero jogar no Fênix" do Início passa a levar para Eventos (revisto em `DT-104`: só com seletiva aberta); o convite "Quer jogar com a gente?" da página Times (`DT-091`) e "Minhas inscrições" levam a `/eventos#seletivas`;
 - o mapa do site deixa de listar `/seletivas` e lista só as seletivas abertas.
 
 ### Consequências
@@ -2098,3 +2098,20 @@ Sem conta, o nome do pedido é o que a pessoa digita. O titular do cartão (nome
 
 - o nome de quem emitiu, dos que assinam e, quando marcado, de quem recebeu ficam no documento permanente, mesmo se a pessoa pedir anonimização da conta depois: obrigação de prestar contas da associação. Base legal e prazo de guarda a validar (`PEN-073`);
 - testes: regra (`accountability.spec.ts`: sem nomes nas entradas, detalhe só marcado, transferência fora, saldo inicial à parte, números que não fecham, hash e código, numeração e período), integração (`accountability.int-spec.ts`: prévia, permissão, idempotência, congelamento depois de novo lançamento, PDF, conferência, banco recusando alterar e apagar, correção com motivo e versão antiga substituída), atalhos de período na tela e ponta a ponta (emitir, baixar e conferir no celular e no computador).
+
+## DT-104 — Pontos a confirmar da prestação de contas, das seletivas e da carteirinha
+
+- **Estado:** Aceita; implementada em 2026-11-09 (resolve `PEN-073` e `PEN-074`; revisa `DT-099`)
+- **Data:** 2026-11-09
+- **Aprovador:** responsável do projeto, ao responder as pendências; escolheu "Só quando marcado", "A diretoria escolhe", "Botão vai para Times" e "Só quando quitada"
+
+### Decisão
+
+- **prestação de contas** (`DT-103`) fica como está: o nome de quem recebeu aparece só nas saídas que a diretoria marcar, e entradas nunca têm nomes; quem assina é escolhido pela diretoria na emissão, com o cargo. Base legal e prazo de guarda seguem para a assessoria jurídica conferir no estatuto; se o estatuto exigir assinatura de cargos específicos ou aprovação em assembleia, entra como mudança nova;
+- **botão "Quero jogar no Fênix" do Início** (regra `joinTeamHref`): com seletiva aceitando inscrição, leva a `/eventos#seletivas`; sem nenhuma, ao convite "Quer jogar com a gente?" da página Times (`/times#quero-jogar`, `DT-091`), que oferece "Deixar meu contato"; com o convite desligado pela diretoria, direto ao formulário `/interesse`. O Início consulta `GET /public/tryouts?scope=open` (cache de 30 s);
+- **carteirinha de atleta** (`DT-101`) só volta a valer com a mensalidade quitada e o pagamento confirmado pela diretoria: pagamento parcial e comprovante em análise não liberam;
+- seletiva lotada continua saindo do destaque em Eventos, porque não aceita inscrição (`DT-099`).
+
+### Consequências
+
+- testes: regra do destino (`join-team-cta.spec.tsx`) e ponta a ponta do botão do Início (`public.spec.ts`).

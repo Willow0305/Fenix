@@ -6,6 +6,12 @@ O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) e o 
 
 ## [Não publicado]
 
+### Botão "Quero jogar no Fênix" sem seletiva aberta (2026-11-09)
+
+#### Alterado
+
+- sem seletiva aberta, o botão "Quero jogar no Fênix" do Início leva ao convite "Quer jogar com a gente?" da página Times, para deixar o contato; com seletiva aberta, continua levando às inscrições em Eventos (DT-104).
+
 ### Prestação de contas (2026-11-09)
 
 #### Adicionado

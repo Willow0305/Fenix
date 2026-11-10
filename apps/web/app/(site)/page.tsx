@@ -2,24 +2,26 @@ import Link from 'next/link';
 
 import { BrandLogo } from '../../components/brand-logo';
 import { Icon } from '../../components/icon';
+import { joinTeamHref } from '../../components/join-team-cta';
 import { MembershipCta } from '../../components/membership-cta';
 import { PhoenixLoop } from '../../components/phoenix-motion';
 import { firstTeamLogo, firstTeamPhoto } from '../../lib/brand';
 import { getPublicTeam, serverGet } from '../../lib/server-api';
 import type { Page } from '../../lib/api-types';
 import { formatMoney } from '../../lib/format';
-import type { Team } from '../../lib/sports-types';
+import type { Team, Tryout } from '../../lib/sports-types';
 import { responsiveSrcSet } from '../../lib/image-url';
 import type { ProductSummary } from '../../lib/store-types';
 import styles from './home.module.scss';
 import { HomeHighlights } from './home-highlights';
 
 export default async function HomePage() {
-  const [team, teams, memberships] = await Promise.all([
+  const [team, teams, memberships, openTryouts] = await Promise.all([
     getPublicTeam(),
     serverGet<Team[]>('/public/teams').then((rows) => rows ?? []),
     // Bloco "Afiliações abertas" só enquanto houver afiliação à venda (DT-068).
-    serverGet<Page<ProductSummary>>('/public/products?membership=true&pageSize=1')
+    serverGet<Page<ProductSummary>>('/public/products?membership=true&pageSize=1'),
+    serverGet<Tryout[]>('/public/tryouts?scope=open', 30).then((rows) => rows ?? [])
   ]);
   const membership = memberships?.data[0];
   const logo = team.brandAssets.OFFICIAL;
@@ -39,8 +41,11 @@ export default async function HomePage() {
               {team.description ?? 'Vôlei com garra, comunidade e paixão pela quadra.'}
             </p>
             <div className={styles.ctas}>
-              {/* Seletivas ficam em Eventos (DT-099). */}
-              <Link href="/eventos" className="btn btn-primary">
+              {/* Seletivas ficam em Eventos (DT-099); sem nenhuma aberta, o convite de Times. */}
+              <Link
+                href={joinTeamHref(team.joinInviteEnabled, openTryouts.length)}
+                className="btn btn-primary"
+              >
                 Quero jogar no Fênix
               </Link>
               <Link href="/loja" className={`btn ${styles.ghost}`}>

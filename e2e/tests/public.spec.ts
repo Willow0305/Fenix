@@ -46,6 +46,30 @@ test('seletivas ficam em Eventos: o menu não tem Seletivas e /seletivas leva à
   ).toHaveCount(0);
 });
 
+test('"Quero jogar no Fênix" leva às seletivas abertas ou ao convite de Times (PEN-074)', async ({
+  page
+}) => {
+  await page.goto('/');
+
+  const join = page
+    .locator('#hero-title ~ div')
+    .getByRole('link', { name: 'Quero jogar no Fênix' });
+  const href = await join.getAttribute('href');
+
+  expect(['/eventos#seletivas', '/times#quero-jogar', '/interesse']).toContain(href);
+  await join.click();
+
+  if (href === '/eventos#seletivas') {
+    await expect(page.locator('#seletivas')).toBeVisible();
+  } else if (href === '/times#quero-jogar') {
+    await expect(page.getByRole('heading', { name: 'Quer jogar com a gente?' })).toBeInViewport();
+  } else {
+    await expect(
+      page.getByRole('heading', { level: 1, name: 'Quero jogar no Fênix' })
+    ).toBeVisible();
+  }
+});
+
 test('detalhe de notícia, evento, produto, parceiro e tópico do fórum', async ({ page }) => {
   const watcher = watch(page);
 

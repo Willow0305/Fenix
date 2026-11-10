@@ -575,6 +575,7 @@ Prioridades:
 - **Questão:** o documento emitido é permanente e guarda o nome de quem emitiu, de quem assina e, quando a diretoria marca, de quem recebeu (treinador, ajudante). Falta definir com a assessoria jurídica a base legal (obrigação de prestar contas da associação, estatuto), o prazo de guarda e se o estatuto exige forma própria (aprovação em assembleia, conselho fiscal, assinatura de cargos específicos).
 - **Recomendação:** manter como está (nomes de quem recebeu só quando marcado; entradas sem nomes); conferir no estatuto quem precisa assinar e com que periodicidade; se o estatuto exigir, acrescentar depois a assinatura eletrônica ou o registro da aprovação.
 - **Impacto:** `apps/api/src/modules/accountability/`, `docs/13-SEGURANCA-E-LGPD.md`, política de privacidade.
+- **Situação:** decidido em 2026-11-09 manter como está (nomes de quem recebeu só quando marcado; a diretoria escolhe quem assina) (`DT-104`). Resta a conferência do estatuto e do prazo de guarda pela assessoria jurídica.
 
 ### PEN-074 — Seletivas, cartão e carteirinha: pontos a confirmar
 
@@ -583,6 +584,7 @@ Prioridades:
 - **Questão:** (a) seletiva lotada sai do destaque em Eventos junto com a encerrada, porque não aceita inscrição (`DT-099`); (b) sem seletiva aberta, o botão "Quero jogar no Fênix" do Início leva à agenda, onde não há convite (o convite com "Deixar meu contato" fica na página Times); (c) mensalidade paga em parte continua suspendendo a carteirinha até ser quitada (`DT-101`); (d) comprovante de pagamento ainda em análise não libera a carteirinha até a diretoria confirmar.
 - **Recomendação:** manter (a), (c) e (d); para (b), mostrar em Eventos o convite "Deixe seu contato" quando não houver seletiva aberta, se o comprador quiser.
 - **Impacto:** `apps/web/components/tryout-highlight.tsx`, `apps/web/app/(site)/page.tsx`, `apps/api/src/modules/cards/domain/card-rules.ts`.
+- **Situação:** resolvida em 2026-11-09 (`DT-104`). Ver seção 12.
 
 ## 11. Critério de resolução
 
@@ -644,3 +646,5 @@ As entradas acima permanecem como histórico da questão original. As decisões 
 | PEN-061 | Decidido em 2026-10-25 com a recomendação: faixa etária da categoria gera aviso com confirmação, sem bloqueio. | Responsável do projeto | `DT-042` |
 | PEN-028 | Entrega e frete decididos em 2026-10-27: retirada grátis ou entrega em Rio Branco com taxa por região, frete grátis opcional e comprovante de entrega (código, link do entregador, foto, "Recebi" e "Não recebi" em 3 dias). Visitante já compra desde a Fase 4. Implementação aguarda o "continue" do responsável. | Responsável do projeto | `DT-075` |
 | PEN-062 | Decidido em 2026-10-25: foto de perfil para todos os usuários cadastrados (pedido do responsável), privada por padrão; perfil público por escolha da própria pessoa; menor de 18 ou sem nascimento só com autorização do responsável registrada pela diretoria (recomendação, LGPD art. 14). | Responsável do projeto | `DT-044` |
+| PEN-073 | Decidido em 2026-11-09: manter o nome de quem recebeu só nas saídas marcadas, entradas sem nomes, e a diretoria escolhe quem assina, com o cargo. Parcial: estatuto e prazo de guarda seguem com a assessoria jurídica. | Responsável do projeto | `DT-104` |
+| PEN-074 | Decidido em 2026-11-09: sem seletiva aberta, "Quero jogar no Fênix" do Início leva ao convite de Times; carteirinha só volta com a mensalidade quitada e confirmada; seletiva lotada sai do destaque. | Responsável do projeto | `DT-104` |

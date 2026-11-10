@@ -11,12 +11,25 @@ export function showJoinInvite(enabled: boolean | undefined, openTryouts: number
 }
 
 /**
+ * Destino do botão "Quero jogar no Fênix" do Início (PEN-074): com seletiva aberta, as
+ * inscrições em Eventos; sem nenhuma, o convite da página Times; com o convite desligado
+ * pela diretoria, direto o formulário de contato.
+ */
+export function joinTeamHref(enabled: boolean | undefined, openTryouts: number): string {
+  if (openTryouts > 0) {
+    return '/eventos#seletivas';
+  }
+
+  return showJoinInvite(enabled, openTryouts) ? '/times#quero-jogar' : '/interesse';
+}
+
+/**
  * Convite para jogar no time, em destaque (página Times). Com seletiva aberta, o botão
  * principal leva às inscrições; sem nenhuma, o principal é deixar o contato.
  */
 export function JoinTeamCta({ openTryouts }: { readonly openTryouts: number }) {
   return (
-    <section className="join-cta" aria-labelledby="join-cta-title">
+    <section id="quero-jogar" className="join-cta" aria-labelledby="join-cta-title">
       <Icon name="megaphone" className="join-cta-icon" />
       <div className="join-cta-text">
         <h2 id="join-cta-title">Quer jogar com a gente?</h2>
