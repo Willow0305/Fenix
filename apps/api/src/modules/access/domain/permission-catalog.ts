@@ -76,6 +76,8 @@ export const PERMISSIONS = {
   dashboardRead: 'dashboard.read',
   reportsRead: 'reports.read',
   reportsExport: 'reports.export',
+  accountabilityRead: 'accountability.read',
+  accountabilityIssue: 'accountability.issue',
   auditRead: 'audit.read',
   privacyRequestsManage: 'privacy.requests.manage'
 } as const;
@@ -147,6 +149,8 @@ export const PERMISSION_LABELS: Record<PermissionCode, string> = {
   'dashboard.read': 'Ver painel administrativo',
   'reports.read': 'Consultar relatórios',
   'reports.export': 'Exportar relatórios',
+  'accountability.read': 'Ver e baixar prestações de contas',
+  'accountability.issue': 'Emitir prestação de contas',
   'audit.read': 'Consultar auditoria',
   'privacy.requests.manage': 'Atender solicitações de titulares'
 };
@@ -224,7 +228,10 @@ export const PERMISSION_AREAS: readonly {
     prefixes: ['athletes.', 'teams.', 'registrations.', 'tryouts.']
   },
   { name: 'Mensalidades e pagamentos', prefixes: ['fees.', 'payments.'] },
-  { name: 'Caixa e finanças', prefixes: ['finance.', 'transactions.', 'refunds.', 'cash.'] },
+  {
+    name: 'Caixa e finanças',
+    prefixes: ['finance.', 'transactions.', 'refunds.', 'cash.', 'accountability.']
+  },
   {
     name: 'Loja e entregas',
     prefixes: [

@@ -99,6 +99,12 @@ export const ADMIN_NAV: readonly AdminGroup[] = [
         permission: 'finance.read'
       },
       {
+        href: '/admin/caixa/prestacao-de-contas',
+        icon: 'file-earmark-text',
+        label: 'Prestação de contas',
+        permission: 'accountability.read'
+      },
+      {
         href: '/admin/caixa/cadastros',
         icon: 'bank',
         label: 'Contas e categorias',

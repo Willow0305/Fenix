@@ -6,6 +6,12 @@ O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) e o 
 
 ## [Não publicado]
 
+### Prestação de contas (2026-11-09)
+
+#### Adicionado
+
+- prestação de contas em Financeiro: escolha do período (com atalhos), prévia com entradas por categoria e saídas detalhadas (quem recebeu só quando a diretoria marca), assinaturas com o cargo, emissão congelada com número e código de conferência, correção como nova versão, PDF para imprimir e compartilhar no WhatsApp e conferência do código (DT-103).
+
 ### Cargo na diretoria (2026-11-09)
 
 #### Adicionado

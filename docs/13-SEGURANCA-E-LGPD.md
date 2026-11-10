@@ -127,6 +127,7 @@ Consultar a matriz em `05-PERFIS-E-PERMISSOES.md`.
 - concorrência é testada em confirmação, estoque, reembolso e agenda;
 - dados de cartão não são armazenados; eventual gateway deve manter o sistema fora do processamento sensível sempre que possível.
 - do titular do cartão pago pelo site guardam-se só o nome impresso no cartão e o CPF/CNPJ mascarado (`***.456.789-**`), visíveis apenas à diretoria, para conferir a entrega; o cartão pelo site exige conta com e-mail confirmado (`DT-100`).
+- a prestação de contas (`DT-103`) não mostra quem pagou (entradas só por categoria) e só mostra quem recebeu quando a diretoria marca; o documento emitido é permanente e imutável (guarda e base legal em `PEN-073`); fica fora do site, com acesso por permissão própria e download auditado.
 
 ## Uploads e arquivos
 

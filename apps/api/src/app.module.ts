@@ -7,6 +7,7 @@ import { isInternalRequest } from './common/http/internal-request';
 import { PostgresThrottlerStorage } from './common/http/postgres-throttler-storage';
 import { HealthModule } from './health/health.module';
 import { AccessModule } from './modules/access/access.module';
+import { AccountabilityModule } from './modules/accountability/http/accountability.controller';
 import { AuthModule } from './modules/auth/auth.module';
 import { ContentModule } from './modules/content/content.module';
 import { CampaignsModule } from './modules/campaigns/http/campaigns.controller';
@@ -62,7 +63,8 @@ import { CardModule } from './modules/card/http/card.controller';
     SearchModule,
     CardsModule,
     PixModule,
-    CardModule
+    CardModule,
+    AccountabilityModule
   ]
 })
 export class AppModule {}

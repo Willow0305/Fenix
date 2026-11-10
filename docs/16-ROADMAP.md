@@ -273,6 +273,8 @@ Produção com dados reais continua condicionada às pendências P0 jurídicas e
 
 - plano de experiência e conversão (`docs/31-PLANO-DE-EXPERIENCIA.md`, `DT-081`), aprovado em 2026-10-29: compartilhar e adicionar à agenda, eventos externos, medição própria agregada, selo "Diretoria" no fórum, assuntos, galeria e "mais lidas" nas notícias, "avise-me quando chegar" e avaliações de produto com estrelas.
 
+- pedidos do comprador do site, aprovados em 2026-11-09: seletivas abertas em destaque em Eventos (`DT-099`), cartão pelo site só com conta confirmada (`DT-100`), carteirinha de atleta suspensa por mensalidade atrasada (`DT-101`), cargo na diretoria (`DT-102`) e prestação de contas em PDF (`DT-103`).
+
 **Regra:** onde a regra de negócio não estiver definida, adota-se a recomendação registrada e a dúvida vai para `PENDENCIAS.md`, como em todo o projeto.
 
 ## Gates obrigatórios de cada fase

@@ -568,6 +568,22 @@ Prioridades:
 - **Recomendação:** pedir à ferramenta que gerou a animação uma versão HEVC com transparência (`.mov`/`.mp4` "HEVC with alpha"); com o arquivo, basta acrescentar a segunda fonte no componente. GIF não serve: não tem transparência parcial (o brilho fica serrilhado) e sai maior que o WebM.
 - **Impacto:** `apps/web/components/phoenix-motion.tsx`, `apps/web/lib/phoenix-motion.ts`, `apps/web/public/brand/animacoes/`.
 
+### PEN-073 — Prestação de contas: guarda, nomes e assinatura
+
+- **Prioridade:** P2
+- **Bloqueia:** nada; a prestação de contas funciona (`DT-103`)
+- **Questão:** o documento emitido é permanente e guarda o nome de quem emitiu, de quem assina e, quando a diretoria marca, de quem recebeu (treinador, ajudante). Falta definir com a assessoria jurídica a base legal (obrigação de prestar contas da associação, estatuto), o prazo de guarda e se o estatuto exige forma própria (aprovação em assembleia, conselho fiscal, assinatura de cargos específicos).
+- **Recomendação:** manter como está (nomes de quem recebeu só quando marcado; entradas sem nomes); conferir no estatuto quem precisa assinar e com que periodicidade; se o estatuto exigir, acrescentar depois a assinatura eletrônica ou o registro da aprovação.
+- **Impacto:** `apps/api/src/modules/accountability/`, `docs/13-SEGURANCA-E-LGPD.md`, política de privacidade.
+
+### PEN-074 — Seletivas, cartão e carteirinha: pontos a confirmar
+
+- **Prioridade:** P3
+- **Bloqueia:** nada
+- **Questão:** (a) seletiva lotada sai do destaque em Eventos junto com a encerrada, porque não aceita inscrição (`DT-099`); (b) sem seletiva aberta, o botão "Quero jogar no Fênix" do Início leva à agenda, onde não há convite (o convite com "Deixar meu contato" fica na página Times); (c) mensalidade paga em parte continua suspendendo a carteirinha até ser quitada (`DT-101`); (d) comprovante de pagamento ainda em análise não libera a carteirinha até a diretoria confirmar.
+- **Recomendação:** manter (a), (c) e (d); para (b), mostrar em Eventos o convite "Deixe seu contato" quando não houver seletiva aberta, se o comprador quiser.
+- **Impacto:** `apps/web/components/tryout-highlight.tsx`, `apps/web/app/(site)/page.tsx`, `apps/api/src/modules/cards/domain/card-rules.ts`.
+
 ## 11. Critério de resolução
 
 Ao resolver uma pendência:

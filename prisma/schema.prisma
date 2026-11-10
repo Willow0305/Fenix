@@ -476,33 +476,34 @@ enum NotificationDeliveryStatus {
 }
 
 model User {
-  deliveryAttemptsDispatched DeliveryAttempt[] @relation("DeliveryAttemptDispatcher")
-  id                         String            @id @default(uuid()) @db.Uuid
-  name                       String            @db.VarChar(160)
-  email                      String            @unique @db.VarChar(180)
-  passwordHash               String            @map("password_hash") @db.Text
-  phone                      String?           @unique @db.VarChar(30)
-  status                     UserStatus        @default(PENDING)
-  emailVerifiedAt            DateTime?         @map("email_verified_at") @db.Timestamptz(6)
+  deliveryAttemptsDispatched DeliveryAttempt[]      @relation("DeliveryAttemptDispatcher")
+  id                         String                 @id @default(uuid()) @db.Uuid
+  name                       String                 @db.VarChar(160)
+  email                      String                 @unique @db.VarChar(180)
+  passwordHash               String                 @map("password_hash") @db.Text
+  phone                      String?                @unique @db.VarChar(30)
+  status                     UserStatus             @default(PENDING)
+  emailVerifiedAt            DateTime?              @map("email_verified_at") @db.Timestamptz(6)
   /// Cargo na diretoria (Presidente, Tesoureiro(a)...), só para quem tem o papel Diretoria (DT-102).
-  boardPosition              String?           @map("board_position") @db.VarChar(80)
-  lastLoginAt                DateTime?         @map("last_login_at") @db.Timestamptz(6)
+  boardPosition              String?                @map("board_position") @db.VarChar(80)
+  accountabilityReports      AccountabilityReport[] @relation("AccountabilityIssuer")
+  lastLoginAt                DateTime?              @map("last_login_at") @db.Timestamptz(6)
   /// Segredo TOTP cifrado (AES-256-GCM, DATA_ENCRYPTION_KEY); nunca sai da API (DT-037).
-  mfaSecretEncrypted         String?           @map("mfa_secret_encrypted") @db.Text
+  mfaSecretEncrypted         String?                @map("mfa_secret_encrypted") @db.Text
   /// Segredo gerado e ainda não confirmado por um código válido.
-  mfaPendingSecretEncrypted  String?           @map("mfa_pending_secret_encrypted") @db.Text
-  mfaEnabledAt               DateTime?         @map("mfa_enabled_at") @db.Timestamptz(6)
+  mfaPendingSecretEncrypted  String?                @map("mfa_pending_secret_encrypted") @db.Text
+  mfaEnabledAt               DateTime?              @map("mfa_enabled_at") @db.Timestamptz(6)
   /// Último passo TOTP aceito; impede reutilizar o mesmo código.
-  mfaLastUsedStep            Int?              @map("mfa_last_used_step")
+  mfaLastUsedStep            Int?                   @map("mfa_last_used_step")
   /// Foto de perfil (PEN-062, DT-044). Privada até a pessoa marcar `profilePublic`.
-  avatarMediaFileId          String?           @map("avatar_media_file_id") @db.Uuid
+  avatarMediaFileId          String?                @map("avatar_media_file_id") @db.Uuid
   /// Escolha da própria pessoa de aparecer no elenco público do site com foto, nome e posição.
-  profilePublic              Boolean           @default(false) @map("profile_public")
+  profilePublic              Boolean                @default(false) @map("profile_public")
   /// Consentimento para avisos por WhatsApp (DT-048); nulo enquanto não aceito ou após retirar.
-  whatsappOptInAt            DateTime?         @map("whatsapp_opt_in_at") @db.Timestamptz(6)
-  createdAt                  DateTime          @default(now()) @map("created_at") @db.Timestamptz(6)
-  updatedAt                  DateTime          @updatedAt @map("updated_at") @db.Timestamptz(6)
-  deletedAt                  DateTime?         @map("deleted_at") @db.Timestamptz(6)
+  whatsappOptInAt            DateTime?              @map("whatsapp_opt_in_at") @db.Timestamptz(6)
+  createdAt                  DateTime               @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt                  DateTime               @updatedAt @map("updated_at") @db.Timestamptz(6)
+  deletedAt                  DateTime?              @map("deleted_at") @db.Timestamptz(6)
 
   sessions                        UserSession[]
   tokens                          UserToken[]
@@ -3190,6 +3191,46 @@ model CardCharge {
   @@index([status, createdAt])
   @@index([orderId])
   @@map("card_charges")
+}
+
+enum AccountabilityReportStatus {
+  ISSUED
+  /// Corrigida: uma versão nova a substitui (a antiga continua guardada).
+  REPLACED
+}
+
+/// Prestação de contas emitida (DT-103): retrato congelado do Caixa num período, com hash
+/// para conferir que não mudou. O PDF é gerado sempre a partir do retrato; nada de binário.
+model AccountabilityReport {
+  id                String                     @id @default(uuid()) @db.Uuid
+  /// PC-2026-001; a correção mantém o número e aumenta a versão.
+  number            String                     @db.VarChar(20)
+  revision          Int                        @default(1) @db.SmallInt
+  periodStart       DateTime                   @map("period_start") @db.Date
+  periodEnd         DateTime                   @map("period_end") @db.Date
+  status            AccountabilityReportStatus @default(ISSUED)
+  snapshot          Json
+  /// SHA-256 do retrato em JSON canônico.
+  contentHash       String                     @unique @map("content_hash") @db.Char(64)
+  /// 12 primeiros caracteres do hash, impressos como código de conferência.
+  verificationCode  String                     @map("verification_code") @db.Char(12)
+  idempotencyKey    String                     @unique @map("idempotency_key") @db.VarChar(200)
+  issuedById        String?                    @map("issued_by_id") @db.Uuid
+  issuedAt          DateTime                   @default(now()) @map("issued_at") @db.Timestamptz(6)
+  replacesId        String?                    @unique @map("replaces_id") @db.Uuid
+  replacementReason String?                    @map("replacement_reason") @db.Text
+  createdAt         DateTime                   @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt         DateTime                   @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  issuedBy   User?                 @relation("AccountabilityIssuer", fields: [issuedById], references: [id], onDelete: SetNull, onUpdate: Cascade)
+  replaces   AccountabilityReport? @relation("AccountabilityRevision", fields: [replacesId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+  replacedBy AccountabilityReport? @relation("AccountabilityRevision")
+
+  @@unique([number, revision])
+  @@index([periodStart, periodEnd])
+  @@index([verificationCode])
+  @@index([status, issuedAt])
+  @@map("accountability_reports")
 }
 
 /// Termos de uso e política de privacidade (DT-089): cada texto publicado vira uma versão

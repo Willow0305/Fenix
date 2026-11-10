@@ -854,3 +854,13 @@ O Prisma expressa PKs, FKs, índices e grande parte das unicidades, mas não tod
 | Configurações/arquivos | alteração institucional/bancária, upload, acesso sensível e remoção lógica |
 
 Este dicionário deve permanecer sincronizado com `08-MODELO-DE-DADOS.md`, `diagramas/ERD.md` e `prisma/schema.prisma`.
+
+## Adições de 2026-11-09
+
+| Tabela / campo | Descrição | Decisão |
+|---|---|---|
+| `card_charges.holder_name`, `holder_document_masked` | Nome do titular do cartão e CPF/CNPJ mascarado, vistos só pela diretoria | `DT-100` |
+| `team_settings.card_fee_tolerance_days` | Dias depois do vencimento até a carteirinha de atleta ficar suspensa (0 a 90, padrão 10) | `DT-101` |
+| `member_cards.fee_blocked_at` | Marca da rotina para auditar e avisar a suspensão por atraso; a situação é calculada | `DT-101` |
+| `users.board_position` | Cargo na diretoria (até 80), só com o papel Diretoria | `DT-102` |
+| `accountability_reports` | Prestação de contas emitida: número, versão, período, retrato JSON, SHA-256, código de conferência, quem emitiu, versão que substitui e motivo; imutável por gatilho, sem exclusão | `DT-103` |

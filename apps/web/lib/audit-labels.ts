@@ -67,6 +67,9 @@ export const AUDIT_ACTION_LABELS: Readonly<Record<string, string>> = {
   'benefits.created': 'Benefício criado',
   'benefits.updated': 'Benefício alterado',
   'benefits.deleted': 'Benefício excluído',
+  'accountability.issued': 'Prestação de contas emitida',
+  'accountability.replaced': 'Prestação de contas substituída por correção',
+  'accountability.downloaded': 'Prestação de contas baixada',
   'cards.checked': 'Carteirinha conferida',
   'cards.design.updated': 'Visual da carteirinha alterado',
   'cards.fee_blocked': 'Carteirinha suspensa por mensalidade atrasada',
@@ -303,6 +306,7 @@ export const AUDIT_ACTION_LABELS: Readonly<Record<string, string>> = {
 };
 
 export const AUDIT_ENTITY_LABELS: Readonly<Record<string, string>> = {
+  AccountabilityReport: 'Prestação de contas',
   Appointment: 'Agendamento',
   Athlete: 'Atleta',
   CardCharge: 'Pagamento com cartão',
