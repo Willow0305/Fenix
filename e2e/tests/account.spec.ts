@@ -2,7 +2,7 @@ import { randomUUID } from 'node:crypto';
 
 import { expect, test } from '@playwright/test';
 
-import { expectNoHorizontalScroll, settled, watch } from './helpers';
+import { expectNoHorizontalScroll, grantBoardRole, settled, watch } from './helpers';
 
 /** Cadastro e área da conta: carteirinhas, notificações e pedidos (sem rolagem lateral). */
 test('cadastro, carteirinhas vazias e avisos de conteúdo nas preferências', async ({ page }) => {
@@ -46,5 +46,35 @@ test('cadastro, carteirinhas vazias e avisos de conteúdo nas preferências', as
   await page.getByText('Como receber os avisos').click();
   await expect(page.getByText('Notícias do clube').first()).toBeVisible();
   await expect(page.getByText('Novos tópicos no fórum').first()).toBeVisible();
+  expect(watcher.problems).toEqual([]);
+});
+
+test('quem é da diretoria vê a carteirinha válida com o QR em Minha conta (DT-077)', async ({
+  page
+}) => {
+  const watcher = watch(page);
+  const email = `e2e-card-${randomUUID().slice(0, 8)}@exemplo.test`;
+  const password = 'Senha-Conta-E2E-2026!';
+
+  await page.goto('/cadastro');
+  await page.getByLabel(/Nome completo/).fill('Diretoria de Teste E2E');
+  await page.getByLabel(/^E-mail/).fill(email);
+  await page.getByLabel(/^Senha/).fill(password);
+  await page.getByLabel(/Confirme a senha/).fill(password);
+
+  for (const box of await page.locator('form input[type=checkbox]').all()) {
+    await box.check();
+  }
+
+  await page.getByRole('button', { name: /criar conta|cadastrar/i }).click();
+  await page.waitForURL('**/minha-conta');
+  await grantBoardRole(email);
+
+  await page.goto('/minha-conta/carteirinhas');
+  await expect(page.getByRole('heading', { level: 2, name: 'Diretoria' })).toBeVisible();
+  await expect(page.getByText('Diretoria de Teste E2E').first()).toBeVisible();
+  await expect(page.getByText(/Mostre o QR na entrada dos jogos/)).toBeVisible();
+  await expect(page.getByRole('img', { name: /QR/ }).first()).toBeVisible();
+  await expectNoHorizontalScroll(page);
   expect(watcher.problems).toEqual([]);
 });

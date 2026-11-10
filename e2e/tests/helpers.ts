@@ -215,3 +215,25 @@ export async function confirmEmail(email: string): Promise<void> {
     await client.end();
   }
 }
+
+/**
+ * Dá o papel Diretoria à conta direto no banco do E2E (no painel, só o administrador atribui
+ * papéis, com MFA). A carteirinha da diretoria sai na primeira consulta (DT-077).
+ */
+export async function grantBoardRole(email: string): Promise<void> {
+  const client = new Client({ connectionString: e2eDatabaseUrl() });
+
+  await client.connect();
+
+  try {
+    await client.query(
+      `INSERT INTO user_roles (id, user_id, role_id)
+       SELECT gen_random_uuid(), u.id, r.id FROM users u, roles r
+       WHERE u.email = $1 AND r.code = 'board'
+       ON CONFLICT (user_id, role_id) DO NOTHING`,
+      [email.toLowerCase()]
+    );
+  } finally {
+    await client.end();
+  }
+}

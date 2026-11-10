@@ -6,6 +6,12 @@ O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) e o 
 
 ## [Não publicado]
 
+### Carteirinha da diretoria na conta (2026-11-10)
+
+#### Adicionado
+
+- teste ponta a ponta: quem é da diretoria vê a carteirinha válida com o QR em Minha conta › Carteirinhas.
+
 ### Revisão de interface (2026-11-10)
 
 #### Alterado
