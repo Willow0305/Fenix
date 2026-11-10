@@ -6,6 +6,12 @@ O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) e o 
 
 ## [Não publicado]
 
+### Seletivas em Eventos (2026-11-09)
+
+#### Alterado
+
+- as seletivas saíram do menu e do Início e aparecem em destaque no topo de Eventos, só enquanto aceitam inscrição (aberta, dentro do período e com vaga); com mais de uma, em carrossel como a pré-venda; o cartão some quando o prazo acaba; `/seletivas` leva para Eventos (DT-099).
+
 ### Fênix animada (2026-11-02)
 
 #### Adicionado

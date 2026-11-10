@@ -3507,6 +3507,16 @@ details.collapsible {
   gap: 0.75rem;
 }
 
+// Seletiva aberta em Eventos (DT-099): vagas e o botão de inscrição no lado direito.
+.tryout-highlight-side {
+  flex-basis: auto;
+  justify-items: start;
+
+  p {
+    margin: 0;
+  }
+}
+
 .campaign-progress {
   display: grid;
   gap: 0.35rem;

@@ -2002,3 +2002,23 @@ Pesquisa de 01/11/2026 (`docs/35` §1.3): jurisprudência dividida. Decisões do
 - a logo parada (sem fundo) fica no lugar quando: o sistema pede movimento reduzido; economia de dados ligada; conexão 3G ou mais lenta; aparelho com até 2 GB de memória ou até 2 núcleos; Safari e qualquer navegador de iPhone/iPad (mostram o WebM com fundo preto); o loop não começa em 4 s; ou o vídeo dá erro (`apps/web/lib/phoenix-motion.ts`);
 - a logo parada continua na página, invisível sob o vídeo, e é ela que dá o texto alternativo; os vídeos são decorativos (`aria-hidden`), sem som;
 - o service worker não guarda `/brand/animacoes/` (arquivos grandes, servidos em pedaços); fica com o cache do navegador.
+
+## DT-099 — Seletivas abertas em destaque na página Eventos
+
+- **Estado:** Aceita; implementada em 2026-11-09
+- **Data:** 2026-11-09
+- **Aprovador:** responsável do projeto, a pedido do comprador do site ("seletivas deixa de aparecer e vai para eventos para aparecer assim como os card de Afiliações abertas, e se tiver mais de uma aparecer como o card de pré-venda da loja"; "a seletiva só aparece se tiver ativa e dentro do período estipulado, se o período se encerrar o card deve desaparecer"); escolheu "Só em Eventos"
+
+### Decisão
+
+- "Seletivas" sai do menu do site e o cartão "Seletivas" sai de "Nossos times" no Início; a lista `/seletivas` passa a redirecionar (permanente) para `/eventos#seletivas`. A página de cada seletiva (`/seletivas/<slug>`), com o formulário de inscrição, continua igual, e os links de eventos e de "Minhas inscrições" para ela também;
+- o topo da página Eventos mostra as seletivas **aceitando inscrição agora** num cartão escuro, no tom de "Afiliações abertas": etiqueta "Seletiva aberta", nome, equipe, data e local, prazo ("Faltam N dias: inscrições até…" / "Último dia…"), vagas restantes quando há limite e o botão "Inscrever-se";
+- com mais de uma, o mesmo carrossel da pré-venda (`DT-090`): a que fecha primeiro na frente, troca a cada 4 s, setas, uma bolinha por seletiva, pausa com mouse, foco ou toque, sem troca automática com "reduzir movimento". O carrossel virou o componente comum `HighlightCarousel`, usado pela pré-venda e pelas seletivas;
+- **"ativa e dentro do período"** é a mesma regra das inscrições (RN-ATL-002, `registrationBlock`): situação Aberta, depois do início e antes do fim das inscrições e com vaga. A API decide (`GET /public/tryouts?scope=open`, regra pura `openTryoutsFirst`); lotada também sai, porque não aceita inscrição;
+- quando o prazo acaba com a página aberta, o cartão some sozinho (conferência a cada 30 s), e a página recarrega os dados quando as vagas mudam (`LiveRefresh`, tópico `tryouts`);
+- o botão "Quero jogar no Fênix" do Início passa a levar para Eventos; o convite "Quer jogar com a gente?" da página Times (`DT-091`) e "Minhas inscrições" levam a `/eventos#seletivas`;
+- o mapa do site deixa de listar `/seletivas` e lista só as seletivas abertas.
+
+### Consequências
+
+- testes: regra de ordenação e filtro (`sports-rules.spec.ts`), integração de `scope=open` (aberta aparece; lotada e encerrada não; valor inválido recusado), componente (uma, várias, nenhuma e prazo vencendo com a página aberta) e o carrossel da pré-venda inalterado.

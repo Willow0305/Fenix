@@ -19,7 +19,7 @@ describe('convite "Quer jogar com a gente?" (DT-091)', () => {
     expect(screen.getByText(/Há 2 seletivas abertas/)).toBeInTheDocument();
     expect(screen.getByRole('link', { name: 'Ver seletivas abertas' })).toHaveAttribute(
       'href',
-      '/seletivas'
+      '/eventos#seletivas'
     );
   });
 });

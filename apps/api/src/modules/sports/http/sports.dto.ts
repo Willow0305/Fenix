@@ -262,6 +262,14 @@ export class TryoutListQueryDto extends PageQueryDto {
   scope?: 'active' | 'finished';
 }
 
+/** `GET /public/tryouts?scope=open`: só as que aceitam inscrição agora (DT-099). */
+export class PublicTryoutQueryDto {
+  @ApiPropertyOptional({ enum: ['open'], description: 'Só as que aceitam inscrição agora.' })
+  @IsOptional()
+  @IsIn(['open'])
+  scope?: 'open';
+}
+
 export class InterestedStatusDto extends OptionalReasonDto {
   @ApiProperty({ enum: InterestedPersonStatus })
   @IsEnum(InterestedPersonStatus)

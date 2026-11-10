@@ -24,7 +24,6 @@ export const PUBLIC_NAV: readonly NavItem[] = [
   { href: '/times', label: 'Times' },
   { href: '/noticias', label: 'Notícias' },
   { href: '/eventos', label: 'Eventos' },
-  { href: '/seletivas', label: 'Seletivas' },
   { href: '/loja', label: 'Loja' },
   { href: '/parceiros', label: 'Parceiros' },
   { href: '/forum', label: 'Fórum' },

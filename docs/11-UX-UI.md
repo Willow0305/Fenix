@@ -19,7 +19,7 @@ A interface deve tornar simples o que é frequente — inscrição, consulta, pa
 
 ### Área pública
 
-`Início · Sobre · Times · Notícias · Eventos · Seletivas · Loja · Parceiros · Fórum · Contato · Entrar`
+`Início · Sobre · Times · Notícias · Eventos · Loja · Parceiros · Fórum · Contato · Entrar` (seletivas abertas ficam em destaque no topo de Eventos, `DT-099`)
 
 - No mobile, itens secundários entram em menu identificado e operável por teclado.
 - Carrinho/favoritos permanecem no contexto da loja; o carrinho pode exibir indicador fora dela apenas quando tiver itens.
@@ -65,7 +65,7 @@ Os catálogos abaixo herdam esses padrões. “Padrão” na coluna de estados s
 | Área | Rota | Fase |
 |---|---|---:|
 | Público | `/`, `/sobre`, `/contato`, `/termos`, `/privacidade` | 1 |
-| Público | `/times`, `/seletivas`, `/seletivas/[slug]`, `/interesse` | 2 |
+| Público | `/times`, `/seletivas` (redireciona a `/eventos#seletivas`, `DT-099`), `/seletivas/[slug]`, `/interesse` | 2 |
 | Público | `/loja`, `/loja/[slug]`, `/loja/carrinho`, `/loja/pedido` | 4–5 |
 | Autenticação | `/entrar`, `/cadastro`, `/recuperar-senha`, `/redefinir-senha` | 1 |
 | Minha conta | `/minha-conta`, `/seguranca`, `/notificacoes`, `/inscricoes` | 1–2 |
@@ -93,7 +93,7 @@ Todas as telas seguem os padrões da seção anterior: rótulos visíveis, erros
 | Produto | Avaliar e escolher item | Galeria, nome, descrição, preço/promoção, parceiro, variações, quantidade, estoque/campanha, retirada | Selecionar variação/quantidade, favoritar, adicionar; servidor revalida limites | Padrão; variação obrigatória tem erro contextual; galeria com texto alternativo |
 | Carrinho | Revisar itens antes do pedido | Itens, variação, quantidade, preço, subtotal/total, avisos de campanha | Atualizar/remover, continuar compra, avançar; revalidar preço/disponibilidade | Vazio com CTA para loja; conflito destaca item; mobile fixa resumo sem encobrir conteúdo |
 | Checkout | Coletar identificação e confirmar pedido; não implica gateway real nesta fase | Identificação, contato, retirada/entrega se aprovada, itens, total, método disponível, termos | Revisar e criar pedido; validar contato, consentimentos aplicáveis e disponibilidade no servidor | Padrão; etapa preserva dados não sensíveis; mobile usa fluxo linear; pagamento automático fica futuro |
-| Seletivas | Mostrar seletivas aptas | Cards/lista, equipe, data, local, período, vagas se publicadas, status | Filtrar, abrir, inscrever; somente ativa/aberta habilita ação | Padrão; encerrada permanece informativa conforme política; datas locais claras |
+| Seletivas | Mostrar seletivas aptas | Desde `DT-099`: cartão no topo de Eventos (carrossel com mais de uma), equipe, data, local, prazo, vagas restantes | Inscrever; só seletiva aceitando inscrição aparece | Sem seletiva aberta, nada aparece; prazo vencido com a página aberta tira o cartão; datas locais claras |
 | Inscrição em seletiva | Registrar inscrição | Seletiva, nome, contato, nascimento, posição, experiência/observações, privacidade | Enviar e revisar; validar período, formato e campos aprovados no servidor | Padrão; encerramento concorrente informa sem perder entrada; formulário em uma coluna no mobile |
 | Interesse em participar | Cadastrar interessado sem criar atleta/conta automaticamente | Nome, contato, nascimento, posição, observações, aviso de privacidade | Enviar; validar finalidade e campos aprovados | Padrão; confirmação explica que envio não é aprovação |
 | Parceiros | Exibir apenas parceiros aprovados | Busca/tipo, logo, descrição, produtos/serviços e contato público | Filtrar, abrir produtos/profissionais | Padrão; sem parceiros não expõe cadastros pendentes |
@@ -156,7 +156,7 @@ Todas as telas seguem os padrões da seção anterior: rótulos visíveis, erros
 ### WF-01 — Página inicial
 
 ```text
-[Logo Fênix] [Início] [Times] [Notícias] [Seletivas] [Loja] [Parceiros] [Fórum] [Entrar]
+[Logo Fênix] [Início] [Times] [Notícias] [Eventos] [Loja] [Parceiros] [Fórum] [Entrar]
 --------------------------------------------------------------------------------------
 | HERO: imagem/capa + "Fênix Vôlei" + mensagem institucional                         |
 | [Inscreva-se em uma seletiva]  [Conheça a loja]                                    |

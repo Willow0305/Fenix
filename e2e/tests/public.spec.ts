@@ -9,7 +9,6 @@ const PAGES = [
   '/times',
   '/noticias',
   '/eventos',
-  '/seletivas',
   '/loja',
   '/parceiros',
   '/forum',
@@ -35,6 +34,17 @@ for (const path of PAGES) {
     expect(watcher.problems).toEqual([]);
   });
 }
+
+test('seletivas ficam em Eventos: o menu não tem Seletivas e /seletivas leva à agenda (DT-099)', async ({
+  page
+}) => {
+  await page.goto('/seletivas');
+  await expect(page).toHaveURL(/\/eventos#seletivas$/);
+  await expect(page.getByRole('heading', { level: 1, name: 'Agenda' })).toBeVisible();
+  await expect(
+    page.getByRole('navigation', { name: 'Principal' }).getByRole('link', { name: 'Seletivas' })
+  ).toHaveCount(0);
+});
 
 test('detalhe de notícia, evento, produto, parceiro e tópico do fórum', async ({ page }) => {
   const watcher = watch(page);

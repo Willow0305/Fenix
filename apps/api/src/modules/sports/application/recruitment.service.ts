@@ -22,6 +22,7 @@ import {
   PRIVACY_NOTICE_VERSION,
   REASON_REQUIRED_REGISTRATION,
   REGISTRATION_BLOCK_MESSAGES,
+  openTryoutsFirst,
   registrationBlock,
   normalizePositions,
   SLOT_CONSUMING,
@@ -410,6 +411,11 @@ export class RecruitmentService {
     const now = new Date();
 
     return rows.map((row) => this.toTryoutView(row, now));
+  }
+
+  /** Seletivas aceitando inscrição agora, para o destaque da página Eventos (DT-099). */
+  async listOpenTryouts(): Promise<TryoutView[]> {
+    return openTryoutsFirst(await this.listTryouts(true));
   }
 
   /**

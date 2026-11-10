@@ -23,7 +23,6 @@ const PAGES = [
   '/forum',
   '/forum/conversa-geral-demo',
   '/parceiros',
-  '/seletivas',
   '/entrar'
 ];
 

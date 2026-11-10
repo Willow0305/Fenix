@@ -63,6 +63,7 @@ import {
   EndMembershipDto,
   InterestDto,
   InterestedQueryDto,
+  PublicTryoutQueryDto,
   TryoutListQueryDto,
   InterestedStatusDto,
   LinkUserDto,
@@ -124,8 +125,10 @@ export class PublicSportsController {
   }
 
   @Get('tryouts')
-  tryouts(): Promise<TryoutView[]> {
-    return this.recruitment.listTryouts(true);
+  tryouts(@Query() query: PublicTryoutQueryDto): Promise<TryoutView[]> {
+    return query.scope === 'open'
+      ? this.recruitment.listOpenTryouts()
+      : this.recruitment.listTryouts(true);
   }
 
   @Get('tryouts/:slug')

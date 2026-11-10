@@ -39,7 +39,8 @@ export default async function HomePage() {
               {team.description ?? 'Vôlei com garra, comunidade e paixão pela quadra.'}
             </p>
             <div className={styles.ctas}>
-              <Link href="/seletivas" className="btn btn-primary">
+              {/* Seletivas ficam em Eventos (DT-099). */}
+              <Link href="/eventos" className="btn btn-primary">
                 Quero jogar no Fênix
               </Link>
               <Link href="/loja" className={`btn ${styles.ghost}`}>
@@ -109,16 +110,6 @@ export default async function HomePage() {
             <div>
               <strong>Feminino</strong>
               <span>Elenco e agenda</span>
-            </div>
-            <Icon name="arrow-right" className={styles.teamArrow} />
-          </Link>
-          <Link href="/seletivas" className={styles.teamCard}>
-            <span className={styles.teamIcon}>
-              <Icon name="clipboard-check" />
-            </span>
-            <div>
-              <strong>Seletivas</strong>
-              <span>Venha jogar com a gente</span>
             </div>
             <Icon name="arrow-right" className={styles.teamArrow} />
           </Link>

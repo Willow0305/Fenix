@@ -29,7 +29,7 @@ export function JoinTeamCta({ openTryouts }: { readonly openTryouts: number }) {
       <div className="join-cta-actions">
         {openTryouts > 0 ? (
           <>
-            <Link href="/seletivas" className="btn btn-primary">
+            <Link href="/eventos#seletivas" className="btn btn-primary">
               Ver seletivas abertas
             </Link>
             <Link href="/interesse" className="btn join-cta-ghost">

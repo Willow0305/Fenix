@@ -61,6 +61,11 @@ export function formatPhoneDisplay(value: string | null | undefined): string {
 }
 
 /** "1 tópico", "3 tópicos", "0 tópicos": plural por extenso, sem "tópico(s)". */
+/** Dias inteiros até um prazo, contando o dia de hoje como "último dia" (nunca negativo). */
+export function daysLeft(endsAt: string, now = new Date()): number {
+  return Math.max(0, Math.ceil((new Date(endsAt).getTime() - now.getTime()) / 86_400_000));
+}
+
 export function plural(count: number, singular: string, pluralForm: string): string {
   return `${count.toLocaleString('pt-BR')} ${count === 1 ? singular : pluralForm}`;
 }

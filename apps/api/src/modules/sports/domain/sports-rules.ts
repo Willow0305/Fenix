@@ -208,6 +208,29 @@ export function registrationBlock(
   return null;
 }
 
+export interface TryoutHighlightFacts {
+  readonly acceptingRegistrations: boolean;
+  readonly registrationEndsAt: string | null;
+  readonly startsAt: string | null;
+}
+
+/**
+ * Seletivas em destaque na página Eventos (DT-099): só as que aceitam inscrição agora
+ * (aberta, dentro do período e com vaga, RN-ATL-002), a que fecha primeiro na frente; sem
+ * prazo de fim vão por último, pela data da seletiva.
+ */
+export function openTryoutsFirst<T extends TryoutHighlightFacts>(tryouts: readonly T[]): T[] {
+  const last = '9999-12-31T23:59:59.999Z';
+
+  return tryouts
+    .filter((tryout) => tryout.acceptingRegistrations)
+    .sort(
+      (a, b) =>
+        (a.registrationEndsAt ?? last).localeCompare(b.registrationEndsAt ?? last) ||
+        (a.startsAt ?? last).localeCompare(b.startsAt ?? last)
+    );
+}
+
 export const REGISTRATION_BLOCK_MESSAGES: Record<Exclude<RegistrationBlock, null>, string> = {
   NOT_OPEN: 'Esta seletiva não está recebendo inscrições.',
   NOT_STARTED: 'As inscrições desta seletiva ainda não começaram.',

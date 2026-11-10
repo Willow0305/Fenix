@@ -20,7 +20,7 @@ export default function MyRegistrationsPage() {
       {registrations.loading && !registrations.data ? <Loading /> : null}
       {registrations.data?.length === 0 ? (
         <Empty>
-          Nenhuma inscrição ainda. <Link href="/seletivas">Ver seletivas</Link>
+          Nenhuma inscrição ainda. <Link href="/eventos#seletivas">Ver seletivas abertas</Link>
         </Empty>
       ) : null}
       {registrations.data?.map((registration) => (

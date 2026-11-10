@@ -463,6 +463,38 @@ describe('Fase 2 — atletas, equipes, interessados e seletivas', () => {
   });
 
   describe('seletivas e inscrições', () => {
+    it('destaque de Eventos lista só seletiva aberta, no período e com vaga (DT-099)', async () => {
+      const open = await createOpenTryout();
+      const full = await createOpenTryout(1);
+      const ended = await createOpenTryout();
+
+      await ctx.prisma.tryout.update({
+        where: { id: ended.id },
+        data: { registrationEndsAt: new Date(Date.now() - 60_000) }
+      });
+      await ctx
+        .http()
+        .post(`/api/v1/public/tryouts/${full.slug}/registrations`)
+        .send(applicant())
+        .expect(201);
+
+      const listed = await ctx.http().get('/api/v1/public/tryouts?scope=open').expect(200);
+      const slugs = (listed.body as { slug: string; acceptingRegistrations: boolean }[]).map(
+        (item) => item.slug
+      );
+
+      expect(slugs).toContain(open.slug);
+      expect(slugs).not.toContain(full.slug);
+      expect(slugs).not.toContain(ended.slug);
+      expect(
+        (listed.body as { acceptingRegistrations: boolean }[]).every(
+          (item) => item.acceptingRegistrations
+        )
+      ).toBe(true);
+
+      await ctx.http().get('/api/v1/public/tryouts?scope=closed').expect(422);
+    });
+
     it('aceita inscrição só com seletiva aberta e com vaga', async () => {
       const draft = await ctx
         .http()

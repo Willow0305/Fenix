@@ -2,9 +2,12 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 
 import { EventCard } from '../../../components/event-card';
+import { LiveRefresh } from '../../../components/live-refresh';
+import { TryoutHighlight } from '../../../components/tryout-highlight';
 import { groupAgenda } from '../../../lib/calendar';
 import { EVENT_TYPE, type EventType, type TeamEvent } from '../../../lib/content-types';
 import { serverGet } from '../../../lib/server-api';
+import type { Tryout } from '../../../lib/sports-types';
 
 export const metadata: Metadata = {
   title: 'Agenda de vôlei',
@@ -70,8 +73,9 @@ function Group({
 }
 
 /**
- * Agenda (docs/31, Onda 3): hoje, próximos 7 dias e depois. O Acre fica em destaque no
- * filtro de lugar (PEN-069); eventos de outros organizadores entram com D3 (DT-081).
+ * Agenda (docs/31, Onda 3): seletivas abertas no topo (DT-099), depois hoje, próximos 7 dias
+ * e depois. O Acre fica em destaque no filtro de lugar (PEN-069); eventos de outros
+ * organizadores entram com D3 (DT-081).
  */
 export default async function EventsPage({
   searchParams
@@ -86,21 +90,25 @@ export default async function EventsPage({
   if (filters.origin) api.set('origin', filters.origin);
 
   const query = api.size ? `&${api.toString()}` : '';
-  const [upcoming, past] = await Promise.all([
+  const [upcoming, past, tryouts] = await Promise.all([
     serverGet<TeamEvent[]>(`/public/events?scope=upcoming&limit=60${query}`, 30),
-    serverGet<TeamEvent[]>(`/public/events?scope=past&limit=12${query}`, 60)
+    serverGet<TeamEvent[]>(`/public/events?scope=past&limit=12${query}`, 60),
+    // Seletivas abertas em destaque (DT-099): só as que aceitam inscrição agora.
+    serverGet<Tryout[]>('/public/tryouts?scope=open', 30)
   ]);
   const groups = groupAgenda(upcoming ?? []);
   const filtered = Boolean(filters.type || filters.region || filters.origin);
 
   return (
     <div className="container stack pt-xl">
+      <LiveRefresh topics={['tryouts']} />
       <header className="stack gap-sm">
         <h1 className="m-0">Agenda</h1>
         <p className="muted m-0">
           Jogos e eventos do Fênix e do vôlei no Acre e fora dele. Horários de Rio Branco.
         </p>
       </header>
+      <TryoutHighlight tryouts={tryouts ?? []} />
       <nav aria-label="Lugar" className="row">
         {REGIONS.map(([value, label]) => (
           <Link

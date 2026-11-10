@@ -19,7 +19,6 @@ declare const styles: {
   readonly membership: string;
   readonly cards: string;
   readonly teamCard: string;
-  readonly teamIcon: string;
   readonly teamArrow: string;
 };
 

@@ -5,6 +5,7 @@ import {
   INTERESTED_TRANSITIONS,
   normalizeDocument,
   normalizePositions,
+  openTryoutsFirst,
   periodsOverlap,
   registrationBlock,
   slugify,
@@ -143,5 +144,29 @@ describe('utilitários', () => {
   it('gera slug e normaliza documentos', () => {
     expect(slugify('Seletiva Sub-17 Feminino 2026!')).toBe('seletiva-sub-17-feminino-2026');
     expect(normalizeDocument('123.456.789-0x')).toBe('1234567890X');
+  });
+});
+
+describe('openTryoutsFirst (DT-099)', () => {
+  const tryout = (
+    id: string,
+    acceptingRegistrations: boolean,
+    registrationEndsAt: string | null,
+    startsAt: string | null = null
+  ) => ({ id, acceptingRegistrations, registrationEndsAt, startsAt });
+
+  it('mostra só as que aceitam inscrição, a que fecha primeiro na frente', () => {
+    const result = openTryoutsFirst([
+      tryout('sem-prazo', true, null, '2026-12-01T12:00:00.000Z'),
+      tryout('fechada', false, '2026-11-01T00:00:00.000Z'),
+      tryout('depois', true, '2026-11-30T00:00:00.000Z'),
+      tryout('antes', true, '2026-11-15T00:00:00.000Z')
+    ]);
+
+    expect(result.map((item) => item.id)).toEqual(['antes', 'depois', 'sem-prazo']);
+  });
+
+  it('sem nenhuma aberta, não há destaque', () => {
+    expect(openTryoutsFirst([tryout('encerrada', false, '2026-10-01T00:00:00.000Z')])).toEqual([]);
   });
 });

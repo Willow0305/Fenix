@@ -1,57 +1,10 @@
-import type { Metadata } from 'next';
-import Link from 'next/link';
+import { permanentRedirect } from 'next/navigation';
 
-import { LiveRefresh } from '../../../components/live-refresh';
-import { formatDateTime } from '../../../lib/format';
-import { serverGet } from '../../../lib/server-api';
-import { type Tryout, tryoutPublicBadge } from '../../../lib/sports-types';
-
-export const metadata: Metadata = { title: 'Seletivas' };
-export const revalidate = 30;
-
-export default async function TryoutsPage() {
-  const tryouts = (await serverGet<Tryout[]>('/public/tryouts', 30)) ?? [];
-
-  return (
-    <div className="container stack pt-xl">
-      <LiveRefresh topics={['tryouts']} />
-      <h1>Seletivas</h1>
-      <p className="muted">Horários exibidos no fuso do time (Rio Branco).</p>
-      {tryouts.length === 0 ? (
-        <div className="card stack">
-          <p>Nenhuma seletiva publicada no momento.</p>
-          <p>
-            <Link href="/interesse">Deixe seu contato</Link> e avisamos quando abrir a próxima.
-          </p>
-        </div>
-      ) : (
-        <div className="stack">
-          {tryouts.map((tryout) => (
-            <article key={tryout.id} className="card stack">
-              <div className="row">
-                <h2 className="list-title">
-                  <Link href={`/seletivas/${tryout.slug}`}>{tryout.title}</Link>
-                </h2>
-                <span className={`badge ${tryoutPublicBadge(tryout).badge}`}>
-                  {tryoutPublicBadge(tryout).label}
-                </span>
-              </div>
-              <p className="muted m-0">
-                {tryout.team ? `${tryout.team.name} · ` : ''}
-                {tryout.startsAt ? formatDateTime(tryout.startsAt) : 'Data a definir'}
-                {tryout.location ? ` · ${tryout.location}` : ''}
-              </p>
-              {tryout.acceptingRegistrations ? (
-                <Link href={`/seletivas/${tryout.slug}`} className="btn btn-primary self-start">
-                  Inscrever-se
-                </Link>
-              ) : tryout.blockReason ? (
-                <span className="muted">{tryout.blockReason}</span>
-              ) : null}
-            </article>
-          ))}
-        </div>
-      )}
-    </div>
-  );
+/**
+ * A lista de seletivas saiu do site (DT-099): as abertas aparecem em destaque no topo de
+ * Eventos. Links antigos e favoritos para `/seletivas` vão para lá. A página de cada
+ * seletiva (`/seletivas/<slug>`), com o formulário de inscrição, continua igual.
+ */
+export default function TryoutsPage(): never {
+  permanentRedirect('/eventos#seletivas');
 }

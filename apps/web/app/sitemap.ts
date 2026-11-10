@@ -14,7 +14,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const [news, products, tryouts, partners] = await Promise.all([
     serverGet<Page<Slugged>>('/public/news?pageSize=100', 3600),
     serverGet<Page<Slugged>>('/public/products?pageSize=100', 3600),
-    serverGet<Slugged[]>('/public/tryouts', 3600),
+    serverGet<Slugged[]>('/public/tryouts?scope=open', 3600),
     serverGet<{ id: string }[]>('/public/partners', 3600)
   ]);
   const fixed = [
@@ -23,7 +23,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     '/times',
     '/noticias',
     '/eventos',
-    '/seletivas',
     '/loja',
     '/parceiros',
     '/contato',
