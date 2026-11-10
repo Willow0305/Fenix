@@ -73,7 +73,7 @@ function ProofForm({ fee, onDone }: { readonly fee: Fee; readonly onDone: () => 
         </div>
       </div>
       <div className="form-actions">
-        <button type="submit" className="btn btn-primary" disabled={action.pending || !file}>
+        <button type="submit" className="btn btn-primary" disabled={action.pending}>
           {action.pending ? 'Enviando…' : 'Enviar comprovante'}
         </button>
       </div>

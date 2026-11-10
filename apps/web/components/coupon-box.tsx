@@ -91,6 +91,7 @@ export function CouponBox({
         <span className="label">Cupom de desconto</span>
         <input
           value={code}
+          required
           maxLength={40}
           autoComplete="off"
           autoCapitalize="characters"
@@ -106,7 +107,7 @@ export function CouponBox({
         ) : null}
       </label>
       <div className="form-actions">
-        <button type="submit" className="btn btn-secondary" disabled={pending || !code.trim()}>
+        <button type="submit" className="btn btn-secondary" disabled={pending}>
           <Icon name="ticket-perforated" /> {pending ? 'Conferindo…' : 'Aplicar'}
         </button>
       </div>

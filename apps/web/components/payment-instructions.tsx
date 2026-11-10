@@ -169,7 +169,7 @@ export function OrderPayment({
             </div>
           </div>
           <div className="form-actions">
-            <button type="submit" className="btn btn-primary" disabled={!file || action.pending}>
+            <button type="submit" className="btn btn-primary" disabled={action.pending}>
               {action.pending ? 'Enviando…' : 'Enviar comprovante'}
             </button>
           </div>

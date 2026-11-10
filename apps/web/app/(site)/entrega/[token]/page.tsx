@@ -137,6 +137,8 @@ export default function CourierPage() {
         <TextField
           label="Código"
           numeric="integer"
+          required
+          minLength={4}
           maxLength={4}
           autoComplete="one-time-code"
           value={code}
@@ -146,7 +148,7 @@ export default function CourierPage() {
         <button
           type="submit"
           className="btn btn-primary"
-          disabled={code.length !== 4 || confirm.pending || view.codeAttemptsLeft === 0}
+          disabled={confirm.pending || view.codeAttemptsLeft === 0}
         >
           Confirmar entrega
         </button>
@@ -161,6 +163,7 @@ export default function CourierPage() {
           <input
             id="foto-entrega"
             type="file"
+            required
             accept="image/png,image/jpeg,image/webp"
             capture="environment"
             onChange={(e) => setPhoto(e.target.files?.[0] ?? null)}
@@ -173,7 +176,7 @@ export default function CourierPage() {
           onChange={(e) => setReceivedBy(e.target.value)}
           placeholder="Maria, mãe"
         />
-        <button type="submit" className="btn btn-secondary" disabled={!photo || send.pending}>
+        <button type="submit" className="btn btn-secondary" disabled={send.pending}>
           Enviar foto e registrar entrega
         </button>
       </form>

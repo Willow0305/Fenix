@@ -47,7 +47,8 @@ test('aba Afiliação: abas, endereço antigo e novo plano', async ({ page, requ
   await page.getByRole('button', { name: 'Criar plano' }).click();
   await expect(page.getByRole('heading', { name: 'Dados do plano' })).toBeVisible();
   await page.getByRole('button', { name: 'Publicar na loja' }).click();
-  await expect(page.getByText('Plano à venda na loja.')).toBeVisible();
+  // Na área principal: o anunciador do leitor de tela repete o texto escondido (DT-106).
+  await expect(page.getByRole('main').getByText('Plano à venda na loja.')).toBeVisible();
   await expectNoHorizontalScroll(page);
 
   // Benefício de loja sem cadastro no site (DT-074).

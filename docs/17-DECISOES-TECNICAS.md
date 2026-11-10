@@ -2134,3 +2134,19 @@ Sem conta, o nome do pedido é o que a pessoa digita. O titular do cartão (nome
 ### Consequências
 
 - testes: botão de pausar do carrossel e da fênix, sem pausar com "reduzir movimento", e os formulários da conta de menor e do aceite dos termos conferindo `required` em vez de botão desligado.
+
+## DT-106 — Avisos lidos pelo leitor de tela e botões de enviar sempre ativos
+
+- **Estado:** Aceita; implementada em 2026-11-10 (completa `DT-105`)
+- **Data:** 2026-11-10
+- **Aprovador:** responsável do projeto ("resolva os problemas que você indicou"), sobre os dois pontos anteriores às mudanças apontados na revisão de interface
+
+### Decisão
+
+- **anunciador fixo** (`LiveAnnouncer`, no layout raiz): duas regiões escondidas, uma educada (`status`) e uma que interrompe (`alert`), que existem desde o início da página e só trocam o texto. O `Alert` deixa de ter `role` próprio e passa o texto para elas quando aparece ou muda **depois de uma ação da pessoa nesta página** (clicar ou digitar). Erro interrompe; sucesso, informação e atenção esperam. Avisos que já estão na página ao abrir não são lidos sozinhos, como antes, para o leitor de tela não ler a página duas vezes. A mesma mensagem repetida é lida de novo (a região é esvaziada antes);
+- **botão de enviar sempre ativo:** os botões que ficavam desligados até o formulário estar completo passam a ficar ativos, e o navegador aponta o campo que falta ao enviar (`required`, `minLength`): código de entrega de 4 números e foto (entregador e painel), comprovantes (pedido e mensalidade), imagens e logos, e-mail para vincular a conta do atleta, conta do fechamento, categoria nova da loja, produto da remessa, plano do atleta, cupom, horário do parceiro e opção do produto. "Ativar WhatsApp" (fora de formulário) explica ao lado da caixa que falta marcá-la. Continuam desligados só os botões de estado, não de preenchimento: enviando, tentativas do código esgotadas, notícia já publicada, limite de etiquetas.
+
+### Consequências
+
+- testes: anunciador (lê a mensagem depois de uma ação, não o aviso que já estava na página; erro na região que interrompe).
+

@@ -109,11 +109,7 @@ export function AthleteFeePlans({ athleteId }: { readonly athleteId: string }) {
             />
           </div>
           <div className="form-actions">
-            <button
-              type="submit"
-              className="btn btn-primary"
-              disabled={!form.planId || assign.pending}
-            >
+            <button type="submit" className="btn btn-primary" disabled={assign.pending}>
               Atribuir plano
             </button>
           </div>

@@ -148,10 +148,15 @@ export default function ProductsAdminPage() {
             <TextField
               label="Nova categoria da loja"
               maxLength={120}
+              required
               value={category}
               onChange={(e) => setCategory(e.target.value)}
             />
-            <button type="submit" className="btn btn-secondary btn-sm" disabled={!category}>
+            <button
+              type="submit"
+              className="btn btn-secondary btn-sm"
+              disabled={createCategory.pending}
+            >
               Adicionar categoria
             </button>
             <ErrorSummary error={createCategory.error} />

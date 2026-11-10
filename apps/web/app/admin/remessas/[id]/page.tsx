@@ -352,6 +352,7 @@ export default function CampaignDetailPage() {
           <form className="row" onSubmit={(event) => void attach.submit(event)}>
             <SelectField
               label="Produto"
+              required
               value={link.productId}
               onChange={(e) => setLink({ ...link, productId: e.target.value })}
               options={[
@@ -373,11 +374,7 @@ export default function CampaignDetailPage() {
               value={link.maximumQuantity}
               onChange={(e) => setLink({ ...link, maximumQuantity: e.target.value })}
             />
-            <button
-              type="submit"
-              className="btn btn-secondary btn-sm"
-              disabled={!link.productId || attach.pending}
-            >
+            <button type="submit" className="btn btn-secondary btn-sm" disabled={attach.pending}>
               Vincular
             </button>
             <ErrorSummary error={attach.error} />

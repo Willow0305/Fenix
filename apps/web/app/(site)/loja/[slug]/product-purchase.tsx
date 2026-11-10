@@ -190,7 +190,7 @@ export function ProductPurchase({ product }: { readonly product: ProductDetail }
             max={Math.max(1, (product.buyerLimit ?? 50) - inCart)}
             onChange={setQty}
           />
-          <button type="submit" className="btn btn-primary" disabled={add.pending || !variantId}>
+          <button type="submit" className="btn btn-primary" disabled={add.pending}>
             <Icon name="cart-plus" /> {add.pending ? 'Adicionando…' : 'Adicionar ao carrinho'}
           </button>
         </form>

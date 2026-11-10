@@ -66,12 +66,13 @@ export function TeamLogoUpload({
           key={inputKey}
           id={`logo-${team.id}`}
           type="file"
+          required
           accept="image/png,image/jpeg,image/webp"
           onChange={(e) => setFile(e.target.files?.[0] ?? null)}
         />
       </div>
       <div className="form-actions">
-        <button type="submit" className="btn btn-secondary" disabled={!file || upload.pending}>
+        <button type="submit" className="btn btn-secondary" disabled={upload.pending}>
           <Icon name="upload" /> {upload.pending ? 'Enviando…' : 'Enviar logo'}
         </button>
         {team.logoUrl ? (

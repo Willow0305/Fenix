@@ -41,6 +41,8 @@ export function NotificationPreferencesSection() {
   const prefs = useResource<NotificationPreferences>('/me/notifications/preferences');
   const consentId = useId();
   const [agreed, setAgreed] = useState(false);
+  // Botão sempre ativo: sem a caixa marcada, explica ao lado dela o que falta.
+  const [needsAgreement, setNeedsAgreement] = useState(false);
   const job = useRef<Job | null>(null);
   const action = useSubmit(async () => {
     const current = job.current;
@@ -144,7 +146,12 @@ export function NotificationPreferencesSection() {
                 id={consentId}
                 type="checkbox"
                 checked={agreed}
-                onChange={(event) => setAgreed(event.target.checked)}
+                aria-invalid={needsAgreement ? true : undefined}
+                aria-describedby={needsAgreement ? `${consentId}-erro` : undefined}
+                onChange={(event) => {
+                  setAgreed(event.target.checked);
+                  setNeedsAgreement(false);
+                }}
               />
               <span>
                 Aceito receber avisos do Fênix Vôlei por WhatsApp no número{' '}
@@ -152,12 +159,26 @@ export function NotificationPreferencesSection() {
                 abaixo. Posso parar quando quiser, aqui mesmo.
               </span>
             </label>
+            {needsAgreement ? (
+              <span id={`${consentId}-erro`} className="field-error">
+                Marque a caixa acima para aceitar receber os avisos por WhatsApp.
+              </span>
+            ) : null}
             <div>
               <button
                 type="button"
                 className="btn btn-primary btn-sm"
-                disabled={!agreed || action.pending}
-                onClick={() => consent(true)}
+                disabled={action.pending}
+                onClick={() => {
+                  if (!agreed) {
+                    setNeedsAgreement(true);
+                    document.getElementById(consentId)?.focus();
+
+                    return;
+                  }
+
+                  consent(true);
+                }}
               >
                 <Icon name="whatsapp" /> Ativar WhatsApp
               </button>

@@ -35,7 +35,7 @@ test('visitante compra e paga com PIX automático', async ({ page }) => {
   await expect(page.getByText('PIX copia e cola')).toBeVisible();
   await expectNoHorizontalScroll(page);
   await page.getByRole('button', { name: /simular pagamento/i }).click();
-  await expect(page.getByText('Pagamento confirmado. Obrigado!')).toBeVisible();
+  await expect(page.getByRole('main').getByText('Pagamento confirmado. Obrigado!')).toBeVisible();
 
   // Link fixo (DT-096): abre o pedido sem digitar nada, e ele fica lembrado no aparelho.
   const orderNumber = (
@@ -182,7 +182,7 @@ test('conta confirmada paga com cartão pelo site', async ({ page, request }, in
   }
 
   await page.getByRole('button', { name: 'Simular cartão aprovado' }).click();
-  await expect(page.getByText('Pagamento confirmado. Obrigado!')).toBeVisible();
+  await expect(page.getByRole('main').getByText('Pagamento confirmado. Obrigado!')).toBeVisible();
   expect(watcher.problems).toEqual([]);
 });
 

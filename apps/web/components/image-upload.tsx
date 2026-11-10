@@ -84,6 +84,7 @@ export function ImageUpload<T>({
           <input
             id={inputId}
             type="file"
+            required
             accept={ACCEPT}
             onChange={(event) => {
               const chosen = event.target.files?.[0] ?? null;
@@ -99,7 +100,7 @@ export function ImageUpload<T>({
             <span className="field-error">A imagem passa de 10 MB. Escolha um arquivo menor.</span>
           ) : null}
           <div className="form-actions">
-            <button type="submit" className="btn btn-secondary" disabled={!file || upload.pending}>
+            <button type="submit" className="btn btn-secondary" disabled={upload.pending}>
               <Icon name="upload" /> {upload.pending ? 'Enviando…' : 'Enviar imagem'}
             </button>
           </div>

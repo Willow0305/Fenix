@@ -45,7 +45,7 @@ test('entrega em casa do pedido ao código do motoboy', async ({ page, browser, 
 
   await page.getByRole('button', { name: /gerar qr pix/i }).click();
   await page.getByRole('button', { name: /simular pagamento/i }).click();
-  await expect(page.getByText('Pagamento confirmado. Obrigado!')).toBeVisible();
+  await expect(page.getByRole('main').getByText('Pagamento confirmado. Obrigado!')).toBeVisible();
 
   // 2. Diretoria registra a saída com um motoboy digitado na hora.
   const admin = await browser.newPage();

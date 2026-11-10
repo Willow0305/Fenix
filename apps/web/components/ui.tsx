@@ -27,6 +27,7 @@ import {
 } from '@fenix/validation';
 
 import { ApiError, errorMessage } from '../lib/api-client';
+import { announce, shouldAnnounce } from './live-announcer';
 import { decimalDisplay, type NumericMode, sanitizeNumeric } from '../lib/numeric-input';
 import { plural } from '../lib/format';
 
@@ -334,8 +335,25 @@ export function Alert({
   readonly kind: 'error' | 'success' | 'info' | 'warning';
   readonly children: ReactNode;
 }) {
+  const box = useRef<HTMLDivElement>(null);
+  const last = useRef('');
+
+  // O texto vai para o anunciador fixo (`LiveAnnouncer`): uma região que já nasce com o
+  // texto nem sempre é lida. Erro interrompe; o resto espera a pessoa terminar.
+  useEffect(() => {
+    const current = box.current?.textContent ?? '';
+
+    if (current !== last.current) {
+      last.current = current;
+
+      if (shouldAnnounce()) {
+        announce(current, kind === 'error' ? 'assertive' : 'polite');
+      }
+    }
+  });
+
   return (
-    <div className={`alert alert-${kind}`} role={kind === 'error' ? 'alert' : 'status'}>
+    <div ref={box} className={`alert alert-${kind}`}>
       {children}
     </div>
   );

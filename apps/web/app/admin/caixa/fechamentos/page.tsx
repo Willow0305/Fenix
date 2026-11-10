@@ -108,11 +108,7 @@ export default function ClosingsPage() {
               />
             </div>
             <div className="form-actions">
-              <button
-                type="submit"
-                className="btn btn-secondary"
-                disabled={!form.accountId || check.pending}
-              >
+              <button type="submit" className="btn btn-secondary" disabled={check.pending}>
                 Calcular saldo esperado
               </button>
             </div>

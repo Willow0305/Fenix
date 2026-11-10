@@ -114,7 +114,7 @@ export default function ServiceRequestPage() {
             hint={notice}
           />
           <div className="form-actions">
-            <button type="submit" className="btn btn-primary" disabled={request.pending || !slotId}>
+            <button type="submit" className="btn btn-primary" disabled={request.pending}>
               Solicitar horário
             </button>
           </div>

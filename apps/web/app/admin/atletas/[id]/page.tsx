@@ -281,11 +281,12 @@ export default function AthleteDetailPage() {
               label="E-mail da conta do atleta"
               maxLength={180}
               type="email"
+              required
               value={linkEmail}
               onChange={(e) => setLinkEmail(e.target.value)}
               hint="A pessoa precisa ter criado a conta no site."
             />
-            <button type="submit" className="btn btn-primary" disabled={link.pending || !linkEmail}>
+            <button type="submit" className="btn btn-primary" disabled={link.pending}>
               Vincular conta
             </button>
             <ErrorSummary error={link.error} />

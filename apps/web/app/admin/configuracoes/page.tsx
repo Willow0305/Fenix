@@ -114,6 +114,7 @@ function BrandUpload({
         <input
           id={`file-${context}`}
           type="file"
+          required
           accept="image/png,image/jpeg,image/webp"
           onChange={(e) => setFile(e.target.files?.[0] ?? null)}
         />
@@ -124,7 +125,7 @@ function BrandUpload({
         value={alt}
         onChange={(e) => setAlt(e.target.value)}
       />
-      <button type="submit" className="btn btn-secondary btn-sm" disabled={!file || upload.pending}>
+      <button type="submit" className="btn btn-secondary btn-sm" disabled={upload.pending}>
         {upload.pending ? 'Enviando…' : 'Enviar'}
       </button>
     </form>

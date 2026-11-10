@@ -380,16 +380,14 @@ export function DispatchPanel({
             <TextField
               label="Código que o cliente informou"
               numeric="integer"
+              required
+              minLength={4}
               maxLength={4}
               value={code}
               onChange={(e) => setCode(e.target.value)}
               hint="O código não aparece aqui: o entregador pergunta ao cliente."
             />
-            <button
-              type="submit"
-              className="btn btn-primary btn-sm"
-              disabled={code.length !== 4 || confirmCode.pending}
-            >
+            <button type="submit" className="btn btn-primary btn-sm" disabled={confirmCode.pending}>
               Confirmar entrega
             </button>
             <ErrorSummary error={confirmCode.error} />
@@ -400,6 +398,7 @@ export function DispatchPanel({
               <input
                 id="foto-saida"
                 type="file"
+                required
                 accept="image/png,image/jpeg,image/webp"
                 onChange={(e) => setPhoto(e.target.files?.[0] ?? null)}
               />
@@ -411,11 +410,7 @@ export function DispatchPanel({
               onChange={(e) => setReceivedBy(e.target.value)}
               placeholder="Maria, mãe"
             />
-            <button
-              type="submit"
-              className="btn btn-secondary btn-sm"
-              disabled={!photo || sendPhoto.pending}
-            >
+            <button type="submit" className="btn btn-secondary btn-sm" disabled={sendPhoto.pending}>
               Anexar foto
             </button>
             <ErrorSummary error={sendPhoto.error} />

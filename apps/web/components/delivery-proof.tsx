@@ -61,15 +61,12 @@ export function DeliveryProof({
             <input
               id="foto-entrega"
               type="file"
+              required
               accept="image/png,image/jpeg,image/webp"
               onChange={(e) => setFile(e.target.files?.[0] ?? null)}
             />
           </div>
-          <button
-            type="submit"
-            className="btn btn-secondary btn-sm"
-            disabled={!file || upload.pending}
-          >
+          <button type="submit" className="btn btn-secondary btn-sm" disabled={upload.pending}>
             Anexar foto
           </button>
           <ErrorSummary error={upload.error} />

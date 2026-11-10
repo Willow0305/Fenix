@@ -4,6 +4,7 @@ import { headers } from 'next/headers';
 import type { ReactNode } from 'react';
 
 import { LegalUpdateGate } from '../components/legal-update-gate';
+import { LiveAnnouncer } from '../components/live-announcer';
 import { AuthProvider } from '../lib/auth-context';
 import { CartProvider } from '../lib/cart-context';
 import { LiveToasts } from '../components/live-toasts';
@@ -63,6 +64,7 @@ export default async function RootLayout({ children }: RootLayoutProps) {
             <CartProvider>{children}</CartProvider>
             <LiveToasts />
             <LegalUpdateGate />
+            <LiveAnnouncer />
           </AuthProvider>
         </QueryProvider>
       </body>
