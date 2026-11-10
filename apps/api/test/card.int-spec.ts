@@ -23,6 +23,11 @@ describe('Cartão pelo site (DT-079)', () => {
     ctx = await createTestContext();
     board = await tokenFor(ctx, ['board']);
     buyer = await tokenFor(ctx, ['user']);
+    // Cartão pelo site só com e-mail confirmado (DT-100).
+    await ctx.prisma.user.update({
+      where: { id: buyer.id },
+      data: { emailVerifiedAt: new Date() }
+    });
     categoryId = (
       await ctx
         .http()
@@ -203,7 +208,7 @@ describe('Cartão pelo site (DT-079)', () => {
     ).resolves.toMatchObject({ providerRefundStatus: 'SENT' });
   });
 
-  it('visitante paga pelo número e código; diretoria grava os códigos de sem juros', async () => {
+  it('sem conta não paga com cartão pelo site, nem pedido antigo (DT-100)', async () => {
     const product = await ctx
       .http()
       .post('/api/v1/store/products')
@@ -231,32 +236,115 @@ describe('Cartão pelo site (DT-079)', () => {
       .send({ variantId: product.body.variants[0].id, quantity: 1 })
       .expect(200);
 
+    const customer = {
+      customerName: 'Visitante Cartão',
+      customerEmail: `cartao-${randomUUID().slice(0, 4)}@exemplo.test`,
+      customerPhone: '68 99999-3333',
+      acceptTerms: true
+    };
+    const refused = await agent
+      .post('/api/v1/orders/checkout')
+      .send({ ...customer, paymentChoice: 'ONLINE_CARD' })
+      .expect(422);
+
+    expect(refused.body.code).toBe('CARD_ACCOUNT_REQUIRED');
+
+    // Pedido sem conta de antes da regra, com o cartão escolhido: segue só com PIX.
     const order = await agent
       .post('/api/v1/orders/checkout')
-      .send({
-        customerName: 'Visitante Cartão',
-        customerEmail: `cartao-${randomUUID().slice(0, 4)}@exemplo.test`,
-        customerPhone: '68 99999-3333',
-        acceptTerms: true,
-        paymentChoice: 'ONLINE_CARD'
-      })
+      .send({ ...customer, paymentChoice: 'PIX' })
       .expect(201);
+
+    await ctx.prisma.order.update({
+      where: { id: order.body.order.id },
+      data: { paymentChoice: 'ONLINE_CARD' }
+    });
+
     const guest = {
       orderNumber: order.body.order.orderNumber,
       code: order.body.guestAccessCode
     };
+    const form = await ctx
+      .http()
+      .post('/api/v1/public/orders/card/checkout')
+      .send(guest)
+      .expect(403);
 
-    await ctx.http().post('/api/v1/public/orders/card/checkout').send(guest).expect(200);
+    expect(form.body.code).toBe('CARD_ACCOUNT_REQUIRED');
 
-    const paid = await ctx
+    const payment = await ctx
       .http()
       .post('/api/v1/public/orders/card')
       .set(key())
       .send({ ...card({}), ...guest })
+      .expect(403);
+
+    expect(payment.body.code).toBe('CARD_ACCOUNT_REQUIRED');
+    expect(await ctx.prisma.cardCharge.count({ where: { orderId: order.body.order.id } })).toBe(0);
+  });
+
+  it('conta sem e-mail confirmado também não paga com cartão (DT-100)', async () => {
+    const unverified = await tokenFor(ctx, ['user']);
+
+    await ctx.prisma.user.update({
+      where: { id: unverified.id },
+      data: { emailVerifiedAt: null }
+    });
+
+    const refused = await ctx
+      .http()
+      .post('/api/v1/orders/checkout')
+      .set(auth(unverified.token))
+      .send({ customerPhone: '68 99999-1111', acceptTerms: true, paymentChoice: 'ONLINE_CARD' })
+      .expect(422);
+
+    // O carrinho vazio também recusaria; a regra do cartão vem antes e diz o motivo certo.
+    expect(refused.body.code).toBe('CARD_EMAIL_NOT_VERIFIED');
+    await ctx
+      .http()
+      .get(`/api/v1/me/orders/${randomUUID()}/card`)
+      .set(auth(unverified.token))
+      .expect(403);
+  });
+
+  it('guarda o titular do cartão mascarado e só a diretoria vê (DT-100)', async () => {
+    await addProduct(null, '80.00');
+
+    const order = await checkout();
+    const orderId = order.body.order.id as string;
+
+    await pay(orderId, { identificationType: 'CPF', identificationNumber: '52998224725' }).expect(
+      200
+    );
+
+    const charge = await ctx.prisma.cardCharge.findFirstOrThrow({ where: { orderId } });
+
+    expect(charge.holderName).toBe('TITULAR DE TESTE');
+    expect(charge.holderDocumentMasked).toBe('***.982.247-**');
+
+    const staff = await ctx
+      .http()
+      .get(`/api/v1/store/orders/${orderId}`)
+      .set(auth(board.token))
       .expect(200);
 
-    expect(paid.body.status).toBe('PAID');
+    expect(staff.body.cardHolder).toEqual({
+      name: 'TITULAR DE TESTE',
+      document: '***.982.247-**',
+      brand: 'visa',
+      lastFour: '4242'
+    });
 
+    const own = await ctx
+      .http()
+      .get(`/api/v1/me/orders/${orderId}`)
+      .set(auth(buyer.token))
+      .expect(200);
+
+    expect(own.body.cardHolder).toBeUndefined();
+  });
+
+  it('diretoria grava os códigos de sem juros', async () => {
     await ctx
       .http()
       .put('/api/v1/payments/card/differential-pricing')

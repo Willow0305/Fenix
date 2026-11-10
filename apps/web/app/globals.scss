@@ -810,6 +810,13 @@ img {
     border-color: var(--color-primary);
     box-shadow: 0 0 0 1px var(--color-primary);
   }
+
+  // Opção que esta pessoa ainda não pode usar (DT-100): explica o motivo e o caminho.
+  &.is-unavailable {
+    border-style: dashed;
+    background: var(--color-surface-muted, var(--color-surface));
+    cursor: default;
+  }
 }
 
 // Código de entrega do comprador (DT-075): grande e fácil de ler para o entregador.

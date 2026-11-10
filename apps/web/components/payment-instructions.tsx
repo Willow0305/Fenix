@@ -178,7 +178,20 @@ export function OrderPayment({
     </>
   );
 
-  // Cartão pelo site (DT-079): o cartão primeiro; o PIX continua como alternativa.
+  // Pedido sem conta feito antes da regra (DT-100): cartão pelo site agora pede conta; fica o PIX.
+  if (order.paymentChoice === 'ONLINE_CARD' && guest) {
+    return (
+      <>
+        <Alert kind="info">
+          O cartão pelo site agora é só para quem tem conta. Pague este pedido com PIX ou fale com a
+          diretoria para pagar com cartão.
+        </Alert>
+        {pixAndProof}
+      </>
+    );
+  }
+
+  // Cartão pelo site (DT-079), só com conta (DT-100): o cartão primeiro; o PIX continua como alternativa.
   if (order.paymentChoice === 'ONLINE_CARD') {
     return (
       <>

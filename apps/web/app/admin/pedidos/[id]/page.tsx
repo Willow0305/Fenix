@@ -91,6 +91,7 @@ export default function OrderAdminPage() {
       />
       {notice ? <Alert kind="success">{notice}</Alert> : null}
       <OrderSummary order={o} />
+      {o.cardHolder ? <CardHolderNotice holder={o.cardHolder} buyer={o.customerName} /> : null}
       <DispatchPanel order={o} onChanged={order.reload} />
       <DeliveryProof order={o} onChanged={order.reload} />
       {o.notes ? <Alert kind="info">Observação do cliente: {o.notes}</Alert> : null}
@@ -235,5 +236,46 @@ export default function OrderAdminPage() {
         ) : null}
       </ConfirmDialog>
     </>
+  );
+}
+
+/** Normaliza para comparar nomes sem acento, caixa ou espaços extras. */
+function sameName(a: string, b: string): boolean {
+  const clean = (value: string) =>
+    value
+      .normalize('NFD')
+      .replace(/\p{Diacritic}/gu, '')
+      .replace(/\s+/g, ' ')
+      .trim()
+      .toLowerCase();
+
+  return clean(a) === clean(b);
+}
+
+/**
+ * Titular do cartão pago pelo site (DT-100). Quando o nome do cartão não bate com o de quem
+ * comprou, a diretoria confere o documento na retirada ou na entrega.
+ */
+function CardHolderNotice({
+  holder,
+  buyer
+}: {
+  readonly holder: NonNullable<Order['cardHolder']>;
+  readonly buyer: string;
+}) {
+  const card = [holder.brand?.toUpperCase(), holder.lastFour ? `final ${holder.lastFour}` : null]
+    .filter(Boolean)
+    .join(' ');
+  const differs = holder.name !== null && !sameName(holder.name, buyer);
+
+  return (
+    <Alert kind={differs ? 'warning' : 'info'}>
+      Pago com o cartão {card ? `${card} ` : ''}de{' '}
+      <strong>{holder.name ?? 'titular não informado pelo Mercado Pago'}</strong>
+      {holder.document ? ` (CPF/CNPJ ${holder.document})` : ''}.
+      {differs
+        ? ' O nome do cartão é diferente do de quem comprou: confira o documento na retirada ou na entrega.'
+        : ''}
+    </Alert>
   );
 }

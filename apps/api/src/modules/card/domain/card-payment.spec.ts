@@ -1,7 +1,10 @@
 import {
+  cardBuyerBlock,
   cardMethodCode,
+  cleanHolderName,
   effectiveInterestFree,
   interestFreeLimit,
+  maskHolderDocument,
   parseDifferentialPricing,
   rejectionMessage
 } from './card-payment';
@@ -54,5 +57,26 @@ describe('cartão pelo site (DT-079)', () => {
     );
     expect(rejectionMessage('qualquer')).toContain('Cartão recusado');
     expect(rejectionMessage(null)).toContain('Cartão recusado');
+  });
+});
+
+describe('quem paga com cartão pelo site (DT-100)', () => {
+  it('só conta com e-mail confirmado', () => {
+    expect(cardBuyerBlock({ hasAccount: false, emailVerified: false })).toBe('ACCOUNT_REQUIRED');
+    expect(cardBuyerBlock({ hasAccount: true, emailVerified: false })).toBe('EMAIL_NOT_VERIFIED');
+    expect(cardBuyerBlock({ hasAccount: true, emailVerified: true })).toBeNull();
+  });
+
+  it('guarda o documento do titular mascarado, nunca inteiro', () => {
+    expect(maskHolderDocument('529.982.247-25')).toBe('***.982.247-**');
+    expect(maskHolderDocument('11222333000181')).toBe('**.222.333/0001-**');
+    expect(maskHolderDocument('123')).toBeNull();
+    expect(maskHolderDocument(null)).toBeNull();
+  });
+
+  it('limpa o nome do titular', () => {
+    expect(cleanHolderName('  ANA   MARIA  ')).toBe('ANA MARIA');
+    expect(cleanHolderName('   ')).toBeNull();
+    expect(cleanHolderName('A'.repeat(200))).toHaveLength(160);
   });
 });

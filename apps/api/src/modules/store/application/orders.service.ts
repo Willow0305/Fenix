@@ -81,6 +81,7 @@ import {
   notReceivedDeadline,
   strongerProof
 } from '../domain/delivery';
+import { CARD_BUYER_MESSAGES, cardBuyerBlock } from '../../card/domain/card-payment';
 import { decryptField, encryptField } from '../../../common/crypto/data-cipher';
 import { beneficiariesOf, beneficiaryProblems, resizeBeneficiaries } from '../domain/cart-details';
 import { plural } from '../../../common/domain/plural';
@@ -107,6 +108,14 @@ export interface OrderItemView {
   readonly personalization: { label: string; value: string }[];
   /** Afiliação: nomes dos beneficiários (DT-068). */
   readonly beneficiaries: string[];
+}
+
+export interface OrderCardHolder {
+  readonly name: string | null;
+  /** Documento já mascarado (`***.456.789-**`). */
+  readonly document: string | null;
+  readonly brand: string | null;
+  readonly lastFour: string | null;
 }
 
 export interface OrderView {
@@ -144,6 +153,11 @@ export interface OrderView {
   readonly fulfillment: OrderFulfillment;
   /** PIX ou cartão com a diretoria (DT-076). */
   readonly paymentChoice: OrderPaymentChoice;
+  /**
+   * Só na visão da diretoria (DT-100): titular do cartão pago pelo site, para conferir na
+   * retirada ou entrega quando o nome não bate com o de quem comprou.
+   */
+  readonly cardHolder?: OrderCardHolder | null;
   readonly deliveryFee: MoneyView;
   /** Cópia do endereço da compra (só na entrega). */
   readonly deliveryAddress: DeliveryAddress | null;
@@ -402,8 +416,28 @@ export class OrdersService implements OnModuleInit {
       : view;
   }
 
+  /** Pedido na visão da diretoria: inclui o titular do cartão pago pelo site (DT-100). */
   async get(id: string): Promise<OrderView> {
-    return this.toView(await this.load(this.prisma, id));
+    const [view, charge] = await Promise.all([
+      this.load(this.prisma, id).then((row) => this.toView(row)),
+      this.prisma.cardCharge.findFirst({
+        where: { orderId: id, status: { in: ['PAID', 'REVIEW'] } },
+        orderBy: { createdAt: 'desc' },
+        select: { holderName: true, holderDocumentMasked: true, brand: true, lastFour: true }
+      })
+    ]);
+
+    return {
+      ...view,
+      cardHolder: charge
+        ? {
+            name: charge.holderName,
+            document: charge.holderDocumentMasked,
+            brand: charge.brand,
+            lastFour: charge.lastFour
+          }
+        : null
+    };
   }
 
   /** Quantidade já comprada pelo mesmo comprador (pedidos não cancelados). */
@@ -440,7 +474,7 @@ export class OrdersService implements OnModuleInit {
     const profile = principal
       ? await this.prisma.user.findUniqueOrThrow({
           where: { id: principal.userId },
-          select: { name: true, email: true, phone: true }
+          select: { name: true, email: true, phone: true, emailVerifiedAt: true }
         })
       : null;
     const customerName = input.customerName?.trim() || profile?.name || '';
@@ -471,6 +505,23 @@ export class OrdersService implements OnModuleInit {
       throw AppError.validation(
         'CARD_DISABLED',
         'O pagamento com cartão pelo site está desligado. Escolha PIX ou cartão com a diretoria.'
+      );
+    }
+
+    // DT-100: cartão pelo site só para conta com e-mail confirmado.
+    const cardBlock =
+      input.paymentChoice === 'ONLINE_CARD'
+        ? cardBuyerBlock({
+            hasAccount: profile !== null,
+            emailVerified: Boolean(profile?.emailVerifiedAt)
+          })
+        : null;
+
+    if (cardBlock !== null) {
+      throw AppError.validation(
+        cardBlock === 'ACCOUNT_REQUIRED' ? 'CARD_ACCOUNT_REQUIRED' : 'CARD_EMAIL_NOT_VERIFIED',
+        CARD_BUYER_MESSAGES[cardBlock],
+        [{ field: 'paymentChoice', code: cardBlock, message: CARD_BUYER_MESSAGES[cardBlock] }]
       );
     }
 

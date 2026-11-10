@@ -83,6 +83,8 @@ export default function CartPage() {
     null
   );
   const authenticated = status === 'authenticated';
+  // Cartão pelo site só para conta com e-mail confirmado (DT-100); a API também confere.
+  const canPayCardOnline = authenticated && profile?.emailVerified === true;
   const checkout = useSubmit(async () => {
     const created = await api<{ order: Order; guestAccessCode: string | null }>(
       '/orders/checkout',
@@ -464,7 +466,31 @@ export default function CartPage() {
                     </small>
                   </span>
                 </label>
-                {cardOnline.data?.enabled ? (
+                {cardOnline.data?.enabled && !canPayCardOnline ? (
+                  // DT-100: cartão pelo site só com conta de e-mail confirmado.
+                  <div className="choice-card is-unavailable">
+                    <span>
+                      <strong>
+                        <Icon name="lock" /> Cartão pelo site
+                      </strong>
+                      <small className="muted">
+                        {authenticated ? (
+                          <>
+                            Confirme o e-mail da sua conta para pagar com cartão pelo site.{' '}
+                            <Link href="/minha-conta">Confirmar meu e-mail</Link>.
+                          </>
+                        ) : (
+                          <>
+                            Para pagar com cartão pelo site, é preciso ter conta.{' '}
+                            <Link href="/entrar?next=/loja/carrinho">Entre</Link> ou{' '}
+                            <Link href="/cadastro">crie uma conta</Link>.
+                          </>
+                        )}
+                      </small>
+                    </span>
+                  </div>
+                ) : null}
+                {cardOnline.data?.enabled && canPayCardOnline ? (
                   <label className="choice-card">
                     <input
                       type="radio"

@@ -1,6 +1,14 @@
 import { expect, test } from '@playwright/test';
 
-import { addToCart, expectNoHorizontalScroll, watch } from './helpers';
+import {
+  ADMIN,
+  addToCart,
+  adminMfaSecret,
+  confirmEmail,
+  expectNoHorizontalScroll,
+  signIn,
+  watch
+} from './helpers';
 
 /** Compra de visitante até o PIX automático (modo de teste) confirmar sozinho (DT-071). */
 test('visitante compra e paga com PIX automático', async ({ page }) => {
@@ -124,16 +132,39 @@ test('visitante escolhe cartão e cancela o pedido', async ({ page }, info) => {
   expect(watcher.problems).toEqual([]);
 });
 
-/** Cartão pelo site em modo de teste (DT-079): recusado mostra o motivo; aprovado em 3x baixa. */
-test('visitante paga com cartão pelo site', async ({ page }, info) => {
+/** Cartão pelo site só com conta de e-mail confirmado (DT-100): visitante vê o caminho. */
+test('visitante não paga com cartão pelo site e vê como entrar', async ({ page }) => {
   const watcher = watch(page);
 
   await addToCart(page, /Garrafa/);
   await page.goto('/loja/carrinho');
+  await expect(
+    page.getByText(/Para pagar com cartão pelo site, é preciso ter conta/)
+  ).toBeVisible();
+  await expect(page.getByRole('radio', { name: /Cartão pelo site/ })).toHaveCount(0);
+  await expect(
+    page.locator('.choice-card.is-unavailable').getByRole('link', { name: 'Entre', exact: true })
+  ).toHaveAttribute('href', '/entrar?next=/loja/carrinho');
+  await expectNoHorizontalScroll(page);
+  expect(watcher.problems).toEqual([]);
+});
+
+/** Cartão pelo site em modo de teste (DT-079): recusado mostra o motivo; aprovado em 3x baixa. */
+test('conta confirmada paga com cartão pelo site', async ({ page, request }, info) => {
+  const watcher = watch(page);
+
+  await confirmEmail(ADMIN.email);
+  await signIn(page, ADMIN.email, ADMIN.password, await adminMfaSecret(request));
+  await addToCart(page, /Garrafa/, { signedIn: true });
+  await page.goto('/loja/carrinho');
   await page.getByText('Cartão pelo site', { exact: true }).click();
-  await page.getByLabel(/Nome completo/).fill('Visitante Cartão Site');
-  await page.getByLabel(/^E-mail/).fill(`cartao-site-${info.project.name}@exemplo.test`);
-  await page.getByLabel(/Celular/).fill('68999990004');
+
+  const phone = page.getByLabel(/Celular/);
+
+  if (await phone.isEditable()) {
+    await phone.fill('68999990004');
+  }
+
   await page.getByText(/Concordo com as/).click();
   await page.getByRole('button', { name: /confirmar pedido/i }).click();
   await expect(page.getByRole('heading', { name: /Pagar com cartão/ })).toBeVisible();
@@ -152,7 +183,6 @@ test('visitante paga com cartão pelo site', async ({ page }, info) => {
 
   await page.getByRole('button', { name: 'Simular cartão aprovado' }).click();
   await expect(page.getByText('Pagamento confirmado. Obrigado!')).toBeVisible();
-  await expect(page.getByText(/Pagamento:/)).toHaveCount(0);
   expect(watcher.problems).toEqual([]);
 });
 

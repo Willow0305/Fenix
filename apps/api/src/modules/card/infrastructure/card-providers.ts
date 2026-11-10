@@ -1,12 +1,14 @@
 import { randomUUID } from 'node:crypto';
 
 import { AppError } from '../../../common/errors/app-error';
-import type {
-  CardPaymentInput,
-  CardPaymentResult,
-  CardPaymentType,
-  CardProvider,
-  CardProviderStatus
+import {
+  type CardPaymentInput,
+  type CardPaymentResult,
+  type CardPaymentType,
+  type CardProvider,
+  type CardProviderStatus,
+  cleanHolderName,
+  maskHolderDocument
 } from '../domain/card-payment';
 
 const UNAVAILABLE = 'Pagamento com cartão indisponível agora. Tente de novo ou pague com PIX.';
@@ -33,6 +35,8 @@ export class SandboxCardProvider implements CardProvider {
       paymentType: input.paymentType,
       brand: input.paymentMethodId,
       lastFour: '4242',
+      holderName: 'TITULAR DE TESTE',
+      holderDocument: maskHolderDocument(input.identification?.number ?? '12345678909'),
       paidAmount: status === 'APPROVED' ? input.amount : null,
       paidAt: status === 'APPROVED' ? new Date() : null
     });
@@ -65,7 +69,13 @@ interface MercadoPagoCardPayment {
   readonly payment_method_id?: string;
   readonly transaction_amount?: number;
   readonly date_approved?: string | null;
-  readonly card?: { readonly last_four_digits?: string | null };
+  readonly card?: {
+    readonly last_four_digits?: string | null;
+    readonly cardholder?: {
+      readonly name?: string | null;
+      readonly identification?: { readonly number?: string | null } | null;
+    } | null;
+  };
 }
 
 function toResult(payment: MercadoPagoCardPayment): CardPaymentResult {
@@ -87,6 +97,9 @@ function toResult(payment: MercadoPagoCardPayment): CardPaymentResult {
       : 'credit_card') satisfies CardPaymentType,
     brand: payment.payment_method_id ?? null,
     lastFour: payment.card?.last_four_digits ?? null,
+    // Titular do cartão (DT-100): nome e documento mascarado, nunca o número inteiro.
+    holderName: cleanHolderName(payment.card?.cardholder?.name),
+    holderDocument: maskHolderDocument(payment.card?.cardholder?.identification?.number),
     paidAmount: status === 'APPROVED' ? (payment.transaction_amount?.toFixed(2) ?? null) : null,
     paidAt:
       status === 'APPROVED'

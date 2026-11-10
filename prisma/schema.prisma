@@ -3150,27 +3150,31 @@ enum CardChargeStatus {
 
 /// Pagamento com cartão pelo site (DT-079): o que o intermediário respondeu e a baixa.
 model CardCharge {
-  id                String           @id @default(uuid()) @db.Uuid
-  provider          String           @db.VarChar(30)
-  providerPaymentId String           @map("provider_payment_id") @db.VarChar(100)
-  orderId           String           @map("order_id") @db.Uuid
-  amount            Decimal          @db.Decimal(19, 4)
-  currency          String           @db.Char(3)
-  installments      Int              @db.SmallInt
+  id                   String           @id @default(uuid()) @db.Uuid
+  provider             String           @db.VarChar(30)
+  providerPaymentId    String           @map("provider_payment_id") @db.VarChar(100)
+  orderId              String           @map("order_id") @db.Uuid
+  amount               Decimal          @db.Decimal(19, 4)
+  currency             String           @db.Char(3)
+  installments         Int              @db.SmallInt
   /// `credit_card` ou `debit_card`.
-  paymentType       String           @map("payment_type") @db.VarChar(20)
-  brand             String?          @db.VarChar(30)
+  paymentType          String           @map("payment_type") @db.VarChar(20)
+  brand                String?          @db.VarChar(30)
   /// Só os 4 últimos dígitos, para a pessoa reconhecer o cartão.
-  lastFour          String?          @map("last_four") @db.Char(4)
-  interestFree      Boolean          @default(false) @map("interest_free")
-  status            CardChargeStatus @default(PENDING)
-  statusDetail      String?          @map("status_detail") @db.VarChar(80)
-  paymentId         String?          @unique @map("payment_id") @db.Uuid
-  reviewReason      String?          @map("review_reason") @db.Text
-  paidAt            DateTime?        @map("paid_at") @db.Timestamptz(6)
-  lastCheckedAt     DateTime?        @map("last_checked_at") @db.Timestamptz(6)
-  createdAt         DateTime         @default(now()) @map("created_at") @db.Timestamptz(6)
-  updatedAt         DateTime         @updatedAt @map("updated_at") @db.Timestamptz(6)
+  lastFour             String?          @map("last_four") @db.Char(4)
+  /// Nome do titular impresso no cartão, devolvido pelo intermediário (DT-100).
+  holderName           String?          @map("holder_name") @db.VarChar(160)
+  /// Documento do titular já mascarado (`***.456.789-**`); nunca o número inteiro.
+  holderDocumentMasked String?          @map("holder_document_masked") @db.VarChar(24)
+  interestFree         Boolean          @default(false) @map("interest_free")
+  status               CardChargeStatus @default(PENDING)
+  statusDetail         String?          @map("status_detail") @db.VarChar(80)
+  paymentId            String?          @unique @map("payment_id") @db.Uuid
+  reviewReason         String?          @map("review_reason") @db.Text
+  paidAt               DateTime?        @map("paid_at") @db.Timestamptz(6)
+  lastCheckedAt        DateTime?        @map("last_checked_at") @db.Timestamptz(6)
+  createdAt            DateTime         @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt            DateTime         @updatedAt @map("updated_at") @db.Timestamptz(6)
 
   order   Order    @relation(fields: [orderId], references: [id], onDelete: Restrict, onUpdate: Cascade)
   payment Payment? @relation(fields: [paymentId], references: [id], onDelete: Restrict, onUpdate: Cascade)

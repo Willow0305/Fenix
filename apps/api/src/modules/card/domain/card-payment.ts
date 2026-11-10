@@ -32,6 +32,10 @@ export interface CardPaymentResult {
   readonly lastFour: string | null;
   readonly paidAmount: string | null;
   readonly paidAt: Date | null;
+  /** Nome do titular impresso no cartão, como o intermediário devolve (DT-100). */
+  readonly holderName?: string | null;
+  /** Documento do titular já mascarado (`***.456.789-**`); nunca o número inteiro. */
+  readonly holderDocument?: string | null;
 }
 
 export interface CardProvider {
@@ -126,4 +130,54 @@ export function rejectionMessage(statusDetail: string | null): string {
     (statusDetail ? REJECTIONS[statusDetail] : undefined) ??
     'Cartão recusado. Tente outro cartão ou pague com PIX.'
   );
+}
+
+/**
+ * Quem pode pagar com cartão pelo site (DT-100): só conta com e-mail confirmado. Assim a
+ * compra fica ligada a uma pessoa identificável, e não a um nome digitado por qualquer um
+ * com um cartão que talvez não seja dele. Visitante paga por PIX ou com a diretoria.
+ */
+export type CardBuyerBlock = 'ACCOUNT_REQUIRED' | 'EMAIL_NOT_VERIFIED';
+
+export function cardBuyerBlock(buyer: {
+  readonly hasAccount: boolean;
+  readonly emailVerified: boolean;
+}): CardBuyerBlock | null {
+  if (!buyer.hasAccount) {
+    return 'ACCOUNT_REQUIRED';
+  }
+
+  return buyer.emailVerified ? null : 'EMAIL_NOT_VERIFIED';
+}
+
+export const CARD_BUYER_MESSAGES: Record<CardBuyerBlock, string> = {
+  ACCOUNT_REQUIRED:
+    'Para pagar com cartão pelo site, entre na sua conta. Sem conta, pague por PIX ou com a diretoria.',
+  EMAIL_NOT_VERIFIED:
+    'Confirme o e-mail da sua conta para pagar com cartão pelo site. Enquanto isso, pague por PIX ou com a diretoria.'
+};
+
+/**
+ * Documento do titular mascarado para guardar (DT-100, minimização): CPF vira
+ * `***.456.789-**` e CNPJ `**.345.678/0001-**`; qualquer outro formato não é guardado.
+ */
+export function maskHolderDocument(value: string | null | undefined): string | null {
+  const digits = (value ?? '').replace(/\D/g, '');
+
+  if (digits.length === 11) {
+    return `***.${digits.slice(3, 6)}.${digits.slice(6, 9)}-**`;
+  }
+
+  if (digits.length === 14) {
+    return `**.${digits.slice(2, 5)}.${digits.slice(5, 8)}/${digits.slice(8, 12)}-**`;
+  }
+
+  return null;
+}
+
+/** Nome do titular limpo para guardar: espaços normais e no máximo 160 caracteres. */
+export function cleanHolderName(value: string | null | undefined): string | null {
+  const name = (value ?? '').replace(/\s+/g, ' ').trim();
+
+  return name ? name.slice(0, 160) : null;
 }

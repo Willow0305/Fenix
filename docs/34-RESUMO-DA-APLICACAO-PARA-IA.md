@@ -108,7 +108,9 @@ de cada campo ainda devem ser verificadas.
 - O checkout de cartão usa integração no navegador com formulário do Mercado Pago quando
   ativada; a documentação do produto afirma que o número do cartão não passa pelo servidor
   do Fênix e que não são armazenados número completo nem código de segurança. O código
-  guarda somente bandeira, quatro últimos dígitos, parcelas e situação.
+  guarda bandeira, quatro últimos dígitos, parcelas, situação e, desde `DT-100`, o nome do
+  titular e o CPF/CNPJ mascarado, vistos só pela diretoria. Cartão pelo site só para conta
+  com e-mail confirmado.
 - PIX pode usar provedor configurado ou comprovante manual. E-mail/WhatsApp e armazenamento
   de arquivos dependem de configuração. Em desenvolvimento, e-mail é simulado em arquivo;
   não presumir entrega real. Verificar chaves, contratos, região e operadores antes de

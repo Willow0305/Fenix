@@ -113,7 +113,9 @@ dependem da configuração de produção e devem ser publicadas antes da ativaç
 - intermediador de pagamentos, como Mercado Pago, quando habilitado; no checkout com
   cartão o formulário do intermediador tokeniza os dados no navegador. O Fênix não
   armazena o número completo do cartão nem o código de segurança; pode manter bandeira,
-  últimos quatro dígitos, parcelas e estado;
+  últimos quatro dígitos, parcelas, estado, nome do titular do cartão e CPF/CNPJ do titular
+  mascarado (ex.: `***.456.789-**`), visíveis só à diretoria para conferir a entrega
+  (`DT-100`, revisão jurídica pendente);
 - serviço de consulta de CEP, chamado pela API para evitar uma chamada direta do navegador;
 - parceiros envolvidos em produto, benefício ou serviço, somente se a operação exigir
   compartilhamento e depois de informar a pessoa sobre os dados e a finalidade;

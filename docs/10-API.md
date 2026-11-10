@@ -64,6 +64,8 @@ O contrato completo e executável fica no OpenAPI (`/docs` fora de produção). 
 | `GET` | `/api/v1/public/product-categories` · `public/products[/:slug]` | público | 4 |
 | `GET`/`PUT` | `/api/v1/cart` · `cart/items` | público (cookie de visitante ou conta) | 4 |
 | `POST` | `/api/v1/orders/checkout` | público, rate limiting | 4 |
+| `GET`/`POST` | `/api/v1/me/orders/:id/card` · `public/orders/card[/checkout]` · `public/card/:chargeId/status` | cartão pelo site (DT-079); formulário e pagamento só para conta com e-mail confirmado: 403 `CARD_ACCOUNT_REQUIRED`/`CARD_EMAIL_NOT_VERIFIED`; checkout com `ONLINE_CARD` sem isso: 422 (DT-100) | 9 |
+| `GET` | `/api/v1/store/orders/:id` | `orders.read`; inclui `cardHolder` (nome e documento mascarado do titular do cartão) só nesta visão (DT-100) | 9 |
 | `POST` | `/api/v1/public/orders/lookup` · `public/orders/proof` (Idempotency-Key) | número + código | 4 |
 | `GET`/`POST` | `/api/v1/me/orders[/:id]` · `:id/proof` | próprio | 4 |
 | `GET`/`PUT`/`DELETE` | `/api/v1/me/favorites[/:productId]` | próprio | 4 |

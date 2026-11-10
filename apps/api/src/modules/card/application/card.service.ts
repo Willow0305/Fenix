@@ -17,6 +17,8 @@ import {
   type CardPaymentResult,
   type CardPaymentType,
   type CardProvider,
+  CARD_BUYER_MESSAGES,
+  cardBuyerBlock,
   cardMethodCode,
   effectiveInterestFree,
   interestFreeLimit,
@@ -169,6 +171,33 @@ export class CardService implements OnModuleInit {
     };
   }
 
+  /**
+   * DT-100: cartão pelo site só para conta com e-mail confirmado. Vale para a tela do cartão
+   * e para o pagamento, inclusive pedidos sem conta criados antes da regra (que seguem com
+   * PIX ou com a diretoria). Conferir a situação de uma cobrança já feita continua livre.
+   */
+  private async assertCardBuyer(owner: CardOwner): Promise<void> {
+    const user =
+      'userId' in owner
+        ? await this.prisma.user.findUnique({
+            where: { id: owner.userId },
+            select: { emailVerifiedAt: true }
+          })
+        : null;
+    const block = cardBuyerBlock({
+      hasAccount: user !== null,
+      emailVerified: Boolean(user?.emailVerifiedAt)
+    });
+
+    if (block !== null) {
+      throw new AppError(
+        'FORBIDDEN',
+        block === 'ACCOUNT_REQUIRED' ? 'CARD_ACCOUNT_REQUIRED' : 'CARD_EMAIL_NOT_VERIFIED',
+        CARD_BUYER_MESSAGES[block]
+      );
+    }
+  }
+
   private async findOrder(owner: CardOwner, orderId?: string) {
     const order = await this.prisma.order.findFirst({
       where:
@@ -230,6 +259,7 @@ export class CardService implements OnModuleInit {
   /** Dados do formulário: valor que falta, até 12x e quantas sem juros. */
   async checkout(owner: CardOwner, orderId?: string): Promise<CardCheckoutView> {
     this.enabledProvider();
+    await this.assertCardBuyer(owner);
 
     const { order, amount } = await this.findOrder(owner, orderId);
     const free = await this.interestFree(
@@ -259,6 +289,9 @@ export class CardService implements OnModuleInit {
     orderId?: string
   ): Promise<CardChargeView> {
     const provider = this.enabledProvider();
+
+    await this.assertCardBuyer(owner);
+
     const { order, amount } = await this.findOrder(owner, orderId);
 
     if (input.installments < 1 || input.installments > MAX_INSTALLMENTS) {
@@ -323,6 +356,8 @@ export class CardService implements OnModuleInit {
           paymentType: result.paymentType,
           brand: result.brand,
           lastFour: result.lastFour,
+          holderName: result.holderName ?? null,
+          holderDocumentMasked: result.holderDocument ?? null,
           interestFree,
           status: result.status === 'REJECTED' ? 'REJECTED' : 'PENDING',
           statusDetail: result.statusDetail
@@ -377,9 +412,15 @@ export class CardService implements OnModuleInit {
 
       await tx.cardCharge.update({
         where: { id: chargeId },
-        data: receipt.ok
-          ? { status: 'PAID', paidAt, paymentId: receipt.paymentId, lastCheckedAt: new Date() }
-          : { status: 'REVIEW', paidAt, reviewReason: receipt.reason, lastCheckedAt: new Date() }
+        data: {
+          ...(receipt.ok
+            ? { status: 'PAID', paidAt, paymentId: receipt.paymentId }
+            : { status: 'REVIEW', paidAt, reviewReason: receipt.reason }),
+          lastCheckedAt: new Date(),
+          // Titular (DT-100): o aviso do intermediário pode trazê-lo depois da análise.
+          ...(result.holderName ? { holderName: result.holderName } : {}),
+          ...(result.holderDocument ? { holderDocumentMasked: result.holderDocument } : {})
+        }
       });
       await this.audit.record(
         {

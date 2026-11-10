@@ -203,6 +203,13 @@ export interface Order {
   fulfillment: OrderFulfillment;
   /** PIX (30 min) ou cartão com a diretoria (72 h) (DT-076). */
   paymentChoice: 'PIX' | 'CARD' | 'ONLINE_CARD';
+  /** Só na visão da diretoria (DT-100): titular do cartão pago pelo site. */
+  readonly cardHolder?: {
+    readonly name: string | null;
+    readonly document: string | null;
+    readonly brand: string | null;
+    readonly lastFour: string | null;
+  } | null;
   deliveryFee: MoneyView;
   deliveryAddress: DeliveryAddress | null;
   outForDeliveryAt: string | null;

@@ -121,7 +121,8 @@ Os meios de pagamento dependem da configuração apresentada no checkout. Podem 
 PIX, pagamento confirmado pela diretoria e, quando habilitado, cartão processado pelo
 intermediário de pagamento. No fluxo de cartão pelo site, o intermediário tokeniza e
 processa os dados do cartão no navegador; o Fênix não armazena número completo nem
-código de segurança. Parcelamento, juros, prazo de reserva e confirmação devem ser
+código de segurança. O cartão pelo site exige conta com e-mail confirmado; sem conta, o
+pagamento é por PIX ou com a diretoria (`DT-100`). Parcelamento, juros, prazo de reserva e confirmação devem ser
 informados no checkout. O pedido só é considerado pago após a confirmação correspondente.
 
 A opção de retirada ou entrega, regiões atendidas, valores, prazos estimados, instruções e

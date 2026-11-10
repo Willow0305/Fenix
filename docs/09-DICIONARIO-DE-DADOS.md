@@ -399,7 +399,7 @@ Enums de estados descrevem o vocabulário inicial; transições e responsáveis 
 - Campos P: `orderId`, `payerUserId`, `provider`, `externalReference`, `paidAt`, `failureReason`, `notes`, `createdById`.
 - FKs: `paymentMethodId -> PaymentMethod` (R); `orderId -> Order` (R); `payerUserId -> User` (N); `createdById -> User` (N).
 - Índices/restrições: UK `idempotencyKey`; UK `(provider, externalReference)` quando aplicável; IX `(status, createdAt)`, `(orderId, status)` e `(payerUserId, createdAt)`. Valor positivo; confirmação exige `paidAt`.
-- Exclusão/auditoria: não excluído; cancelamento/estorno muda estado por transição autorizada e mantém auditoria. Não armazena dados de cartão.
+- Exclusão/auditoria: não excluído; cancelamento/estorno muda estado por transição autorizada e mantém auditoria. Não armazena dados de cartão. A cobrança de cartão (`card_charges`) guarda só bandeira, 4 últimos dígitos, nome do titular (`holder_name`, até 160) e documento mascarado (`holder_document_masked`, até 24) (`DT-100`).
 
 ### `Refund` — grupo H
 

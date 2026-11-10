@@ -79,7 +79,7 @@ Testes: 82 unitários de API e 7 web (`npm test`), mais 71 de integração em `a
 8. **Migrations:** `prisma migrate dev` falha em terminal não interativo. Use este fluxo:
    ```bash
    D=prisma/migrations/$(date -u +%Y%m%d%H%M%S)_nome && mkdir -p $D
-   npx dotenv -e .env -- prisma migrate diff --from-schema-datasource prisma/schema.prisma --to-schema-datamodel prisma/schema.prisma --script > $D/migration.sql
+   npx dotenv -e .env -- prisma migrate diff --from-config-datasource --to-schema prisma/schema.prisma --script > $D/migration.sql
    npx dotenv -e .env -- prisma migrate deploy && npx dotenv -e .env -- prisma generate
    ```
 9. **Shell:** evite crases (template strings) dentro de `node -e "..."` no Bash, porque o shell as interpreta. Para editar documentos, escreva um `.js` temporário no scratchpad ou use a ferramenta de edição.

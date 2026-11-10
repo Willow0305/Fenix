@@ -3,12 +3,14 @@ import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 
 import { type APIRequestContext, expect, type Page } from '@playwright/test';
+import { Client } from 'pg';
 
 // Ambiente compartilhado com os scripts CommonJS do E2E (env.cjs).
 // eslint-disable-next-line @typescript-eslint/no-require-imports
-const { ADMIN, ROOT } = require('../env.cjs') as {
+const { ADMIN, ROOT, e2eDatabaseUrl } = require('../env.cjs') as {
   ADMIN: { email: string; password: string };
   ROOT: string;
+  e2eDatabaseUrl: () => string;
 };
 
 export { ADMIN };
@@ -175,10 +177,41 @@ export async function settled(page: Page): Promise<void> {
 }
 
 /** Abre o primeiro produto com esse nome e põe no carrinho (com a página já carregada). */
-export async function addToCart(page: Page, name: RegExp): Promise<void> {
+export async function addToCart(
+  page: Page,
+  name: RegExp,
+  options: { readonly signedIn?: boolean } = {}
+): Promise<void> {
   await page.goto('/loja');
   await page.getByRole('link', { name }).first().click();
-  await page.waitForLoadState('networkidle');
+
+  // Com login, o site consulta os avisos sem parar e a rede nunca fica ociosa.
+  if (options.signedIn) {
+    await page.waitForLoadState('load');
+    await settled(page);
+  } else {
+    await page.waitForLoadState('networkidle');
+  }
+
   await page.getByRole('button', { name: /adicionar ao carrinho/i }).click();
   await expect(page.getByText('Adicionado ao carrinho')).toBeVisible();
+}
+
+/**
+ * Marca o e-mail da conta como confirmado direto no banco do E2E (o link de confirmação vai
+ * para o e-mail simulado). Usado onde a regra exige e-mail confirmado (DT-100).
+ */
+export async function confirmEmail(email: string): Promise<void> {
+  const client = new Client({ connectionString: e2eDatabaseUrl() });
+
+  await client.connect();
+
+  try {
+    await client.query(
+      'UPDATE users SET email_verified_at = COALESCE(email_verified_at, now()) WHERE email = $1',
+      [email.toLowerCase()]
+    );
+  } finally {
+    await client.end();
+  }
 }

@@ -2022,3 +2022,25 @@ Pesquisa de 01/11/2026 (`docs/35` §1.3): jurisprudência dividida. Decisões do
 ### Consequências
 
 - testes: regra de ordenação e filtro (`sports-rules.spec.ts`), integração de `scope=open` (aberta aparece; lotada e encerrada não; valor inválido recusado), componente (uma, várias, nenhuma e prazo vencendo com a página aberta) e o carrossel da pré-venda inalterado.
+
+## DT-100 — Cartão pelo site só com conta de e-mail confirmado
+
+- **Estado:** Aceita; implementada em 2026-11-09 (altera `DT-079` para quem compra sem conta)
+- **Data:** 2026-11-09
+- **Aprovador:** responsável do projeto, sobre a dúvida levantada pelo comprador do site ("e se um usuário não logado comprar no site com um cartão que não é dele? saberemos seu nome […]? questão de identificar quem comprou pelo nome"); escolheu "Cartão só com conta confirmada"
+
+### Contexto
+
+Sem conta, o nome do pedido é o que a pessoa digita. O titular do cartão (nome e CPF) ia só ao Mercado Pago; o clube guardava bandeira e 4 últimos dígitos. Numa compra com cartão de outra pessoa, o dono do cartão contesta e o valor volta para ele (o prejuízo fica com o clube, que já entregou o produto).
+
+### Decisão
+
+- **cartão pelo site exige conta com e-mail confirmado** (`DT-096`): regra pura `cardBuyerBlock`, conferida no checkout (`paymentChoice: ONLINE_CARD`, 422 `CARD_ACCOUNT_REQUIRED` ou `CARD_EMAIL_NOT_VERIFIED`) e no formulário e no pagamento do cartão (403 com os mesmos códigos), inclusive em pedido sem conta feito antes da regra. Conferir a situação de uma cobrança já feita continua livre;
+- quem não tem conta paga por **PIX** (o banco de quem paga informa o nome do pagador) ou **com a diretoria** ("Cartão ou dinheiro"). No carrinho, a opção aparece trancada com o caminho: "Entre ou crie uma conta" (visitante) ou "Confirmar meu e-mail" (conta sem confirmação). O pedido antigo sem conta com cartão escolhido mostra o aviso e o PIX;
+- **titular do cartão:** guardamos o nome impresso no cartão e o CPF/CNPJ **mascarado** (`***.456.789-**`) que o Mercado Pago devolve (`card_charges.holder_name`, `holder_document_masked`; migração `20261109100000_titular_cartao`). Número do cartão e CPF inteiro continuam fora do sistema;
+- só a diretoria vê o titular, na ficha do pedido (`GET /store/orders/:id` → `cardHolder`); quando o nome do cartão é diferente do de quem comprou, o aviso fica amarelo: "confira o documento na retirada ou na entrega". O comprador não recebe esse campo.
+
+### Consequências
+
+- o risco não zera: alguém com conta ainda pode usar cartão de outra pessoa, mas a compra fica ligada a uma conta e a um e-mail confirmados, e a entrega pode ser conferida. O antifraude do Mercado Pago continua valendo;
+- testes: regra e máscara (`card-payment.spec.ts`), integração (visitante recusado no checkout e no pedido antigo, conta sem confirmação recusada, titular mascarado só na visão da diretoria) e ponta a ponta (visitante vê o caminho; conta confirmada paga).

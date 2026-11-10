@@ -6,6 +6,12 @@ O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) e o 
 
 ## [Não publicado]
 
+### Cartão pelo site só com conta (2026-11-09)
+
+#### Alterado
+
+- pagar com cartão pelo site agora exige conta com e-mail confirmado; sem conta, PIX ou com a diretoria. A diretoria vê o nome e o CPF mascarado do titular do cartão no pedido, com aviso quando o nome não bate com o de quem comprou (DT-100).
+
 ### Seletivas em Eventos (2026-11-09)
 
 #### Alterado

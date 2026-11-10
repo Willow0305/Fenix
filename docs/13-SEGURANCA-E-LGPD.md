@@ -126,6 +126,7 @@ Consultar a matriz em `05-PERFIS-E-PERMISSOES.md`.
 - fechamento e reabertura têm permissões separadas e auditoria;
 - concorrência é testada em confirmação, estoque, reembolso e agenda;
 - dados de cartão não são armazenados; eventual gateway deve manter o sistema fora do processamento sensível sempre que possível.
+- do titular do cartão pago pelo site guardam-se só o nome impresso no cartão e o CPF/CNPJ mascarado (`***.456.789-**`), visíveis apenas à diretoria, para conferir a entrega; o cartão pelo site exige conta com e-mail confirmado (`DT-100`).
 
 ## Uploads e arquivos
 
