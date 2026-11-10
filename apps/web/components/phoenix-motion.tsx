@@ -1,13 +1,21 @@
 'use client';
 
-import { type ReactNode, useEffect, useRef, useState } from 'react';
+import { type ReactNode, useEffect, useId, useRef, useState } from 'react';
 
 import { allowsPhoenixVideo, PHOENIX_LOOP_SRC, readMotionEnvironment } from '../lib/phoenix-motion';
-import { Icon } from './icon';
 import styles from './phoenix-motion.module.scss';
 
 /** Tempo para o loop começar a tocar; passou disso, a conexão está lenta e fica a logo. */
 const LOOP_START_LIMIT_MS = 4000;
+
+/** Foco vindo do teclado (não do toque nem do clique): só ele abre a dica sozinho. */
+function focusFromKeyboard(element: HTMLElement): boolean {
+  try {
+    return element.matches(':focus-visible');
+  } catch {
+    return false;
+  }
+}
 
 /** `true` depois de montar, se o aparelho e a conexão aguentam o vídeo (DT-098). */
 function useVideoAllowed(): boolean {
@@ -38,7 +46,10 @@ export function PhoenixLoop({
   const allowed = useVideoAllowed();
   const [state, setState] = useState<'loading' | 'playing' | 'static'>('loading');
   const [paused, setPaused] = useState(false);
+  // Dica do interruptor: aparece com o mouse ou o foco, some com Esc (WCAG 1.4.13).
+  const [hint, setHint] = useState(false);
   const video = useRef<HTMLVideoElement>(null);
+  const hintId = useId();
 
   useEffect(() => {
     if (!allowed) {
@@ -98,15 +109,34 @@ export function PhoenixLoop({
         />
       ) : null}
       {showVideo && state === 'playing' ? (
-        <button
-          type="button"
-          className={styles.pause}
-          aria-label="Pausar a animação da fênix"
-          aria-pressed={paused}
-          onClick={togglePause}
+        // Interruptor: bolinha à direita e trilho vermelho = animando; à esquerda = parada.
+        <div
+          className={styles.switchArea}
+          onPointerEnter={(event) => event.pointerType !== 'touch' && setHint(true)}
+          onPointerLeave={(event) => event.pointerType !== 'touch' && setHint(false)}
         >
-          <Icon name={paused ? 'play-fill' : 'pause-fill'} />
-        </button>
+          <button
+            type="button"
+            role="switch"
+            className={styles.switch}
+            aria-checked={!paused}
+            aria-label="Animação da fênix"
+            aria-describedby={hintId}
+            onClick={togglePause}
+            onFocus={(event) => setHint(focusFromKeyboard(event.currentTarget))}
+            onBlur={() => setHint(false)}
+            onKeyDown={(event) => {
+              if (event.key === 'Escape') {
+                setHint(false);
+              }
+            }}
+          >
+            <span className={styles.knob} aria-hidden="true" />
+          </button>
+          <span id={hintId} role="tooltip" className={styles.hint} data-open={hint}>
+            {paused ? 'Continuar a animação' : 'Pausar a animação'}
+          </span>
+        </div>
       ) : null}
     </div>
   );

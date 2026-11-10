@@ -57,24 +57,33 @@ describe('fênix animada (DT-098)', () => {
     expect(container.firstElementChild).toHaveAttribute('data-padded', 'false');
   });
 
-  it('tocando, mostra o botão de pausar, que para e retoma o vídeo (WCAG 2.2.2)', () => {
+  it('tocando, mostra o interruptor que para e retoma a animação, com dica (WCAG 2.2.2)', () => {
     mockReducedMotion(false);
     const { container } = render(<PhoenixLoop fallback={<img alt="Fênix" />} />);
     const video = container.querySelector('video') as HTMLVideoElement;
     const pause = jest.spyOn(video, 'pause').mockImplementation(() => undefined);
     const play = jest.spyOn(video, 'play').mockResolvedValue(undefined);
 
-    expect(screen.queryByRole('button', { name: 'Pausar a animação da fênix' })).toBeNull();
+    expect(screen.queryByRole('switch', { name: 'Animação da fênix' })).toBeNull();
     fireEvent.playing(video);
 
-    const button = screen.getByRole('button', { name: 'Pausar a animação da fênix' });
+    const toggle = screen.getByRole('switch', { name: 'Animação da fênix' });
 
-    fireEvent.click(button);
+    expect(toggle).toHaveAttribute('aria-checked', 'true');
+    expect(toggle).toHaveAccessibleDescription('Pausar a animação');
+
+    fireEvent.pointerEnter(toggle.parentElement as HTMLElement, { pointerType: 'mouse' });
+    expect(screen.getByRole('tooltip')).toHaveAttribute('data-open', 'true');
+    fireEvent.keyDown(toggle, { key: 'Escape' });
+    expect(screen.getByRole('tooltip')).toHaveAttribute('data-open', 'false');
+
+    fireEvent.click(toggle);
     expect(pause).toHaveBeenCalled();
-    expect(button).toHaveAttribute('aria-pressed', 'true');
+    expect(toggle).toHaveAttribute('aria-checked', 'false');
+    expect(toggle).toHaveAccessibleDescription('Continuar a animação');
 
-    fireEvent.click(button);
+    fireEvent.click(toggle);
     expect(play).toHaveBeenCalled();
-    expect(button).toHaveAttribute('aria-pressed', 'false');
+    expect(toggle).toHaveAttribute('aria-checked', 'true');
   });
 });

@@ -3,7 +3,10 @@ declare const styles: {
   readonly still: string;
   readonly video: string;
   readonly stage: string;
-  readonly pause: string;
+  readonly switchArea: string;
+  readonly switch: string;
+  readonly knob: string;
+  readonly hint: string;
 };
 
 export default styles;
