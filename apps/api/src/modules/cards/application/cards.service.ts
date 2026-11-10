@@ -4,7 +4,13 @@ import QRCode from 'qrcode';
 
 import { AuditService } from '../../../common/audit/audit.service';
 import { AppConfig } from '../../../common/config/app-config';
-import { ageOn, civilToDate, optionalCivil, todayIn } from '../../../common/domain/civil-date';
+import {
+  ageOn,
+  civilToDate,
+  dateToCivil,
+  optionalCivil,
+  todayIn
+} from '../../../common/domain/civil-date';
 import { type MoneyView, moneyView } from '../../../common/domain/money';
 import { AppError } from '../../../common/errors/app-error';
 import { type Page, pageArgs, type PageQueryDto, toPage } from '../../../common/http/pagination';
@@ -14,11 +20,14 @@ import { PrismaService, type PrismaTx } from '../../../common/prisma/prisma.serv
 import { PERMISSIONS, SYSTEM_ROLES } from '../../access/domain/permission-catalog';
 import { MediaService, mediaUrl } from '../../media/application/media.service';
 import { NotificationsService } from '../../notifications/application/notifications.service';
+import { defaultSettingsData, SETTINGS_KEY } from '../../settings/application/settings.service';
 import {
   addMonths,
   CARD_STATE_LABELS,
   type CardState,
   cardState,
+  DEFAULT_FEE_TOLERANCE_DAYS,
+  feeOverdueBeyondTolerance,
   newCardCode,
   publicStateLabel,
   renewedPeriod,
@@ -171,6 +180,13 @@ const CARD_INCLUDE = {
       birthDate: true,
       publicProfileConsentAt: true,
       fullName: true,
+      // Mensalidade em aberto mais antiga, para a suspensão por atraso (DT-101).
+      monthlyFees: {
+        where: { status: { in: ['OPEN', 'PARTIALLY_PAID', 'OVERDUE'] } },
+        orderBy: { dueDate: 'asc' },
+        take: 1,
+        select: { dueDate: true }
+      },
       teamMemberships: {
         where: { status: 'ACTIVE', endsOn: null, team: { deletedAt: null } },
         select: { team: { select: { name: true, logoMediaFileId: true } } },
@@ -207,6 +223,11 @@ function boardActive(user: CardRow['holderUser']): boolean {
   );
 }
 
+/** Regra da suspensão por mensalidade atrasada (DT-101). */
+export interface CardFeeRule {
+  readonly toleranceDays: number;
+}
+
 /** Carteirinha digital (DT-068): emissão, QR, conferência e administração. */
 @Injectable()
 export class CardsService implements OnModuleInit {
@@ -230,6 +251,10 @@ export class CardsService implements OnModuleInit {
     // Conferências ficam 12 meses (DT-068 G).
     this.jobs.every('cards.checks.purge', 24 * 3_600_000, async () => {
       await this.purgeChecks();
+    });
+    // Carteirinha de atleta suspensa por mensalidade atrasada e liberada ao pagar (DT-101).
+    this.jobs.every('cards.fee.sync', 3_600_000, async () => {
+      await this.syncFeeBlocks();
     });
     // Aviso 15 dias antes de a afiliação vencer (DT-068).
     this.jobs.every('cards.expiry.notice', 6 * 3_600_000, async () => {
@@ -298,6 +323,130 @@ export class CardsService implements OnModuleInit {
     });
 
     return this.design();
+  }
+
+  // ---------- Mensalidade atrasada (DT-101) ----------
+
+  /** Dias de tolerância depois do vencimento antes de suspender a carteirinha de atleta. */
+  async feeToleranceDays(): Promise<number> {
+    const settings = await this.prisma.teamSettings.findFirst({
+      select: { cardFeeToleranceDays: true }
+    });
+
+    return settings?.cardFeeToleranceDays ?? DEFAULT_FEE_TOLERANCE_DAYS;
+  }
+
+  async feeRule(): Promise<CardFeeRule> {
+    return { toleranceDays: await this.feeToleranceDays() };
+  }
+
+  async setFeeRule(actor: Principal, input: CardFeeRule, meta: RequestMeta): Promise<CardFeeRule> {
+    // Configuração única do time; criada com os padrões se ainda não existir.
+    const settings = await this.prisma.teamSettings.upsert({
+      where: { singletonKey: SETTINGS_KEY },
+      create: defaultSettingsData(),
+      update: {},
+      select: { id: true, cardFeeToleranceDays: true }
+    });
+
+    await this.prisma.teamSettings.update({
+      where: { id: settings.id },
+      data: { cardFeeToleranceDays: input.toleranceDays }
+    });
+    await this.audit.record({
+      actorUserId: actor.userId,
+      action: 'cards.fee_rule.updated',
+      entityType: 'TeamSettings',
+      entityId: settings.id,
+      before: { toleranceDays: settings.cardFeeToleranceDays },
+      after: { toleranceDays: input.toleranceDays },
+      meta
+    });
+    // A conferência já usa o prazo novo; a rotina acerta os avisos agora mesmo.
+    await this.syncFeeBlocks();
+
+    return this.feeRule();
+  }
+
+  /**
+   * Registra quando a carteirinha de atleta passa a ficar suspensa por atraso ou volta a
+   * valer (DT-101): auditoria e aviso ao atleta, uma vez por mudança. A situação em si é
+   * sempre calculada na hora (pagou, voltou); esta rotina só marca a passagem.
+   */
+  async syncFeeBlocks(now: Date = new Date()): Promise<{ blocked: number; released: number }> {
+    const today = todayIn(undefined, now);
+    const toleranceDays = await this.feeToleranceDays();
+    const rows = await this.prisma.memberCard.findMany({
+      where: { type: 'ATHLETE', deletedAt: null },
+      include: CARD_INCLUDE
+    });
+    let blocked = 0;
+    let released = 0;
+
+    for (const row of rows) {
+      const overdue = this.stateOf(row, today, toleranceDays) === 'FEE_OVERDUE';
+
+      if (overdue === (row.feeBlockedAt !== null)) {
+        continue;
+      }
+
+      const changed = await this.prisma.memberCard.updateMany({
+        where: { id: row.id, feeBlockedAt: overdue ? null : { not: null } },
+        data: { feeBlockedAt: overdue ? now : null }
+      });
+
+      if (changed.count === 0) {
+        continue;
+      }
+
+      const oldestDue = row.athlete?.monthlyFees[0]?.dueDate;
+
+      await this.audit.record({
+        actorUserId: null,
+        action: overdue ? 'cards.fee_blocked' : 'cards.fee_released',
+        entityType: 'MemberCard',
+        entityId: row.id,
+        reason: overdue
+          ? `Mensalidade atrasada há mais de ${toleranceDays} dias`
+          : 'Mensalidade em dia',
+        before: { feeBlocked: !overdue },
+        after: {
+          feeBlocked: overdue,
+          ...(overdue && oldestDue ? { oldestDueOn: dateToCivil(oldestDue) } : {})
+        }
+      });
+
+      if (row.holderUserId) {
+        await this.notifications.notify(
+          overdue
+            ? {
+                userId: row.holderUserId,
+                type: 'fee.card_blocked',
+                title: 'Carteirinha suspensa por mensalidade atrasada',
+                message:
+                  'Sua carteirinha de atleta ficou suspensa porque há mensalidade atrasada. Ela volta a valer assim que a mensalidade for paga.',
+                link: '/minha-conta/mensalidades',
+                deduplicationKey: `card-fee-blocked:${row.id}:${now.toISOString()}`
+              }
+            : {
+                userId: row.holderUserId,
+                type: 'fee.card_released',
+                title: 'Carteirinha valendo de novo',
+                message: 'Mensalidade em dia: sua carteirinha de atleta voltou a valer.',
+                link: '/minha-conta/carteirinhas',
+                deduplicationKey: `card-fee-released:${row.id}:${now.toISOString()}`
+              }
+        );
+      }
+
+      if (overdue) {
+        blocked += 1;
+      } else {
+        released += 1;
+      }
+    }
+
+    return { blocked, released };
   }
 
   // ---------- Emissão ----------
@@ -396,7 +545,9 @@ export class CardsService implements OnModuleInit {
 
   // ---------- Leitura ----------
 
-  private stateOf(row: CardRow, today: string): CardState {
+  private stateOf(row: CardRow, today: string, toleranceDays: number): CardState {
+    const oldestDue = row.athlete?.monthlyFees[0]?.dueDate ?? null;
+
     return cardState(
       {
         type: row.type,
@@ -405,7 +556,12 @@ export class CardsService implements OnModuleInit {
         startsOn: optionalCivil(row.startsOn),
         endsOn: optionalCivil(row.endsOn),
         athleteStatus: row.athlete?.status ?? null,
-        boardActive: boardActive(row.holderUser)
+        boardActive: boardActive(row.holderUser),
+        feeOverdue: feeOverdueBeyondTolerance(
+          oldestDue ? dateToCivil(oldestDue) : null,
+          today,
+          toleranceDays
+        )
       },
       today
     );
@@ -428,7 +584,7 @@ export class CardsService implements OnModuleInit {
   }
 
   private async view(row: CardRow, today: string, viewerId: string | null): Promise<CardView> {
-    const state = this.stateOf(row, today);
+    const state = this.stateOf(row, today, await this.feeToleranceDays());
     const team = row.athlete?.teamMemberships[0]?.team ?? null;
 
     return {
@@ -501,7 +657,7 @@ export class CardsService implements OnModuleInit {
   async liveQr(userId: string, id: string, now: Date = new Date()): Promise<CardQr> {
     const row = await this.loadOwned(userId, id);
 
-    if (this.stateOf(row, todayIn()) !== 'VALID') {
+    if (this.stateOf(row, todayIn(), await this.feeToleranceDays()) !== 'VALID') {
       throw AppError.conflict('CARD_NOT_VALID', 'Esta carteirinha não está válida.');
     }
 
@@ -517,7 +673,7 @@ export class CardsService implements OnModuleInit {
     const row = await this.loadOwned(userId, id);
     const today = todayIn();
 
-    if (this.stateOf(row, today) !== 'VALID') {
+    if (this.stateOf(row, today, await this.feeToleranceDays()) !== 'VALID') {
       throw AppError.conflict('CARD_NOT_VALID', 'Só é possível imprimir carteirinha válida.');
     }
 
@@ -569,7 +725,10 @@ export class CardsService implements OnModuleInit {
       return { row: null, state: 'UNKNOWN', printed: parsed.printed, expiredCode: false };
     }
 
-    const state = row.version !== parsed.version ? 'REPLACED' : this.stateOf(row, todayIn());
+    const state =
+      row.version !== parsed.version
+        ? 'REPLACED'
+        : this.stateOf(row, todayIn(), await this.feeToleranceDays());
 
     return { row, state, printed: parsed.printed, expiredCode: false };
   }
@@ -1010,8 +1169,12 @@ export class CardsService implements OnModuleInit {
 
   // ---------- Administração ----------
 
-  private adminRow(row: CardRow & { holderEmail: string | null }, today: string): CardAdminRow {
-    const state = this.stateOf(row, today);
+  private adminRow(
+    row: CardRow & { holderEmail: string | null },
+    today: string,
+    toleranceDays: number
+  ): CardAdminRow {
+    const state = this.stateOf(row, today, toleranceDays);
 
     return {
       id: row.id,
@@ -1053,7 +1216,8 @@ export class CardsService implements OnModuleInit {
       benefitsTotal,
       products
     ] = await this.prisma.$transaction([
-      this.prisma.memberCard.count({ where: { ...valid, type: 'ATHLETE' } }),
+      // Sem as suspensas por mensalidade atrasada, marcadas pela rotina (DT-101).
+      this.prisma.memberCard.count({ where: { ...valid, type: 'ATHLETE', feeBlockedAt: null } }),
       this.prisma.memberCard.count({ where: { ...valid, type: 'BOARD' } }),
       this.prisma.memberCard.count({ where: { ...valid, ...affiliate } }),
       this.prisma.memberCard.count({
@@ -1182,9 +1346,10 @@ export class CardsService implements OnModuleInit {
       this.prisma.memberCard.count({ where })
     ]);
     const civilToday = todayIn();
+    const toleranceDays = await this.feeToleranceDays();
 
     return toPage(
-      rows.map((row) => this.adminRow(row, civilToday)),
+      rows.map((row) => this.adminRow(row, civilToday, toleranceDays)),
       total,
       page,
       pageSize
@@ -1205,7 +1370,7 @@ export class CardsService implements OnModuleInit {
     });
 
     return {
-      ...this.adminRow(row, todayIn()),
+      ...this.adminRow(row, todayIn(), await this.feeToleranceDays()),
       checks: checks.map((c) => ({
         checkedAt: c.checkedAt.toISOString(),
         valid: c.valid,

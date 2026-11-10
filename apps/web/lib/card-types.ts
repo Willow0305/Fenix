@@ -11,8 +11,15 @@ export type CardState =
   | 'EXPIRED'
   | 'NOT_STARTED'
   | 'ATHLETE_INACTIVE'
+  /** Mensalidade atrasada além da tolerância; volta a valer ao pagar (DT-101). */
+  | 'FEE_OVERDUE'
   | 'BOARD_INACTIVE'
   | 'REPLACED';
+
+/** Dias depois do vencimento até a carteirinha de atleta ficar suspensa (DT-101). */
+export interface CardFeeRule {
+  readonly toleranceDays: number;
+}
 
 export const CARD_TYPE: Record<CardType, string> = {
   ATHLETE: 'Atleta',

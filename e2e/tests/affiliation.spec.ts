@@ -27,6 +27,20 @@ test('aba Afiliação: abas, endereço antigo e novo plano', async ({ page, requ
   await page.goto('/admin/carteirinhas');
   await page.waitForURL('**/admin/afiliacao/carteirinhas');
 
+  // Prazo da suspensão por mensalidade atrasada (DT-101): padrão 10 dias, salva e mantém.
+  await settled(page);
+  await expect(page.getByRole('heading', { name: 'Mensalidade atrasada' })).toBeVisible();
+
+  const tolerance = page.getByLabel(/^Dias de tolerância/);
+
+  await expect(tolerance).toHaveValue('10');
+  await tolerance.fill('15');
+  await page.getByRole('button', { name: 'Salvar prazo' }).click();
+  await expect(page.getByText('Prazo salvo.')).toBeVisible();
+  await tolerance.fill('10');
+  await page.getByRole('button', { name: 'Salvar prazo' }).click();
+  await expect(page.getByText('Prazo salvo.')).toBeVisible();
+
   await page.goto('/admin/afiliacao/planos?novo=1');
   await page.getByLabel(/^Nome/).fill(`Afiliação E2E ${info.project.name}`);
   await page.getByLabel(/^Preço/).fill('120,00');

@@ -7,10 +7,12 @@ import {
   Alert,
   ConfirmDialog,
   Empty,
+  ErrorSummary,
   PageHeader,
   Pagination,
   Skeleton,
-  TextField
+  TextField,
+  useSubmit
 } from '../../../../components/ui';
 import { api } from '../../../../lib/api-client';
 import type { Page } from '../../../../lib/api-types';
@@ -19,6 +21,7 @@ import {
   CARD_TYPE,
   type CardAdminDetail,
   type CardAdminRow,
+  type CardFeeRule,
   type CardsOverview
 } from '../../../../lib/card-types';
 import { formatDate, formatDateTime } from '../../../../lib/format';
@@ -49,7 +52,67 @@ const ACTION_HELP: Record<Action, string> = {
 };
 
 function badgeOf(state: CardAdminRow['state']): string {
-  return state === 'VALID' ? 'badge-success' : state === 'SUSPENDED' ? 'badge-warning' : '';
+  return state === 'VALID'
+    ? 'badge-success'
+    : state === 'SUSPENDED' || state === 'FEE_OVERDUE'
+      ? 'badge-warning'
+      : '';
+}
+
+/**
+ * Mensalidade atrasada (DT-101): quantos dias depois do vencimento a carteirinha de atleta
+ * fica suspensa. Volta a valer sozinha quando a mensalidade é paga.
+ */
+function FeeRuleSettings() {
+  const { can } = useAuth();
+  const rule = useResource<CardFeeRule>('/cards/fee-rule');
+  const [days, setDays] = useState<string | null>(null);
+  const manage = can('cards.manage');
+  const save = useSubmit(async () => {
+    await api('/cards/fee-rule', {
+      method: 'PUT',
+      body: { toleranceDays: Number(days ?? rule.data?.toleranceDays ?? 10) }
+    });
+    await rule.reload();
+    save.setMessage('Prazo salvo.');
+  });
+
+  if (!rule.data) {
+    return rule.error ? <Alert kind="error">{rule.error}</Alert> : <Skeleton lines={1} />;
+  }
+
+  const value = days ?? String(rule.data.toleranceDays);
+
+  return (
+    <form className="card stack gap-sm" onSubmit={(event) => void save.submit(event)}>
+      <h2 className="list-title">Mensalidade atrasada</h2>
+      <p className="muted m-0">
+        A carteirinha de atleta fica suspensa quando a mensalidade mais antiga em aberto passa deste
+        prazo depois do vencimento, e volta a valer sozinha quando ela é paga. O atleta recebe um
+        aviso nas duas vezes. Carteirinhas de diretoria e de afiliado não mudam.
+      </p>
+      <div className="row" style={{ alignItems: 'flex-end' }}>
+        <TextField
+          label="Dias de tolerância depois do vencimento"
+          hint="De 0 (no dia seguinte ao vencimento) a 90."
+          numeric="integer"
+          value={value}
+          maxLength={2}
+          disabled={!manage}
+          required
+          onChange={(event) => setDays(event.target.value)}
+          error={save.fieldError('toleranceDays')}
+        />
+        {manage ? (
+          <button type="submit" className="btn btn-primary btn-sm" disabled={save.pending}>
+            Salvar prazo
+          </button>
+        ) : null}
+      </div>
+      <ErrorSummary error={save.error} />
+      {save.message ? <p className="muted m-0">{save.message}</p> : null}
+    </form>
+  );
 }
 
 /** Detalhe com ações (sempre com motivo) e histórico de conferências. */
@@ -209,6 +272,7 @@ function CardsList() {
         description="Atletas ativos e a diretoria recebem a carteirinha automaticamente; a de afiliado vem da compra na loja."
       />
       <AffiliationNav />
+      <FeeRuleSettings />
       <form
         className="row filter-bar"
         role="search"

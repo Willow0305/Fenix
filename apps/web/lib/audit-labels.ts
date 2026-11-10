@@ -68,6 +68,9 @@ export const AUDIT_ACTION_LABELS: Readonly<Record<string, string>> = {
   'benefits.deleted': 'Benefício excluído',
   'cards.checked': 'Carteirinha conferida',
   'cards.design.updated': 'Visual da carteirinha alterado',
+  'cards.fee_blocked': 'Carteirinha suspensa por mensalidade atrasada',
+  'cards.fee_released': 'Carteirinha liberada: mensalidade em dia',
+  'cards.fee_rule.updated': 'Prazo de atraso da carteirinha alterado',
   'cards.membership.announced': 'Afiliações abertas avisadas a todos',
   // Remessas
   'campaign.created': 'Remessa criada',

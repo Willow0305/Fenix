@@ -1330,7 +1330,7 @@ Mesmo padrão da inativação de atleta (COR-018):
 
 **A. Tipos.** *Atleta:* quem faz parte do time; gratuita, existe enquanto o atleta estiver Ativo. *Afiliado:* qualquer pessoa compra um plano de afiliação na loja e ganha os benefícios dos parceiros. Diretoria só tem carteirinha se também for atleta ou afiliado.
 
-**B. Situações.** Ativa, suspensa (pela diretoria, com motivo, quando achar necessário), vencida (afiliação depois da data final) e cancelada. Nada suspende sozinho (atraso de mensalidade não afeta). Suspensa: o dono vê "Carteirinha suspensa, fale com a diretoria"; quem confere vê "inválida". Carteirinha de atleta também é inválida se o atleta não estiver Ativo.
+**B. Situações.** Ativa, suspensa (pela diretoria, com motivo, quando achar necessário), vencida (afiliação depois da data final) e cancelada. Nada suspende sozinho (atraso de mensalidade não afeta). *Revisto em 2026-11-09 por `DT-101`: a carteirinha de atleta fica suspensa por mensalidade atrasada além da tolerância e volta ao pagar.* Suspensa: o dono vê "Carteirinha suspensa, fale com a diretoria"; quem confere vê "inválida". Carteirinha de atleta também é inválida se o atleta não estiver Ativo.
 
 **C. QR e conferência.** O QR leva só um código assinado (sem dado pessoal) que muda a cada minuto e vale no máximo 2 minutos; print não serve. Ler o QR abre `/validar/<código>`: válida/inválida, tipo, nome curto (ex.: "Ana S."), foto, validade (afiliado) e os benefícios que valem para aquele tipo. Parceiro só confere, sem login e sem registrar uso. Quem tem a permissão **Conferir carteirinhas** (`cards.read`) vê, logado, nome completo, equipes e situação; "mensalidade em dia" só com `fees.read`. Reemitir (com motivo) cria versão nova e invalida na hora os QR anteriores, inclusive o impresso.
 
@@ -2044,3 +2044,22 @@ Sem conta, o nome do pedido é o que a pessoa digita. O titular do cartão (nome
 
 - o risco não zera: alguém com conta ainda pode usar cartão de outra pessoa, mas a compra fica ligada a uma conta e a um e-mail confirmados, e a entrega pode ser conferida. O antifraude do Mercado Pago continua valendo;
 - testes: regra e máscara (`card-payment.spec.ts`), integração (visitante recusado no checkout e no pedido antigo, conta sem confirmação recusada, titular mascarado só na visão da diretoria) e ponta a ponta (visitante vê o caminho; conta confirmada paga).
+
+## DT-101 — Carteirinha de atleta suspensa por mensalidade atrasada
+
+- **Estado:** Aceita; implementada em 2026-11-09 (altera a regra B de `DT-068`, "atraso de mensalidade não afeta")
+- **Data:** 2026-11-09
+- **Aprovador:** responsável do projeto, a pedido do comprador do site ("atleta que está com a mensalidade atrasada, cancelar a carteirinha de afiliação automaticamente"); escolheu "Suspende e volta ao pagar" e "Configurável, padrão 10 dias"
+
+### Decisão
+
+- a carteirinha **de atleta** fica com a situação **"Suspensa: mensalidade atrasada"** (`FEE_OVERDUE`) quando a mensalidade mais antiga em aberto (aberta, vencida ou paga em parte) venceu há mais dias que a tolerância; quitada, **volta a valer sozinha**. "Cancelar" do pedido virou suspensão reversível, como escolhido: cancelar exigiria reemitir a cada atraso;
+- a situação é **calculada na hora** (regra pura `feeOverdueBeyondTolerance` dentro de `cardState`), não gravada: o pagamento libera no mesmo instante, e a suspensão manual da diretoria (`SUSPENDED`) continua separada e não é desfeita pelo pagamento;
+- **tolerância** configurável de 0 a 90 dias, padrão **10** (`team_settings.card_fee_tolerance_days`, com `CHECK`; migração `20261109110000_carteirinha_mensalidade`), em Painel → Afiliação → Carteirinhas → "Mensalidade atrasada" (`GET`/`PUT /cards/fee-rule`; ler com `cards.read`, mudar com `cards.manage`, auditado `cards.fee_rule.updated`). Com 10 dias e vencimento em 10/11, vale até 20/11 e fica suspensa em 21/11;
+- **auditoria e aviso:** a rotina `cards.fee.sync` (a cada hora, e logo depois de mudar o prazo) marca a passagem em `member_cards.fee_blocked_at`, registra `cards.fee_blocked` / `cards.fee_released` (sem autor, com o motivo) e avisa o atleta uma vez por mudança ("Carteirinha suspensa por mensalidade atrasada" / "Carteirinha valendo de novo", finalidade Financeiro);
+- quem confere sem login vê só "Inválida" (sem o motivo, como em `DT-068` C); a diretoria logada vê "Suspensa: mensalidade atrasada"; o atleta vê o aviso com o atalho "Ver minhas mensalidades". Sem QR e sem impressão enquanto suspensa;
+- **não muda:** carteirinha de diretoria (`DT-077`), mesmo de quem também é atleta, e de afiliado comprada na loja; mensalidade cancelada não conta. A visão geral conta as de atleta válidas sem as marcadas pela rotina.
+
+### Consequências
+
+- testes: regra e limites de dia (`cards.spec.ts`), integração (`card-fee-overdue.int-spec.ts`: dentro da tolerância vale, depois suspende sem QR, aviso e auditoria uma vez, pagamento libera na hora com aviso, pagamento parcial não libera, prazo só com `cards.manage` e de 0 a 90).

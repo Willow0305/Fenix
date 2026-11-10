@@ -41,6 +41,7 @@
 | RN-MEN-005 | Mensalidade paga gera ou vincula exatamente uma entrada no Caixa Fênix. | Definida | RF-029 |
 | RN-MEN-006 | Pagamentos parciais são sugeridos pelo relacionamento do PDF, mas regras de saldo, múltiplos métodos, juros, multa e desconto não estão aprovadas. | Provisória | PDF §9.2 |
 | RN-MEN-007 | Alteração/cancelamento de pagamento confirmado não apaga o original e exige ação financeira corretiva auditável. | Definida | `AGENTS.md`, RNF-017 |
+| RN-MEN-008 | Mensalidade em aberto vencida há mais dias que a tolerância (padrão 10, de 0 a 90, definida pela diretoria) suspende a carteirinha de atleta; quitada, ela volta a valer sozinha. Diretoria e afiliado não são afetados. | Definida | DT-101 |
 
 ## Caixa Fênix
 

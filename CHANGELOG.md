@@ -6,6 +6,12 @@ O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) e o 
 
 ## [Não publicado]
 
+### Carteirinha de atleta e mensalidade atrasada (2026-11-09)
+
+#### Alterado
+
+- a carteirinha de atleta fica suspensa quando a mensalidade passa do prazo de tolerância (padrão 10 dias, ajustável pela diretoria) e volta a valer sozinha quando é paga; o atleta é avisado e a mudança fica na auditoria (DT-101).
+
 ### Cartão pelo site só com conta (2026-11-09)
 
 #### Alterado

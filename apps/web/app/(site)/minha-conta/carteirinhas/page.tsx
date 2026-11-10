@@ -63,13 +63,21 @@ function CardBlock({ card, design }: { readonly card: MemberCard; readonly desig
         </p>
       ) : (
         <Alert kind="warning">
-          {card.state === 'SUSPENDED'
-            ? 'Carteirinha suspensa. Fale com a diretoria.'
-            : card.state === 'EXPIRED'
-              ? 'Afiliação vencida. Renove para voltar a usar os benefícios.'
-              : card.state === 'ATHLETE_INACTIVE'
-                ? 'A carteirinha de atleta vale enquanto você estiver ativo no time.'
-                : card.stateLabel}
+          {card.state === 'SUSPENDED' ? (
+            'Carteirinha suspensa. Fale com a diretoria.'
+          ) : card.state === 'EXPIRED' ? (
+            'Afiliação vencida. Renove para voltar a usar os benefícios.'
+          ) : card.state === 'ATHLETE_INACTIVE' ? (
+            'A carteirinha de atleta vale enquanto você estiver ativo no time.'
+          ) : card.state === 'FEE_OVERDUE' ? (
+            <>
+              Carteirinha suspensa porque há mensalidade atrasada. Ela volta a valer assim que a
+              mensalidade for paga.{' '}
+              <Link href="/minha-conta/mensalidades">Ver minhas mensalidades</Link>
+            </>
+          ) : (
+            card.stateLabel
+          )}
         </Alert>
       )}
       {valid ? (

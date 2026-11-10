@@ -4,6 +4,7 @@ import {
   addMonths,
   benefitApplies,
   cardState,
+  feeOverdueBeyondTolerance,
   newCardCode,
   publicStateLabel,
   renewedPeriod,
@@ -154,5 +155,40 @@ describe('apoio', () => {
       endsOn: '2026-04-10'
     });
     expect(addMonths('2026-01-31', 1)).toBe('2026-02-28');
+  });
+});
+
+describe('carteirinha de atleta e mensalidade atrasada (DT-101)', () => {
+  const athlete = {
+    type: 'ATHLETE' as const,
+    status: 'ACTIVE' as const,
+    deleted: false,
+    startsOn: null,
+    endsOn: null,
+    athleteStatus: 'ACTIVE'
+  };
+
+  it('vale durante a tolerância e fica suspensa no dia seguinte ao fim dela', () => {
+    expect(feeOverdueBeyondTolerance('2026-11-10', '2026-11-20', 10)).toBe(false);
+    expect(feeOverdueBeyondTolerance('2026-11-10', '2026-11-21', 10)).toBe(true);
+    expect(feeOverdueBeyondTolerance('2026-11-10', '2026-11-10', 0)).toBe(false);
+    expect(feeOverdueBeyondTolerance('2026-11-10', '2026-11-11', 0)).toBe(true);
+    expect(feeOverdueBeyondTolerance('2026-12-25', '2027-01-04', 10)).toBe(false);
+    expect(feeOverdueBeyondTolerance(null, '2026-11-21', 10)).toBe(false);
+  });
+
+  it('atraso suspende só a de atleta ativo; quitada, volta a valer', () => {
+    expect(cardState({ ...athlete, feeOverdue: true }, '2026-11-21')).toBe('FEE_OVERDUE');
+    expect(cardState({ ...athlete, feeOverdue: false }, '2026-11-21')).toBe('VALID');
+    expect(
+      cardState({ ...athlete, athleteStatus: 'INACTIVE', feeOverdue: true }, '2026-11-21')
+    ).toBe('ATHLETE_INACTIVE');
+    expect(cardState({ ...athlete, status: 'SUSPENDED', feeOverdue: false }, '2026-11-21')).toBe(
+      'SUSPENDED'
+    );
+    expect(
+      cardState({ ...athlete, type: 'BOARD', boardActive: true, feeOverdue: true }, '2026-11-21')
+    ).toBe('VALID');
+    expect(publicStateLabel('FEE_OVERDUE')).toBe('Inválida');
   });
 });

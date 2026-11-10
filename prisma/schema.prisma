@@ -736,6 +736,8 @@ model TeamSettings {
   /// Visual da carteirinha (DT-068 F).
   cardTemplate            CardTemplate @default(CLASSIC) @map("card_template")
   cardUseTeamLogo         Boolean      @default(true) @map("card_use_team_logo")
+  /// Dias depois do vencimento até a carteirinha de atleta ficar suspensa por atraso (DT-101).
+  cardFeeToleranceDays    Int          @default(10) @map("card_fee_tolerance_days") @db.SmallInt
   /// Conta do Caixa que recebe o PIX automático (DT-071).
   pixAccountId            String?      @map("pix_account_id") @db.Uuid
   /// Cartão (DT-079): códigos de "preço diferenciado" do Mercado Pago por N parcelas sem juros.
@@ -2810,6 +2812,9 @@ model MemberCard {
   /// Reemitir aumenta e invalida os QR anteriores, inclusive o impresso.
   version           Int              @default(1)
   statusReason      String?          @map("status_reason") @db.Text
+  /// Desde quando a rotina viu a carteirinha de atleta suspensa por mensalidade atrasada
+  /// (DT-101); só marca a mudança para auditar e avisar, a situação é sempre calculada.
+  feeBlockedAt      DateTime?        @map("fee_blocked_at") @db.Timestamptz(6)
   createdAt         DateTime         @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt         DateTime         @updatedAt @map("updated_at") @db.Timestamptz(6)
   deletedAt         DateTime?        @map("deleted_at") @db.Timestamptz(6)

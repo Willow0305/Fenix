@@ -20,11 +20,14 @@ import {
   IsBoolean,
   IsEnum,
   IsIn,
+  IsInt,
   IsOptional,
   IsString,
   IsUUID,
   Matches,
+  Max,
   MaxLength,
+  Min,
   MinLength
 } from 'class-validator';
 
@@ -49,6 +52,7 @@ import {
   type CardAdminRow,
   type CardsOverview,
   type CardDesign,
+  type CardFeeRule,
   type CardQr,
   CardsService,
   type CardView,
@@ -56,6 +60,7 @@ import {
   type PublicValidation,
   type StaffValidation
 } from '../application/cards.service';
+import { MAX_FEE_TOLERANCE_DAYS } from '../domain/card-rules';
 
 const DATE = /^\d{4}-\d{2}-\d{2}$/;
 const DATE_MSG = { message: 'Data inválida (AAAA-MM-DD).' };
@@ -91,6 +96,18 @@ class CardExtendDto extends DeleteReasonDto {
 
 class CardRenameDto extends DeleteReasonDto {
   @ApiProperty() @IsString() @MinLength(3) @MaxLength(160) holderName!: string;
+}
+
+class CardFeeRuleDto {
+  @ApiProperty({
+    minimum: 0,
+    maximum: MAX_FEE_TOLERANCE_DAYS,
+    description: 'Dias depois do vencimento até a carteirinha de atleta ficar suspensa (DT-101).'
+  })
+  @IsInt()
+  @Min(0)
+  @Max(MAX_FEE_TOLERANCE_DAYS)
+  toleranceDays!: number;
 }
 
 class CardDesignDto {
@@ -239,6 +256,22 @@ export class CardsController {
     @ReqMeta() meta: RequestMeta
   ): Promise<CardDesign> {
     return this.cards.setDesign(actor, body, meta);
+  }
+
+  @Get('fee-rule')
+  @RequirePermissions(PERMISSIONS.cardsRead)
+  feeRule(): Promise<CardFeeRule> {
+    return this.cards.feeRule();
+  }
+
+  @Put('fee-rule')
+  @RequirePermissions(PERMISSIONS.cardsManage)
+  setFeeRule(
+    @CurrentPrincipal() actor: Principal,
+    @Body() body: CardFeeRuleDto,
+    @ReqMeta() meta: RequestMeta
+  ): Promise<CardFeeRule> {
+    return this.cards.setFeeRule(actor, { toleranceDays: body.toleranceDays }, meta);
   }
 
   @Get('overview')

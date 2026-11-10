@@ -25,6 +25,7 @@ O contrato completo e executável fica no OpenAPI (`/docs` fora de produção). 
 | `PUT` | `/api/v1/team-settings/brand-assets/:context` | `logos.manage` (multipart) | 1 |
 | `GET` | `/api/v1/media/:id` | público se `PUBLIC`; senão autorizado | 1 |
 | `GET` | `/api/v1/public/teams[/:slug]` · `public/categories` · `public/tryouts[/:slug]` | público | 2 |
+| `GET`/`PUT` | `/api/v1/cards/fee-rule` | `cards.read` / `cards.manage`; dias de tolerância (0 a 90) da suspensão da carteirinha de atleta por mensalidade atrasada, auditado (DT-101) | 9 |
 | `GET` | `/api/v1/public/tryouts?scope=open` | público; só seletivas aceitando inscrição agora, a que fecha primeiro na frente (DT-099) | 9 |
 | `POST` | `/api/v1/public/tryouts/:slug/registrations` · `public/interest` | público, rate limiting | 2 |
 | `GET`/`POST`/`PATCH` | `/api/v1/teams` · `/api/v1/sport-categories` | `athletes.read` / `teams.manage` | 2 |

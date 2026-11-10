@@ -14,6 +14,7 @@ export type CardState =
   | 'EXPIRED'
   | 'NOT_STARTED'
   | 'ATHLETE_INACTIVE'
+  | 'FEE_OVERDUE'
   | 'BOARD_INACTIVE'
   | 'REPLACED';
 
@@ -24,6 +25,7 @@ export const CARD_STATE_LABELS: Record<CardState, string> = {
   EXPIRED: 'Vencida',
   NOT_STARTED: 'Ainda não começou',
   ATHLETE_INACTIVE: 'Atleta não está ativo',
+  FEE_OVERDUE: 'Suspensa: mensalidade atrasada',
   BOARD_INACTIVE: 'Não faz mais parte da diretoria',
   REPLACED: 'Substituída por uma reemissão'
 };
@@ -37,6 +39,8 @@ export interface CardFacts {
   readonly athleteStatus: string | null;
   /** Diretoria: a pessoa ainda tem o papel Diretoria (conta ativa). */
   readonly boardActive?: boolean;
+  /** Atleta: mensalidade atrasada além da tolerância (DT-101). */
+  readonly feeOverdue?: boolean;
 }
 
 /** Situação da carteirinha numa data civil (fuso do time). */
@@ -50,7 +54,12 @@ export function cardState(card: CardFacts, today: string): CardState {
   }
 
   if (card.type === 'ATHLETE') {
-    return card.athleteStatus === 'ACTIVE' ? 'VALID' : 'ATHLETE_INACTIVE';
+    if (card.athleteStatus !== 'ACTIVE') {
+      return 'ATHLETE_INACTIVE';
+    }
+
+    // DT-101: atraso além da tolerância suspende sozinho e volta a valer ao pagar.
+    return card.feeOverdue ? 'FEE_OVERDUE' : 'VALID';
   }
 
   // Diretoria: vale enquanto a pessoa tiver o papel (DT-077).
@@ -142,4 +151,29 @@ export function addMonths(civil: string, months: number): string {
   const last = new Date(Date.UTC(year, month, 0)).getUTCDate();
 
   return `${year}-${String(month).padStart(2, '0')}-${String(Math.min(d, last)).padStart(2, '0')}`;
+}
+
+/** Tolerância padrão e limites, em dias depois do vencimento (DT-101). */
+export const DEFAULT_FEE_TOLERANCE_DAYS = 10;
+export const MAX_FEE_TOLERANCE_DAYS = 90;
+
+/**
+ * Mensalidade atrasada a ponto de suspender a carteirinha de atleta (DT-101): a mais antiga
+ * ainda em aberto (aberta, vencida ou paga em parte) venceu há mais dias que a tolerância.
+ * Com tolerância 10 e vencimento em 10/11, vale até 20/11 e fica suspensa a partir de 21/11.
+ */
+export function feeOverdueBeyondTolerance(
+  oldestUnpaidDueOn: string | null,
+  today: string,
+  toleranceDays: number
+): boolean {
+  if (oldestUnpaidDueOn === null) {
+    return false;
+  }
+
+  const limit = new Date(`${oldestUnpaidDueOn}T00:00:00Z`);
+
+  limit.setUTCDate(limit.getUTCDate() + toleranceDays);
+
+  return today > limit.toISOString().slice(0, 10);
 }
