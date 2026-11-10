@@ -416,10 +416,17 @@ export class OrdersService implements OnModuleInit {
       : view;
   }
 
-  /** Pedido na visão da diretoria: inclui o titular do cartão pago pelo site (DT-100). */
   async get(id: string): Promise<OrderView> {
+    return this.toView(await this.load(this.prisma, id));
+  }
+
+  /**
+   * Pedido na ficha da diretoria: inclui o titular do cartão pago pelo site (DT-100). Só a
+   * rota da diretoria usa; respostas ao comprador usam `get`, sem esse campo.
+   */
+  async getForStaff(id: string): Promise<OrderView> {
     const [view, charge] = await Promise.all([
-      this.load(this.prisma, id).then((row) => this.toView(row)),
+      this.get(id),
       this.prisma.cardCharge.findFirst({
         where: { orderId: id, status: { in: ['PAID', 'REVIEW'] } },
         orderBy: { createdAt: 'desc' },

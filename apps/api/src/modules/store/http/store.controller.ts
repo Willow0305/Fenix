@@ -1123,7 +1123,7 @@ export class StoreAdminController {
   @Get('orders/:id')
   @RequirePermissions(PERMISSIONS.ordersRead)
   order(@Param('id', new ParseUUIDPipe()) id: string): Promise<OrderView> {
-    return this.orders.get(id);
+    return this.orders.getForStaff(id);
   }
 
   @Post('orders/:id/payments')
