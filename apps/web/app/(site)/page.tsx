@@ -24,6 +24,11 @@ export default async function HomePage() {
     serverGet<Tryout[]>('/public/tryouts?scope=open', 30).then((rows) => rows ?? [])
   ]);
   const membership = memberships?.data[0];
+  const joinHref = joinTeamHref(
+    team.joinInviteEnabled,
+    openTryouts.length,
+    team.interestIntakeOpen
+  );
   const logo = team.brandAssets.OFFICIAL;
   const male = firstTeamLogo(teams, 'MALE') ?? logo?.url;
   const female = firstTeamLogo(teams, 'FEMALE') ?? logo?.url;
@@ -42,12 +47,12 @@ export default async function HomePage() {
             </p>
             <div className={styles.ctas}>
               {/* Seletivas ficam em Eventos (DT-099); sem nenhuma aberta, o convite de Times. */}
-              <Link
-                href={joinTeamHref(team.joinInviteEnabled, openTryouts.length)}
-                className="btn btn-primary"
-              >
-                Quero jogar no Fênix
-              </Link>
+              {/* Contatos fechados e nenhuma seletiva aberta: o botão some (DT-107). */}
+              {joinHref ? (
+                <Link href={joinHref} className="btn btn-primary">
+                  Quero jogar no Fênix
+                </Link>
+              ) : null}
               <Link href="/loja" className={`btn ${styles.ghost}`}>
                 Loja oficial
               </Link>

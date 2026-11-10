@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { Suspense, useEffect, useState } from 'react';
+import { Suspense, useEffect, useRef, useState } from 'react';
 
 import { AthleteForm } from '../../../components/athlete-form';
 import { ContactActions } from '../../../components/contact-actions';
@@ -11,9 +11,11 @@ import {
   ClearFilters,
   ConfirmDialog,
   Empty,
+  ErrorSummary,
   PageHeader,
   Pagination,
-  Skeleton
+  Skeleton,
+  useSubmit
 } from '../../../components/ui';
 import { api } from '../../../lib/api-client';
 import type { Page } from '../../../lib/api-types';
@@ -31,6 +33,62 @@ import { useUrlFilters } from '../../../lib/use-url-filters';
 
 // Abre nos casos em aberto; convertidos e arquivados ficam em "Encerrados".
 const DEFAULTS = { busca: '', status: '', situacao: 'abertos' };
+
+/**
+ * Elenco lotado (DT-107): a diretoria fecha os contatos de "Quero jogar no Fênix". Some o
+ * convite de Times, o botão do Início e o link do rodapé; o formulário avisa e o servidor
+ * recusa. Seletiva aberta continua aceitando inscrição.
+ */
+function IntakeToggle() {
+  const { can } = useAuth();
+  const intake = useResource<{ open: boolean }>('/interested-people/intake');
+  const manage = can('registrations.intake.manage');
+  const target = useRef(true);
+  const save = useSubmit(async () => {
+    const updated = await api<{ open: boolean }>('/interested-people/intake', {
+      method: 'PUT',
+      body: { open: target.current }
+    });
+
+    intake.setData(updated);
+    save.setMessage(
+      updated.open
+        ? 'Contatos abertos: o convite e o formulário voltaram ao site.'
+        : 'Contatos fechados: o site avisa que o elenco está completo. Seletivas abertas continuam recebendo inscrições.'
+    );
+  });
+
+  if (!intake.data) {
+    return intake.error ? <Alert kind="error">{intake.error}</Alert> : <Skeleton lines={1} />;
+  }
+
+  return (
+    <section className="card stack gap-sm" aria-labelledby="contatos-site">
+      <h2 id="contatos-site" className="list-title">
+        Contatos pelo site
+      </h2>
+      {save.message ? <Alert kind="success">{save.message}</Alert> : null}
+      <ErrorSummary error={save.error} />
+      <label className="checkbox">
+        <input
+          type="checkbox"
+          checked={intake.data.open}
+          disabled={!manage || save.pending}
+          onChange={(event) => {
+            // O valor vai por referência: o estado novo só existe depois desta renderização.
+            target.current = event.target.checked;
+            void save.submit();
+          }}
+        />
+        <span>Receber novos contatos em "Quero jogar no Fênix"</span>
+      </label>
+      <p className="muted m-0">
+        Desmarque quando o elenco estiver completo: o convite e o formulário saem do site até você
+        marcar de novo. Seletivas abertas continuam aceitando inscrições.
+      </p>
+    </section>
+  );
+}
 
 function InterestedList() {
   const { can } = useAuth();
@@ -58,6 +116,7 @@ function InterestedList() {
         title="Interessados"
         description="Quem deixou contato pelo site querendo jogar no Fênix."
       />
+      <IntakeToggle />
       {notice ? <Alert kind="success">{notice}</Alert> : null}
       <form
         className="row filter-bar"

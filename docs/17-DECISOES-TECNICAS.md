@@ -2150,3 +2150,24 @@ Sem conta, o nome do pedido é o que a pessoa digita. O titular do cartão (nome
 
 - testes: anunciador (lê a mensagem depois de uma ação, não o aviso que já estava na página; erro na região que interrompe).
 
+## DT-107 — Elenco lotado: fechar os contatos de "Quero jogar no Fênix"
+
+- **Estado:** Aceita; implementada em 2026-11-10 (completa `DT-091`)
+- **Data:** 2026-11-10
+- **Aprovador:** responsável do projeto ("quer jogar com a gente? às vezes não queremos inscrições por já estarmos lotados, como podemos desativar isso como parte da administração e diretoria"); escolheu "Só o Quero jogar"
+
+### Contexto
+
+O convite de Times só podia ser desligado pelo administrador (`settings.public.manage`, fora do papel Diretoria), e mesmo desligado o formulário `/interesse` continuava recebendo contatos.
+
+### Decisão
+
+- configuração `team_settings.interest_intake_open` (padrão aberto; migração `20261110100000_contatos_quero_jogar`) e permissão nova `registrations.intake.manage`, que a diretoria e o administrador recebem; a caixa "Receber novos contatos em Quero jogar no Fênix" fica em Painel → Interessados (`GET`/`PUT /interested-people/intake`), com auditoria (`interested.intake.closed` / `interested.intake.opened`);
+- **fechado:** some o convite "Quer jogar com a gente?" de Times, o botão "Quero jogar no Fênix" do Início e o link do rodapé; `/interesse` avisa que o elenco está completo, com link para Eventos; o servidor recusa contato novo (409 `INTEREST_CLOSED`);
+- **seletiva aberta continua aceitando inscrição** (cada uma tem a própria situação e vagas): com uma aberta, o convite de Times e o botão do Início levam às inscrições, sem "Deixar meu contato";
+- o liga/desliga do convite em Configurações (`DT-091`, só administrador) continua: ele só esconde o convite de Times; fechar os contatos vale para o site inteiro.
+
+### Consequências
+
+- testes: regra do convite e do botão (`join-team-cta.spec.tsx`) e integração (`interest-intake.int-spec.ts`: só quem tem a permissão fecha, o site público mostra fechado, contato novo recusado, reabrir volta a aceitar).
+

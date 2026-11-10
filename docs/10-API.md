@@ -38,6 +38,7 @@ O contrato completo e executável fica no OpenAPI (`/docs` fora de produção). 
 | `PUT`/`POST` | `/api/v1/athletes/:id/user` · `:id/user/unlink` | `athletes.update` | 2 |
 | `POST` | `/api/v1/athletes/:id/memberships` · `memberships/:mid/end` | `teams.assign` | 2 |
 | `GET`/`PUT`/`POST` | `/api/v1/interested-people` · `:id/status` · `:id/convert` | `registrations.read` / `registrations.review` | 2 |
+| `GET`/`PUT` | `/api/v1/interested-people/intake` (`{ open }`; fechado, `POST /public/interest` responde 409 `INTEREST_CLOSED`, `DT-107`) | `registrations.read` / `registrations.intake.manage` | 9 |
 | `GET`/`POST`/`PATCH`/`PUT` | `/api/v1/tryouts[/:id]` · `:id/status` · `:id/registrations` | `registrations.read` / `tryouts.manage` | 2 |
 | `PUT`/`POST` | `/api/v1/tryout-registrations/:id/status` · `:id/convert` | `registrations.review` | 2 |
 | `GET` | `/api/v1/me/athlete` · `me/tryout-registrations` | próprio | 2 |

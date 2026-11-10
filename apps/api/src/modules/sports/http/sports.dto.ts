@@ -270,6 +270,11 @@ export class PublicTryoutQueryDto {
   scope?: 'open';
 }
 
+/** Abrir ou fechar os contatos de "Quero jogar no Fênix" (DT-107). */
+export class InterestIntakeDto extends OptionalReasonDto {
+  @ApiProperty() @IsBoolean() open!: boolean;
+}
+
 export class InterestedStatusDto extends OptionalReasonDto {
   @ApiProperty({ enum: InterestedPersonStatus })
   @IsEnum(InterestedPersonStatus)

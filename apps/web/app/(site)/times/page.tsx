@@ -83,8 +83,8 @@ export default async function TeamsPage({
       </nav>
 
       {/* Desligado pela diretoria, só volta a aparecer com seletiva aberta (DT-091). */}
-      {showJoinInvite(club.joinInviteEnabled, openTryouts) ? (
-        <JoinTeamCta openTryouts={openTryouts} />
+      {showJoinInvite(club.joinInviteEnabled, openTryouts, club.interestIntakeOpen) ? (
+        <JoinTeamCta openTryouts={openTryouts} intakeOpen={club.interestIntakeOpen} />
       ) : null}
 
       {teamCount === 0 ? (

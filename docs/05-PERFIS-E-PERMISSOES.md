@@ -83,7 +83,7 @@ Os códigos são uma proposta técnica provisória; nomes definitivos devem coin
 |---|---|
 | Usuários | `users.read`, `users.create`, `users.update`, `roles.assign`, `permissions.manage`, `sessions.revoke` |
 | Atletas | `athletes.read`, `athletes.create`, `athletes.update`, `athletes.status.change`, `teams.assign` |
-| Inscrições | `registrations.read`, `registrations.review`, `tryouts.manage` |
+| Inscrições | `registrations.read`, `registrations.review`, `registrations.intake.manage` (abrir e fechar os contatos de "Quero jogar no Fênix", `DT-107`), `tryouts.manage` |
 | Mensalidades | `fees.read`, `fees.generate`, `payments.record`, `payments.confirm`, `payments.correct` |
 | Caixa | `finance.read`, `transactions.create`, `transactions.confirm`, `transactions.cancel`, `refunds.create`, `cash.reconcile`, `cash.close`, `cash.reopen` |
 | Arquivos | `files.upload`, `files.read.restricted`, `files.delete.logical` |

@@ -12,6 +12,12 @@ O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) e o 
 
 - teste ponta a ponta: quem é da diretoria vê a carteirinha válida com o QR em Minha conta › Carteirinhas.
 
+### Elenco lotado (2026-11-10)
+
+#### Adicionado
+
+- a diretoria e o administrador podem fechar os contatos de "Quero jogar no Fênix" em Painel → Interessados: o convite, o botão do Início e o link do rodapé somem, o formulário avisa que o elenco está completo e seletivas abertas continuam aceitando inscrição (DT-107).
+
 ### Revisão de interface (2026-11-10)
 
 #### Alterado

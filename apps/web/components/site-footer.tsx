@@ -43,9 +43,12 @@ export function SiteFooter({ team }: { readonly team: PublicTeam }) {
             <li>
               <Link href="/privacidade">Política de privacidade</Link>
             </li>
-            <li>
-              <Link href="/interesse">Quero jogar no Fênix</Link>
-            </li>
+            {/* Com os contatos fechados (elenco lotado, DT-107), o link sai do rodapé. */}
+            {team.interestIntakeOpen === false ? null : (
+              <li>
+                <Link href="/interesse">Quero jogar no Fênix</Link>
+              </li>
+            )}
             <li>
               <InstallAppButton />
             </li>

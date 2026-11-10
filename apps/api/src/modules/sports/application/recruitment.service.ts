@@ -37,6 +37,7 @@ import { type AthleteDetail, type AthleteInput, AthletesService } from './athlet
 import { assertActiveTeam } from './active-team';
 import { StaffAlertsService } from '../../notifications/application/staff-alerts.service';
 import { PERMISSIONS } from '../../access/domain/permission-catalog';
+import { defaultSettingsData, SETTINGS_KEY } from '../../settings/application/settings.service';
 
 export interface ApplicantInput {
   readonly fullName: string;
@@ -48,6 +49,10 @@ export interface ApplicantInput {
   readonly experience?: string | null;
   readonly guardianName?: string | null;
   readonly guardianPhone?: string | null;
+}
+
+export interface InterestIntake {
+  readonly open: boolean;
 }
 
 export interface InterestedView {
@@ -209,11 +214,65 @@ export class RecruitmentService {
   // ---------- Interessados ----------
 
   /** Cadastro público: não cria conta nem atleta (PEN-008/RN-ATL-001). */
+  /** "Quero jogar no Fênix" recebendo contatos (DT-107); sem configuração, aberto. */
+  async interestIntake(): Promise<InterestIntake> {
+    const row = await this.prisma.teamSettings.findUnique({
+      where: { singletonKey: SETTINGS_KEY },
+      select: { interestIntakeOpen: true }
+    });
+
+    return { open: row?.interestIntakeOpen ?? true };
+  }
+
+  /**
+   * Fecha ou reabre os contatos pelo site (DT-107), por exemplo com o elenco lotado. Seletiva
+   * aberta continua aceitando inscrição: cada uma tem a própria situação e as vagas.
+   */
+  async setInterestIntake(
+    actor: Principal,
+    open: boolean,
+    reason: string | null,
+    meta: RequestMeta
+  ): Promise<InterestIntake> {
+    const settings = await this.prisma.teamSettings.upsert({
+      where: { singletonKey: SETTINGS_KEY },
+      create: defaultSettingsData(),
+      update: {},
+      select: { id: true, interestIntakeOpen: true }
+    });
+
+    if (settings.interestIntakeOpen !== open) {
+      await this.prisma.teamSettings.update({
+        where: { id: settings.id },
+        data: { interestIntakeOpen: open }
+      });
+      await this.audit.record({
+        actorUserId: actor.userId,
+        action: open ? 'interested.intake.opened' : 'interested.intake.closed',
+        entityType: 'TeamSettings',
+        entityId: settings.id,
+        before: { open: settings.interestIntakeOpen },
+        after: { open },
+        reason,
+        meta
+      });
+    }
+
+    return { open };
+  }
+
   async registerInterest(
     input: ApplicantInput & { notes?: string | null },
     principal: Principal | undefined,
     meta: RequestMeta
   ): Promise<{ id: string }> {
+    if (!(await this.interestIntake()).open) {
+      throw AppError.conflict(
+        'INTEREST_CLOSED',
+        'No momento não estamos recebendo novos contatos para jogar. Acompanhe as seletivas em Eventos.'
+      );
+    }
+
     this.assertApplicant(input);
     const created = await this.prisma.interestedPerson.create({
       data: {

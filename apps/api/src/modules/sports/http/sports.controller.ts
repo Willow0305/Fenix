@@ -43,6 +43,7 @@ import {
 } from '../application/athletes.service';
 import {
   type ApplicantInput,
+  type InterestIntake,
   type InterestedView,
   RecruitmentService,
   type TryoutRegistrationView,
@@ -57,6 +58,7 @@ import {
 import {
   ApplicantDto,
   AthleteDto,
+  InterestIntakeDto,
   AthleteListQueryDto,
   AthleteStatusDto,
   SportCategoryDto,
@@ -434,6 +436,22 @@ export class AthletesController {
 @Controller()
 export class RecruitmentController {
   constructor(private readonly recruitment: RecruitmentService) {}
+
+  @Get('interested-people/intake')
+  @RequirePermissions(PERMISSIONS.registrationsRead)
+  intake(): Promise<InterestIntake> {
+    return this.recruitment.interestIntake();
+  }
+
+  @Put('interested-people/intake')
+  @RequirePermissions(PERMISSIONS.registrationsIntakeManage)
+  setIntake(
+    @CurrentPrincipal() actor: Principal,
+    @Body() body: InterestIntakeDto,
+    @ReqMeta() meta: RequestMeta
+  ): Promise<InterestIntake> {
+    return this.recruitment.setInterestIntake(actor, body.open, body.reason ?? null, meta);
+  }
 
   @Get('interested-people')
   @RequirePermissions(PERMISSIONS.registrationsRead)

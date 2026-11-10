@@ -54,6 +54,8 @@ export interface PublicTeamSettings {
   readonly pickupInstructions: string | null;
   /** Convite "Quer jogar com a gente?" ligado; com seletiva aberta o site mostra mesmo assim. */
   readonly joinInviteEnabled: boolean;
+  /** "Quero jogar no Fênix" recebendo contatos (DT-107). */
+  readonly interestIntakeOpen: boolean;
   readonly brandAssets: Partial<Record<TeamBrandContext, { url: string; altText: string | null }>>;
   /** Fotos do clube na página Sobre, na ordem da diretoria (DT-081). */
   readonly photos: readonly { id: string; url: string; altText: string | null }[];
@@ -190,6 +192,7 @@ export class SettingsService {
       storeRules: row.storeRules,
       pickupInstructions: row.pickupInstructions,
       joinInviteEnabled: row.joinInviteEnabled,
+      interestIntakeOpen: row.interestIntakeOpen,
       brandAssets: Object.fromEntries(
         row.brandAssets.map((asset) => [
           asset.context,

@@ -175,6 +175,8 @@ export const AUDIT_ACTION_LABELS: Readonly<Record<string, string>> = {
   'interested.created': 'Interessado cadastrado',
   'interested.status.changed': 'Situação do interessado alterada',
   'interested.converted': 'Interessado virou atleta',
+  'interested.intake.closed': 'Contatos de "Quero jogar" fechados (elenco lotado)',
+  'interested.intake.opened': 'Contatos de "Quero jogar" reabertos',
   'tryout.created': 'Seletiva criada',
   'tryout.updated': 'Seletiva alterada',
   'tryout.status.changed': 'Situação da seletiva alterada',

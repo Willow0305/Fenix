@@ -20,6 +20,7 @@ export const PERMISSIONS = {
 
   registrationsRead: 'registrations.read',
   registrationsReview: 'registrations.review',
+  registrationsIntakeManage: 'registrations.intake.manage',
   tryoutsManage: 'tryouts.manage',
 
   feesRead: 'fees.read',
@@ -101,6 +102,7 @@ export const PERMISSION_LABELS: Record<PermissionCode, string> = {
   'teams.manage': 'Gerenciar equipes e categorias',
   'registrations.read': 'Consultar interessados e inscrições',
   'registrations.review': 'Analisar inscrições',
+  'registrations.intake.manage': 'Abrir e fechar os contatos de "Quero jogar no Fênix"',
   'tryouts.manage': 'Gerenciar seletivas',
   'fees.read': 'Consultar mensalidades',
   'fees.plans.manage': 'Gerenciar planos de mensalidade',

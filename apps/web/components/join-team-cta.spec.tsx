@@ -30,4 +30,18 @@ describe('convite "Quer jogar com a gente?" (DT-091)', () => {
     expect(joinTeamHref(undefined, 0)).toBe('/times#quero-jogar');
     expect(joinTeamHref(false, 0)).toBe('/interesse');
   });
+
+  it('elenco lotado: sem seletiva aberta, o convite e o botão do Início somem (DT-107)', () => {
+    expect(showJoinInvite(true, 0, false)).toBe(false);
+    expect(showJoinInvite(true, 1, false)).toBe(true);
+    expect(joinTeamHref(true, 0, false)).toBeNull();
+    expect(joinTeamHref(true, 2, false)).toBe('/eventos#seletivas');
+  });
+
+  it('elenco lotado com seletiva aberta: leva às inscrições, sem "Deixar meu contato"', () => {
+    render(<JoinTeamCta openTryouts={1} intakeOpen={false} />);
+
+    expect(screen.getByRole('link', { name: 'Ver seletivas abertas' })).toBeInTheDocument();
+    expect(screen.queryByRole('link', { name: 'Deixar meu contato' })).toBeNull();
+  });
 });
