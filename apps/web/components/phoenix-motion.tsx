@@ -1,8 +1,9 @@
 'use client';
 
-import { type ReactNode, useEffect, useState } from 'react';
+import { type ReactNode, useEffect, useRef, useState } from 'react';
 
 import { allowsPhoenixVideo, PHOENIX_LOOP_SRC, readMotionEnvironment } from '../lib/phoenix-motion';
+import { Icon } from './icon';
 import styles from './phoenix-motion.module.scss';
 
 /** Tempo para o loop começar a tocar; passou disso, a conexão está lenta e fica a logo. */
@@ -19,7 +20,8 @@ function useVideoAllowed(): boolean {
 
 /**
  * Fênix “viva” em loop por cima da logo parada (`fallback`). A logo continua ali, invisível,
- * e volta se o vídeo falhar ou demorar; é ela quem dá o texto alternativo.
+ * e volta se o vídeo falhar ou demorar; é ela quem dá o texto alternativo. O loop passa de
+ * 5 s, então tem botão de pausar (WCAG 2.2.2); pausada, fica parada no quadro em que estava.
  */
 export function PhoenixLoop({
   fallback,
@@ -35,6 +37,8 @@ export function PhoenixLoop({
 }) {
   const allowed = useVideoAllowed();
   const [state, setState] = useState<'loading' | 'playing' | 'static'>('loading');
+  const [paused, setPaused] = useState(false);
+  const video = useRef<HTMLVideoElement>(null);
 
   useEffect(() => {
     if (!allowed) {
@@ -51,6 +55,22 @@ export function PhoenixLoop({
 
   const showVideo = allowed && state !== 'static';
 
+  function togglePause() {
+    const element = video.current;
+
+    if (!element) {
+      return;
+    }
+
+    if (paused) {
+      void element.play().catch(() => undefined);
+    } else {
+      element.pause();
+    }
+
+    setPaused(!paused);
+  }
+
   return (
     <div
       className={`${styles.loop}${className ? ` ${className}` : ''}`}
@@ -60,6 +80,7 @@ export function PhoenixLoop({
       <div className={styles.still}>{fallback}</div>
       {showVideo ? (
         <video
+          ref={video}
           className={styles.video}
           src={src}
           autoPlay
@@ -75,6 +96,17 @@ export function PhoenixLoop({
           onPlaying={() => setState('playing')}
           onError={() => setState('static')}
         />
+      ) : null}
+      {showVideo && state === 'playing' ? (
+        <button
+          type="button"
+          className={styles.pause}
+          aria-label="Pausar a animação da fênix"
+          aria-pressed={paused}
+          onClick={togglePause}
+        >
+          <Icon name={paused ? 'play-fill' : 'pause-fill'} />
+        </button>
       ) : null}
     </div>
   );

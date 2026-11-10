@@ -71,7 +71,9 @@ describe('aceite da versão nova dos termos (DT-094)', () => {
 
     const accept = screen.getByRole('button', { name: 'Aceitar e continuar' });
 
-    expect(accept).toBeDisabled();
+    // Botão sempre ativo: o navegador exige a caixa marcada ao enviar.
+    expect(accept).toBeEnabled();
+    expect(screen.getByLabelText('Li e aceito a versão nova.')).toBeRequired();
     fireEvent.click(screen.getByLabelText('Li e aceito a versão nova.'));
     fireEvent.click(accept);
 

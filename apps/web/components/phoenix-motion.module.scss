@@ -38,9 +38,48 @@
   }
 }
 
-// Tela de login: a fênix brilha mais com o cursor (ou o foco) no botão Entrar.
-.stage:has(button[type='submit']:hover, button[type='submit']:focus-visible) .loop {
+// Pausar a animação (WCAG 2.2.2): discreto no canto, com área de toque de 32 px.
+.pause {
+  position: absolute;
+  inset-block-end: 0.25rem;
+  inset-inline-end: 0.25rem;
+  z-index: 1;
+  display: grid;
+  place-items: center;
+  width: 2rem;
+  height: 2rem;
+  padding: 0;
+  border: 1px solid rgb(255 255 255 / 30%);
+  border-radius: 50%;
+  color: #fff;
+  font-size: 0.85rem;
+  line-height: 1;
+  background: rgb(11 6 19 / 60%);
+  cursor: pointer;
+  transition: background-color var(--duration-fast) ease;
+
+  &:focus-visible {
+    outline: 2px solid var(--color-primary);
+    outline-offset: 2px;
+  }
+
+  @media (hover: hover) and (pointer: fine) {
+    &:hover {
+      background: rgb(11 6 19 / 80%);
+    }
+  }
+}
+
+// Tela de login: a fênix brilha mais com o cursor (ou o foco) no botão Entrar. O cursor só
+// conta em aparelho com mouse: no toque, o brilho ficaria preso depois de tocar em Entrar.
+.stage:has(button[type='submit']:focus-visible) .loop {
   filter: brightness(1.18) drop-shadow(0 0 22px rgb(205 21 29 / 55%));
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .stage:has(button[type='submit']:hover) .loop {
+    filter: brightness(1.18) drop-shadow(0 0 22px rgb(205 21 29 / 55%));
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {

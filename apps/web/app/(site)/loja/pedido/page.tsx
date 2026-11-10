@@ -95,6 +95,7 @@ export default function GuestOrderPage() {
                 <button
                   type="button"
                   className="btn btn-secondary btn-sm"
+                  aria-label={`Abrir o pedido ${ref.orderNumber}`}
                   onClick={() => open(ref)}
                 >
                   Abrir
@@ -102,6 +103,7 @@ export default function GuestOrderPage() {
                 <button
                   type="button"
                   className="btn btn-secondary btn-sm"
+                  aria-label={`Esquecer o pedido ${ref.orderNumber} neste aparelho`}
                   onClick={() => {
                     forgetGuestOrder(ref.orderNumber);
                     setSaved(rememberedGuestOrders());

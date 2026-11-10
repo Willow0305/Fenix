@@ -17,7 +17,7 @@ export function GuestOrderAccess({
   readonly orderNumber: string;
   readonly code: string;
 }) {
-  const [copied, setCopied] = useState(false);
+  const [copied, setCopied] = useState<'yes' | 'failed' | null>(null);
   const path = guestOrderLink(orderNumber, code);
 
   useEffect(() => {
@@ -39,16 +39,23 @@ export function GuestOrderAccess({
         <button
           type="button"
           className="btn btn-secondary btn-sm"
-          onClick={() =>
-            void navigator.clipboard
-              ?.writeText(`${window.location.origin}${path}`)
-              .then(() => setCopied(true))
-              .catch(() => setCopied(false))
-          }
+          onClick={() => {
+            // Sem a área de transferência (navegador antigo ou bloqueado), avisa em vez de calar.
+            const copy = navigator.clipboard?.writeText(`${window.location.origin}${path}`);
+
+            void (copy ?? Promise.reject(new Error('sem área de transferência')))
+              .then(() => setCopied('yes'))
+              .catch(() => setCopied('failed'));
+          }}
         >
-          <Icon name="clipboard" /> {copied ? 'Link copiado!' : 'Copiar link'}
+          <Icon name="clipboard" /> {copied === 'yes' ? 'Link copiado' : 'Copiar link'}
         </button>
       </div>
+      <p className="m-0" role="status">
+        {copied === 'failed'
+          ? 'Não foi possível copiar. Use "Abrir meu pedido" e salve a página nos favoritos.'
+          : ''}
+      </p>
       <p className="m-0 text-sm">
         Este pedido fica lembrado neste aparelho em Loja › Consultar pedido. Se o e-mail não chegar
         em alguns minutos, olhe a caixa de spam.

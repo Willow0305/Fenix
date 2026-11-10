@@ -119,12 +119,33 @@ describe('carrossel das pré-vendas (DT-090)', () => {
     expect(visibleTitle()).toBe('Uniformes 2027');
   });
 
-  it('com "reduzir movimento", não troca sozinha', () => {
+  it('o botão Pausar para a troca até a pessoa pedir para continuar (WCAG 2.2.2)', () => {
+    mockReducedMotion(false);
+    render(<CampaignHighlight campaigns={campaigns} />);
+
+    const pause = screen.getByRole('button', {
+      name: 'Pausar a troca automática de pré-vendas abertas'
+    });
+
+    expect(pause).toHaveAttribute('aria-pressed', 'false');
+    fireEvent.click(pause);
+    expect(pause).toHaveAttribute('aria-pressed', 'true');
+    act(() => jest.advanceTimersByTime(12000));
+    expect(visibleTitle()).toBe('Uniformes 2027');
+
+    fireEvent.click(pause);
+    fireEvent.blur(pause);
+    act(() => jest.advanceTimersByTime(4000));
+    expect(visibleTitle()).toBe('Agasalhos');
+  });
+
+  it('com "reduzir movimento", não troca sozinha e não mostra Pausar', () => {
     mockReducedMotion(true);
     render(<CampaignHighlight campaigns={campaigns} />);
 
     act(() => jest.advanceTimersByTime(12000));
     expect(visibleTitle()).toBe('Uniformes 2027');
+    expect(screen.queryByRole('button', { name: /Pausar/ })).not.toBeInTheDocument();
 
     fireEvent.click(screen.getByRole('button', { name: 'Próxima remessa' }));
     expect(visibleTitle()).toBe('Agasalhos');

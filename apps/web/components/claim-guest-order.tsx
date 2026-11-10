@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 import { api } from '../lib/api-client';
 import { useAuth } from '../lib/auth-context';
@@ -22,6 +22,7 @@ export function ClaimGuestOrder({
 }) {
   const { status } = useAuth();
   const [claimedId, setClaimedId] = useState<string | null>(null);
+  const done = useRef<HTMLParagraphElement>(null);
   const claim = useSubmit(async () => {
     const claimed = await api<Order>('/me/orders/claim', { method: 'POST', body: access });
 
@@ -29,6 +30,13 @@ export function ClaimGuestOrder({
     forgetGuestOrder(claimed.orderNumber);
     setClaimedId(claimed.id);
   });
+
+  // O botão some ao trazer o pedido: o foco vai para a confirmação no lugar dele.
+  useEffect(() => {
+    if (claimedId) {
+      done.current?.focus();
+    }
+  }, [claimedId]);
 
   if (status !== 'authenticated' || !order.isGuest) {
     return null;
@@ -40,7 +48,7 @@ export function ClaimGuestOrder({
         Este pedido foi feito sem conta
       </h2>
       {claimedId ? (
-        <p className="m-0" role="status">
+        <p className="m-0" role="status" ref={done} tabIndex={-1}>
           Pedido trazido para a sua conta.{' '}
           <Link href={`/minha-conta/pedidos/${claimedId}`}>Ver em Meus pedidos</Link>
         </p>

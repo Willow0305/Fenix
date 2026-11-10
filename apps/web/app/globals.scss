@@ -8,6 +8,8 @@
   --color-ink-soft: #1d1726;
   --color-background: #f4f4f5;
   --color-surface: #ffffff;
+  // Fundo de algo indisponível ou secundário, um tom abaixo da superfície.
+  --color-surface-muted: #f3f3f6;
   --color-text: #0b0613;
   --color-text-subtle: #27272a;
   --color-text-muted: #5f5f68;
@@ -648,6 +650,10 @@ img {
   white-space: pre-line !important;
 }
 
+.tabular-nums {
+  font-variant-numeric: tabular-nums !important;
+}
+
 .list-none {
   list-style: none !important;
 }
@@ -814,7 +820,7 @@ img {
   // Opção que esta pessoa ainda não pode usar (DT-100): explica o motivo e o caminho.
   &.is-unavailable {
     border-style: dashed;
-    background: var(--color-surface-muted, var(--color-surface));
+    background: var(--color-surface-muted);
     cursor: default;
   }
 }
@@ -3633,7 +3639,7 @@ details.collapsible {
   }
 
   &:active {
-    transform: scale(0.94);
+    transform: scale(0.97);
   }
 
   .campaign-highlight:focus-within & {
@@ -3694,6 +3700,32 @@ details.collapsible {
 
   &:focus-visible {
     border-radius: 999px;
+    outline: 2px solid #fff;
+    outline-offset: -2px;
+  }
+}
+
+// Pausar a troca automática (WCAG 2.2.2): do tamanho das bolinhas, sempre visível.
+.campaign-pause {
+  display: grid;
+  place-items: center;
+  width: 1.5rem;
+  height: 1.5rem;
+  padding: 0;
+  border: 0;
+  border-radius: 999px;
+  color: #fff;
+  font-size: 0.8rem;
+  background: none;
+  cursor: pointer;
+
+  @media (hover: hover) and (pointer: fine) {
+    &:hover {
+      background: rgb(255 255 255 / 14%);
+    }
+  }
+
+  &:focus-visible {
     outline: 2px solid #fff;
     outline-offset: -2px;
   }

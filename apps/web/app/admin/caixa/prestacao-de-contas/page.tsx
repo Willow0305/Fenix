@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 import { Icon } from '../../../../components/icon';
 import {
@@ -161,10 +161,15 @@ function IssueForm({
     setSignatories(new Set(result.boardMembers.map((member) => member.userId)));
   });
 
+  const heading = useRef<HTMLHeadingElement>(null);
+
   useEffect(() => {
     if (correcting) {
       setPeriod({ from: correcting.periodStart, to: correcting.periodEnd });
       setPreview(null);
+      // O foco vai para o título "Corrigir…": a página chega até ele sem animação e o leitor
+      // de tela anuncia a troca do formulário.
+      heading.current?.focus();
     }
   }, [correcting]);
 
@@ -186,7 +191,7 @@ function IssueForm({
 
   return (
     <section className="card stack" aria-labelledby="nova-prestacao">
-      <h2 id="nova-prestacao">
+      <h2 id="nova-prestacao" ref={heading} tabIndex={-1}>
         {correcting ? `Corrigir ${label(correcting)}` : 'Nova prestação de contas'}
       </h2>
       {correcting ? (
@@ -247,7 +252,14 @@ function IssueForm({
       </form>
 
       {preview && content ? (
-        <div className="stack">
+        // Formulário próprio: o navegador confere o motivo da correção ao clicar em Emitir.
+        <form
+          className="stack"
+          onSubmit={(event) => {
+            event.preventDefault();
+            setConfirming(true);
+          }}
+        >
           {preview.problems.length > 0 ? (
             <Alert kind="error">
               Os números não fecham: {preview.problems.join(' ')} Fale com o administrador antes de
@@ -314,7 +326,9 @@ function IssueForm({
               {content.income.byCategory.map((item) => (
                 <li key={item.category} className="row" style={{ justifyContent: 'space-between' }}>
                   <span>{item.category}</span>
-                  <Money value={item.total} />
+                  <span className="tabular-nums">
+                    <Money value={item.total} />
+                  </span>
                 </li>
               ))}
             </ul>
@@ -411,18 +425,16 @@ function IssueForm({
             />
           ) : null}
           <div className="form-actions">
+            {/* Números que não fecham bloqueiam a emissão; o motivo está no aviso acima. */}
             <button
-              type="button"
+              type="submit"
               className="btn btn-primary"
-              disabled={
-                preview.problems.length > 0 || (correcting !== null && reason.trim().length < 10)
-              }
-              onClick={() => setConfirming(true)}
+              disabled={preview.problems.length > 0}
             >
               {correcting ? 'Emitir versão corrigida' : 'Emitir prestação de contas'}
             </button>
           </div>
-        </div>
+        </form>
       ) : null}
 
       <ConfirmDialog
@@ -529,6 +541,18 @@ export default function AccountabilityPage() {
   const [correcting, setCorrecting] = useState<AccountabilityRow | null>(null);
   const [issued, setIssued] = useState<AccountabilityDetail | null>(null);
   const canIssue = can('accountability.issue');
+  const issuedNotice = useRef<HTMLDivElement>(null);
+
+  // Emitida: o botão que abriu a confirmação some, então o foco vai para o aviso, no topo.
+  useEffect(() => {
+    if (issued) {
+      const frame = window.requestAnimationFrame(() => issuedNotice.current?.focus());
+
+      return () => window.cancelAnimationFrame(frame);
+    }
+
+    return undefined;
+  }, [issued]);
 
   return (
     <>
@@ -537,13 +561,15 @@ export default function AccountabilityPage() {
         description="Documento com o que entrou e saiu do Caixa num período, para a diretoria e os atletas. Não aparece no site."
       />
       {issued ? (
-        <Alert kind="success">
-          Prestação de contas {label(issued)} emitida. Código de conferência{' '}
-          <strong>{issued.verificationCode}</strong>.
-          <div style={{ marginTop: '0.5rem' }}>
-            <DocumentActions row={issued} onCorrect={null} />
-          </div>
-        </Alert>
+        <div ref={issuedNotice} tabIndex={-1}>
+          <Alert kind="success">
+            Prestação de contas {label(issued)} emitida. Código de conferência{' '}
+            <strong>{issued.verificationCode}</strong>.
+            <div style={{ marginTop: '0.5rem' }}>
+              <DocumentActions row={issued} onCorrect={null} />
+            </div>
+          </Alert>
+        </div>
       ) : null}
 
       {canIssue ? (
@@ -618,7 +644,6 @@ export default function AccountabilityPage() {
                             ? (selected) => {
                                 setIssued(null);
                                 setCorrecting(selected);
-                                window.scrollTo({ top: 0, behavior: 'smooth' });
                               }
                             : null
                         }

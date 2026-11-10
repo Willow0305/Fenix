@@ -6,6 +6,12 @@ O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) e o 
 
 ## [Não publicado]
 
+### Revisão de interface (2026-11-10)
+
+#### Corrigido
+
+- carrossel de pré-vendas e seletivas e a fênix animada do Início e do Entrar com botão de pausar; prestação de contas sem rolagem animada ao corrigir e com o foco no formulário e no aviso de emitida; foco na mensagem que aparece depois de "Trazer para minha conta" e "Reenviar o link"; botões de enviar ativos, com o navegador apontando o campo que falta; nomes claros para "Abrir" e "Esquecer" dos pedidos lembrados e aviso quando "Copiar link" falha (DT-105).
+
 ### Botão "Quero jogar no Fênix" sem seletiva aberta (2026-11-09)
 
 #### Alterado

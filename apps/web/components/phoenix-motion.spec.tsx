@@ -1,4 +1,4 @@
-import { act, render, screen } from '@testing-library/react';
+import { act, fireEvent, render, screen } from '@testing-library/react';
 
 import { PhoenixLoop } from './phoenix-motion';
 
@@ -55,5 +55,26 @@ describe('fênix animada (DT-098)', () => {
       '/brand/animacoes/login/fenix-login-loop.webm'
     );
     expect(container.firstElementChild).toHaveAttribute('data-padded', 'false');
+  });
+
+  it('tocando, mostra o botão de pausar, que para e retoma o vídeo (WCAG 2.2.2)', () => {
+    mockReducedMotion(false);
+    const { container } = render(<PhoenixLoop fallback={<img alt="Fênix" />} />);
+    const video = container.querySelector('video') as HTMLVideoElement;
+    const pause = jest.spyOn(video, 'pause').mockImplementation(() => undefined);
+    const play = jest.spyOn(video, 'play').mockResolvedValue(undefined);
+
+    expect(screen.queryByRole('button', { name: 'Pausar a animação da fênix' })).toBeNull();
+    fireEvent.playing(video);
+
+    const button = screen.getByRole('button', { name: 'Pausar a animação da fênix' });
+
+    fireEvent.click(button);
+    expect(pause).toHaveBeenCalled();
+    expect(button).toHaveAttribute('aria-pressed', 'true');
+
+    fireEvent.click(button);
+    expect(play).toHaveBeenCalled();
+    expect(button).toHaveAttribute('aria-pressed', 'false');
   });
 });

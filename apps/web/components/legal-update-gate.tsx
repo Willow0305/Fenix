@@ -101,6 +101,7 @@ export function LegalUpdateGate() {
           <label className="checkbox">
             <input
               type="checkbox"
+              required
               checked={agreed}
               onChange={(event) => setAgreed(event.target.checked)}
             />
@@ -110,7 +111,7 @@ export function LegalUpdateGate() {
             <button
               type="submit"
               className="btn btn-primary"
-              disabled={!agreed || accept.pending || !team.data}
+              disabled={accept.pending || !team.data}
             >
               {accept.pending ? 'Salvando…' : 'Aceitar e continuar'}
             </button>

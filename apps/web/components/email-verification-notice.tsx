@@ -1,5 +1,7 @@
 'use client';
 
+import { useEffect, useRef } from 'react';
+
 import { api } from '../lib/api-client';
 import type { Profile } from '../lib/api-types';
 import { Icon } from './icon';
@@ -14,6 +16,15 @@ export function EmailVerificationNotice({ profile }: { readonly profile: Profile
 
     resend.setMessage(message);
   });
+
+  const sent = useRef<HTMLParagraphElement>(null);
+
+  // O botão some depois do reenvio: o foco vai para a mensagem no lugar dele.
+  useEffect(() => {
+    if (resend.message) {
+      sent.current?.focus();
+    }
+  }, [resend.message]);
 
   if (profile.emailVerified !== false) {
     return null;
@@ -30,7 +41,7 @@ export function EmailVerificationNotice({ profile }: { readonly profile: Profile
       </p>
       <ErrorSummary error={resend.error} />
       {resend.message ? (
-        <p className="m-0" role="status">
+        <p className="m-0" role="status" ref={sent} tabIndex={-1}>
           {resend.message}
         </p>
       ) : (

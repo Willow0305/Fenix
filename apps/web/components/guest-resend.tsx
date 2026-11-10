@@ -38,7 +38,7 @@ export function GuestResend() {
           hint="Enviamos de novo o número, o código e o link de cada pedido sem conta deste e-mail (e pelo WhatsApp, se você pediu)."
         />
         <div className="form-actions">
-          <button type="submit" className="btn btn-secondary" disabled={resend.pending || !email}>
+          <button type="submit" className="btn btn-secondary" disabled={resend.pending}>
             {resend.pending ? 'Enviando…' : 'Reenviar acesso'}
           </button>
         </div>

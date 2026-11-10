@@ -95,11 +95,8 @@ export function MinorAccountForm({
         </div>
       </div>
       <div className="form-actions">
-        <button
-          type="submit"
-          className="btn btn-primary"
-          disabled={action.pending || !email || !file}
-        >
+        {/* Sem `disabled` por campo vazio: o navegador aponta o que falta ao enviar. */}
+        <button type="submit" className="btn btn-primary" disabled={action.pending}>
           {action.pending ? 'Criando conta…' : 'Criar conta do atleta'}
         </button>
       </div>

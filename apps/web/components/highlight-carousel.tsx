@@ -22,8 +22,9 @@ export interface HighlightCarouselLabels {
  * Cartão de destaque escuro com um item por vez (DT-090, reaproveitado pelas seletivas em
  * `DT-099`). Com um item, só o cartão; com mais de um, deslize padrão de carrossel: o atual
  * sai por um lado e o próximo entra pelo outro, setas e uma bolinha por item. A troca
- * automática para com o mouse, o toque ou o foco no cartão (WCAG 2.2.2) e não acontece com
- * "reduzir movimento". `action` fica parado; só o conteúdo do item troca.
+ * automática para com o mouse, o toque ou o foco no cartão, tem botão de pausar (WCAG 2.2.2,
+ * como o `PhotoCarousel`) e não acontece com "reduzir movimento". `action` fica parado; só o
+ * conteúdo do item troca.
  *
  * As classes continuam `campaign-*` porque o estilo nasceu na pré-venda e é o mesmo.
  */
@@ -51,9 +52,11 @@ export function HighlightCarousel<T extends { readonly id: string }>({
   const [focused, setFocused] = useState(false);
   const [touchedAt, setTouchedAt] = useState<number | null>(null);
   const [reduced, setReduced] = useState(false);
+  // Pausa escolhida pela pessoa no botão: só volta quando ela pedir.
+  const [stopped, setStopped] = useState(false);
   const count = items.length;
   const multiple = count > 1;
-  const paused = hovered || focused || touchedAt !== null;
+  const paused = stopped || hovered || focused || touchedAt !== null;
   const settleTimer = useRef<number | undefined>(undefined);
   const item = labels.item;
   const Item = item.charAt(0).toUpperCase() + item.slice(1);
@@ -191,6 +194,17 @@ export function HighlightCarousel<T extends { readonly id: string }>({
             <Icon name="chevron-right" />
           </button>
           <div className="campaign-dots">
+            {reduced ? null : (
+              <button
+                type="button"
+                className="campaign-pause"
+                aria-label={`Pausar a troca automática de ${labels.region.toLowerCase()}`}
+                aria-pressed={stopped}
+                onClick={() => setStopped((value) => !value)}
+              >
+                <Icon name={stopped ? 'play-fill' : 'pause-fill'} />
+              </button>
+            )}
             {items.map((entry, position) => (
               <button
                 key={entry.id}

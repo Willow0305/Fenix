@@ -1858,7 +1858,7 @@ O ECA Digital (Lei 15.211/2025, em vigor desde 17/03/2026; Decreto 12.880/2026) 
 - o destaque da loja mostra **todas** as remessas abertas, uma por vez (a que termina primeiro na frente), no mesmo cartão; com uma só, nada muda; sem nenhuma, o cartão não aparece;
 - com mais de uma: troca automática a cada 4 s (era 6 s; reduzida a pedido); setas de voltar e avançar aparecem desfocadas com o mouse sobre o cartão ou com o foco do teclado (no toque, sempre visíveis e discretas); uma bolinha por remessa;
 - transição: depois de várias versões com a fênix e com esmaecimento, o responsável pediu o **padrão normal** ("remova esse efeito de transição e coloque um padrão normal"): deslize horizontal de carrossel em 0,5 s (`--ease-in-out`); avançando, a remessa atual sai pela esquerda e a próxima entra pela direita; voltando, o contrário. A fênix e a imagem dela foram removidas. O botão "Ver produtos da pré-venda" fica parado; só o conteúdo da remessa troca. Anima só `transform`;
-- **pausa discreta (WCAG 2.2.2):** sem botão visível; a troca automática para com o mouse em cima, com o foco do teclado dentro e por 5 s depois de um toque; com "reduzir movimento", não troca sozinha, não mostra a fênix e a remessa só aparece (esmaecimento de 180 ms);
+- **pausa discreta (WCAG 2.2.2):** sem botão visível (revisto em `DT-105`: botão de pausar do tamanho das bolinhas); a troca automática para com o mouse em cima, com o foco do teclado dentro e por 5 s depois de um toque; com "reduzir movimento", não troca sozinha, não mostra a fênix e a remessa só aparece (esmaecimento de 180 ms);
 - demonstração ganha uma segunda pré-venda (`agasalhos-2027-demo`) para o carrossel aparecer.
 
 ### Consequências
@@ -1999,6 +1999,7 @@ Pesquisa de 01/11/2026 (`docs/35` §1.3): jurisprudência dividida. Decisões do
 - a explosão de brasas depois do login foi implementada e **retirada no mesmo dia a pedido do responsável** ("retire a animação de login com sucesso"): o login leva direto para o sistema, como antes; o responsável apagou depois o vídeo `login/fenix-sucesso.webm`;
 - a tela de login passou a usar outro vídeo, enviado pelo responsável: o brasão completo animado (`login/fenix-login-loop.webm`, loop de 12 s, 550×1080), sem margem em volta e por isso sem a ampliação usada no vídeo da tela inicial;
 - o vídeo não mostra o botão de vídeo flutuante (picture-in-picture) nem o de transmitir para TV que o navegador põe por cima: no vídeo flutuante dava para pular o loop e ele travava;
+- o loop tem botão de pausar no canto da fênix (`DT-105`);
 - a logo parada (sem fundo) fica no lugar quando: o sistema pede movimento reduzido; economia de dados ligada; conexão 3G ou mais lenta; aparelho com até 2 GB de memória ou até 2 núcleos; Safari e qualquer navegador de iPhone/iPad (mostram o WebM com fundo preto); o loop não começa em 4 s; ou o vídeo dá erro (`apps/web/lib/phoenix-motion.ts`);
 - a logo parada continua na página, invisível sob o vídeo, e é ela que dá o texto alternativo; os vídeos são decorativos (`aria-hidden`), sem som;
 - o service worker não guarda `/brand/animacoes/` (arquivos grandes, servidos em pedaços); fica com o cache do navegador.
@@ -2115,3 +2116,21 @@ Sem conta, o nome do pedido é o que a pessoa digita. O titular do cartão (nome
 ### Consequências
 
 - testes: regra do destino (`join-team-cta.spec.tsx`) e ponta a ponta do botão do Início (`public.spec.ts`).
+
+## DT-105 — Correções da revisão de interface (seletivas a prestação de contas)
+
+- **Estado:** Aceita; implementada em 2026-11-10 (revisa `DT-090` e `DT-098`)
+- **Data:** 2026-11-10
+- **Aprovador:** responsável do projeto, depois da revisão de interface de `4f30da0..5212359` ("ok, corrija para mim"); para a fênix animada, escolheu "Botão de pausar"
+
+### Decisão
+
+- **movimento que roda sozinho tem botão de pausar (WCAG 2.2.2):** o carrossel de destaque (pré-vendas e seletivas, `HighlightCarousel`) ganha um botão de pausar junto das bolinhas, do mesmo tamanho delas, como o `PhotoCarousel`; a fênix animada do Início e do Entrar ganha um botão redondo pequeno no canto, que congela o vídeo no quadro em que está. Com "reduzir movimento", nenhum dos dois aparece, porque nada se mexe sozinho;
+- **prestação de contas:** "Corrigir" não rola mais a página com animação (a rolagem do JavaScript ignorava "reduzir movimento"); o foco vai para o título "Corrigir…", e, depois de emitir, para o aviso de "emitida";
+- **foco depois da ação:** quando o botão que fez a ação some ("Trazer para minha conta", "Reenviar o link"), o foco vai para a mensagem que entra no lugar;
+- **botão ativo, conferência ao enviar:** "Emitir" (motivo da correção), "Aceitar e continuar" (termos novos), "Reenviar acesso" e "Criar conta do atleta" deixam de ficar desligados até o formulário estar completo; o navegador aponta o campo que falta ao enviar (`required`, `minLength`). "Emitir" continua bloqueado quando os números não fecham, com o motivo no aviso acima;
+- detalhes: "Abrir" e "Esquecer" dos pedidos lembrados dizem de qual pedido são para o leitor de tela; "Copiar link" avisa quando não consegue copiar; valores das entradas por categoria com algarismos de largura igual; token `--color-surface-muted` (`#f3f3f6`, 5,71:1 com o texto secundário) passa a existir; setas do carrossel encolhem ao toque como os outros botões (0,97); o brilho da fênix no login com o cursor só vale em aparelho com mouse.
+
+### Consequências
+
+- testes: botão de pausar do carrossel e da fênix, sem pausar com "reduzir movimento", e os formulários da conta de menor e do aceite dos termos conferindo `required` em vez de botão desligado.

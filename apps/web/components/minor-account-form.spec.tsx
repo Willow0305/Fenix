@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 
 import type { AthleteDetail } from '../lib/sports-types';
 import { MinorAccountForm } from './minor-account-form';
@@ -37,19 +37,14 @@ describe('conta do atleta menor (DT-092)', () => {
 
     const submit = screen.getByRole('button', { name: 'Criar conta do atleta' });
 
-    expect(submit).toBeDisabled();
+    expect(submit).toBeEnabled();
     expect(screen.getByRole('link', { name: /Imprimir a declaração/ })).toHaveAttribute(
       'href',
       '/imprimir/declaracao-responsavel/a1'
     );
 
-    fireEvent.change(screen.getByLabelText(/E-mail da conta/), {
-      target: { value: 'ana@exemplo.test' }
-    });
-    expect(submit).toBeDisabled();
-    fireEvent.change(screen.getByLabelText(/Declaração assinada/), {
-      target: { files: [new File(['%PDF'], 'declaracao.pdf', { type: 'application/pdf' })] }
-    });
-    expect(submit).toBeEnabled();
+    // Sem `disabled` por campo vazio: o navegador aponta o que falta ao enviar.
+    expect(screen.getByLabelText(/E-mail da conta/)).toBeRequired();
+    expect(screen.getByLabelText(/Declaração assinada/)).toBeRequired();
   });
 });
