@@ -821,6 +821,14 @@ Enums de estados descrevem o vocabulário inicial; transições e responsáveis 
 - Índices/restrições: UK `key`; IX `windowEndsAt`; `CHECK hits >= 0`.
 - Exclusão/auditoria: exclusão física pela limpeza a cada 10 minutos, assim que a janela e o bloqueio vencem.
 
+### `LoginFailureCounter` — sem grupo comum
+
+- Finalidade: falhas seguidas de login por e-mail, para o freio por conta (`PEN-053`, `DT-109`).
+- Campos O: `keyHash` (SHA-256 do e-mail normalizado com prefixo próprio; o e-mail nunca fica em claro e não há ligação com a conta, para valer igual sem cadastro), `failures`, `lastFailureAt`.
+- Campos P: `lockedUntil`.
+- Índices/restrições: UK `keyHash`; IX `lastFailureAt`.
+- Exclusão/auditoria: exclusão física no login certo, na redefinição de senha e pela limpeza de hora em hora, 24 horas depois da última falha sem bloqueio em vigor. O bloqueio de conta existente gera a auditoria `auth.login.locked`.
+
 ## 10. Restrições físicas pendentes de migration
 
 O Prisma expressa PKs, FKs, índices e grande parte das unicidades, mas não todos os `CHECK`, índices parciais ou proteções de imutabilidade. A primeira migration de cada módulo deverá implementar e testar, no mínimo:

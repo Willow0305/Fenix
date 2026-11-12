@@ -7,6 +7,7 @@ import { AuthService } from './application/auth.service';
 import { MfaService } from './application/mfa.service';
 import { PrincipalLoader } from './application/principal-loader.service';
 import { SessionLifetimeService } from './application/session-lifetime.service';
+import { LoginGuardService } from './application/login-guard.service';
 import { TrustedDevicesService } from './application/trusted-devices.service';
 import { AuthController, TrustedDevicesController } from './http/auth.controller';
 import { AuthGuard } from './http/auth.guard';
@@ -21,6 +22,7 @@ import { MeController } from './http/me.controller';
     SessionLifetimeService,
     MfaService,
     TrustedDevicesService,
+    LoginGuardService,
     { provide: APP_GUARD, useClass: ThrottlerGuard },
     { provide: APP_GUARD, useClass: AuthGuard }
   ],

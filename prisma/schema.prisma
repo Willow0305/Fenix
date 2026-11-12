@@ -2757,6 +2757,21 @@ model RateLimitBucket {
   @@map("rate_limit_buckets")
 }
 
+/// Falhas seguidas de login por e-mail (PEN-053, DT-109). A chave é o hash do e-mail
+/// normalizado, sem ligação com a conta: a mesma regra vale para e-mail sem cadastro,
+/// e a resposta não revela quem tem conta. Sem IP nem navegador. Apagada no login certo,
+/// na redefinição de senha e, pela limpeza automática, 24 horas depois da última falha.
+model LoginFailureCounter {
+  id            String    @id @default(uuid()) @db.Uuid
+  keyHash       String    @unique @map("key_hash") @db.Char(64)
+  failures      Int
+  lastFailureAt DateTime  @map("last_failure_at") @db.Timestamptz(6)
+  lockedUntil   DateTime? @map("locked_until") @db.Timestamptz(6)
+
+  @@index([lastFailureAt])
+  @@map("login_failure_counters")
+}
+
 // Avisos por e-mail e WhatsApp (DT-048).
 
 /// Envio de uma notificação por um canal externo. O destino (e-mail, telefone) não é

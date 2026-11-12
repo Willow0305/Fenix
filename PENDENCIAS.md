@@ -402,6 +402,7 @@ Prioridades:
 - **Bloqueia:** produção
 - **Questão:** o limite de tentativas é por IP (10/min). Um ataque distribuído contra uma conta específica não é freado, e o cadastro informa quando o e-mail já existe, o que permite descobrir quem tem conta.
 - **Recomendação:** o MFA (`DT-037`) já neutraliza a adivinhação de senha nos perfis privilegiados; para as demais contas, adicionar atraso progressivo por conta após falhas seguidas e alerta ao titular. Para o cadastro, avaliar resposta neutra com confirmação por e-mail, que depende do provedor de e-mail (`PEN-042`).
+- **Situação:** parcialmente resolvida em 2026-11-11 (`DT-109`): freio por conta com bloqueio crescente de 1 a 15 minutos depois de 5 falhas seguidas e aviso por e-mail ao titular. Continua aberta a enumeração pelo cadastro (o aviso de "e-mail já cadastrado"), que depende do envio real de e-mail (`PEN-042`, `PEN-064`).
 
 ### PEN-054 — Arquivos restritos acessíveis por `files.read.restricted`
 

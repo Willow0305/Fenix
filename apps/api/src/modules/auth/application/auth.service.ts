@@ -34,6 +34,7 @@ import {
 } from '../../settings/application/legal-documents';
 import { linkGuestOrdersByEmail } from '../../store/application/guest-orders-link';
 import { assertPhoneAvailable } from './phone-availability';
+import { LoginGuardService } from './login-guard.service';
 import { MfaService } from './mfa.service';
 import { TrustedDevicesService } from './trusted-devices.service';
 import { SessionLifetimeService } from './session-lifetime.service';
@@ -89,7 +90,8 @@ export class AuthService {
     private readonly mail: MailSender,
     private readonly lifetime: SessionLifetimeService,
     private readonly mfa: MfaService,
-    private readonly trustedDevices: TrustedDevicesService
+    private readonly trustedDevices: TrustedDevicesService,
+    private readonly loginGuard: LoginGuardService
   ) {}
 
   private assertPassword(password: string, context: { email?: string; name?: string }): void {
@@ -348,13 +350,31 @@ export class AuthService {
     deviceToken?: string
   ): Promise<IssuedSession | MfaChallenge> {
     const email = normalizeEmail(emailInput);
+
+    // Freio por conta (DT-109): bloqueado, nem confere a senha; vale igual sem cadastro.
+    await this.loginGuard.assertNotLocked(email);
+
     const user = await this.prisma.user.findUnique({
       where: { email },
-      select: { id: true, passwordHash: true, status: true, deletedAt: true, mfaEnabledAt: true }
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        passwordHash: true,
+        status: true,
+        deletedAt: true,
+        mfaEnabledAt: true
+      }
     });
     const valid = await verifyPassword(password, user?.passwordHash ?? DUMMY_PASSWORD_HASH);
 
     if (user === null || !valid) {
+      const owner =
+        user !== null && user.status === 'ACTIVE' && user.deletedAt === null
+          ? { id: user.id, name: user.name, email: user.email }
+          : null;
+
+      await this.loginGuard.recordFailure(email, owner, meta);
       await this.audit.record({
         actorUserId: user?.id ?? null,
         action: 'auth.login.failed',
@@ -364,6 +384,8 @@ export class AuthService {
       });
       throw new AppError('UNAUTHORIZED', 'INVALID_CREDENTIALS', INVALID_CREDENTIALS);
     }
+
+    await this.loginGuard.clear(email);
 
     if (user.status !== 'ACTIVE' || user.deletedAt !== null) {
       throw new AppError(
@@ -747,6 +769,9 @@ export class AuthService {
         tx
       );
     });
+
+    // Senha nova: quem estava bloqueado pelas falhas seguidas já pode entrar (DT-109).
+    await this.loginGuard.clear(normalizeEmail(record.user.email));
   }
 
   async changePassword(

@@ -2194,3 +2194,27 @@ A moderação só ocultava, fechava ou removia conteúdo (`DT-035`). Não havia 
 
 - testes: regras puras (`forum-sanctions.spec.ts`: prazo, em vigor, a mais longa, sugestões das regras), e-mail obrigatório (`channel-rules.spec.ts`) e integração (`forum-sanctions.int-spec.ts`: só quem modera aplica; advertência avisa no site e por e-mail sem bloquear; suspensão bloqueia publicar, responder, editar e reagir e deixa ler; liberar com motivo e só uma vez; sem prazo vale até liberar; prazo vencido libera sozinho; banco recusa apagar; regras editáveis e de volta ao inicial);
 - o texto inicial das regras precisa da revisão da diretoria (`PEN-075`).
+
+## DT-109 — Freio de tentativas de login por conta
+
+- **Estado:** Aceita; implementada em 2026-11-11
+- **Data:** 2026-11-11
+- **Aprovador:** responsável do projeto ("implemente todas as correções possíveis", sobre a análise do sistema), com a recomendação da `PEN-053`
+
+### Contexto
+
+O limite de requisições do login é por IP (10 por minuto, `DT-022`, `DT-047`). Um ataque que troca de endereço a cada tentativa conseguia testar senhas de uma mesma conta sem freio. O MFA (`DT-037`) protege administrador e diretoria, mas não as contas comuns.
+
+### Decisão
+
+- **regra** (`auth/domain/login-guard-rules.ts`): até a 4ª falha seguida no mesmo e-mail nada muda; na 5ª, novas tentativas ficam bloqueadas por 1 minuto, e cada falha depois de um bloqueio dobra o tempo (2, 4, 8 minutos) até 15 minutos. A sequência recomeça depois de 24 horas sem falha, no login certo e na redefinição de senha;
+- **bloqueado, a senha nem é conferida**: a resposta é 429 `LOGIN_TEMPORARILY_LOCKED`, com quanto esperar e a sugestão de redefinir a senha. Os bloqueios são curtos de propósito, para quem ataca não conseguir deixar a pessoa sem acesso por muito tempo; a redefinição continua disponível e libera na hora;
+- **sem revelar quem tem conta**: a contagem é por hash do e-mail normalizado (tabela `login_failure_counters`, migração `20261111100000_freio_login_por_conta`), sem ligação com a conta, e vale igual para e-mail sem cadastro: o bloqueio e a mensagem são os mesmos;
+- **aviso ao titular**: na primeira vez que a sequência chega a 5, se a conta existir e estiver ativa, ela recebe um e-mail com o que aconteceu, o link para redefinir a senha e a sugestão de ativar a verificação em duas etapas; auditoria `auth.login.locked`. Falha no envio não derruba o login (fica só no log, sem dado pessoal);
+- **concorrência e servidores**: a contagem é uma instrução atômica no PostgreSQL, compartilhada entre servidores, como o limite de requisições (`DT-047`);
+- **minimização (LGPD)**: sem IP nem navegador; a linha é apagada no login certo, na redefinição e pela tarefa `login-guard.cleanup` (de hora em hora), 24 horas depois da última falha sem bloqueio em vigor.
+
+### Consequências
+
+- testes: regra pura (`login-guard-rules.spec.ts`: tempos, janela de 24 horas, mensagem no singular e no plural) e integração (`login-guard.int-spec.ts`: bloqueio na 5ª falha mesmo com a senha certa, mesma resposta sem cadastro, um aviso por e-mail com auditoria, bloqueio maior na falha seguinte, liberação ao vencer, redefinição de senha libera, e-mail não fica em claro e limpeza das sequências antigas);
+- continua aberta a outra metade da `PEN-053`: o cadastro ainda informa "e-mail já cadastrado", e a resposta neutra depende do envio real de e-mail (`PEN-042`, `PEN-064`).

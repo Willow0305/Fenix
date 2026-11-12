@@ -8,6 +8,10 @@ O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) e o 
 
 ### Melhorias da análise do sistema (2026-11-11)
 
+#### Segurança
+
+- freio de tentativas de login por conta: depois de 5 falhas seguidas no mesmo e-mail, novas tentativas ficam bloqueadas por 1 minuto, dobrando a cada nova falha até 15 minutos; o titular recebe um aviso por e-mail na primeira vez; a resposta é igual para e-mail sem cadastro, e o login certo ou a redefinição de senha liberam (PEN-053, DT-109; migração `20261111100000_freio_login_por_conta`).
+
 #### Alterado
 
 - o CI passa a rodar também em push na branch `dev`, onde o desenvolvimento acontece; antes um erro só aparecia no pull request ou no merge com a `main`. Os ponta a ponta no CI ficam como `PEN-076`.

@@ -221,7 +221,7 @@ Mensagens não revelam existência de conta, hash, token, query, stack trace nem
 | 413 | arquivo maior que o permitido |
 | 415 | mídia não suportada |
 | 422 | validação semântica |
-| 429 | limite de requisições excedido |
+| 429 | limite de requisições excedido; no login, `LOGIN_TEMPORARILY_LOCKED` depois de 5 falhas seguidas no mesmo e-mail (`DT-109`) |
 | 500 | falha interna sem detalhes sensíveis |
 | 503 | dependência crítica indisponível |
 
@@ -234,7 +234,8 @@ Fluxo de referência:
 3. refresh token opaco ou JWT identificável é rotacionado, armazenado somente como hash no servidor e entregue em cookie `HttpOnly`, `Secure` e com política `SameSite` adequada à topologia;
 4. logout e troca de senha revogam a sessão pertinente;
 5. recuperação de senha usa token de uso único e resposta que não enumera usuários;
-6. cada endpoint exige permissões específicas; papéis são agrupadores, não atalhos no código.
+6. falhas seguidas de login no mesmo e-mail bloqueiam novas tentativas por 1 a 15 minutos (429 `LOGIN_TEMPORARILY_LOCKED`), com resposta igual para e-mail com ou sem conta; o login certo e a redefinição de senha zeram a contagem (`DT-109`);
+7. cada endpoint exige permissões específicas; papéis são agrupadores, não atalhos no código.
 
 A topologia de domínios, a duração dos tokens e a proteção CSRF serão fechadas antes da implementação.
 

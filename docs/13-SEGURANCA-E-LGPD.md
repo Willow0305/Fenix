@@ -82,7 +82,7 @@ Itens ainda exigidos antes de produção: provedores reais de arquivos/e-mail co
 - sessões expiram por inatividade e por duração máxima conforme o perfil, verificadas no servidor a cada requisição (`DT-036`);
 - cookies de sessão, quando usados, devem ser `HttpOnly`, `Secure` em produção e `SameSite` adequado; proteção CSRF é definida conforme arquitetura;
 - não guardar token sensível em `localStorage` por conveniência sem decisão/ameaça documentada;
-- aplicar limitação e alerta a tentativas de login/recuperação;
+- aplicar limitação e alerta a tentativas de login/recuperação: além do limite por IP, 5 falhas seguidas no mesmo e-mail bloqueiam o login de 1 a 15 minutos, com aviso por e-mail ao titular na primeira vez; a contagem usa só o hash do e-mail, sem IP, e some 24 horas depois da última falha (`DT-109`);
 - operações de alto risco podem exigir reautenticação;
 - verificação em duas etapas (TOTP) obrigatória para perfis com permissão administrativa; sem ela, a sessão fica só com permissões comuns (`DT-037`);
 - verificação de e-mail é condicionada à fase/decisão, mas seu eventual token segue os mesmos controles.

@@ -28,6 +28,7 @@ export const AUDIT_ACTION_LABELS: Readonly<Record<string, string>> = {
   // Acesso e conta
   'auth.login': 'Entrou no sistema',
   'auth.login.failed': 'Tentativa de entrada recusada',
+  'auth.login.locked': 'Entrada bloqueada por tentativas seguidas',
   'auth.login.mfa_challenge': 'Código de verificação pedido na entrada',
   'auth.logout': 'Saiu do sistema',
   'auth.mfa.enabled': 'Verificação em duas etapas ligada',
