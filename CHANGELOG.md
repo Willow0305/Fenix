@@ -19,13 +19,14 @@ O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) e o 
 
 #### Alterado
 
-- serviços grandes da API divididos por assunto, sem mudança de regra (PEN-077, DT-114): pedidos da loja em leitura, checkout, pagamentos, situação e pedido sem conta; a classe original continua com os mesmos métodos.
+- serviços grandes da API divididos por assunto, sem mudança de regra (PEN-077, DT-114): pedidos da loja em leitura, checkout, pagamentos, situação e pedido sem conta; mensalidades em leitura, planos, cobranças e pagamentos; a classe original continua com os mesmos métodos.
 - módulos da API renomeados para não confundir: `card` (pagamento com cartão) virou `card-payment` e `cards` (carteirinhas) virou `member-cards`, com as classes `CardPaymentModule` e `MemberCardsModule`. As rotas da API não mudam (DT-113).
 - cinco índices novos no banco para chaves estrangeiras usadas em consultas: vendas por produto, notícias por assunto, lançamentos de um fechamento de caixa e avaliações e reações por pessoa (cópia dos dados e anonimização) (DT-112; migração `20261111120000_indices_chaves_estrangeiras`).
 - o CI passa a rodar também em push na branch `dev`, onde o desenvolvimento acontece; antes um erro só aparecia no pull request ou no merge com a `main`. Os ponta a ponta no CI ficam como `PEN-076`.
 
 #### Corrigido
 
+- testes de integração não estouram mais a memória: rodam um de cada vez num processo auxiliar que o Jest troca ao passar de 1,5 GB, em vez de todos no mesmo processo (DT-114).
 - teste ponta a ponta da entrega em casa (celular): o aviso "A entrega foi registrada" aparece também na região lida pelo leitor de tela (DT-106) e o teste achava dois textos; agora confere só o aviso visível.
 - `npm run e2e` não deixa mais o `apps/web/next-env.d.ts` alterado: o build do site para os testes reescrevia o arquivo apontando para `.next-e2e`; agora o original é restaurado ao fim do build.
 - `CONTINUAR.md` atualizado: branch `dev`, contagem atual de testes e banco de testes isolado (`DT-038`); `PEN-066` (Etapa 9) movida para as resolvidas.
