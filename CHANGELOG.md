@@ -6,6 +6,21 @@ O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) e o 
 
 ## [Não publicado]
 
+### Tempo real em todo o sistema — onda 1 de 5: fundação (2026-11-12)
+
+#### Adicionado
+
+- toda mudança gravada no banco avisa, no commit, o assunto que mudou (pedidos, pagamentos, mensalidades, Caixa, loja, fórum…), venha de uma tela, de um webhook de pagamento ou de uma tarefa automática. O aviso não leva dados, e cada pessoa recebe só os assuntos que pode ver: os públicos, e os do painel conforme as permissões, inclusive em papéis personalizados (DT-116; migração `20261112100000_tempo_real_por_assunto`);
+- cada tela recarrega só o que mostra: um pagamento confirmado atualiza o pedido ou a mensalidade, o Caixa, o painel e a área da pessoa abertos, mantendo filtros, página e o que está sendo digitado;
+- uma conexão de tempo real por navegador, dividida entre as abas; quando a aba que a mantém fecha, outra assume;
+- depois de uma queda, ao voltar a internet ou ao voltar a uma aba escondida por mais de 30 s, as telas abertas buscam tudo de novo, sem depender só dos avisos recebidos;
+- aviso "Sem atualização automática. Reconectando…" quando a conexão cai por mais de 4 s.
+
+#### Alterado
+
+- o aviso genérico `changed`, só para a diretoria e a cada escrita pela API, dá lugar ao aviso por assunto; a aba que fez a mudança também atualiza (sai o `X-Client-Id`);
+- `GET /api/v1/public/live` entrega todos os assuntos públicos e ignora o antigo `?topics=`; o aviso `catalog` passa a dizer o assunto.
+
 ### Melhorias da análise do sistema (2026-11-11)
 
 #### Adicionado

@@ -2,3 +2,4 @@
 export * from './br-documents';
 export * from './field-limits';
 export * from './br-states';
+export * from './realtime-topics';

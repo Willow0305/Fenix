@@ -2955,6 +2955,39 @@ details.collapsible {
   cursor: pointer;
 }
 
+// Conexão em tempo real caída (DT-116): canto inferior esquerdo, longe do botão do WhatsApp.
+.realtime-status-region {
+  position: fixed;
+  left: max(1rem, env(safe-area-inset-left, 0px));
+  bottom: max(1rem, env(safe-area-inset-bottom, 0px));
+  z-index: 60;
+  max-width: calc(100vw - 6rem);
+  pointer-events: none;
+}
+
+.realtime-status {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+  margin: 0;
+  padding: 0.5rem 0.8rem;
+  border: 1px solid var(--color-border);
+  border-radius: 999px;
+  background: var(--color-surface);
+  color: var(--color-text-subtle);
+  font-size: 0.88rem;
+  box-shadow: 0 6px 20px rgb(11 6 19 / 14%);
+  transition: opacity var(--duration-base) var(--ease-out);
+
+  @starting-style {
+    opacity: 0;
+  }
+
+  .icon {
+    color: var(--color-warning);
+  }
+}
+
 /* Carteirinha digital (DT-068): proporção de cartão 85,6 × 54 mm, três modelos. */
 .member-card {
   position: relative;
@@ -3133,7 +3166,8 @@ details.collapsible {
 @media print {
   .no-print,
   .whatsapp-float,
-  .toast-region {
+  .toast-region,
+  .realtime-status-region {
     display: none !important;
   }
 

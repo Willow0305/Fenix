@@ -963,7 +963,7 @@ As tarefas de 10 em 10 minutos (expirar reservas, encerrar remessas) rodavam com
 
 ## DT-049 — Tempo real
 
-- **Estado:** Aceita
+- **Estado:** Aceita; o aviso `changed` genérico e o `X-Client-Id` foram substituídos pela `DT-116`
 - **Data:** 2026-10-26
 - **Aprovador:** responsável do projeto ("preciso que o sistema seja em tempo real", 2026-10-25)
 
@@ -1008,7 +1008,7 @@ Com a segunda etapa (DT-037), o código do autenticador era pedido em todo login
 
 ## DT-051 — Loja profissional e páginas públicas ao vivo
 
-- **Estado:** Aceita
+- **Estado:** Aceita; o fluxo público por assunto foi substituído pelo da `DT-116`
 - **Data:** 2026-10-26
 - **Aprovador:** responsável do projeto ("quero o sistema em tempo real por conta da loja e inscrições [...] melhora da loja e carrinho de compras e edição do item escolhido, campos que só podem aceitar numeração [...] mais imagens [...] mover a foto [...] zoom [...] imagem do item no carrinho", 2026-10-26)
 
@@ -2398,3 +2398,54 @@ Desde o NestJS 12 (`DT-055`), os pacotes do Nest são só ESM e a API em CommonJ
 
 - quem ainda usa Node 22 localmente vê o aviso do `npm` sobre `engines` e precisa atualizar para rodar os testes da API;
 - nenhuma mudança de código; o ambiente local (Node 24.22.0) já era o verificado.
+
+## DT-116 — Tempo real por assunto, avisado pelo banco
+
+- **Estado:** Aceita; onda 1 de 5 implementada em 2026-11-12
+- **Data:** 2026-11-12
+- **Aprovador:** responsável do projeto ("Aprovado, seguindo as quatro recomendações apresentadas e a sequência de execução das ondas 1 a 5", 2026-11-12)
+- **Substitui em parte:** `DT-049` (o aviso `changed` genérico, só para a diretoria) e `DT-051` (o fluxo público por assunto)
+
+### Contexto
+
+O responsável pediu o sistema inteiro em tempo real, para todos os perfis, como em lojas e carteiras digitais: ação, pagamento, pedido e mudança de situação aparecem sozinhos para quem precisa ver, sem recarregar a página. Também pediu:
+
+- pagamentos confirmados pelo backend (webhook ou consulta oficial do intermediário), com a atualização chegando a todas as telas e perfis pertinentes;
+- uma alteração refletida em todas as áreas ligadas a ela: o pagamento confirmado atualiza o pedido ou a mensalidade, o Caixa, os indicadores e a área da pessoa, respeitando as permissões;
+- ressincronização depois de perder a conexão, sem depender só dos eventos recebidos;
+- só os componentes afetados se atualizam, preservando filtros, página, navegação e formulários em andamento;
+- processamento idempotente, sem pagamento, notificação ou mudança de situação em dobro.
+
+Antes, só quem tinha `dashboard.read` recebia o aviso `changed`, e qualquer escrita HTTP recarregava todas as telas abertas dessa pessoa. Mudanças feitas por webhook ou por tarefa automática não avisavam ninguém. Papéis personalizados, atletas, usuários e visitantes não viam nada ao vivo, fora as notificações e as páginas da loja e das seletivas.
+
+### Decisão
+
+- **o aviso sai do banco:** um gatilho (`AFTER INSERT OR UPDATE OR DELETE … FOR EACH ROW`) em 88 tabelas chama `pg_notify('fenix_changes', '<assunto>')` (migração `20261112100000_tempo_real_por_assunto`). Assim avisa toda mudança, venha de uma tela, de um webhook de pagamento, de uma tarefa automática ou de um script. O `NOTIFY` só é entregue no commit, e avisos iguais na mesma transação viram um só. Ficam de fora as tabelas de sessão, carrinho, contadores, filas e visualizações. Na tabela `users`, mudanças só de último acesso e passo do MFA não avisam;
+- **o aviso diz o assunto, nunca dados:** 26 assuntos (`orders`, `payments`, `fees`, `finance`, `store`, `forum`…), definidos em `@fenix/validation` (`realtime-topics.ts`) e usados pela API e pelo site;
+- **quem recebe é decidido na API** (`modules/realtime/domain/topic-access.ts`):
+  - assunto do painel vai para quem tem uma permissão de ler ou de agir naquela área;
+  - assunto público (loja, notícias, agenda, fórum, parceiros, times, configurações públicas) vai para todos, inclusive visitantes sem login.
+
+  Cada conexão guarda os assuntos que a pessoa pode receber. O teste de integração percorre todas as rotas `GET` do painel e confere que a permissão de cada uma recebe pelo menos um assunto da tela;
+- **um aviso por pessoa a cada 150 ms:** cada servidor junta as mudanças que chegam em sequência e manda a cada conexão um único `changed` com os assuntos que ela pode ver;
+- **cada tela recarrega só o que mostra:** `topicsOfPath` liga o caminho consultado na API aos assuntos que a tela mostra. Um pagamento (`payments`) atualiza pedido, mensalidade, Caixa, painel e área da pessoa, porque todos dependem desse assunto. A recarga usa o cache de consultas (`DT-052`): troca só os dados, mantendo filtros, página e rolagem, e espera a pessoa sair do campo que está editando;
+- **uma conexão por navegador:** a aba que segura a trava `navigator.locks` (`fenix-tempo-real:<pessoa>` ou `:publico`) abre o fluxo e repassa os eventos às outras por `BroadcastChannel`. Quando ela fecha, outra assume e pede ressincronização. Sem esses recursos no navegador, cada aba abre a sua, como antes. Com sessão, o fluxo da pessoa (lido com `fetch`, token no cabeçalho) já traz os assuntos públicos; sem sessão, o fluxo público usa o `EventSource` do navegador, ligado só enquanto uma página ao vivo estiver aberta;
+- **ressincronização:** depois de qualquer queda ou renovação da conexão, ao assumir a conexão de outra aba e ao voltar a uma aba escondida por mais de 30 s, as telas abertas buscam tudo de novo. Também reconecta na hora ao voltar a internet, e derruba a conexão que fica 60 s sem sinal de vida (o servidor manda um a cada 25 s);
+- **aviso na tela:** "Sem atualização automática. Reconectando…" só depois de 4 s sem conexão;
+- **sai o aviso por aba de origem** (`X-Client-Id`): o banco não sabe de que aba veio a mudança, e a aba que mudou recebe o aviso como as outras;
+- **páginas públicas em cache** continuam com `catalog`, enviado depois de o cache do site ser descartado (`DT-051`), agora dizendo o assunto. `GET /public/live` aceita o antigo `?topics=` e o ignora.
+
+### Ondas
+
+1. **fundação** (esta): gatilhos, assuntos, quem recebe, recarga só do que mudou, conexão dividida entre as abas, ressincronização e aviso de reconexão;
+2. **painel para toda a equipe:** conferência por papel, incluindo papéis personalizados e entregador, e tarefas automáticas;
+3. **área da pessoa e pagamentos:** aviso ao dono (pedido, também sem conta, mensalidade, carteirinha, inscrição, agendamento) e o ciclo completo do PIX e do cartão confirmados pelo intermediário, com idempotência conferida;
+4. **site público e comunidade:** demais páginas em cache e "Há novidades" no fórum e nas notícias;
+5. **prova final:** E2E com dois navegadores, carga de conexões e documentação.
+
+### Consequências
+
+- toda transação que escreve numa das tabelas faz `NOTIFY`, e o PostgreSQL ordena os commits que avisam. Para o volume do clube isso não pesa; se pesar, o gatilho pode passar a ser por comando (`FOR EACH STATEMENT`);
+- tabela nova que aparece em tela precisa de gatilho na migração dela, ou a tela não se atualiza sozinha;
+- a aba que fez a mudança também busca de novo (antes não buscava): uma consulta a mais, em troca de atualizar as outras partes da tela ligadas à mudança;
+- sem a conexão de escuta (`REALTIME=off` ou banco indisponível), os avisos do banco não chegam até ela voltar; a ressincronização na reconexão cobre o intervalo.

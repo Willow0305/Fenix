@@ -1,23 +1,25 @@
 'use client';
 
+import type { RealtimeTopic } from '@fenix/validation';
 import { useRouter } from 'next/navigation';
 import { useEffect, useRef } from 'react';
 
-import { scheduleReload } from '../lib/realtime';
+import { onRealtime, requirePublicRealtime, scheduleReload } from '../lib/realtime';
 
-export type LiveTopic = 'store' | 'tryouts';
+export type LiveTopic = Extract<RealtimeTopic, 'store' | 'tryouts'>;
 
 /**
- * Página pública ao vivo (DT-051): quando a API avisa que a loja (estoque, preço) ou as
- * seletivas (vagas) mudaram, a página busca os dados de novo, sem a pessoa recarregar.
- * Sem login; usa o `EventSource` do navegador, que reconecta sozinho.
+ * Página pública ao vivo (DT-051, DT-116): quando a API avisa que a loja (estoque, preço) ou
+ * as seletivas (vagas) mudaram, já com o cache do site descartado, a página busca os dados de
+ * novo, sem a pessoa recarregar. Usa a conexão do navegador, dividida entre as abas; sem
+ * sessão, liga o fluxo público enquanto a página estiver aberta.
  */
 export function LiveRefresh({
   topics,
   onChange
 }: {
   readonly topics: readonly LiveTopic[];
-  /** Padrão: recarrega os dados da página (`router.refresh`). */
+  /** Padrão: recarrega os dados da página (`router.refresh`), mantendo o que está na tela. */
   readonly onChange?: () => void;
 }) {
   const router = useRouter();
@@ -27,15 +29,19 @@ export function LiveRefresh({
   handler.current = onChange;
 
   useEffect(() => {
-    if (typeof EventSource === 'undefined' || key === '') {
+    if (key === '') {
       return undefined;
     }
 
-    const source = new EventSource(`/api/v1/public/live?topics=${encodeURIComponent(key)}`);
+    const wanted = key.split(',');
+    const release = requirePublicRealtime();
     let cancel: (() => void) | null = null;
+    const stop = onRealtime((message) => {
+      const relevant =
+        message.type === 'resync' ||
+        (message.type === 'catalog' && message.topics.some((topic) => wanted.includes(topic)));
 
-    source.addEventListener('catalog', () => {
-      if (cancel) {
+      if (!relevant || cancel) {
         return;
       }
 
@@ -46,7 +52,8 @@ export function LiveRefresh({
     });
 
     return () => {
-      source.close();
+      stop();
+      release();
       cancel?.();
     };
   }, [key, router]);

@@ -73,10 +73,15 @@ describe('SiteRevalidateInterceptor', () => {
     );
     await jest.advanceTimersByTimeAsync(1_000);
 
-    expect(calls).toEqual(['cache', 'aviso']);
-    expect(publish).toHaveBeenCalledWith([{ topic: 'store' }, { topic: 'tryouts' }], {
-      type: 'catalog'
-    });
+    expect(calls).toEqual(['cache', 'aviso', 'aviso']);
+    expect(publish).toHaveBeenCalledWith(
+      { topic: 'store' },
+      { type: 'catalog', topics: ['store'] }
+    );
+    expect(publish).toHaveBeenCalledWith(
+      { topic: 'tryouts' },
+      { type: 'catalog', topics: ['tryouts'] }
+    );
   });
 
   it('ignora leituras, login, conta própria e carrinho', async () => {
@@ -99,7 +104,10 @@ describe('SiteRevalidateInterceptor', () => {
     await jest.advanceTimersByTimeAsync(1_000);
 
     expect(fetchMock).not.toHaveBeenCalled();
-    expect(publish).toHaveBeenCalledWith([{ topic: 'store' }], { type: 'catalog' });
+    expect(publish).toHaveBeenCalledWith(
+      { topic: 'store' },
+      { type: 'catalog', topics: ['store'] }
+    );
   });
 });
 

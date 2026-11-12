@@ -1,3 +1,4 @@
+import { isRealtimeTopic, type RealtimeTopic } from '@fenix/validation';
 import { Injectable, Logger, type OnApplicationShutdown, type OnModuleInit } from '@nestjs/common';
 import { Client } from 'pg';
 
@@ -5,18 +6,23 @@ import { PrismaService, type PrismaTx } from '../prisma/prisma.service';
 
 /** Canal do PostgreSQL usado para espalhar os eventos entre servidores (DT-049). */
 export const REALTIME_CHANNEL = 'fenix_realtime';
+/** Canal dos gatilhos do banco: cada escrita avisa o assunto que mudou (DT-116). */
+export const CHANGES_CHANNEL = 'fenix_changes';
+/** Junta as mudanças que chegam em sequência num aviso só por pessoa. */
+export const CHANGES_COALESCE_MS = 150;
 
 /**
  * Evento sem dados: só avisa que algo mudou, para a tela buscar de novo com as próprias
- * permissões. `origin` identifica a aba que fez a mudança, que não precisa recarregar.
+ * permissões. `changed` diz os assuntos; `catalog` avisa as páginas públicas em cache,
+ * depois de o cache ser descartado (DT-051).
  */
-export interface RealtimeEvent {
-  readonly type: 'notification' | 'changed' | 'catalog';
-  readonly origin?: string;
-}
+export type RealtimeEvent =
+  | { readonly type: 'notification' }
+  | { readonly type: 'changed'; readonly topics: readonly RealtimeTopic[] }
+  | { readonly type: 'catalog'; readonly topics: readonly PublicTopic[] };
 
-/** Assuntos das páginas públicas que se atualizam sozinhas (DT-051). */
-export const PUBLIC_TOPICS = ['store', 'tryouts'] as const;
+/** Assuntos das páginas públicas em cache que se atualizam sozinhas (DT-051). */
+export const PUBLIC_TOPICS = ['store', 'tryouts'] as const satisfies readonly RealtimeTopic[];
 export type PublicTopic = (typeof PUBLIC_TOPICS)[number];
 
 /** Destino: pessoas escolhidas ou quem tem uma permissão. */
@@ -34,8 +40,8 @@ export interface RealtimeSubscriber {
   /** Nulo para visitante sem login (páginas públicas). */
   readonly userId: string | null;
   readonly permissions: ReadonlySet<string>;
-  /** Assuntos públicos acompanhados. */
-  readonly topics?: ReadonlySet<PublicTopic>;
+  /** Assuntos que a pessoa pode receber (DT-116): os públicos e os das permissões dela. */
+  readonly topics: ReadonlySet<RealtimeTopic>;
   /** Hash do IP, para limitar conexões de visitantes. */
   readonly ipHash?: string | null;
   readonly send: (event: RealtimeEvent) => void;
@@ -76,7 +82,7 @@ export function listenerUrl(databaseUrl: string): string {
 
 export function matches(subscriber: RealtimeSubscriber, to: RealtimeAudience): boolean {
   if ('topic' in to) {
-    return subscriber.topics?.has(to.topic) ?? false;
+    return subscriber.topics.has(to.topic);
   }
 
   if ('userIds' in to) {
@@ -89,7 +95,8 @@ export function matches(subscriber: RealtimeSubscriber, to: RealtimeAudience): b
 /**
  * Tempo real (DT-049). Cada servidor mantém uma conexão `LISTEN` e entrega aos navegadores
  * conectados nele. Publicar dentro de uma transação só entrega depois do commit, como o
- * `NOTIFY` do PostgreSQL garante. Sem a conexão de escuta, entrega só neste servidor.
+ * `NOTIFY` do PostgreSQL garante. Sem a conexão de escuta, entrega só neste servidor, e as
+ * mudanças avisadas pelos gatilhos do banco (DT-116) não chegam até ela voltar.
  */
 @Injectable()
 export class RealtimeService implements OnModuleInit, OnApplicationShutdown {
@@ -100,6 +107,8 @@ export class RealtimeService implements OnModuleInit, OnApplicationShutdown {
   private stopped = false;
   private retryMs = 1_000;
   private retryTimer: ReturnType<typeof setTimeout> | null = null;
+  private readonly changedTopics = new Set<RealtimeTopic>();
+  private changesTimer: ReturnType<typeof setTimeout> | null = null;
 
   constructor(private readonly prisma: PrismaService) {}
 
@@ -120,6 +129,10 @@ export class RealtimeService implements OnModuleInit, OnApplicationShutdown {
 
     if (this.retryTimer) {
       clearTimeout(this.retryTimer);
+    }
+
+    if (this.changesTimer) {
+      clearTimeout(this.changesTimer);
     }
 
     await this.client?.end().catch(() => undefined);
@@ -176,6 +189,35 @@ export class RealtimeService implements OnModuleInit, OnApplicationShutdown {
     }
   }
 
+  /**
+   * Mudança avisada por um gatilho do banco. As que chegam juntas viram um aviso só, e cada
+   * pessoa recebe apenas os assuntos que pode ver.
+   */
+  receiveChange(payload: string): void {
+    if (!isRealtimeTopic(payload)) {
+      return;
+    }
+
+    this.changedTopics.add(payload);
+    this.changesTimer ??= setTimeout(() => this.flushChanges(), CHANGES_COALESCE_MS);
+    this.changesTimer.unref();
+  }
+
+  private flushChanges(): void {
+    const changed = [...this.changedTopics].sort();
+
+    this.changesTimer = null;
+    this.changedTopics.clear();
+
+    for (const subscriber of this.subscribers) {
+      const topics = changed.filter((topic) => subscriber.topics.has(topic));
+
+      if (topics.length > 0) {
+        subscriber.send({ type: 'changed', topics });
+      }
+    }
+  }
+
   private dispatch(envelope: Envelope): void {
     for (const subscriber of this.subscribers) {
       if (matches(subscriber, envelope.to)) {
@@ -194,7 +236,17 @@ export class RealtimeService implements OnModuleInit, OnApplicationShutdown {
     const client = new Client({ connectionString: listenerUrl(databaseUrl) });
 
     client.on('notification', (message) => {
-      if (message.channel !== REALTIME_CHANNEL || !message.payload) {
+      if (!message.payload) {
+        return;
+      }
+
+      if (message.channel === CHANGES_CHANNEL) {
+        this.receiveChange(message.payload);
+
+        return;
+      }
+
+      if (message.channel !== REALTIME_CHANNEL) {
         return;
       }
 
@@ -213,6 +265,7 @@ export class RealtimeService implements OnModuleInit, OnApplicationShutdown {
     try {
       await client.connect();
       await client.query(`LISTEN ${REALTIME_CHANNEL}`);
+      await client.query(`LISTEN ${CHANGES_CHANNEL}`);
 
       if (this.stopped) {
         await client.end().catch(() => undefined);

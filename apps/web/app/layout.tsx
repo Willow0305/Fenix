@@ -10,6 +10,7 @@ import { CartProvider } from '../lib/cart-context';
 import { LiveToasts } from '../components/live-toasts';
 import { ServiceWorkerRegistration } from '../components/pwa';
 import { QueryProvider } from '../components/query-provider';
+import { RealtimeStatus } from '../components/realtime-status';
 import { SITE_URL } from '../lib/site-url';
 import 'bootstrap-icons/font/bootstrap-icons.min.css';
 import './globals.scss';
@@ -63,6 +64,7 @@ export default async function RootLayout({ children }: RootLayoutProps) {
           <AuthProvider>
             <CartProvider>{children}</CartProvider>
             <LiveToasts />
+            <RealtimeStatus />
             <LegalUpdateGate />
             <LiveAnnouncer />
           </AuthProvider>

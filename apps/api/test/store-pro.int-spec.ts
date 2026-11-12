@@ -255,8 +255,14 @@ describe('Loja — fotos, carrinho e tempo real', () => {
       base = (await ctx.app.getUrl()).replace('[::1]', '127.0.0.1');
     });
 
-    it('exige assunto válido', async () => {
-      expect((await fetch(`${base}/api/v1/public/live?topics=qualquer`)).status).toBe(422);
+    it('aceita o endereço antigo, com assuntos, e entrega todos os públicos (DT-116)', async () => {
+      const controller = new AbortController();
+      const response = await fetch(`${base}/api/v1/public/live?topics=qualquer`, {
+        signal: controller.signal
+      });
+
+      controller.abort();
+      expect(response.status).toBe(200);
     });
 
     it('avisa a página da loja quando o estoque muda, sem login', async () => {

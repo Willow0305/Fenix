@@ -45,11 +45,11 @@ O contrato completo e executável fica no OpenAPI (`/docs` fora de produção). 
 | `GET`/`POST` | `/api/v1/me/notifications` · `unread-count` · `read-all` · `:id/read` | próprio | 2 |
 | `GET`/`PUT` | `/api/v1/me/notifications/preferences` · `PUT` `whatsapp-consent` | próprio (`DT-048`) | 7 |
 | `GET` | `/api/v1/notifications/deliveries/summary` | `notifications.send` (`DT-048`) | 7 |
-| `GET` | `/api/v1/me/events` (Server-Sent Events, não conta como uso da sessão) | autenticado (`DT-049`) | 7 |
+| `GET` | `/api/v1/me/events` (Server-Sent Events, não conta como uso da sessão): `notification`, `changed` com os assuntos que a pessoa pode ver e `catalog` | autenticado (`DT-049`, `DT-116`) | 7 |
 | `GET`/`DELETE` | `/api/v1/auth/trusted-devices[/:id]`; `POST /auth/mfa/verify` aceita `rememberDevice` | autenticado (`DT-050`) | 7 |
 | `PUT` / `PATCH` | `/api/v1/store/products/:id/images/order` · `images/:imageId` | `products.manage` (`DT-051`) | 4 |
 | `POST` | `/api/v1/cart/items/change` | público, rate limiting (`DT-051`) | 4 |
-| `GET` | `/api/v1/public/live?topics=store,tryouts` (Server-Sent Events) | público, até 6 por IP (`DT-051`) | 4 |
+| `GET` | `/api/v1/public/live` (Server-Sent Events): `changed` e `catalog` só dos assuntos públicos; `?topics=` antigo é ignorado | público, até 6 por IP (`DT-051`, `DT-116`) | 4 |
 | `GET` | `/api/v1/search?q=` | `dashboard.read`; grupos por permissão (`DT-057`) | 9 |
 | `GET` | `/api/v1/finance/trend?months=` | `finance.read`; mensalidades com `fees.read` (`DT-058`) | 9 |
 | `GET` | `/api/v1/dashboard/summary` | `dashboard.read` | 2 |

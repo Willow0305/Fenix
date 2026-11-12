@@ -77,10 +77,11 @@ export class SiteRevalidateService implements OnApplicationShutdown {
 
     this.pending.clear();
     await this.revalidate();
-    await this.realtime.publish(
-      topics.map((topic) => ({ topic })),
-      { type: 'catalog' }
-    );
+
+    // Um aviso por assunto, que diz qual: a página da loja não recarrega por causa das seletivas.
+    for (const topic of topics) {
+      await this.realtime.publish({ topic }, { type: 'catalog', topics: [topic] });
+    }
   }
 
   private async revalidate(): Promise<void> {

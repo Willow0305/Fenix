@@ -197,16 +197,19 @@ export function AuthProvider({ children }: { readonly children: ReactNode }) {
     };
   }, [endSession]);
 
-  // Conexão em tempo real enquanto houver sessão (DT-049).
+  // Conexão em tempo real enquanto houver sessão (DT-049), dividida entre as abas (DT-116).
+  // Depende só de quem está logado: recarregar o perfil não derruba a conexão.
+  const userId = profile?.id ?? null;
+
   useEffect(() => {
-    if (status !== 'authenticated') {
+    if (status !== 'authenticated' || userId === null) {
       return undefined;
     }
 
-    startRealtime(() => tokenRef.current);
+    startRealtime(userId, () => tokenRef.current);
 
     return () => stopRealtime();
-  }, [status]);
+  }, [status, userId]);
 
   useEffect(() => {
     setTokenProvider({ getToken: () => tokenRef.current, refresh });
