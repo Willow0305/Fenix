@@ -410,6 +410,7 @@ Prioridades:
 - **Bloqueia:** segregação fina de funções
 - **Questão:** `GET /media/:id` libera qualquer arquivo não público a quem tem `files.read.restricted`, inclusive documentos confidenciais de parceiros, cuja rota dedicada exige `partner.documents.read`. Hoje só administrador e diretoria têm as duas permissões, então não há exposição efetiva.
 - **Recomendação:** exigir a permissão de domínio do arquivo (classificação ou vínculo) também em `/media/:id` antes de distribuir permissões a papéis customizados.
+- **Situação:** resolvida em 2026-11-11 com a recomendação (`DT-110`). Ver seção 12.
 
 ### PEN-055 — Dependências recém-publicadas
 
@@ -667,3 +668,4 @@ As entradas acima permanecem como histórico da questão original. As decisões 
 | PEN-073 | Decidido em 2026-11-09: manter o nome de quem recebeu só nas saídas marcadas, entradas sem nomes, e a diretoria escolhe quem assina, com o cargo. Parcial: estatuto e prazo de guarda seguem com a assessoria jurídica. | Responsável do projeto | `DT-104` |
 | PEN-074 | Decidido em 2026-11-09: sem seletiva aberta, "Quero jogar no Fênix" do Início leva ao convite de Times; carteirinha só volta com a mensalidade quitada e confirmada; seletiva lotada sai do destaque. | Responsável do projeto | `DT-104` |
 | PEN-066 | Etapa 9 concluída: E2E (56 testes em dois tamanhos de tela), logs e métricas (`DT-086`) e estilos inline (`DT-087`); verificada em 2026-11-11. | Delegada | `DT-086`, `DT-087` |
+| PEN-054 | Decidido em 2026-11-11 com a recomendação: na rota genérica `/media/:id`, `files.read.restricted` só abre arquivo de domínio com rota própria junto com a permissão desse domínio (documento de parceiro, documento de atleta, anexo do Caixa, comprovantes e prova de entrega). | Delegada | `DT-110` |

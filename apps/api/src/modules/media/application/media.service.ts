@@ -20,6 +20,7 @@ import {
 } from '../../../common/storage/image-processing';
 import { ObjectNotFoundError, ObjectStorage } from '../../../common/storage/object-storage';
 import { PERMISSIONS } from '../../access/domain/permission-catalog';
+import { canReadRestrictedThroughGenericRoute, type MediaUsage } from '../domain/media-access';
 
 export interface UploadPolicy {
   readonly allowedTypes: readonly DetectedFileType[];
@@ -164,8 +165,38 @@ export class MediaService {
   }
 
   /**
-   * Leitura: arquivos PUBLIC são abertos; demais exigem `files.read.restricted`
-   * ou a autorização de domínio informada pelo chamador (`allowOwner`).
+   * Onde o arquivo é usado, para a rota genérica exigir a permissão de cada domínio
+   * (PEN-054, DT-110). Só ligações ativas: anexo ou documento apagado não conta.
+   */
+  private async usageOf(id: string): Promise<MediaUsage> {
+    const [partnerDocument, athleteDocument, attachments, orderProofs, attemptProofs] =
+      await Promise.all([
+        this.prisma.partnerDocument.count({ where: { mediaFileId: id, deletedAt: null } }),
+        this.prisma.athleteDocument.count({ where: { mediaFileId: id, deletedAt: null } }),
+        this.prisma.financialTransactionAttachment.findMany({
+          where: { mediaFileId: id, deletedAt: null },
+          select: { financialTransactionId: true, payment: { select: { orderId: true } } }
+        }),
+        this.prisma.order.count({ where: { deliveryProofMediaFileId: id } }),
+        this.prisma.deliveryAttempt.count({ where: { proofMediaFileId: id } })
+      ]);
+
+    return {
+      partnerDocument: partnerDocument > 0,
+      athleteDocument: athleteDocument > 0,
+      transactionAttachment: attachments.some((row) => row.financialTransactionId !== null),
+      orderPaymentAttachment: attachments.some((row) => row.payment?.orderId != null),
+      feePaymentAttachment: attachments.some(
+        (row) => row.payment !== null && row.payment.orderId === null
+      ),
+      deliveryProof: orderProofs + attemptProofs > 0
+    };
+  }
+
+  /**
+   * Leitura: arquivos PUBLIC são abertos; demais exigem a autorização de domínio informada
+   * pelo chamador (`allowOwner`), ser quem enviou ou `files.read.restricted` junto com a
+   * permissão de cada domínio em que o arquivo é usado (`media-access.ts`).
    */
   async read(
     id: string,
@@ -192,8 +223,9 @@ export class MediaService {
       isPublic ||
       allowOwner ||
       (principal !== undefined &&
-        (principal.permissions.has(PERMISSIONS.filesReadRestricted) ||
-          media.uploadedById === principal.userId));
+        (media.uploadedById === principal.userId ||
+          (principal.permissions.has(PERMISSIONS.filesReadRestricted) &&
+            canReadRestrictedThroughGenericRoute(principal.permissions, await this.usageOf(id)))));
 
     if (!permitted) {
       throw AppError.notFound('Arquivo não encontrado.');

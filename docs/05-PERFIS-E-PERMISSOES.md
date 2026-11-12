@@ -86,7 +86,7 @@ Os códigos são uma proposta técnica provisória; nomes definitivos devem coin
 | Inscrições | `registrations.read`, `registrations.review`, `registrations.intake.manage` (abrir e fechar os contatos de "Quero jogar no Fênix", `DT-107`), `tryouts.manage` |
 | Mensalidades | `fees.read`, `fees.generate`, `payments.record`, `payments.confirm`, `payments.correct` |
 | Caixa | `finance.read`, `transactions.create`, `transactions.confirm`, `transactions.cancel`, `refunds.create`, `cash.reconcile`, `cash.close`, `cash.reopen` |
-| Arquivos | `files.upload`, `files.read.restricted`, `files.delete.logical` |
+| Arquivos | `files.upload`, `files.read.restricted` (na rota genérica, junto com a permissão do domínio do arquivo, `DT-110`), `files.delete.logical` |
 | Loja | `products.manage`, `inventory.adjust`, `orders.read`, `orders.status.change`, `campaigns.manage`, `coupons.manage` (DT-045), `delivery.manage` (DT-075), `reviews.moderate` (moderar avaliações, DT-081) |
 | Parceiros | `partners.manage`, `partner.documents.read`, `services.manage`, `appointments.manage`, `settlements.manage` |
 | Comunicação | `forum.publish`, `forum.moderate` (inclui advertir, suspender e liberar no fórum e editar as regras, `DT-108`), `forum.members.access` (área de membros do fórum; papel atleta e diretoria), `news.manage`, `events.manage`, `notifications.send` |

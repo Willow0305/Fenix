@@ -2218,3 +2218,26 @@ O limite de requisições do login é por IP (10 por minuto, `DT-022`, `DT-047`)
 
 - testes: regra pura (`login-guard-rules.spec.ts`: tempos, janela de 24 horas, mensagem no singular e no plural) e integração (`login-guard.int-spec.ts`: bloqueio na 5ª falha mesmo com a senha certa, mesma resposta sem cadastro, um aviso por e-mail com auditoria, bloqueio maior na falha seguinte, liberação ao vencer, redefinição de senha libera, e-mail não fica em claro e limpeza das sequências antigas);
 - continua aberta a outra metade da `PEN-053`: o cadastro ainda informa "e-mail já cadastrado", e a resposta neutra depende do envio real de e-mail (`PEN-042`, `PEN-064`).
+
+## DT-110 — Arquivo restrito pela rota genérica exige a permissão do domínio
+
+- **Estado:** Aceita; implementada em 2026-11-11
+- **Data:** 2026-11-11
+- **Aprovador:** responsável do projeto ("implemente todas as correções possíveis"), com a recomendação da `PEN-054`
+
+### Contexto
+
+`GET /media/:id` abria qualquer arquivo não público para quem tivesse `files.read.restricted`. As rotas dedicadas exigem a permissão do domínio (por exemplo, `partner.documents.read` para documento de parceiro). Como só administrador e diretoria tinham as duas permissões, não havia exposição real, mas um papel personalizado com `files.read.restricted` passaria a abrir documentos confidenciais de parceiros, de atletas e comprovantes.
+
+### Decisão
+
+- regra pura em `media/domain/media-access.ts`: na rota genérica, o arquivo não público abre para quem enviou ou para quem tem `files.read.restricted` **e** a permissão de cada domínio em que ele está em uso: documento de parceiro (`partner.documents.read`), documento de atleta (`athletes.read`), anexo de lançamento do Caixa (`finance.read`), comprovante de pagamento de pedido e prova de entrega (`orders.read`) e comprovante de mensalidade (`fees.read`). Usado em mais de um domínio, exige todas;
+- só ligações ativas contam: documento ou anexo apagado (`deletedAt`) não exige mais a permissão do domínio;
+- arquivo sem domínio com rota própria (como a foto de perfil privada) segue a regra anterior;
+- sem permissão, a resposta continua 404, para não revelar que o arquivo existe;
+- as rotas dedicadas (`allowOwner`) não mudam: continuam fazendo a própria checagem e auditoria.
+
+### Consequências
+
+- a consulta das ligações só acontece quando a rota genérica serve um arquivo não público a quem não o enviou e tem `files.read.restricted`;
+- testes: regra pura (`media-access.spec.ts`: cada domínio e sua permissão, mais de um domínio, nunca sem `files.read.restricted`) e integração (`media-access.int-spec.ts`: papel só com `files.read.restricted` ou só com `partner.documents.read` recebe 404; com as duas abre; diretoria continua abrindo; documento apagado volta à regra geral).

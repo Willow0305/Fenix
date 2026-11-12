@@ -10,6 +10,7 @@ O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) e o 
 
 #### Segurança
 
+- arquivos restritos: a rota genérica `/api/v1/media/:id` passa a exigir, além de `files.read.restricted`, a permissão do domínio em que o arquivo é usado (documento de parceiro ou de atleta, anexo do Caixa, comprovante e prova de entrega), as mesmas das rotas dedicadas; antes, quem tivesse só `files.read.restricted` abria documentos confidenciais de parceiros (PEN-054, DT-110). Sem mudança para administrador e diretoria, que têm todas.
 - freio de tentativas de login por conta: depois de 5 falhas seguidas no mesmo e-mail, novas tentativas ficam bloqueadas por 1 minuto, dobrando a cada nova falha até 15 minutos; o titular recebe um aviso por e-mail na primeira vez; a resposta é igual para e-mail sem cadastro, e o login certo ou a redefinição de senha liberam (PEN-053, DT-109; migração `20261111100000_freio_login_por_conta`).
 
 #### Alterado
