@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 
+import { LiveRefresh } from '../../../components/live-refresh';
 import { Icon } from '../../../components/icon';
 import { MediaImage } from '../../../components/media-image';
 import { PartnerLogo } from '../../../components/partner-logo';
@@ -31,6 +32,7 @@ export default async function PartnersPage() {
 
   return (
     <div className="container stack pt-xl">
+      <LiveRefresh topics={['partners', 'benefits']} />
       <h1>Parceiros</h1>
       <p className="muted">
         Empresas e profissionais aprovados pela diretoria do Fênix Vôlei, com contrato vigente.

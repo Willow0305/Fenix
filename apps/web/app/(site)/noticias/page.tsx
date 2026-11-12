@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 
+import { LiveRefresh } from '../../../components/live-refresh';
 import { Icon } from '../../../components/icon';
 import { NewsCard, NewsRow } from '../../../components/news-card';
 import type { Page } from '../../../lib/api-types';
@@ -75,6 +76,7 @@ export default async function NewsPage({
 
   return (
     <div className="container stack pt-xl">
+      <LiveRefresh topics={['news']} notify />
       <header className="stack gap-sm">
         <h1 className="m-0">{topic ? topic.name : current ? current.name : 'Notícias'}</h1>
         <p className="muted m-0">

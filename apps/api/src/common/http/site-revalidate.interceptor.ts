@@ -10,7 +10,7 @@ import type { Request } from 'express';
 import { type Observable, tap } from 'rxjs';
 
 import { AppConfig } from '../config/app-config';
-import { type PublicTopic, RealtimeService } from '../realtime/realtime.service';
+import { PUBLIC_TOPICS, type PublicTopic, RealtimeService } from '../realtime/realtime.service';
 
 const MUTATIONS = new Set(['POST', 'PUT', 'PATCH', 'DELETE']);
 /**
@@ -49,7 +49,17 @@ export class SiteRevalidateService implements OnApplicationShutdown {
   constructor(
     private readonly config: AppConfig,
     private readonly realtime: RealtimeService
-  ) {}
+  ) {
+    // Mudança pública vinda de qualquer lugar (tela, tarefa automática, webhook), avisada
+    // pelo banco (DT-116): descarta o cache e avisa as páginas daquele assunto.
+    realtime.onChanges((topics) => {
+      const cached = PUBLIC_TOPICS.filter((topic) => topics.includes(topic));
+
+      if (cached.length > 0) {
+        this.changed(cached);
+      }
+    });
+  }
 
   /** Algo público mudou; `topics` diz quais páginas abertas devem recarregar. */
   changed(topics: readonly PublicTopic[] = []): void {

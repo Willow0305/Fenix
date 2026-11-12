@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 
+import { LiveRefresh } from '../../../../components/live-refresh';
 import { Icon } from '../../../../components/icon';
 import { JsonLd } from '../../../../components/json-ld';
 import { MediaImage } from '../../../../components/media-image';
@@ -79,6 +80,7 @@ export default async function NewsItemPage({
 
   return (
     <article className="container reading">
+      <LiveRefresh topics={['news']} notify />
       <JsonLd data={newsArticleData(news)} />
       <NewsViewBeacon slug={news.slug} />
       <Link href="/noticias" className="back-link">

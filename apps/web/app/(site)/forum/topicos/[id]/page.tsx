@@ -30,6 +30,7 @@ import { ForumStandingNotice } from '../../forum-standing';
 import { BoardBadge, JoinForumCard, MinorForumNotice } from '../../join-forum-card';
 import { useResource } from '../../../../../lib/use-resource';
 import { Icon } from '../../../../../components/icon';
+import { UpdateBanner } from '../../../../../components/update-banner';
 import {
   ForumSanctionDialog,
   type SanctionTarget
@@ -222,9 +223,12 @@ export default function TopicPage() {
   const { id } = useParams<{ id: string }>();
   const { status, profile } = useAuth();
   const [page, setPage] = useState(1);
-  const topic = useResource<TopicDetail>(status === 'loading' ? null : `/forum/topics/${id}`, {
-    page
-  });
+  // Resposta nova não entra sozinha no meio da leitura: aparece "Há respostas novas" (DT-116).
+  const topic = useResource<TopicDetail>(
+    status === 'loading' ? null : `/forum/topics/${id}`,
+    { page },
+    { live: 'notify' }
+  );
   const [reply, setReply] = useState('');
   const [moderation, setModeration] = useState<Moderation | null>(null);
   const [reporting, setReporting] = useState<string | null>(null);
@@ -262,6 +266,11 @@ export default function TopicPage() {
 
   return (
     <div className="container stack" style={{ paddingTop: '2rem', maxWidth: '52rem' }}>
+      <UpdateBanner
+        visible={topic.hasUpdate}
+        label="Há novidades nesta conversa."
+        onApply={() => void topic.reload()}
+      />
       <p>
         <Link href={`/forum/${t.category.slug}`} className="back-link">
           <Icon name="chevron-left" /> {t.category.name}

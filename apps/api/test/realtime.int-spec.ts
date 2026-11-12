@@ -217,6 +217,19 @@ describe('Tempo real (DT-049, DT-116)', () => {
     expect(receivedTopics(visitor).has('finance')).toBe(false);
   });
 
+  it('mudança pública fora de uma tela também atualiza as páginas em cache (catalog)', async () => {
+    const visitor = await open();
+
+    await ctx.prisma.productCategory.create({
+      data: { name: 'Categoria em cache', slug: `cache-${randomUUID().slice(0, 8)}` }
+    });
+
+    await visitor.waitFor(
+      (event) => event.type === 'catalog' && event.topics.includes('store'),
+      'catalog da loja'
+    );
+  });
+
   it('várias mudanças na mesma transação chegam num aviso só', async () => {
     const board = await tokenFor(ctx, ['board']);
     const stream = await open(board.token);

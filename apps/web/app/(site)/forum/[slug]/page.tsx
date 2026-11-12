@@ -30,6 +30,7 @@ import { ForumStandingNotice } from '../forum-standing';
 import { BoardBadge, JoinForumCard, MinorForumNotice } from '../join-forum-card';
 import { useResource } from '../../../../lib/use-resource';
 import { Icon } from '../../../../components/icon';
+import { UpdateBanner } from '../../../../components/update-banner';
 
 export default function ForumCategoryPage() {
   const { slug } = useParams<{ slug: string }>();
@@ -38,7 +39,8 @@ export default function ForumCategoryPage() {
   const [page, setPage] = useState(1);
   const data = useResource<{ category: ForumCategory; topics: Page<TopicSummary> }>(
     status === 'loading' ? null : `/forum/categories/${slug}/topics`,
-    { page }
+    { page },
+    { live: 'notify' }
   );
   const [form, setForm] = useState({ title: '', content: '', pinned: false });
   const [writing, setWriting] = useState(false);
@@ -70,6 +72,11 @@ export default function ForumCategoryPage() {
 
   return (
     <div className="container stack pt-lg">
+      <UpdateBanner
+        visible={data.hasUpdate}
+        label="Há tópicos novos ou respondidos."
+        onApply={() => void data.reload()}
+      />
       <p>
         <Link href="/forum" className="back-link">
           <Icon name="chevron-left" /> Fórum

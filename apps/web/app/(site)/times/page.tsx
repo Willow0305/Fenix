@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 
+import { LiveRefresh } from '../../../components/live-refresh';
 import { Avatar } from '../../../components/avatar';
 import { BrandLogo } from '../../../components/brand-logo';
 import { Icon } from '../../../components/icon';
@@ -59,6 +60,7 @@ export default async function TeamsPage({
 
   return (
     <div className="container stack pt-xl">
+      <LiveRefresh topics={['teams', 'tryouts']} />
       <div className="row">
         <BrandLogo src={headingLogo} alt="" size={64} />
         <h1 className="m-0">

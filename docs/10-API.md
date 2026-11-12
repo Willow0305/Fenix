@@ -49,7 +49,7 @@ O contrato completo e executável fica no OpenAPI (`/docs` fora de produção). 
 | `GET`/`DELETE` | `/api/v1/auth/trusted-devices[/:id]`; `POST /auth/mfa/verify` aceita `rememberDevice` | autenticado (`DT-050`) | 7 |
 | `PUT` / `PATCH` | `/api/v1/store/products/:id/images/order` · `images/:imageId` | `products.manage` (`DT-051`) | 4 |
 | `POST` | `/api/v1/cart/items/change` | público, rate limiting (`DT-051`) | 4 |
-| `GET` | `/api/v1/public/live` (Server-Sent Events): `changed` e `catalog` só dos assuntos públicos; `?watch=` com até 5 chaves `liveKey` acompanha pedidos sem login; `?topics=` antigo é ignorado | público, até 6 por IP (`DT-051`, `DT-116`) | 4 |
+| `GET` | `/api/v1/public/live` (Server-Sent Events): `changed` e `catalog` só dos assuntos públicos; `?watch=` com até 5 chaves `liveKey` acompanha pedidos sem login; `?topics=` antigo é ignorado | público, até 30 por IP em cada servidor (`DT-051`, `DT-116`) | 4 |
 | `GET` | `/api/v1/search?q=` | `dashboard.read`; grupos por permissão (`DT-057`) | 9 |
 | `GET` | `/api/v1/finance/trend?months=` | `finance.read`; mensalidades com `fees.read` (`DT-058`) | 9 |
 | `GET` | `/api/v1/dashboard/summary` | `dashboard.read` | 2 |

@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 
+import { LiveRefresh } from '../../../../components/live-refresh';
 import { Icon } from '../../../../components/icon';
 import { MediaImage } from '../../../../components/media-image';
 import { PartnerLogo } from '../../../../components/partner-logo';
@@ -48,6 +49,7 @@ export default async function PartnerPage({
 
   return (
     <div className="container stack pt-lg">
+      <LiveRefresh topics={['partners', 'benefits']} />
       <p>
         <Link href="/parceiros">
           <Icon name="arrow-left" /> Parceiros

@@ -2988,6 +2988,45 @@ details.collapsible {
   }
 }
 
+// "Há novidades" em páginas de leitura (DT-116): fixo no alto, centralizado, sem cobrir o menu.
+.update-banner-region {
+  position: fixed;
+  top: max(4.5rem, env(safe-area-inset-top, 0px));
+  left: 50%;
+  z-index: 55;
+  width: max-content;
+  max-width: calc(100vw - 2rem);
+  transform: translateX(-50%);
+  pointer-events: none;
+}
+
+.update-banner {
+  display: flex;
+  gap: 0.6rem;
+  align-items: center;
+  margin: 0;
+  padding: 0.45rem 0.5rem 0.45rem 0.9rem;
+  border: 1px solid var(--color-border);
+  border-radius: 999px;
+  background: var(--color-surface);
+  color: var(--color-text);
+  font-size: 0.9rem;
+  box-shadow: 0 6px 20px rgb(11 6 19 / 14%);
+  pointer-events: auto;
+  transition:
+    opacity var(--duration-base) var(--ease-out),
+    transform var(--duration-base) var(--ease-out);
+
+  @starting-style {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+
+  .icon {
+    color: var(--color-primary);
+  }
+}
+
 /* Carteirinha digital (DT-068): proporção de cartão 85,6 × 54 mm, três modelos. */
 .member-card {
   position: relative;
@@ -3167,7 +3206,8 @@ details.collapsible {
   .no-print,
   .whatsapp-float,
   .toast-region,
-  .realtime-status-region {
+  .realtime-status-region,
+  .update-banner-region {
     display: none !important;
   }
 

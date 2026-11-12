@@ -101,7 +101,7 @@ export default async function EventsPage({
 
   return (
     <div className="container stack pt-xl">
-      <LiveRefresh topics={['tryouts']} />
+      <LiveRefresh topics={['tryouts', 'events']} />
       <header className="stack gap-sm">
         <h1 className="m-0">Agenda</h1>
         <p className="muted m-0">

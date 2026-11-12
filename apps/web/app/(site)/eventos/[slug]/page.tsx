@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 
+import { LiveRefresh } from '../../../../components/live-refresh';
 import { Icon } from '../../../../components/icon';
 import { JsonLd } from '../../../../components/json-ld';
 import { MediaImage } from '../../../../components/media-image';
@@ -88,6 +89,7 @@ export default async function EventPage({
 
   return (
     <article className="container reading">
+      <LiveRefresh topics={['events']} />
       <JsonLd data={sportsEventData(event)} />
       <Link href="/eventos" className="back-link">
         <Icon name="arrow-left" /> Eventos

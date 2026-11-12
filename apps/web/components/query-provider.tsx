@@ -36,8 +36,16 @@ export function QueryProvider({ children }: { readonly children: ReactNode }) {
         void client.invalidateQueries({
           predicate: (query) => {
             const path = query.queryKey[0];
+            // Páginas de leitura só avisam que há novidade (`live: 'notify'`), exceto na
+            // ressincronização depois de uma queda.
+            const notify = (query.meta as { live?: string } | undefined)?.live === 'notify';
 
-            return typeof path === 'string' && messages.some((item) => shouldReload(path, item));
+            return (
+              typeof path === 'string' &&
+              messages.some(
+                (item) => (!notify || item.type === 'resync') && shouldReload(path, item)
+              )
+            );
           }
         });
       });

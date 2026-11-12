@@ -1,5 +1,6 @@
 import Link from 'next/link';
 
+import { LiveRefresh } from '../../components/live-refresh';
 import { BrandLogo } from '../../components/brand-logo';
 import { Icon } from '../../components/icon';
 import { joinTeamHref } from '../../components/join-team-cta';
@@ -37,6 +38,9 @@ export default async function HomePage() {
 
   return (
     <>
+      <LiveRefresh
+        topics={['news', 'events', 'teams', 'tryouts', 'store', 'campaigns', 'settings']}
+      />
       <section className={styles.hero} aria-labelledby="hero-title">
         <div className={`container ${styles.heroInner}`}>
           <div className={styles.heroText}>

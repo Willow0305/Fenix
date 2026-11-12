@@ -6,6 +6,23 @@ O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) e o 
 
 ## [Não publicado]
 
+### Tempo real em todo o sistema — onda 4 de 5: site público e comunidade (2026-11-12)
+
+#### Adicionado
+
+- início, notícias, agenda e evento, times, parceiros, benefícios e afiliação se atualizam sozinhos quando o conteúdo muda, como a loja e as seletivas (DT-116);
+- na leitura de notícia e no fórum, o conteúdo novo não entra no meio da leitura: aparece "Há novidades… Atualizar", e só quando há mesmo algo diferente (a própria resposta não conta).
+
+#### Alterado
+
+- mudança pública feita por tarefa automática ou webhook também descarta o cache do site e atualiza as páginas abertas; antes, só as alterações feitas pelas telas;
+- até 30 conexões públicas por IP em cada servidor (antes, 6), por causa de redes de celular com muitos visitantes no mesmo IP;
+- o aviso "Reconectando…" aparece só para quem está logado.
+
+#### Corrigido
+
+- teste de integração do "Esqueci o código" falhava às vezes: o reenvio já dispara o envio da fila em segundo plano, e o teste lia a caixa de saída antes de ele terminar; agora espera o e-mail chegar.
+
 ### Tempo real em todo o sistema — onda 3 de 5: área da pessoa e pagamentos (2026-11-12)
 
 #### Adicionado

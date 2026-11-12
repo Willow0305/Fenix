@@ -23,7 +23,8 @@ import { verifyWatchKey, watchSecret } from './domain/watch-key';
 export const STREAM_LIFETIME_MS = 10 * 60_000;
 const HEARTBEAT_MS = 25_000;
 const MAX_STREAMS_PER_USER = 8;
-const MAX_PUBLIC_STREAMS_PER_IP = 6;
+// Redes de celular põem muitos visitantes atrás do mesmo IP; cada conexão custa pouco (DT-116).
+const MAX_PUBLIC_STREAMS_PER_IP = 30;
 const MAX_WATCHED_ORDERS = 5;
 
 /** Pedidos das chaves válidas em `?watch=` (até 5); chave inválida é ignorada, sem erro. */

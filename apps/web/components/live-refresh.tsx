@@ -2,31 +2,50 @@
 
 import type { RealtimeTopic } from '@fenix/validation';
 import { useRouter } from 'next/navigation';
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 import { onRealtime, requirePublicRealtime, scheduleReload } from '../lib/realtime';
+import { UpdateBanner } from './update-banner';
 
-export type LiveTopic = Extract<RealtimeTopic, 'store' | 'tryouts'>;
+/** Assuntos das páginas públicas em cache (os mesmos de `PUBLIC_TOPICS` na API). */
+export type LiveTopic = Extract<
+  RealtimeTopic,
+  | 'teams'
+  | 'tryouts'
+  | 'store'
+  | 'campaigns'
+  | 'benefits'
+  | 'partners'
+  | 'news'
+  | 'events'
+  | 'settings'
+>;
 
 /**
- * Página pública ao vivo (DT-051, DT-116): quando a API avisa que a loja (estoque, preço) ou
- * as seletivas (vagas) mudaram, já com o cache do site descartado, a página busca os dados de
- * novo, sem a pessoa recarregar. Usa a conexão do navegador, dividida entre as abas; sem
- * sessão, liga o fluxo público enquanto a página estiver aberta.
+ * Página pública ao vivo (DT-051, DT-116): quando a API avisa que um assunto da página mudou,
+ * já com o cache do site descartado, a página busca os dados de novo, sem a pessoa recarregar
+ * e mantendo rolagem e campos. Com `notify`, em vez de trocar o conteúdo, mostra "Há
+ * novidades" e espera a pessoa pedir, para o texto não pular durante a leitura. Usa a conexão
+ * do navegador, dividida entre as abas; sem sessão, liga o fluxo público enquanto aberta.
  */
 export function LiveRefresh({
   topics,
-  onChange
+  onChange,
+  notify = false
 }: {
   readonly topics: readonly LiveTopic[];
   /** Padrão: recarrega os dados da página (`router.refresh`), mantendo o que está na tela. */
   readonly onChange?: () => void;
+  readonly notify?: boolean;
 }) {
   const router = useRouter();
   const handler = useRef(onChange);
+  const [news, setNews] = useState(false);
   const key = [...topics].sort().join(',');
 
-  handler.current = onChange;
+  useEffect(() => {
+    handler.current = onChange;
+  });
 
   useEffect(() => {
     if (key === '') {
@@ -41,11 +60,17 @@ export function LiveRefresh({
         message.type === 'resync' ||
         (message.type === 'catalog' && message.topics.some((topic) => wanted.includes(topic)));
 
-      if (!relevant || cancel) {
+      if (!relevant) {
         return;
       }
 
-      cancel = scheduleReload(() => {
+      if (notify && message.type === 'catalog') {
+        setNews(true);
+
+        return;
+      }
+
+      cancel ??= scheduleReload(() => {
         cancel = null;
         (handler.current ?? (() => router.refresh()))();
       }, 400);
@@ -56,7 +81,19 @@ export function LiveRefresh({
       release();
       cancel?.();
     };
-  }, [key, router]);
+  }, [key, notify, router]);
 
-  return null;
+  if (!notify) {
+    return null;
+  }
+
+  return (
+    <UpdateBanner
+      visible={news}
+      onApply={() => {
+        setNews(false);
+        (handler.current ?? (() => router.refresh()))();
+      }}
+    />
+  );
 }

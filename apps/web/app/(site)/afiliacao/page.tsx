@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 
+import { LiveRefresh } from '../../../components/live-refresh';
 import { Icon } from '../../../components/icon';
 import type { Page } from '../../../lib/api-types';
 import type { Benefit } from '../../../lib/card-types';
@@ -42,6 +43,7 @@ export default async function AffiliationPage() {
 
   return (
     <>
+      <LiveRefresh topics={['store', 'benefits']} />
       <section className={styles.hero} aria-labelledby="afiliacao-titulo">
         <div className={`container ${styles.heroInner}`}>
           <p className={styles.eyebrow}>Afiliação Fênix</p>

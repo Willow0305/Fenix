@@ -186,10 +186,20 @@ describe('avisos do pedido sem conta', () => {
 
     await messages.processDue(MORNING);
 
-    const text = readdirSync(ctx.outboxDir)
-      .map((file) => readFileSync(join(ctx.outboxDir, file), 'utf8'))
-      .filter((content) => content.includes(`Acesso ao pedido ${order.orderNumber}`))
-      .join(' ');
+    // O reenvio já dispara o envio da fila em segundo plano; se ele estiver no meio, a chamada
+    // acima volta sem fazer nada. Espera o e-mail chegar à caixa de saída simulada.
+    const read = () =>
+      readdirSync(ctx.outboxDir)
+        .map((file) => readFileSync(join(ctx.outboxDir, file), 'utf8'))
+        .filter((content) => content.includes(`Acesso ao pedido ${order.orderNumber}`))
+        .join(' ');
+    const deadline = Date.now() + 5_000;
+    let text = read();
+
+    while (text === '' && Date.now() < deadline) {
+      await new Promise((resolve) => setTimeout(resolve, 100));
+      text = read();
+    }
 
     expect(text).toContain(`Código de acesso: ${guestAccessCode ?? ''}`);
     expect(

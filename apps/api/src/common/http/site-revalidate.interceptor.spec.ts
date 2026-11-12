@@ -2,7 +2,10 @@ import type { CallHandler, ExecutionContext } from '@nestjs/common';
 import { lastValueFrom, of } from 'rxjs';
 
 import type { AppConfig } from '../config/app-config';
-import type { RealtimeService } from '../realtime/realtime.service';
+import type { RealtimeTopic } from '@fenix/validation';
+
+import { PUBLIC_REALTIME_TOPICS } from '../../modules/realtime/domain/topic-access';
+import { PUBLIC_TOPICS, type RealtimeService } from '../realtime/realtime.service';
 import {
   publicTopicsOf,
   SiteRevalidateInterceptor,
@@ -27,6 +30,12 @@ describe('SiteRevalidateInterceptor', () => {
   const publish = jest.fn().mockImplementation(async () => {
     calls.push('aviso');
   });
+  let databaseChange: (topics: readonly RealtimeTopic[]) => void = () => undefined;
+  const onChanges = (listener: (topics: readonly RealtimeTopic[]) => void) => {
+    databaseChange = listener;
+
+    return () => undefined;
+  };
 
   function interceptor(enabled: boolean): SiteRevalidateInterceptor {
     const config = {
@@ -36,7 +45,7 @@ describe('SiteRevalidateInterceptor', () => {
     } as unknown as AppConfig;
 
     return new SiteRevalidateInterceptor(
-      new SiteRevalidateService(config, { publish } as unknown as RealtimeService)
+      new SiteRevalidateService(config, { publish, onChanges } as unknown as RealtimeService)
     );
   }
 
@@ -81,6 +90,22 @@ describe('SiteRevalidateInterceptor', () => {
     expect(publish).toHaveBeenCalledWith(
       { topic: 'tryouts' },
       { type: 'catalog', topics: ['tryouts'] }
+    );
+  });
+
+  it('mudança avisada pelo banco (tarefa, webhook) descarta o cache e avisa só as páginas em cache', async () => {
+    interceptor(true);
+    databaseChange(['news', 'forum', 'orders']);
+    await jest.advanceTimersByTimeAsync(1_000);
+
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    expect(publish).toHaveBeenCalledTimes(1);
+    expect(publish).toHaveBeenCalledWith({ topic: 'news' }, { type: 'catalog', topics: ['news'] });
+  });
+
+  it('páginas em cache são as públicas, menos o fórum', () => {
+    expect([...PUBLIC_TOPICS].sort()).toEqual(
+      PUBLIC_REALTIME_TOPICS.filter((topic) => topic !== 'forum').sort()
     );
   });
 

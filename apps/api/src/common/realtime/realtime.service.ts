@@ -21,8 +21,22 @@ export type RealtimeEvent =
   | { readonly type: 'changed'; readonly topics: readonly RealtimeTopic[] }
   | { readonly type: 'catalog'; readonly topics: readonly PublicTopic[] };
 
-/** Assuntos das páginas públicas em cache que se atualizam sozinhas (DT-051). */
-export const PUBLIC_TOPICS = ['store', 'tryouts'] as const satisfies readonly RealtimeTopic[];
+/**
+ * Assuntos das páginas públicas em cache (DT-051, DT-116): a mudança descarta o cache do site
+ * e só então avisa as páginas abertas. O fórum fica de fora: as telas dele buscam direto na
+ * API, e cada reação descartaria o cache do site inteiro.
+ */
+export const PUBLIC_TOPICS = [
+  'teams',
+  'tryouts',
+  'store',
+  'campaigns',
+  'benefits',
+  'partners',
+  'news',
+  'events',
+  'settings'
+] as const satisfies readonly RealtimeTopic[];
 export type PublicTopic = (typeof PUBLIC_TOPICS)[number];
 
 /** Destino: pessoas escolhidas ou quem tem uma permissão. */
@@ -114,6 +128,7 @@ export class RealtimeService implements OnModuleInit, OnApplicationShutdown {
   /** Mudanças com dono: pessoa ou pedido → assuntos. */
   private readonly ownedChanges = new Map<string, Set<RealtimeTopic>>();
   private changesTimer: ReturnType<typeof setTimeout> | null = null;
+  private readonly changeListeners = new Set<(topics: readonly RealtimeTopic[]) => void>();
 
   constructor(private readonly prisma: PrismaService) {}
 
@@ -154,6 +169,15 @@ export class RealtimeService implements OnModuleInit, OnApplicationShutdown {
   /** Conexões abertas da pessoa neste servidor. */
   connectionsOf(userId: string): number {
     return [...this.subscribers].filter((subscriber) => subscriber.userId === userId).length;
+  }
+
+  /** Escuta as mudanças avisadas pelo banco (assuntos sem dono), já agrupadas. */
+  onChanges(listener: (topics: readonly RealtimeTopic[]) => void): () => void {
+    this.changeListeners.add(listener);
+
+    return () => {
+      this.changeListeners.delete(listener);
+    };
   }
 
   subscribe(subscriber: RealtimeSubscriber): () => void {
@@ -229,6 +253,10 @@ export class RealtimeService implements OnModuleInit, OnApplicationShutdown {
     this.changesTimer = null;
     this.changedTopics.clear();
     this.ownedChanges.clear();
+
+    if (changed.length > 0) {
+      this.changeListeners.forEach((listener) => listener(changed));
+    }
 
     for (const subscriber of this.subscribers) {
       const topics = new Set(changed.filter((topic) => subscriber.topics.has(topic)));
