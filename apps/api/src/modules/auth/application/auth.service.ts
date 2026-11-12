@@ -351,8 +351,9 @@ export class AuthService {
   ): Promise<IssuedSession | MfaChallenge> {
     const email = normalizeEmail(emailInput);
 
-    // Freio por conta (DT-109): bloqueado, nem confere a senha; vale igual sem cadastro.
-    await this.loginGuard.assertNotLocked(email);
+    // Freio por conta (DT-109): reserva a tentativa; bloqueado, nem confere a senha.
+    // Vale igual sem cadastro.
+    const attempt = await this.loginGuard.beginAttempt(email);
 
     const user = await this.prisma.user.findUnique({
       where: { email },
@@ -374,7 +375,7 @@ export class AuthService {
           ? { id: user.id, name: user.name, email: user.email }
           : null;
 
-      await this.loginGuard.recordFailure(email, owner, meta);
+      await this.loginGuard.recordFailure(attempt, owner, meta);
       await this.audit.record({
         actorUserId: user?.id ?? null,
         action: 'auth.login.failed',

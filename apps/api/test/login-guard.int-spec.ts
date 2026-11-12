@@ -32,6 +32,21 @@ describe('Freio de tentativas de login por conta (PEN-053, DT-109)', () => {
       .filter((content) => content.includes(`To: ${email}`));
   }
 
+  /** O aviso sai fora da resposta do login: espera o arquivo aparecer na caixa de saída. */
+  async function waitForMails(email: string, count: number): Promise<string[]> {
+    for (let tries = 0; tries < 50; tries += 1) {
+      const mails = mailsTo(email);
+
+      if (mails.length >= count) {
+        return mails;
+      }
+
+      await new Promise((resolve) => setTimeout(resolve, 100));
+    }
+
+    return mailsTo(email);
+  }
+
   /** Simula o fim do bloqueio sem esperar o relógio. */
   async function expireLocks(): Promise<void> {
     await ctx.prisma.loginFailureCounter.updateMany({
@@ -52,6 +67,19 @@ describe('Freio de tentativas de login por conta (PEN-053, DT-109)', () => {
 
     expect(locked.body.code).toBe('LOGIN_TEMPORARILY_LOCKED');
     expect(locked.body.detail).toContain('tente de novo em 1 minuto');
+  });
+
+  it('tentativas ao mesmo tempo não passam juntas do limite', async () => {
+    const user = await createUser(ctx.prisma, ['user']);
+    // Dez senhas erradas de uma vez (como de vários endereços): só 5 chegam a ser conferidas.
+    const responses = await Promise.all(
+      Array.from({ length: 10 }, () => attempt(user.email, 'senha-errada-123'))
+    );
+    const statuses = responses.map((response) => response.status).sort();
+
+    expect(statuses).toEqual([401, 401, 401, 401, 401, 429, 429, 429, 429, 429]);
+    await attempt(user.email, PASSWORD).expect(429);
+    expect(await waitForMails(user.email, 1)).toHaveLength(1);
   });
 
   it('responde igual para e-mail sem cadastro (não revela quem tem conta)', async () => {
@@ -77,7 +105,7 @@ describe('Freio de tentativas de login por conta (PEN-053, DT-109)', () => {
     // Nova falha depois do bloqueio: bloqueia de novo (por mais tempo), sem outro aviso.
     await attempt(user.email, 'senha-errada-123').expect(401);
 
-    const mails = mailsTo(user.email);
+    const mails = await waitForMails(user.email, 1);
 
     expect(mails).toHaveLength(1);
     expect(mails[0]).toContain('5 tentativas seguidas');

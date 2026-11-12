@@ -42,6 +42,40 @@ export function remainingLockSeconds(lockedUntil: Date | null, now: Date): numbe
   return Math.max(0, Math.ceil((lockedUntil.getTime() - now.getTime()) / 1000));
 }
 
+/** Sequência guardada para um e-mail (sem linha = nenhuma falha recente). */
+export interface LoginCounterState {
+  readonly failures: number;
+  readonly lastFailureAt: Date;
+  readonly lockedUntil: Date | null;
+}
+
+export type LoginAttemptDecision =
+  | { readonly kind: 'LOCKED'; readonly remainingSeconds: number }
+  | { readonly kind: 'ALLOWED'; readonly failures: number; readonly lockedUntil: Date | null };
+
+/**
+ * Reserva a tentativa antes de conferir a senha: ela já conta como falha, e o login certo
+ * zera a sequência logo depois. Assim, tentativas feitas ao mesmo tempo não passam juntas
+ * pelo limite: a 5ª reservada já bloqueia as seguintes, mesmo antes de a senha ser conferida.
+ */
+export function reserveAttempt(state: LoginCounterState | null, now: Date): LoginAttemptDecision {
+  const remaining = remainingLockSeconds(state?.lockedUntil ?? null, now);
+
+  if (remaining > 0) {
+    return { kind: 'LOCKED', remainingSeconds: remaining };
+  }
+
+  const failures =
+    state !== null && failureStillCounts(state.lastFailureAt, now) ? state.failures + 1 : 1;
+  const lockSeconds = lockSecondsAfter(failures);
+
+  return {
+    kind: 'ALLOWED',
+    failures,
+    lockedUntil: lockSeconds === 0 ? null : new Date(now.getTime() + lockSeconds * 1000)
+  };
+}
+
 /** Mensagem exibida no bloqueio: a mesma para conta existente ou não. */
 export function lockMessage(remainingSeconds: number): string {
   const minutes = Math.max(1, Math.ceil(remainingSeconds / 60));

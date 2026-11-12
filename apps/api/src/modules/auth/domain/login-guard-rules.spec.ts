@@ -4,7 +4,8 @@ import {
   LOGIN_LOCK_MAX_SECONDS,
   lockMessage,
   lockSecondsAfter,
-  remainingLockSeconds
+  remainingLockSeconds,
+  reserveAttempt
 } from './login-guard-rules';
 
 describe('freio de tentativas de login por conta', () => {
@@ -52,5 +53,62 @@ describe('freio de tentativas de login por conta', () => {
     expect(lockMessage(61)).toContain('em 2 minutos ');
     expect(lockMessage(900)).toContain('em 15 minutos ');
     expect(lockMessage(0)).toContain('em 1 minuto ');
+  });
+
+  describe('reserva da tentativa (antes de conferir a senha)', () => {
+    const now = new Date('2026-11-11T12:00:00.000Z');
+    const minutesAgo = (minutes: number) => new Date(now.getTime() - minutes * 60_000);
+
+    it('primeira tentativa conta 1 e não bloqueia', () => {
+      expect(reserveAttempt(null, now)).toEqual({
+        kind: 'ALLOWED',
+        failures: 1,
+        lockedUntil: null
+      });
+    });
+
+    it('a 5ª reservada já bloqueia as seguintes por 1 minuto', () => {
+      const decision = reserveAttempt(
+        { failures: 4, lastFailureAt: minutesAgo(1), lockedUntil: null },
+        now
+      );
+
+      expect(decision).toEqual({
+        kind: 'ALLOWED',
+        failures: 5,
+        lockedUntil: new Date(now.getTime() + 60_000)
+      });
+    });
+
+    it('com bloqueio em vigor recusa e diz quanto falta', () => {
+      expect(
+        reserveAttempt(
+          { failures: 5, lastFailureAt: now, lockedUntil: new Date(now.getTime() + 45_000) },
+          now
+        )
+      ).toEqual({ kind: 'LOCKED', remainingSeconds: 45 });
+    });
+
+    it('bloqueio vencido: a próxima tentativa dobra o tempo', () => {
+      expect(
+        reserveAttempt(
+          { failures: 5, lastFailureAt: minutesAgo(2), lockedUntil: minutesAgo(1) },
+          now
+        )
+      ).toEqual({ kind: 'ALLOWED', failures: 6, lockedUntil: new Date(now.getTime() + 120_000) });
+    });
+
+    it('sequência de mais de 24 horas recomeça em 1', () => {
+      expect(
+        reserveAttempt(
+          {
+            failures: 9,
+            lastFailureAt: minutesAgo(24 * 60),
+            lockedUntil: minutesAgo(24 * 60 - 15)
+          },
+          now
+        )
+      ).toEqual({ kind: 'ALLOWED', failures: 1, lockedUntil: null });
+    });
   });
 });

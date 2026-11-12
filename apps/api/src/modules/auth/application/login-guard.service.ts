@@ -11,9 +11,9 @@ import { PrismaService } from '../../../common/prisma/prisma.service';
 import {
   LOGIN_FAILURE_THRESHOLD,
   LOGIN_FAILURE_WINDOW_SECONDS,
+  type LoginCounterState,
   lockMessage,
-  lockSecondsAfter,
-  remainingLockSeconds
+  reserveAttempt
 } from '../domain/login-guard-rules';
 
 const CLEANUP_INTERVAL_MS = 60 * 60_000;
@@ -25,13 +25,20 @@ export interface LoginGuardAccount {
   readonly email: string;
 }
 
+/** Tentativa reservada: a posição dela na sequência de falhas e o bloqueio que já deixou. */
+export interface LoginAttempt {
+  readonly failures: number;
+  readonly lockedUntil: Date | null;
+}
+
 /** Hash do e-mail já normalizado; prefixo próprio para não coincidir com outros hashes. */
 const keyHashOf = (normalizedEmail: string) => sha256Hex(`login-guard:${normalizedEmail}`);
 
 /**
  * Freio de tentativas de login por conta (PEN-053, DT-109); a regra está em
- * `login-guard-rules.ts`. A contagem é atômica no PostgreSQL, compartilhada entre
- * servidores, e vale igual para e-mail com ou sem cadastro.
+ * `login-guard-rules.ts`. Cada tentativa é reservada antes de conferir a senha, com a linha
+ * do e-mail travada no PostgreSQL: tentativas simultâneas, em qualquer servidor, esperam
+ * umas pelas outras e não passam juntas do limite. Vale igual para e-mail com ou sem cadastro.
  */
 @Injectable()
 export class LoginGuardService implements OnModuleInit {
@@ -49,54 +56,69 @@ export class LoginGuardService implements OnModuleInit {
     this.jobs.every('login-guard.cleanup', CLEANUP_INTERVAL_MS, () => this.cleanup());
   }
 
-  /** Recusa a tentativa enquanto o e-mail estiver bloqueado, antes de conferir a senha. */
-  async assertNotLocked(normalizedEmail: string, now = new Date()): Promise<void> {
-    const counter = await this.prisma.loginFailureCounter.findUnique({
-      where: { keyHash: keyHashOf(normalizedEmail) },
-      select: { lockedUntil: true }
-    });
-    const remaining = remainingLockSeconds(counter?.lockedUntil ?? null, now);
+  /**
+   * Reserva a tentativa antes de conferir a senha (ela já conta como falha; o login certo
+   * zera em seguida com `clear`). Bloqueado, recusa sem conferir a senha.
+   */
+  async beginAttempt(normalizedEmail: string, now = new Date()): Promise<LoginAttempt> {
+    const keyHash = keyHashOf(normalizedEmail);
+    const decision = await this.prisma.$transaction(async (tx) => {
+      // Cria a linha ou trava a que existe; quem chega ao mesmo tempo espera aqui.
+      const rows = await tx.$queryRaw<
+        { failures: number; last_failure_at: Date; locked_until: Date | null }[]
+      >`
+        INSERT INTO "login_failure_counters" AS c ("id", "key_hash", "failures", "last_failure_at")
+        VALUES (gen_random_uuid(), ${keyHash}, 0, ${now})
+        ON CONFLICT ("key_hash") DO UPDATE SET "key_hash" = c."key_hash"
+        RETURNING "failures", "last_failure_at", "locked_until"`;
+      const row = rows[0];
+      const state: LoginCounterState | null =
+        row === undefined || row.failures === 0
+          ? null
+          : {
+              failures: row.failures,
+              lastFailureAt: row.last_failure_at,
+              lockedUntil: row.locked_until
+            };
+      const next = reserveAttempt(state, now);
 
-    if (remaining > 0) {
-      throw new AppError('TOO_MANY_REQUESTS', 'LOGIN_TEMPORARILY_LOCKED', lockMessage(remaining));
+      if (next.kind === 'ALLOWED') {
+        await tx.loginFailureCounter.update({
+          where: { keyHash },
+          data: { failures: next.failures, lastFailureAt: now, lockedUntil: next.lockedUntil }
+        });
+      }
+
+      return next;
+    });
+
+    if (decision.kind === 'LOCKED') {
+      throw new AppError(
+        'TOO_MANY_REQUESTS',
+        'LOGIN_TEMPORARILY_LOCKED',
+        lockMessage(decision.remainingSeconds)
+      );
     }
+
+    return { failures: decision.failures, lockedUntil: decision.lockedUntil };
   }
 
   /**
-   * Soma uma falha e, a partir do limite, bloqueia. Na primeira vez que a sequência chega
-   * ao limite, avisa o titular por e-mail, se a conta existir.
+   * A senha da tentativa reservada estava errada. Na primeira vez que a sequência chega ao
+   * limite, registra na auditoria e avisa o titular por e-mail, se a conta existir. O e-mail
+   * sai fora da resposta: esperar pelo envio deixaria o login mais lento só para quem tem
+   * cadastro, e o tempo de resposta revelaria quem tem conta.
    */
   async recordFailure(
-    normalizedEmail: string,
+    attempt: LoginAttempt,
     account: LoginGuardAccount | null,
-    meta: RequestMeta,
-    now = new Date()
+    meta: RequestMeta
   ): Promise<void> {
-    const keyHash = keyHashOf(normalizedEmail);
-    const windowStart = new Date(now.getTime() - LOGIN_FAILURE_WINDOW_SECONDS * 1000);
-    // Falha antiga (fora da janela) recomeça a sequência em 1; senão soma 1.
-    const rows = await this.prisma.$queryRaw<{ failures: number }[]>`
-      INSERT INTO "login_failure_counters" AS c ("id", "key_hash", "failures", "last_failure_at")
-      VALUES (gen_random_uuid(), ${keyHash}, 1, ${now})
-      ON CONFLICT ("key_hash") DO UPDATE SET
-        "failures" = CASE WHEN c."last_failure_at" <= ${windowStart} THEN 1 ELSE c."failures" + 1 END,
-        "last_failure_at" = ${now}
-      RETURNING "failures"`;
-    const failures = rows[0]?.failures ?? 1;
-    const lockSeconds = lockSecondsAfter(failures);
-
-    if (lockSeconds === 0) {
-      return;
-    }
-
-    const lockedUntil = new Date(now.getTime() + lockSeconds * 1000);
-
-    await this.prisma.loginFailureCounter.update({
-      where: { keyHash },
-      data: { lockedUntil }
-    });
-
-    if (failures !== LOGIN_FAILURE_THRESHOLD || account === null) {
+    if (
+      attempt.failures !== LOGIN_FAILURE_THRESHOLD ||
+      attempt.lockedUntil === null ||
+      account === null
+    ) {
       return;
     }
 
@@ -105,10 +127,10 @@ export class LoginGuardService implements OnModuleInit {
       action: 'auth.login.locked',
       entityType: 'User',
       entityId: account.id,
-      after: { failures, lockedUntil: lockedUntil.toISOString() },
+      after: { failures: attempt.failures, lockedUntil: attempt.lockedUntil.toISOString() },
       meta
     });
-    await this.alertOwner(account);
+    void this.alertOwner(account);
   }
 
   /** Login certo ou senha redefinida: a sequência recomeça. */
