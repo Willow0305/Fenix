@@ -17,12 +17,9 @@ O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) e o 
 - arquivos restritos: a rota genérica `/api/v1/media/:id` passa a exigir, além de `files.read.restricted`, a permissão do domínio em que o arquivo é usado (documento de parceiro ou de atleta, anexo do Caixa, comprovante e prova de entrega), as mesmas das rotas dedicadas; antes, quem tivesse só `files.read.restricted` abria documentos confidenciais de parceiros (PEN-054, DT-110). Sem mudança para administrador e diretoria, que têm todas.
 - freio de tentativas de login por conta: depois de 5 falhas seguidas no mesmo e-mail, novas tentativas ficam bloqueadas por 1 minuto, dobrando a cada nova falha até 15 minutos; o titular recebe um aviso por e-mail na primeira vez; a resposta é igual para e-mail sem cadastro, e o login certo ou a redefinição de senha liberam (PEN-053, DT-109; migração `20261111100000_freio_login_por_conta`).
 
-#### Pendente
-
-- divisão dos serviços muito grandes da API (`orders.service.ts` com 2.309 linhas e outros três acima de 1.300) registrada como `PEN-077`, para ser feita aos poucos, quando cada módulo for alterado.
-
 #### Alterado
 
+- serviços grandes da API divididos por assunto, sem mudança de regra (PEN-077, DT-114): pedidos da loja em leitura, checkout, pagamentos, situação e pedido sem conta; a classe original continua com os mesmos métodos.
 - módulos da API renomeados para não confundir: `card` (pagamento com cartão) virou `card-payment` e `cards` (carteirinhas) virou `member-cards`, com as classes `CardPaymentModule` e `MemberCardsModule`. As rotas da API não mudam (DT-113).
 - cinco índices novos no banco para chaves estrangeiras usadas em consultas: vendas por produto, notícias por assunto, lançamentos de um fechamento de caixa e avaliações e reações por pessoa (cópia dos dados e anonimização) (DT-112; migração `20261111120000_indices_chaves_estrangeiras`).
 - o CI passa a rodar também em push na branch `dev`, onde o desenvolvimento acontece; antes um erro só aparecia no pull request ou no merge com a `main`. Os ponta a ponta no CI ficam como `PEN-076`.

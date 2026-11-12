@@ -8,6 +8,11 @@ import { CatalogService } from './application/catalog.service';
 import { CouponsService } from './application/coupons.service';
 import { InventoryService } from './application/inventory.service';
 import { OrdersService } from './application/orders.service';
+import { OrderReader } from './application/order-view';
+import { OrderCheckoutService } from './application/order-checkout.service';
+import { OrderPaymentsService } from './application/order-payments.service';
+import { OrderStatusService } from './application/order-status.service';
+import { GuestOrderAccessService } from './application/guest-order-access.service';
 import { StoreAdminController, StorefrontController } from './http/store.controller';
 import { MemberCardsModule } from '../member-cards/http/cards.controller';
 import { ReturnsService } from './application/returns.service';
@@ -33,6 +38,11 @@ import { DeliveryAdminController, DeliveryController } from './http/delivery.con
     CartService,
     FavoritesService,
     OrdersService,
+    OrderReader,
+    OrderCheckoutService,
+    OrderPaymentsService,
+    OrderStatusService,
+    GuestOrderAccessService,
     CouponsService,
     ReturnsService,
     DeliveryService,

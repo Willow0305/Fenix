@@ -2308,3 +2308,35 @@ A API tinha dois módulos com nomes quase iguais e assuntos diferentes: `modules
 ### Consequências
 
 - renomeação feita com `git mv` (o histórico dos arquivos é preservado); sem mudança de comportamento, coberta pelos testes existentes (`card.int-spec.ts`, `member-cards.int-spec.ts`, `card-fee-overdue.int-spec.ts`).
+
+## DT-114 — Divisão dos serviços grandes da API
+
+- **Estado:** Aceita; em implementação desde 2026-11-11
+- **Data:** 2026-11-11
+- **Aprovador:** responsável do projeto ("PEN-077, dividir os serviços grandes - faça isso pfv")
+
+### Contexto
+
+Quatro serviços tinham mais de 1.300 linhas e juntavam assuntos diferentes (`PEN-077`). O maior, `store/application/orders.service.ts` (2.309), reunia checkout, pagamento, mudança de situação, pedido sem conta e a montagem da visão do pedido.
+
+### Decisão
+
+- cada serviço grande vira serviços por assunto, mais um **leitor** com o que todos usam (visão, carregar o registro) e as declarações de tipo;
+- a classe original fica como **fachada**, com os mesmos métodos públicos e os mesmos tipos (`Parameters<…>`/`ReturnType<…>` do serviço do assunto). Controllers e outros módulos não mudam, e os tipos continuam exportados pelo arquivo original;
+- **só reorganização**: os métodos foram movidos inteiros, sem mudança de regra. Um script confere que o corpo de cada método original aparece idêntico em algum dos arquivos novos, tirando a troca de `this.x(` por `this.<serviço>.x(` e o `private` que sai dos métodos chamados entre serviços;
+- não há dependência circular entre os serviços novos.
+
+Pedidos (`store/application`):
+
+| Arquivo | Assunto |
+|---|---|
+| `order-view.ts` (`OrderReader`) | tipos, visão do pedido, carregar, listas, total vendido |
+| `order-checkout.service.ts` | checkout, limites por comprador, capacidade da remessa, endereço |
+| `order-payments.service.ts` | PIX automático, pagamento da diretoria, comprovante, confirmação |
+| `order-status.service.ts` | mudança de situação, cancelamentos, pronto e retirado, reserva vencida (tarefa automática) |
+| `guest-order-access.service.ts` | pedido sem conta: consulta, trazer para a conta, reenvio, WhatsApp |
+| `orders.service.ts` | fachada `OrdersService` |
+
+### Consequências
+
+- o maior arquivo de pedidos passa de 2.309 para 710 linhas; o comportamento é coberto pelos testes existentes (`npm run check`, `npm run test:integration` e `npm run e2e` verdes a cada divisão).
