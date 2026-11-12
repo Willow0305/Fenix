@@ -468,6 +468,53 @@ export function requirePublicRealtime(): () => void {
   };
 }
 
+/**
+ * Acompanha um pedido ao vivo sem login (pedido sem conta e entregador, DT-116), com a chave
+ * assinada que veio na consulta. Conexão própria, só enquanto a tela estiver aberta: chama
+ * `onChange` quando o pedido muda e ao voltar de uma queda, para a tela buscar de novo.
+ */
+const ORDER_TOPICS: readonly RealtimeTopic[] = ['orders', 'payments', 'delivery'];
+
+export function watchOrder(liveKey: string, onChange: () => void): () => void {
+  if (typeof EventSource === 'undefined') {
+    return () => undefined;
+  }
+
+  const source = new EventSource(`/api/v1/public/live?watch=${encodeURIComponent(liveKey)}`);
+  let dropped = false;
+  let cancel: (() => void) | null = null;
+  const changed = () => {
+    cancel ??= scheduleReload(() => {
+      cancel = null;
+      onChange();
+    }, 300);
+  };
+
+  // O fluxo público também traz a loja, a agenda…; pedido, pagamento e entrega só chegam a
+  // um visitante pelo pedido acompanhado.
+  source.addEventListener('changed', (event: MessageEvent<string>) => {
+    const order = topicsOf(event.data).some((topic) => ORDER_TOPICS.includes(topic));
+
+    if (order) {
+      changed();
+    }
+  });
+  source.onerror = () => {
+    dropped = true;
+  };
+  source.onopen = () => {
+    if (dropped) {
+      dropped = false;
+      changed();
+    }
+  };
+
+  return () => {
+    source.close();
+    cancel?.();
+  };
+}
+
 /** Usuário digitando num formulário: recarregar agora poderia trocar o que está na tela. */
 function isEditing(): boolean {
   const element = document.activeElement;

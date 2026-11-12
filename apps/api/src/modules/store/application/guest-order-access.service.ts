@@ -8,6 +8,7 @@ import { normalizeEmail } from '../../auth/domain/auth-rules';
 import { decryptField, encryptField } from '../../../common/crypto/data-cipher';
 import { formatGuestCode, generateGuestCode, guestCodeHash } from '../domain/guest-access';
 import { whatsappNumber } from '../../notifications/domain/channel-rules';
+import { signWatchKey, watchSecret } from '../../realtime/domain/watch-key';
 import { GuestMessagesService } from './guest-messages.service';
 import { OrderView, ORDER_INCLUDE } from './order-view';
 import { OrderReader } from './order-view';
@@ -40,7 +41,13 @@ export class GuestOrderAccessService {
       throw AppError.notFound('Pedido não encontrado. Confira o número e o código.');
     }
 
-    return this.reader.withPaymentInfo(await this.reader.toView(row, undefined, true));
+    const view = await this.reader.withPaymentInfo(await this.reader.toView(row, undefined, true));
+
+    // Quem tem o código acompanha o pedido ao vivo, sem login (DT-116).
+    return {
+      ...view,
+      liveKey: signWatchKey(watchSecret(this.config.values.dataEncryptionKey), row.id)
+    };
   }
 
   /**

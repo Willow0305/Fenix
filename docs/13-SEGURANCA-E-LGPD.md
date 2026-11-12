@@ -279,6 +279,13 @@ Dados de saúde/prontuário continuam fora do escopo, mesmo com responsável.
 - a exportação dos dados do titular inclui consentimento e preferências; a anonimização apaga as preferências, limpa o consentimento e cancela envios pendentes;
 - provedores de e-mail e a Meta (WhatsApp Cloud API) são operadores: entram no inventário de terceiros abaixo e no contrato (`PEN-042`, `PEN-064`).
 
+### Tempo real (DT-049, DT-116)
+
+- o aviso em tempo real nunca leva dados: só o nome do assunto que mudou. A tela busca de novo pela API, com as permissões de quem está vendo;
+- cada pessoa recebe só os assuntos públicos, os das áreas que as permissões dela deixam ler ou agir e os dos próprios registros; visitante sem login recebe só os públicos;
+- quem acompanha um pedido sem login (pedido sem conta, entregador) usa uma chave assinada (HMAC, chave derivada da chave de dados), entregue junto com a consulta que a pessoa já podia fazer; ela só dá o aviso "este pedido mudou";
+- os gatilhos do banco não registram nada: o aviso vive só no caminho até o navegador.
+
 ### Medição de leituras de notícias (D5, DT-081)
 
 - a contagem é **própria e agregada**: a tabela `news_daily_views` guarda só notícia, dia e total. Não há pessoa, conta, IP, navegador, cookie ou identificador de dispositivo;

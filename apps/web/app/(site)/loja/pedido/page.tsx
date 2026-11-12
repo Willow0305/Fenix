@@ -12,6 +12,7 @@ import { DeliveryTracking } from '../../../../components/delivery-tracking';
 import { OrderSummary } from '../../../../components/order-summary';
 import { ErrorSummary, PageHeader, TextField, useSubmit } from '../../../../components/ui';
 import { api } from '../../../../lib/api-client';
+import { watchOrder } from '../../../../lib/realtime';
 import {
   forgetGuestOrder,
   type GuestOrderRef,
@@ -74,6 +75,27 @@ export default function GuestOrderPage() {
     }
     // Só ao abrir a página: o link fixo consulta sozinho.
   }, []);
+
+  // Pagamento confirmado, pedido separado ou entregue: a tela atualiza sozinha (DT-116).
+  const liveKey = order?.liveKey ?? null;
+
+  useEffect(() => {
+    if (!liveKey) {
+      return undefined;
+    }
+
+    return watchOrder(liveKey, () => {
+      const ref = {
+        orderNumber: target.current.orderNumber.trim(),
+        code: target.current.code.trim()
+      };
+
+      void api<Order>('/public/orders/lookup', { method: 'POST', body: ref, auth: false }).then(
+        setOrder,
+        () => undefined
+      );
+    });
+  }, [liveKey]);
 
   const current = { orderNumber: order?.orderNumber ?? '', code: target.current.code.trim() };
 

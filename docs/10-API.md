@@ -49,7 +49,7 @@ O contrato completo e executável fica no OpenAPI (`/docs` fora de produção). 
 | `GET`/`DELETE` | `/api/v1/auth/trusted-devices[/:id]`; `POST /auth/mfa/verify` aceita `rememberDevice` | autenticado (`DT-050`) | 7 |
 | `PUT` / `PATCH` | `/api/v1/store/products/:id/images/order` · `images/:imageId` | `products.manage` (`DT-051`) | 4 |
 | `POST` | `/api/v1/cart/items/change` | público, rate limiting (`DT-051`) | 4 |
-| `GET` | `/api/v1/public/live` (Server-Sent Events): `changed` e `catalog` só dos assuntos públicos; `?topics=` antigo é ignorado | público, até 6 por IP (`DT-051`, `DT-116`) | 4 |
+| `GET` | `/api/v1/public/live` (Server-Sent Events): `changed` e `catalog` só dos assuntos públicos; `?watch=` com até 5 chaves `liveKey` acompanha pedidos sem login; `?topics=` antigo é ignorado | público, até 6 por IP (`DT-051`, `DT-116`) | 4 |
 | `GET` | `/api/v1/search?q=` | `dashboard.read`; grupos por permissão (`DT-057`) | 9 |
 | `GET` | `/api/v1/finance/trend?months=` | `finance.read`; mensalidades com `fees.read` (`DT-058`) | 9 |
 | `GET` | `/api/v1/dashboard/summary` | `dashboard.read` | 2 |
@@ -72,7 +72,7 @@ O contrato completo e executável fica no OpenAPI (`/docs` fora de produção). 
 | `POST` | `/api/v1/orders/checkout` | público, rate limiting | 4 |
 | `GET`/`POST` | `/api/v1/me/orders/:id/card` · `public/orders/card[/checkout]` · `public/card/:chargeId/status` | cartão pelo site (DT-079); formulário e pagamento só para conta com e-mail confirmado: 403 `CARD_ACCOUNT_REQUIRED`/`CARD_EMAIL_NOT_VERIFIED`; checkout com `ONLINE_CARD` sem isso: 422 (DT-100) | 9 |
 | `GET` | `/api/v1/store/orders/:id` | `orders.read`; inclui `cardHolder` (nome e documento mascarado do titular do cartão) só nesta visão (DT-100) | 9 |
-| `POST` | `/api/v1/public/orders/lookup` · `public/orders/proof` (Idempotency-Key) | número + código | 4 |
+| `POST` | `/api/v1/public/orders/lookup` (devolve `liveKey`, `DT-116`) · `public/orders/proof` (Idempotency-Key) | número + código | 4 |
 | `GET`/`POST` | `/api/v1/me/orders[/:id]` · `:id/proof` | próprio | 4 |
 | `GET`/`PUT`/`DELETE` | `/api/v1/me/favorites[/:productId]` | próprio | 4 |
 | `GET` | `/api/v1/me/stock-alerts?variantIds=` | próprio: variações com aviso pedido (`DT-081`) | 9 |

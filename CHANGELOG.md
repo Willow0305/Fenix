@@ -6,6 +6,15 @@ O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) e o 
 
 ## [Não publicado]
 
+### Tempo real em todo o sistema — onda 3 de 5: área da pessoa e pagamentos (2026-11-12)
+
+#### Adicionado
+
+- a área da pessoa se atualiza sozinha quando muda algo dela: pedido, pagamento, mensalidade, carteirinha (do titular e de quem comprou), inscrição em seletiva, agendamento, solicitação LGPD, perfil e papéis; ninguém mais recebe esse aviso (DT-116; migração `20261112110000_tempo_real_para_o_dono`);
+- pagamento confirmado pelo intermediário (webhook, consulta ou tarefa) atualiza na hora o pedido ou a mensalidade, o Caixa, o painel e a área de quem pagou; as telas de PIX e de cartão conferem assim que o aviso chega, além da conferência a cada 5 s;
+- pedido sem conta e tela do entregador acompanham o pedido ao vivo, pela chave assinada que vem na consulta do pedido (`liveKey`, `GET /api/v1/public/live?watch=`);
+- teste de integração do ciclo completo do pagamento e de três conferências simultâneas da mesma cobrança (uma baixa, um lançamento, nenhuma notificação a mais).
+
 ### Tempo real em todo o sistema — onda 2 de 5: painel para toda a equipe (2026-11-12)
 
 #### Adicionado

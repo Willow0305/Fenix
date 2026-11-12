@@ -2401,7 +2401,7 @@ Desde o NestJS 12 (`DT-055`), os pacotes do Nest são só ESM e a API em CommonJ
 
 ## DT-116 — Tempo real por assunto, avisado pelo banco
 
-- **Estado:** Aceita; ondas 1 e 2 de 5 implementadas em 2026-11-12
+- **Estado:** Aceita; ondas 1 a 3 de 5 implementadas em 2026-11-12
 - **Data:** 2026-11-12
 - **Aprovador:** responsável do projeto ("Aprovado, seguindo as quatro recomendações apresentadas e a sequência de execução das ondas 1 a 5", 2026-11-12)
 - **Substitui em parte:** `DT-049` (o aviso `changed` genérico, só para a diretoria) e `DT-051` (o fluxo público por assunto)
@@ -2439,7 +2439,11 @@ Antes, só quem tinha `dashboard.read` recebia o aviso `changed`, e qualquer esc
 
 1. **fundação** (esta): gatilhos, assuntos, quem recebe, recarga só do que mudou, conexão dividida entre as abas, ressincronização e aviso de reconexão;
 2. **painel para toda a equipe** (implementada): papéis personalizados recebem as áreas das próprias permissões, inclusive as de agir (o teste das rotas achou `cash.reconcile` e `fees.plans.manage` sem aviso); tarefa automática avisa (teste com o fechamento de remessa pelo prazo); formulários de edição preenchidos com dados ao vivo (`useEditableCopy`) acompanham a versão nova só sem edição pendente; com edição pendente, mantêm o que foi digitado e avisam "Estes dados foram alterados em outro lugar…", com a opção de descartar. O entregador usa o link da entrega, sem login, e fica com a onda 3;
-3. **área da pessoa e pagamentos:** aviso ao dono (pedido, também sem conta, mensalidade, carteirinha, inscrição, agendamento) e o ciclo completo do PIX e do cartão confirmados pelo intermediário, com idempotência conferida;
+3. **área da pessoa e pagamentos** (implementada; migração `20261112110000_tempo_real_para_o_dono`):
+   - **aviso ao dono:** gatilhos em 22 tabelas avisam também `<assunto>:<id>`, em que o id é a pessoa dona do registro (pedido, pagamento, mensalidade, carteirinha do titular e de quem comprou, inscrição em seletiva, agendamento, solicitação LGPD, perfil e papéis) e, nos pedidos, o próprio pedido. A pessoa recebe os assuntos dos próprios registros mesmo sem permissão do painel, e só eles. A função `fenix_owners_of` acha o dono pelo atleta, pela mensalidade ou pelo pedido;
+   - **pedido sem conta e entregador:** a consulta do pedido (número e código) e o link da entrega devolvem `liveKey` = `<id do pedido>.<HMAC-SHA256 de 16 bytes>`, com chave derivada da chave de dados (HKDF, rótulo `realtime-watch-v1`). `GET /public/live?watch=<chaves>` (até 5) acompanha esses pedidos. Chave inválida é ignorada sem erro, e o aviso continua sem dados. A tela abre uma conexão própria só enquanto está aberta, e o link do entregador deixa de trazer a chave depois da entrega;
+   - **pagamento confirmado pelo backend:** PIX e cartão já eram confirmados só pelo intermediário (webhook com assinatura conferida, consulta oficial e tarefa a cada 2 min), nunca pelo navegador. Agora a baixa avisa, no mesmo commit, o pedido ou a mensalidade, o Caixa, o painel e a área da pessoa. A tela de PIX e a de cartão conferem na hora em que o aviso chega, e mantêm a conferência a cada 5 s;
+   - **idempotência conferida:** aviso repetido do intermediário é descartado pela chave única do evento; a baixa trava a cobrança e só acontece se ela ainda estiver pendente; as notificações têm chave de deduplicação; avisos de tempo real repetidos na mesma transação viram um só. Teste novo: três conferências simultâneas da mesma cobrança geram uma baixa, um lançamento no Caixa e nenhuma notificação a mais;
 4. **site público e comunidade:** demais páginas em cache e "Há novidades" no fórum e nas notícias;
 5. **prova final:** E2E com dois navegadores, carga de conexões e documentação.
 

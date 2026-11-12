@@ -42,6 +42,8 @@ export interface RealtimeSubscriber {
   readonly permissions: ReadonlySet<string>;
   /** Assuntos que a pessoa pode receber (DT-116): os públicos e os das permissões dela. */
   readonly topics: ReadonlySet<RealtimeTopic>;
+  /** Pedidos acompanhados pelo link, sem login (chave assinada, DT-116). */
+  readonly watching?: ReadonlySet<string>;
   /** Hash do IP, para limitar conexões de visitantes. */
   readonly ipHash?: string | null;
   readonly send: (event: RealtimeEvent) => void;
@@ -50,6 +52,7 @@ export interface RealtimeSubscriber {
 }
 
 const RECONNECT_MAX_MS = 30_000;
+const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 /** O NOTIFY aceita até 8000 bytes; 100 UUIDs cabem com folga. */
 const USERS_PER_EVENT = 100;
 
@@ -108,6 +111,8 @@ export class RealtimeService implements OnModuleInit, OnApplicationShutdown {
   private retryMs = 1_000;
   private retryTimer: ReturnType<typeof setTimeout> | null = null;
   private readonly changedTopics = new Set<RealtimeTopic>();
+  /** Mudanças com dono: pessoa ou pedido → assuntos. */
+  private readonly ownedChanges = new Map<string, Set<RealtimeTopic>>();
   private changesTimer: ReturnType<typeof setTimeout> | null = null;
 
   constructor(private readonly prisma: PrismaService) {}
@@ -190,30 +195,52 @@ export class RealtimeService implements OnModuleInit, OnApplicationShutdown {
   }
 
   /**
-   * Mudança avisada por um gatilho do banco. As que chegam juntas viram um aviso só, e cada
-   * pessoa recebe apenas os assuntos que pode ver.
+   * Mudança avisada por um gatilho do banco: `assunto` ou `assunto:<id>`, em que o id é a
+   * pessoa dona do registro ou o pedido. As que chegam juntas viram um aviso só, e cada
+   * pessoa recebe os assuntos que pode ver e os dos próprios registros.
    */
   receiveChange(payload: string): void {
-    if (!isRealtimeTopic(payload)) {
+    const [topic, owner, ...rest] = payload.split(':');
+
+    if (!isRealtimeTopic(topic) || rest.length > 0) {
       return;
     }
 
-    this.changedTopics.add(payload);
+    if (owner === undefined) {
+      this.changedTopics.add(topic);
+    } else if (UUID.test(owner)) {
+      const key = owner.toLowerCase();
+      const topics = this.ownedChanges.get(key) ?? new Set<RealtimeTopic>();
+
+      topics.add(topic);
+      this.ownedChanges.set(key, topics);
+    } else {
+      return;
+    }
+
     this.changesTimer ??= setTimeout(() => this.flushChanges(), CHANGES_COALESCE_MS);
     this.changesTimer.unref();
   }
 
   private flushChanges(): void {
-    const changed = [...this.changedTopics].sort();
+    const changed = [...this.changedTopics];
+    const owned = new Map(this.ownedChanges);
 
     this.changesTimer = null;
     this.changedTopics.clear();
+    this.ownedChanges.clear();
 
     for (const subscriber of this.subscribers) {
-      const topics = changed.filter((topic) => subscriber.topics.has(topic));
+      const topics = new Set(changed.filter((topic) => subscriber.topics.has(topic)));
+      const mine = [
+        ...(subscriber.userId === null ? [] : [subscriber.userId.toLowerCase()]),
+        ...(subscriber.watching ?? [])
+      ];
 
-      if (topics.length > 0) {
-        subscriber.send({ type: 'changed', topics });
+      mine.forEach((key) => owned.get(key)?.forEach((topic) => topics.add(topic)));
+
+      if (topics.size > 0) {
+        subscriber.send({ type: 'changed', topics: [...topics].sort() });
       }
     }
   }

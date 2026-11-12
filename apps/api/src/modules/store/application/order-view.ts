@@ -54,6 +54,8 @@ export interface OrderCardHolder {
 
 export interface OrderView {
   readonly id: string;
+  /** Só na consulta sem conta: chave para acompanhar o pedido ao vivo (DT-116). */
+  readonly liveKey?: string;
   readonly orderNumber: string;
   readonly status: OrderStatus;
   readonly customerName: string;

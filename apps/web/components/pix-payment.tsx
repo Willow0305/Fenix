@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 
 import { api, errorMessage } from '../lib/api-client';
+import { onRealtime } from '../lib/realtime';
 import { formatDateTime, formatMoney } from '../lib/format';
 import { useResource } from '../lib/use-resource';
 import { Icon } from './icon';
@@ -84,7 +85,8 @@ export function PixPayment({
         : api<PixCharge>(`/me/pix/${id}/simulate`, { method: 'POST', body: {} })
     );
 
-  // Confere a situação a cada 5 s enquanto o QR estiver aberto e pendente.
+  // Confere a situação a cada 5 s enquanto o QR estiver aberto e pendente e, com sessão,
+  // também na hora em que o aviso do pagamento chega (DT-116).
   const pendingId = charge?.status === 'PENDING' ? charge.id : null;
 
   useEffect(() => {
@@ -92,7 +94,7 @@ export function PixPayment({
       return;
     }
 
-    const timer = window.setInterval(() => {
+    const refresh = () =>
       void check(pendingId).then(
         (updated) => {
           setCharge(updated);
@@ -103,9 +105,20 @@ export function PixPayment({
         },
         () => undefined
       );
-    }, POLL_MS);
+    const timer = window.setInterval(refresh, POLL_MS);
+    const stop = onRealtime((message) => {
+      if (
+        message.type === 'resync' ||
+        (message.type === 'changed' && message.topics.includes('payments'))
+      ) {
+        refresh();
+      }
+    });
 
-    return () => window.clearInterval(timer);
+    return () => {
+      window.clearInterval(timer);
+      stop();
+    };
     // `check` e `onPaid` só dependem do alvo, que não muda enquanto o QR está aberto.
   }, [pendingId]);
 

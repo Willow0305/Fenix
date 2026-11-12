@@ -19,6 +19,7 @@ import {
   MediaService
 } from '../../media/application/media.service';
 import { NotificationsService } from '../../notifications/application/notifications.service';
+import { signWatchKey, watchSecret } from '../../realtime/domain/watch-key';
 import { StaffAlertsService } from '../../notifications/application/staff-alerts.service';
 import {
   cleanDeliveryCode,
@@ -96,6 +97,8 @@ export interface CourierLinkView {
   readonly status: 'OUT' | 'DONE' | 'CLOSED';
   readonly codeAttemptsLeft: number;
   readonly expiresAt: string | null;
+  /** Chave para a tela do entregador acompanhar o pedido ao vivo (DT-116). Some depois da entrega. */
+  readonly liveKey?: string;
 }
 
 export type BuyerOwner =
@@ -754,7 +757,8 @@ export class DeliveryDispatchService implements OnModuleInit {
         : null,
       status: attempt.status === 'OUT' ? 'OUT' : 'DONE',
       codeAttemptsLeft: Math.max(0, DELIVERY_CODE_ATTEMPTS - attempt.codeAttempts),
-      expiresAt: attempt.linkExpiresAt?.toISOString() ?? null
+      expiresAt: attempt.linkExpiresAt?.toISOString() ?? null,
+      liveKey: signWatchKey(watchSecret(this.config.values.dataEncryptionKey), attempt.orderId)
     };
   }
 

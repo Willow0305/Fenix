@@ -171,6 +171,8 @@ export interface OrderItem {
 }
 
 export interface Order {
+  /** Só na consulta sem conta: chave para acompanhar o pedido ao vivo (DT-116). */
+  readonly liveKey?: string;
   id: string;
   orderNumber: string;
   status: OrderStatus;

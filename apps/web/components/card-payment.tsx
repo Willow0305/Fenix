@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from 'react';
 
 import { api, errorMessage } from '../lib/api-client';
+import { onRealtime } from '../lib/realtime';
 import { formatMoney } from '../lib/format';
 import { Icon } from './icon';
 import { Alert, SelectField } from './ui';
@@ -227,13 +228,14 @@ export function CardPayment({
     };
   }, [info]);
 
-  // Em análise no banco: confere sozinho a cada 5 segundos.
+  // Em análise no banco: confere sozinho a cada 5 segundos e, com sessão, também na hora em
+  // que o aviso do pagamento chega (DT-116).
   useEffect(() => {
     if (charge?.status !== 'PENDING') {
       return;
     }
 
-    const timer = window.setInterval(() => {
+    const refresh = () => {
       void (
         guest
           ? api<CardCharge>(`/public/card/${charge.id}/status`, {
@@ -242,16 +244,31 @@ export function CardPayment({
               auth: false
             })
           : api<CardCharge>(`/me/card/${charge.id}`)
-      ).then((result) => {
-        setCharge(result);
+      ).then(
+        (result) => {
+          setCharge(result);
 
-        if (result.status === 'PAID') {
-          onPaid();
-        }
-      });
-    }, POLL_MS);
+          if (result.status === 'PAID') {
+            onPaid();
+          }
+        },
+        () => undefined
+      );
+    };
+    const timer = window.setInterval(refresh, POLL_MS);
+    const stop = onRealtime((message) => {
+      if (
+        message.type === 'resync' ||
+        (message.type === 'changed' && message.topics.includes('payments'))
+      ) {
+        refresh();
+      }
+    });
 
-    return () => window.clearInterval(timer);
+    return () => {
+      window.clearInterval(timer);
+      stop();
+    };
   }, [charge]);
 
   if (charge?.status === 'PAID') {

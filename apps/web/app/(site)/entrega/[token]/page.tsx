@@ -15,6 +15,7 @@ import {
 import { api, errorMessage } from '../../../../lib/api-client';
 import type { CourierLink } from '../../../../lib/delivery-types';
 import { formatDateTime, formatPhoneDisplay, plural } from '../../../../lib/format';
+import { watchOrder } from '../../../../lib/realtime';
 
 /**
  * Link do entregador (DT-075, RN-ENT-007): sem login, só o necessário para esta entrega.
@@ -68,6 +69,12 @@ export default function CourierPage() {
   useEffect(() => {
     void load();
   }, [load]);
+
+  // Pedido cancelado, endereço trocado ou entrega registrada pela diretoria: a tela atualiza
+  // sozinha (DT-116).
+  const liveKey = view?.liveKey ?? null;
+
+  useEffect(() => (liveKey ? watchOrder(liveKey, () => void load()) : undefined), [liveKey, load]);
 
   if (error && !view) {
     return (

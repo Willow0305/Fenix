@@ -140,6 +140,48 @@ describe('mudanças avisadas pelo banco', () => {
     expect(visitante).toEqual([]);
   });
 
+  it('mudança com dono vai para o dono, mesmo sem permissão, e para quem acompanha o pedido', () => {
+    const realtime = service();
+    const owner = '3f2b8c1e-0000-4000-8000-0000000000aa';
+    const order = '3f2b8c1e-0000-4000-8000-0000000000bb';
+    const dono: RealtimeEvent[] = [];
+    const outro: RealtimeEvent[] = [];
+    const semConta: RealtimeEvent[] = [];
+    const loja: RealtimeEvent[] = [];
+
+    realtime.subscribe(subscriber(owner, [], dono));
+    realtime.subscribe(subscriber('3f2b8c1e-0000-4000-8000-0000000000cc', [], outro));
+    realtime.subscribe({
+      ...subscriber(null, []),
+      watching: new Set([order]),
+      send: (e) => semConta.push(e)
+    });
+    realtime.subscribe(subscriber('l', ['orders.read'], loja));
+
+    realtime.receiveChange('orders');
+    realtime.receiveChange(`orders:${owner}`);
+    realtime.receiveChange(`payments:${owner.toUpperCase()}`);
+    realtime.receiveChange(`orders:${order}`);
+    jest.advanceTimersByTime(CHANGES_COALESCE_MS);
+
+    expect(changedTopics(dono)).toEqual([['orders', 'payments']]);
+    expect(changedTopics(outro)).toEqual([]);
+    expect(changedTopics(semConta)).toEqual([['orders']]);
+    expect(changedTopics(loja)).toEqual([['orders']]);
+  });
+
+  it('ignora dono malformado', () => {
+    const realtime = service();
+    const dono: RealtimeEvent[] = [];
+
+    realtime.subscribe(subscriber('x', [], dono));
+    realtime.receiveChange('orders:x');
+    realtime.receiveChange('orders:3f2b8c1e-0000-4000-8000-0000000000aa:extra');
+    jest.advanceTimersByTime(CHANGES_COALESCE_MS);
+
+    expect(dono).toEqual([]);
+  });
+
   it('ignora assunto desconhecido', () => {
     const realtime = service();
     const staff: RealtimeEvent[] = [];

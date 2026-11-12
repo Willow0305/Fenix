@@ -181,6 +181,8 @@ export const ATTEMPT_STATUS: Record<DeliveryAttempt['status'], { label: string; 
 
 /** O que o entregador vê pelo link. */
 export interface CourierLink {
+  /** Chave para acompanhar o pedido ao vivo; some depois da entrega (DT-116). */
+  readonly liveKey?: string;
   orderNumber: string;
   customerFirstName: string | null;
   address: {
