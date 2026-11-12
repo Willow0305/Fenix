@@ -185,7 +185,7 @@ export type PixReceipt =
 export type OrderRow = Prisma.OrderGetPayload<{ include: typeof ORDER_INCLUDE }>;
 
 /**
- * Leitura de pedidos (RF-016 a RF-018): monta a visão do pedido para o comprador e para a
+ * Leitura de pedidos (RF-017, RF-018): monta a visão do pedido para o comprador e para a
  * diretoria, listas e totais. Usado pelos demais serviços de pedido (PEN-077).
  */
 @Injectable()

@@ -151,7 +151,7 @@ export function monthOf(referenceMonth: string): string {
 }
 
 /**
- * Leitura de mensalidades (RF-012): visão da cobrança, listas, a própria cobrança do atleta e o
+ * Leitura de mensalidades (RF-014): visão da cobrança, listas, a própria cobrança do atleta e o
  * resumo em aberto. Também recalcula a situação a partir dos pagamentos (PEN-077).
  */
 @Injectable()

@@ -21,7 +21,7 @@ export type {
 } from './fee-view';
 
 /**
- * Mensalidades (RF-011 a RF-013, DT-027). Fachada com os mesmos métodos de antes da divisão
+ * Mensalidades (RF-011 a RF-014, DT-027). Fachada com os mesmos métodos de antes da divisão
  * (PEN-077): cada um repassa ao serviço do assunto — leitura (`FeeReader`), planos, cobranças
  * e pagamentos. Os outros módulos continuam usando esta classe.
  */

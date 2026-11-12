@@ -2347,8 +2347,19 @@ Mensalidades (`finance/application`):
 | `fee-payments.service.ts` | PIX automático, pagamento da diretoria, comprovante, confirmação, estorno |
 | `fees.service.ts` | fachada `FeesService` |
 
+Catálogo (`store/application`):
+
+| Arquivo | Assunto |
+|---|---|
+| `catalog-view.ts` (`CatalogReader`) | tipos, ficha do produto, vitrine, lista e ficha da diretoria, categorias, endereço (slug) único |
+| `catalog-categories.service.ts` | criar, editar e apagar categoria |
+| `product-fields.service.ts` | campos de personalização |
+| `products.service.ts` | produto, afiliação como produto, situação, variações, comissão por produto |
+| `product-images.service.ts` | fotos: envio, ordem, texto alternativo, remoção |
+| `catalog.service.ts` | fachada `CatalogService` |
+
 **Testes de integração:** com mais arquivos, as 50+ suítes rodando num único processo (`--runInBand`) passaram a estourar o limite de memória do Node perto do fim (a memória se acumulava de uma suíte para outra). O `test:integration` passa a usar um único processo auxiliar (`--maxWorkers=1`, ainda uma suíte por vez) que o Jest troca ao passar de 1,5 GB (`workerIdleMemoryLimit` em `jest.integration.config.cjs`). A execução ficou mais rápida (cerca de 340 s, antes cerca de 400 s).
 
 ### Consequências
 
-- o maior arquivo de pedidos passa de 2.309 para 710 linhas, e o de mensalidades, de 1.486 para 551; o comportamento é coberto pelos testes existentes (`npm run check`, `npm run test:integration` e `npm run e2e` verdes a cada divisão).
+- o maior arquivo de pedidos passa de 2.309 para 710 linhas, o de mensalidades, de 1.486 para 551, e o de catálogo, de 1.394 para 526; o comportamento é coberto pelos testes existentes (`npm run check`, `npm run test:integration` e `npm run e2e` verdes a cada divisão).

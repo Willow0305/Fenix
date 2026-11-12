@@ -5,6 +5,11 @@ import { SettingsModule } from '../settings/settings.module';
 import { ReviewsService } from './application/reviews.service';
 import { CartService, FavoritesService } from './application/cart.service';
 import { CatalogService } from './application/catalog.service';
+import { CatalogReader } from './application/catalog-view';
+import { CatalogCategoriesService } from './application/catalog-categories.service';
+import { ProductFieldsService } from './application/product-fields.service';
+import { ProductsService } from './application/products.service';
+import { ProductImagesService } from './application/product-images.service';
 import { CouponsService } from './application/coupons.service';
 import { InventoryService } from './application/inventory.service';
 import { OrdersService } from './application/orders.service';
@@ -34,6 +39,11 @@ import { DeliveryAdminController, DeliveryController } from './http/delivery.con
   ],
   providers: [
     CatalogService,
+    CatalogReader,
+    CatalogCategoriesService,
+    ProductFieldsService,
+    ProductsService,
+    ProductImagesService,
     InventoryService,
     CartService,
     FavoritesService,

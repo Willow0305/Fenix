@@ -24,7 +24,7 @@ import { OrderView, PixReceipt, OrderRow } from './order-view';
 import { OrderReader } from './order-view';
 
 /**
- * Pagamento de pedidos (RF-017, DT-031, DT-071): PIX automático, pagamento registrado pela
+ * Pagamento de pedidos (RF-016, RF-029, DT-031, DT-071): PIX automático, pagamento registrado pela
  * diretoria, comprovante do comprador e confirmação. Pagamento confirmado converte a reserva
  * em saída de estoque e lança no Caixa.
  */
