@@ -2,7 +2,12 @@ import { Controller, Get, Param, ParseUUIDPipe, Res } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import type { Response } from 'express';
 
-import { OptionalPrincipal, type Principal } from '../../../common/http/request-context';
+import {
+  OptionalPrincipal,
+  type Principal,
+  ReqMeta,
+  type RequestMeta
+} from '../../../common/http/request-context';
 import { Public } from '../../auth/http/auth.decorators';
 import { MediaService } from '../application/media.service';
 
@@ -17,9 +22,10 @@ export class MediaController {
   async get(
     @Param('id', new ParseUUIDPipe()) id: string,
     @OptionalPrincipal() principal: Principal | undefined,
+    @ReqMeta() meta: RequestMeta,
     @Res() res: Response
   ): Promise<void> {
-    const file = await this.media.read(id, principal);
+    const file = await this.media.read(id, principal, false, meta);
 
     res.setHeader('Content-Type', file.mimeType);
     res.setHeader('X-Content-Type-Options', 'nosniff');

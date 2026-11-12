@@ -3,8 +3,9 @@ import { createHash, randomUUID } from 'node:crypto';
 import { Injectable } from '@nestjs/common';
 import type { DataClassification, MediaKind } from '../../../generated/prisma/client';
 
+import { AuditService } from '../../../common/audit/audit.service';
 import { AppError } from '../../../common/errors/app-error';
-import type { Principal } from '../../../common/http/request-context';
+import type { Principal, RequestMeta } from '../../../common/http/request-context';
 import { PrismaService, type PrismaTx } from '../../../common/prisma/prisma.service';
 import {
   detectFileType,
@@ -69,7 +70,8 @@ export function mediaUrl(id: string): string {
 export class MediaService {
   constructor(
     private readonly prisma: PrismaService,
-    private readonly storage: ObjectStorage
+    private readonly storage: ObjectStorage,
+    private readonly audit: AuditService
   ) {}
 
   async store(
@@ -166,42 +168,53 @@ export class MediaService {
 
   /**
    * Onde o arquivo é usado, para a rota genérica exigir a permissão de cada domínio
-   * (PEN-054, DT-110). Só ligações ativas: anexo ou documento apagado não conta.
+   * (PEN-054, DT-110), numa única consulta. Conta também a ligação apagada: o contrato de
+   * parceiro removido continua confidencial, e a rota dedicada nem o abre mais.
    */
-  private async usageOf(id: string): Promise<MediaUsage> {
-    const [partnerDocument, athleteDocument, attachments, orderProofs, attemptProofs] =
-      await Promise.all([
-        this.prisma.partnerDocument.count({ where: { mediaFileId: id, deletedAt: null } }),
-        this.prisma.athleteDocument.count({ where: { mediaFileId: id, deletedAt: null } }),
-        this.prisma.financialTransactionAttachment.findMany({
-          where: { mediaFileId: id, deletedAt: null },
+  private async usageOf(
+    id: string
+  ): Promise<{ flags: MediaUsage; partnerDocumentIds: string[]; athleteDocumentIds: string[] }> {
+    const row = await this.prisma.mediaFile.findUniqueOrThrow({
+      where: { id },
+      select: {
+        partnerDocuments: { select: { id: true } },
+        athleteDocuments: { select: { id: true } },
+        financialAttachments: {
           select: { financialTransactionId: true, payment: { select: { orderId: true } } }
-        }),
-        this.prisma.order.count({ where: { deliveryProofMediaFileId: id } }),
-        this.prisma.deliveryAttempt.count({ where: { proofMediaFileId: id } })
-      ]);
+        },
+        _count: { select: { orderDeliveryProofs: true, deliveryAttemptProofs: true } }
+      }
+    });
+    const attachments = row.financialAttachments;
 
     return {
-      partnerDocument: partnerDocument > 0,
-      athleteDocument: athleteDocument > 0,
-      transactionAttachment: attachments.some((row) => row.financialTransactionId !== null),
-      orderPaymentAttachment: attachments.some((row) => row.payment?.orderId != null),
-      feePaymentAttachment: attachments.some(
-        (row) => row.payment !== null && row.payment.orderId === null
-      ),
-      deliveryProof: orderProofs + attemptProofs > 0
+      flags: {
+        partnerDocument: row.partnerDocuments.length > 0,
+        athleteDocument: row.athleteDocuments.length > 0,
+        transactionAttachment: attachments.some((item) => item.financialTransactionId !== null),
+        orderPaymentAttachment: attachments.some((item) => item.payment?.orderId != null),
+        feePaymentAttachment: attachments.some(
+          (item) => item.payment !== null && item.payment.orderId === null
+        ),
+        deliveryProof: row._count.orderDeliveryProofs + row._count.deliveryAttemptProofs > 0
+      },
+      partnerDocumentIds: row.partnerDocuments.map((doc) => doc.id),
+      athleteDocumentIds: row.athleteDocuments.map((doc) => doc.id)
     };
   }
 
   /**
    * Leitura: arquivos PUBLIC são abertos; demais exigem a autorização de domínio informada
-   * pelo chamador (`allowOwner`), ser quem enviou ou `files.read.restricted` junto com a
-   * permissão de cada domínio em que o arquivo é usado (`media-access.ts`).
+   * pelo chamador (`allowOwner`, rota dedicada, que já registra a leitura), ser quem enviou
+   * ou `files.read.restricted` junto com a permissão de cada domínio em que o arquivo é
+   * usado (`media-access.ts`). Documento confidencial aberto pela rota genérica fica na
+   * auditoria, como nas rotas dedicadas (DT-092, DT-110).
    */
   async read(
     id: string,
     principal: Principal | undefined,
-    allowOwner = false
+    allowOwner = false,
+    meta?: RequestMeta
   ): Promise<{ content: Buffer; mimeType: string; fileName: string; isPublic: boolean }> {
     const media = await this.prisma.mediaFile.findFirst({
       where: { id, deletedAt: null },
@@ -219,16 +232,36 @@ export class MediaService {
     }
 
     const isPublic = media.classification === 'PUBLIC';
-    const permitted =
-      isPublic ||
-      allowOwner ||
-      (principal !== undefined &&
-        (media.uploadedById === principal.userId ||
-          (principal.permissions.has(PERMISSIONS.filesReadRestricted) &&
-            canReadRestrictedThroughGenericRoute(principal.permissions, await this.usageOf(id)))));
 
-    if (!permitted) {
-      throw AppError.notFound('Arquivo não encontrado.');
+    if (!isPublic && !allowOwner) {
+      const uploader = principal !== undefined && media.uploadedById === principal.userId;
+
+      if (
+        principal === undefined ||
+        (!uploader && !principal.permissions.has(PERMISSIONS.filesReadRestricted))
+      ) {
+        throw AppError.notFound('Arquivo não encontrado.');
+      }
+
+      const usage = await this.usageOf(id);
+
+      if (!uploader && !canReadRestrictedThroughGenericRoute(principal.permissions, usage.flags)) {
+        throw AppError.notFound('Arquivo não encontrado.');
+      }
+
+      if (usage.partnerDocumentIds.length > 0 || usage.athleteDocumentIds.length > 0) {
+        await this.audit.record({
+          actorUserId: principal.userId,
+          action: 'media.document.read',
+          entityType: 'MediaFile',
+          entityId: id,
+          after: {
+            partnerDocumentIds: usage.partnerDocumentIds,
+            athleteDocumentIds: usage.athleteDocumentIds
+          },
+          meta: meta ?? null
+        });
+      }
     }
 
     let content: Buffer;

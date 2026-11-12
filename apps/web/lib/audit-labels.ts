@@ -268,6 +268,7 @@ export const AUDIT_ACTION_LABELS: Readonly<Record<string, string>> = {
   'partner.cover.updated': 'Capa do parceiro alterada',
   'partner.document.added': 'Documento do parceiro anexado',
   'partner.document.read': 'Documento do parceiro consultado',
+  'media.document.read': 'Documento confidencial aberto pelo endereço do arquivo',
   'partner.document.removed': 'Documento do parceiro removido',
   'professional.created': 'Profissional cadastrado',
   'professional.updated': 'Profissional alterado',

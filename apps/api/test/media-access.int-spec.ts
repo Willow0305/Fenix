@@ -101,9 +101,18 @@ describe('Arquivo restrito pela rota genérica exige a permissão do domínio', 
     expect(allowed.headers['cache-control']).toBe('private, no-store');
     // A diretoria tem as duas permissões e continua lendo, como antes.
     await ctx.http().get(`/api/v1/media/${mediaId}`).set(auth(board.token)).expect(200);
+
+    // Documento confidencial aberto pela rota genérica fica na auditoria (DT-092), uma vez
+    // por leitura liberada; as recusas não contam.
+    const reads = await ctx.prisma.auditLog.findMany({
+      where: { action: 'media.document.read', entityType: 'MediaFile', entityId: mediaId }
+    });
+
+    expect(reads).toHaveLength(2);
+    expect(reads.filter((row) => row.actorUserId === board.id)).toHaveLength(1);
   });
 
-  it('documento apagado deixa de exigir a permissão do domínio', async () => {
+  it('documento apagado continua exigindo a permissão do domínio', async () => {
     const board = await tokenFor(ctx, ['board']);
     const mediaId = await partnerDocumentMedia(board.token);
     const filesOnly = await tokenWith([PERMISSIONS.filesReadRestricted]);
@@ -113,7 +122,8 @@ describe('Arquivo restrito pela rota genérica exige a permissão do domínio', 
       where: { mediaFileId: mediaId },
       data: { deletedAt: new Date() }
     });
-    // Sem uso ativo, vale a regra geral de arquivo restrito.
-    await ctx.http().get(`/api/v1/media/${mediaId}`).set(auth(filesOnly)).expect(200);
+    // O contrato removido continua confidencial: a remoção não abre o arquivo.
+    await ctx.http().get(`/api/v1/media/${mediaId}`).set(auth(filesOnly)).expect(404);
+    await ctx.http().get(`/api/v1/media/${mediaId}`).set(auth(board.token)).expect(200);
   });
 });
