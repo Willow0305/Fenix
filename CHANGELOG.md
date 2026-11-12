@@ -17,6 +17,10 @@ O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) e o 
 - arquivos restritos: a rota genérica `/api/v1/media/:id` passa a exigir, além de `files.read.restricted`, a permissão do domínio em que o arquivo é usado (documento de parceiro ou de atleta, anexo do Caixa, comprovante e prova de entrega), as mesmas das rotas dedicadas; antes, quem tivesse só `files.read.restricted` abria documentos confidenciais de parceiros (PEN-054, DT-110). Sem mudança para administrador e diretoria, que têm todas.
 - freio de tentativas de login por conta: depois de 5 falhas seguidas no mesmo e-mail, novas tentativas ficam bloqueadas por 1 minuto, dobrando a cada nova falha até 15 minutos; o titular recebe um aviso por e-mail na primeira vez; a resposta é igual para e-mail sem cadastro, e o login certo ou a redefinição de senha liberam (PEN-053, DT-109; migração `20261111100000_freio_login_por_conta`).
 
+#### Pendente
+
+- divisão dos serviços muito grandes da API (`orders.service.ts` com 2.309 linhas e outros três acima de 1.300) registrada como `PEN-077`, para ser feita aos poucos, quando cada módulo for alterado.
+
 #### Alterado
 
 - módulos da API renomeados para não confundir: `card` (pagamento com cartão) virou `card-payment` e `cards` (carteirinhas) virou `member-cards`, com as classes `CardPaymentModule` e `MemberCardsModule`. As rotas da API não mudam (DT-113).
@@ -25,6 +29,7 @@ O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) e o 
 
 #### Corrigido
 
+- teste ponta a ponta da entrega em casa (celular): o aviso "A entrega foi registrada" aparece também na região lida pelo leitor de tela (DT-106) e o teste achava dois textos; agora confere só o aviso visível.
 - `npm run e2e` não deixa mais o `apps/web/next-env.d.ts` alterado: o build do site para os testes reescrevia o arquivo apontando para `.next-e2e`; agora o original é restaurado ao fim do build.
 - `CONTINUAR.md` atualizado: branch `dev`, contagem atual de testes e banco de testes isolado (`DT-038`); `PEN-066` (Etapa 9) movida para as resolvidas.
 

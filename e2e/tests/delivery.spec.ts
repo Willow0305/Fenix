@@ -90,7 +90,8 @@ test('entrega em casa do pedido ao código do motoboy', async ({ page, browser, 
   await shot(courier, `${info.project.name}-motoboy`);
   await courier.getByLabel(/^Código/).fill(code);
   await courier.getByRole('button', { name: 'Confirmar entrega' }).click();
-  await expect(courier.getByText('A entrega foi registrada')).toBeVisible();
+  // O aviso também vai para a região lida pelo leitor de tela (DT-106): confere o visível.
+  await expect(courier.locator('#conteudo').getByText('A entrega foi registrada')).toBeVisible();
 
   // 5. No painel, a entrega aparece comprovada pelo código.
   await admin.reload();

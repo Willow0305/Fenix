@@ -606,6 +606,14 @@ Prioridades:
 - **Recomendação:** job separado, depois do de qualidade, com segredos de teste gerados na hora (nunca reais) em variáveis de ambiente, `E2E_CHANNEL=chromium` e `npx playwright install --with-deps chromium`, guardando `var/e2e-logs` e o relatório do Playwright como artefatos na falha.
 - **Impacto:** `.github/workflows/ci.yml`, `e2e/env.cjs`, `docs/14-TESTES.md`, `docs/15-DEPLOY-E-INFRAESTRUTURA.md`.
 
+### PEN-077 — Serviços muito grandes na API
+
+- **Prioridade:** P3
+- **Bloqueia:** nada; afeta a manutenção
+- **Questão:** a análise de 2026-11-11 encontrou serviços com mais de 1.300 linhas: `store/application/orders.service.ts` (2.309), `member-cards/application/cards.service.ts` (1.492), `finance/application/fees.service.ts` (1.486), `store/application/catalog.service.ts` (1.394). Arquivos assim juntam assuntos diferentes (no de pedidos: checkout, pagamento, cancelamento, retirada e entrega) e tornam cada mudança mais arriscada. Eles não foram divididos na mesma rodada porque a divisão é só de organização, sem ganho para quem usa o site, e mexe em serviços que outros módulos chamam por dentro das transações (`OrdersService.systemCancelInTx`, `markReadyInTx`, `markPickedUpInTx`, usados pelas remessas).
+- **Recomendação:** dividir aos poucos, quando o módulo for alterado por outro motivo, começando pelo `orders.service.ts`: extrair serviços por assunto (checkout, pagamentos do pedido, cancelamento e estorno, retirada) mantendo o `OrdersService` como fachada com os mesmos métodos públicos, para os outros módulos não mudarem. Cada extração em commit próprio, com `npm run check`, `npm run test:integration` e `npm run e2e` verdes.
+- **Impacto:** `apps/api/src/modules/store`, `member-cards`, `finance`; nenhum contrato de API.
+
 ## 11. Critério de resolução
 
 Ao resolver uma pendência:
