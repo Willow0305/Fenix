@@ -1,6 +1,6 @@
 import { randomUUID } from 'node:crypto';
 
-import { CardService } from '../src/modules/card/application/card.service';
+import { CardService } from '../src/modules/card-payment/application/card.service';
 import { createTestContext, type TestContext, tokenFor } from './helpers';
 
 /** Cartão pelo site em modo de teste (DT-079). */

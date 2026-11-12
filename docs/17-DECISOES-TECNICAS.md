@@ -2288,3 +2288,23 @@ As demais continuam sem índice; novas entram quando uma consulta passar a filtr
 ### Consequências
 
 - migração `20261111120000_indices_chaves_estrangeiras`, só com `CREATE INDEX` (reversível sem perda de dado); no volume de um clube, o efeito é pequeno e cresce com o histórico.
+
+## DT-113 — Nomes dos módulos de cartão e de carteirinha
+
+- **Estado:** Aceita; implementada em 2026-11-11
+- **Data:** 2026-11-11
+- **Aprovador:** responsável do projeto ("implemente todas as correções possíveis"), sobre a análise do sistema
+
+### Contexto
+
+A API tinha dois módulos com nomes quase iguais e assuntos diferentes: `modules/card` (pagamento com cartão de crédito e débito, `DT-079`) e `modules/cards` (carteirinha digital de atleta e afiliado, `DT-068`). A diferença de uma letra levava a erro de leitura e de import.
+
+### Decisão
+
+- `modules/card` → `modules/card-payment`, com a classe `CardPaymentModule`;
+- `modules/cards` → `modules/member-cards`, com a classe `MemberCardsModule`;
+- só a pasta e a classe do módulo mudam; arquivos internos, serviços, rotas HTTP (como `/api/v1/cards`, `/api/v1/me/cards` e as de pagamento com cartão), permissões e tabelas continuam como estão. As decisões antigas citam os nomes da época.
+
+### Consequências
+
+- renomeação feita com `git mv` (o histórico dos arquivos é preservado); sem mudança de comportamento, coberta pelos testes existentes (`card.int-spec.ts`, `member-cards.int-spec.ts`, `card-fee-overdue.int-spec.ts`).

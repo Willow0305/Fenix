@@ -8,7 +8,7 @@ import { type Page, pageArgs, type PageQueryDto, toPage } from '../../../common/
 import type { Principal, RequestMeta } from '../../../common/http/request-context';
 import { PrismaService, type PrismaTx } from '../../../common/prisma/prisma.service';
 import { PERMISSIONS } from '../../access/domain/permission-catalog';
-import { CardsService } from '../../cards/application/cards.service';
+import { CardsService } from '../../member-cards/application/cards.service';
 import { PaymentsService } from '../../finance/application/payments.service';
 import { lockRow } from '../../finance/application/ledger.service';
 import {

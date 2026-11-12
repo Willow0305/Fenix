@@ -392,4 +392,4 @@ export class BenefitsController {
   providers: [CardsService, BenefitsService],
   exports: [CardsService]
 })
-export class CardsModule {}
+export class MemberCardsModule {}

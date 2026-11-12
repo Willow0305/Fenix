@@ -23,9 +23,9 @@ import { ReportsModule } from './modules/reports/http/reports.controller';
 import { SettingsModule } from './modules/settings/settings.module';
 import { SportsModule } from './modules/sports/sports.module';
 import { StoreModule } from './modules/store/store.module';
-import { CardsModule } from './modules/cards/http/cards.controller';
+import { MemberCardsModule } from './modules/member-cards/http/cards.controller';
 import { PixModule } from './modules/pix/http/pix.controller';
-import { CardModule } from './modules/card/http/card.controller';
+import { CardPaymentModule } from './modules/card-payment/http/card.controller';
 
 @Module({
   imports: [
@@ -61,9 +61,9 @@ import { CardModule } from './modules/card/http/card.controller';
     DashboardModule,
     RealtimeModule,
     SearchModule,
-    CardsModule,
+    MemberCardsModule,
     PixModule,
-    CardModule,
+    CardPaymentModule,
     AccountabilityModule
   ]
 })

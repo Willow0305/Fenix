@@ -70,7 +70,7 @@ import {
 import { type AppliedCoupon, CouponsService } from './coupons.service';
 import { InventoryService } from './inventory.service';
 import { StaffAlertsService } from '../../notifications/application/staff-alerts.service';
-import { CardsService } from '../../cards/application/cards.service';
+import { CardsService } from '../../member-cards/application/cards.service';
 import { DeliveryService, type ResolvedDelivery } from './delivery.service';
 import {
   type AddressInput,
@@ -81,7 +81,7 @@ import {
   notReceivedDeadline,
   strongerProof
 } from '../domain/delivery';
-import { CARD_BUYER_MESSAGES, cardBuyerBlock } from '../../card/domain/card-payment';
+import { CARD_BUYER_MESSAGES, cardBuyerBlock } from '../../card-payment/domain/card-payment';
 import { decryptField, encryptField } from '../../../common/crypto/data-cipher';
 import { beneficiariesOf, beneficiaryProblems, resizeBeneficiaries } from '../domain/cart-details';
 import { plural } from '../../../common/domain/plural';

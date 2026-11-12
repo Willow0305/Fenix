@@ -1,6 +1,6 @@
 import { randomUUID } from 'node:crypto';
 
-import { CardsService } from '../src/modules/cards/application/cards.service';
+import { CardsService } from '../src/modules/member-cards/application/cards.service';
 import { createTestContext, type TestContext, tokenFor } from './helpers';
 
 /** Carteirinha de atleta suspensa por mensalidade atrasada e liberada ao pagar (DT-101). */

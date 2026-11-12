@@ -245,4 +245,4 @@ export class CardController {
   controllers: [CardController],
   providers: [CardService]
 })
-export class CardModule {}
+export class CardPaymentModule {}

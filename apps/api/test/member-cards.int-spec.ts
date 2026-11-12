@@ -6,7 +6,7 @@ import {
   CARD_WINDOW_MS,
   signLiveToken,
   signPrintedToken
-} from '../src/modules/cards/domain/card-token';
+} from '../src/modules/member-cards/domain/card-token';
 import { createTestContext, type TestContext, tokenFor } from './helpers';
 
 describe('Carteirinha digital e benefícios (DT-068)', () => {

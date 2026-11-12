@@ -106,7 +106,7 @@ import {
   ReviewListQueryDto
 } from './store.dto';
 import { DeleteReasonDto } from '../../../common/http/delete-reason.dto';
-import { CardsService } from '../../cards/application/cards.service';
+import { CardsService } from '../../member-cards/application/cards.service';
 import { type OrderRights, ReturnsService, type ReturnView } from '../application/returns.service';
 import {
   type AdminReviewView,

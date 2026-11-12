@@ -9,7 +9,7 @@ import { CouponsService } from './application/coupons.service';
 import { InventoryService } from './application/inventory.service';
 import { OrdersService } from './application/orders.service';
 import { StoreAdminController, StorefrontController } from './http/store.controller';
-import { CardsModule } from '../cards/http/cards.controller';
+import { MemberCardsModule } from '../member-cards/http/cards.controller';
 import { ReturnsService } from './application/returns.service';
 import { DeliveryService } from './application/delivery.service';
 import { DeliveryDispatchService } from './application/delivery-dispatch.service';
@@ -18,7 +18,7 @@ import { DispatchAdminController, DispatchPublicController } from './http/dispat
 import { DeliveryAdminController, DeliveryController } from './http/delivery.controller';
 
 @Module({
-  imports: [FinanceModule, SettingsModule, CardsModule],
+  imports: [FinanceModule, SettingsModule, MemberCardsModule],
   controllers: [
     StorefrontController,
     StoreAdminController,
