@@ -52,6 +52,7 @@ import {
 } from '../application/professionals.service';
 import {
   type PartnerSalesReport,
+  type SettlementRecoveryView,
   type SettlementView,
   SettlementsService
 } from '../application/settlements.service';
@@ -515,6 +516,16 @@ export class PartnersController {
   @RequirePermissions(PERMISSIONS.settlementsManage)
   getSettlement(@Param('id', new ParseUUIDPipe()) id: string): Promise<SettlementView> {
     return this.settlements.get(id);
+  }
+
+  /** Vendas estornadas depois do repasse pago, para descontar no próximo (DT-111). */
+  @Get('partners/:id/settlements/recoverable')
+  @ApiBearerAuth()
+  @RequirePermissions(PERMISSIONS.settlementsManage)
+  recoverableSales(
+    @Param('id', new ParseUUIDPipe()) id: string
+  ): Promise<SettlementRecoveryView[]> {
+    return this.settlements.recoverable(id);
   }
 
   @Post('partners/:id/settlements')

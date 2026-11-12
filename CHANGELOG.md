@@ -8,6 +8,10 @@ O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) e o 
 
 ### Melhorias da análise do sistema (2026-11-11)
 
+#### Adicionado
+
+- repasses a parceiros: ao gerar um repasse, as vendas que o parceiro já recebeu mas cujo pedido foi estornado ou cancelado depois aparecem marcadas para desconto; cada venda é descontada uma única vez, o motivo do ajuste é escrito pelo sistema e o detalhe do repasse lista o que foi descontado. Antes isso era um ajuste manual sem ligação com a venda (PEN-052, DT-111; migração `20261111110000_recuperacao_repasse_estornado`).
+
 #### Segurança
 
 - arquivos restritos: a rota genérica `/api/v1/media/:id` passa a exigir, além de `files.read.restricted`, a permissão do domínio em que o arquivo é usado (documento de parceiro ou de atleta, anexo do Caixa, comprovante e prova de entrega), as mesmas das rotas dedicadas; antes, quem tivesse só `files.read.restricted` abria documentos confidenciais de parceiros (PEN-054, DT-110). Sem mudança para administrador e diretoria, que têm todas.

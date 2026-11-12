@@ -395,6 +395,7 @@ Prioridades:
 - **Bloqueia:** nada; afeta a conciliação com parceiros
 - **Questão:** quando um pedido com item já repassado (repasse pago) é estornado, o valor pago ao parceiro precisa ser recuperado. Hoje isso é feito manualmente por ajuste negativo motivado no próximo repasse.
 - **Recomendação:** listar automaticamente, na criação do repasse, os itens repassados e depois estornados como sugestão de ajuste; combinar com o parceiro prazo e forma de devolução.
+- **Situação:** resolvida em 2026-11-11 com a recomendação (`DT-111`) para pedido estornado ou cancelado por inteiro. Devolução parcial continua como ajuste manual, porque o pedido não registra qual item voltou; prazo e forma de devolução quando não houver novo repasse seguem combinados com o parceiro. Ver seção 12.
 
 ### PEN-053 — Proteção de login por conta e enumeração de e-mails
 
@@ -669,3 +670,4 @@ As entradas acima permanecem como histórico da questão original. As decisões 
 | PEN-074 | Decidido em 2026-11-09: sem seletiva aberta, "Quero jogar no Fênix" do Início leva ao convite de Times; carteirinha só volta com a mensalidade quitada e confirmada; seletiva lotada sai do destaque. | Responsável do projeto | `DT-104` |
 | PEN-066 | Etapa 9 concluída: E2E (56 testes em dois tamanhos de tela), logs e métricas (`DT-086`) e estilos inline (`DT-087`); verificada em 2026-11-11. | Delegada | `DT-086`, `DT-087` |
 | PEN-054 | Decidido em 2026-11-11 com a recomendação: na rota genérica `/media/:id`, `files.read.restricted` só abre arquivo de domínio com rota própria junto com a permissão desse domínio (documento de parceiro, documento de atleta, anexo do Caixa, comprovantes e prova de entrega). | Delegada | `DT-110` |
+| PEN-052 | Decidido em 2026-11-11 com a recomendação: na criação do repasse, as vendas já repassadas cujo pedido foi estornado ou cancelado por inteiro aparecem marcadas para desconto; cada uma é descontada uma vez, ligada à venda original. Parcial: devolução parcial e prazo sem novo repasse continuam manuais. | Delegada | `DT-111` |

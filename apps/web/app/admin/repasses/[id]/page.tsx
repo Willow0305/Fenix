@@ -224,6 +224,47 @@ export default function SettlementPage() {
         )}
       </section>
 
+      {s.recoveries && s.recoveries.length > 0 ? (
+        <section className="card stack" aria-labelledby="recuperadas">
+          <h2 id="recuperadas">Vendas estornadas descontadas ({s.recoveries.length})</h2>
+          <p className="muted">
+            Vendas de repasses anteriores, já pagas ao parceiro, cujo pedido foi estornado ou
+            cancelado depois. O total entra no ajuste deste repasse.
+            {s.status === 'CANCELLED'
+              ? ' Este repasse foi cancelado: as vendas voltaram a ficar disponíveis para desconto.'
+              : ''}
+          </p>
+          <div className="table-wrap">
+            <table className="table table-stack">
+              <thead>
+                <tr>
+                  <th scope="col">Pedido</th>
+                  <th scope="col">Produto</th>
+                  <th scope="col" className="num">
+                    Descontado
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                {s.recoveries.map((item) => (
+                  <tr key={item.settlementItemId}>
+                    <td data-label="Pedido">
+                      <Link href={`/admin/pedidos/${item.orderId}`}>{item.orderNumber}</Link>
+                    </td>
+                    <td data-label="Produto">
+                      {item.quantity}× {item.productName}
+                    </td>
+                    <td data-label="Descontado" className="num">
+                      {formatMoney(item.amount.amount)}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </section>
+      ) : null}
+
       <ConfirmDialog
         open={next !== null}
         title={next ? `Repasse: ${SETTLEMENT_STATUS[next].label}` : ''}

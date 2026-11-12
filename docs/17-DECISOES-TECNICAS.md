@@ -2241,3 +2241,25 @@ O limite de requisições do login é por IP (10 por minuto, `DT-022`, `DT-047`)
 
 - a consulta das ligações só acontece quando a rota genérica serve um arquivo não público a quem não o enviou e tem `files.read.restricted`;
 - testes: regra pura (`media-access.spec.ts`: cada domínio e sua permissão, mais de um domínio, nunca sem `files.read.restricted`) e integração (`media-access.int-spec.ts`: papel só com `files.read.restricted` ou só com `partner.documents.read` recebe 404; com as duas abre; diretoria continua abrindo; documento apagado volta à regra geral).
+
+## DT-111 — Desconto de venda de parceiro estornada depois do repasse
+
+- **Estado:** Aceita; implementada em 2026-11-11
+- **Data:** 2026-11-11
+- **Aprovador:** responsável do projeto ("implemente todas as correções possíveis"), com a recomendação da `PEN-052`
+
+### Contexto
+
+Pedido com item já repassado (repasse pago) pode ser estornado ou cancelado depois; a trava `IN_PARTNER_SETTLEMENT` só vale para repasse em aberto. O valor pago ao parceiro precisava ser recuperado com um ajuste negativo digitado à mão no próximo repasse, sem ligação com a venda: nada impedia esquecer a venda ou descontá-la duas vezes.
+
+### Decisão
+
+- **sugestão:** `GET /partners/:id/settlements/recoverable` lista os itens de repasse **pago** cujo pedido está `CANCELLED` ou `REFUNDED` e que ainda não foram descontados num repasse que não foi cancelado. No formulário "Novo repasse" (Painel → Repasses), elas aparecem marcadas; a diretoria pode desmarcar a que vai combinar de outro jeito, e a desmarcada continua sugerida no próximo;
+- **desconto:** `recoverItemIds` no `POST /partners/:id/settlements`. Sob a trava do parceiro, o servidor confere de novo cada item (do mesmo parceiro, repasse pago, pedido estornado, ainda não descontado) e recusa com 409 `RECOVERY_UNAVAILABLE` se algum não servir mais. O valor descontado é o líquido pago ao parceiro pela venda (`netAmount` do item);
+- **valores:** o ajuste do repasse passa a ser o ajuste manual menos o total recuperado, e o motivo junta o da diretoria com o escrito pelo sistema ("Desconto de N vendas estornadas depois do repasse (R$ …)"). Se o desconto deixar o repasse negativo, ele é recusado (`NEGATIVE_SETTLEMENT`) com a orientação de desmarcar alguma venda, que fica para o próximo;
+- **registro:** tabela `partner_settlement_recoveries` (migração `20261111110000_recuperacao_repasse_estornado`), ligando o repasse que desconta ao item do repasse anterior; gatilho no banco recusa alterar ou apagar. Repasse cancelado não apaga o registro: a venda só volta a ser sugerida. A auditoria `settlement.created` traz a quantidade e o total recuperado; o detalhe do repasse lista as vendas descontadas;
+- **fora desta decisão:** devolução parcial (a `ReturnRequest` é por pedido e não diz qual item voltou) continua como ajuste manual; o prazo e a forma de devolução quando o parceiro não tem novo repasse continuam combinados com ele (`PEN-052`).
+
+### Consequências
+
+- testes: regra pura (`partner-rules.spec.ts`: pedido recuperável, ajuste combinado e motivo), tela (`settlement-recoveries.spec.tsx`: lista marcada, desmarcar e marcar) e integração (`settlement-recovery.int-spec.ts`: venda estornada vira sugestão, é descontada uma vez, volta ao cancelar o repasse, ajuste manual somado, desconto repetido recusado, banco recusa apagar, desconto maior que o repasse recusado e mantido para o próximo, venda de outro parceiro recusada, só `settlements.manage` vê).

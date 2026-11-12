@@ -102,6 +102,7 @@ O contrato completo e executável fica no OpenAPI (`/docs` fora de produção). 
 | `GET`/`POST`/`PUT` | `/api/v1/settlements[/:id]` · `partners/:id/settlements` (Idempotency-Key) · `:id/status` | `settlements.manage` | 6 |
 | `POST` | `/api/v1/settlements/:id/pay` (Idempotency-Key) | `settlements.manage` + `transactions.confirm` | 6 |
 | `GET` | `/api/v1/partners/sales-report?from&to&partnerId` | `settlements.manage` | 6 |
+| `GET` | `/api/v1/partners/:id/settlements/recoverable`: vendas já repassadas (repasse pago) com pedido estornado ou cancelado depois, para descontar; `recoverItemIds` no `POST partners/:id/settlements` aplica o desconto (409 `RECOVERY_UNAVAILABLE` se já descontada) | `settlements.manage` | 9 (`DT-111`) |
 | `GET` | `/api/v1/public/news[/:slug]?channel=home\|forum&category` · `public/news-categories` | público (somente publicadas) | 7 |
 | `GET`/`POST`/`PATCH` | `/api/v1/news[/:id]` · `news-categories[/:id]` | `news.manage` | 7 |
 | `POST`/`PUT` | `/api/v1/news/:id/publish` (agora ou `scheduledAt`) · `:id/status` · `:id/cover` (multipart) | `news.manage` | 7 |

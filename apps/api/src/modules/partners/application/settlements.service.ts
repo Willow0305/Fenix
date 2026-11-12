@@ -26,7 +26,9 @@ import { PERMISSIONS } from '../../access/domain/permission-catalog';
 import { LedgerService, lockRow } from '../../finance/application/ledger.service';
 import { SYSTEM_CATEGORY } from '../../finance/domain/finance-catalog';
 import {
+  adjustmentWithRecoveries,
   effectiveCommission,
+  RECOVERABLE_ORDER_STATUSES,
   SETTLEMENT_STATUS_LABELS,
   SETTLEMENT_TRANSITIONS,
   settlementTotals,
@@ -55,6 +57,21 @@ export interface SettlementItemView {
   readonly orderStatus: OrderStatus;
 }
 
+/** Venda já repassada (repasse pago) cujo pedido foi estornado depois (PEN-052, DT-111). */
+export interface SettlementRecoveryView {
+  /** Item do repasse anterior. */
+  readonly settlementItemId: string;
+  readonly settlementId: string;
+  readonly orderId: string;
+  readonly orderNumber: string;
+  readonly productName: string;
+  readonly quantity: number;
+  readonly orderStatus: OrderStatus;
+  /** Valor pago ao parceiro por esta venda, a descontar. */
+  readonly amount: MoneyView;
+  readonly paidOutAt: string | null;
+}
+
 export interface SettlementView {
   readonly id: string;
   readonly partner: { id: string; name: string };
@@ -75,6 +92,8 @@ export interface SettlementView {
   readonly transactionId: string | null;
   readonly itemCount: number;
   readonly items?: SettlementItemView[];
+  /** Vendas estornadas de repasses anteriores descontadas neste. */
+  readonly recoveries?: SettlementRecoveryView[];
   readonly createdAt: string;
 }
 
@@ -129,6 +148,47 @@ const ITEM_INCLUDE = {
 
 type EligibleItem = Prisma.OrderItemGetPayload<{ include: typeof ITEM_INCLUDE }>;
 
+const RECOVERY_ITEM_INCLUDE = {
+  partnerSettlement: { select: { id: true, paidAt: true } },
+  orderItem: {
+    select: {
+      productName: true,
+      quantity: true,
+      order: { select: { id: true, orderNumber: true, status: true } }
+    }
+  }
+} satisfies Prisma.PartnerSettlementItemInclude;
+
+type RecoveryItem = Prisma.PartnerSettlementItemGetPayload<{
+  include: typeof RECOVERY_ITEM_INCLUDE;
+}>;
+
+function recoveryView(item: RecoveryItem, amount = item.netAmount): SettlementRecoveryView {
+  return {
+    settlementItemId: item.id,
+    settlementId: item.partnerSettlement.id,
+    orderId: item.orderItem.order.id,
+    orderNumber: item.orderItem.order.orderNumber,
+    productName: item.orderItem.productName,
+    quantity: item.orderItem.quantity,
+    orderStatus: item.orderItem.order.status,
+    amount: moneyView(amount, item.currency),
+    paidOutAt: item.partnerSettlement.paidAt?.toISOString() ?? null
+  };
+}
+
+/**
+ * Itens de repasse pago cujo pedido foi estornado ou cancelado por inteiro e que ainda não
+ * foram descontados num repasse válido (o desconto de repasse cancelado não conta).
+ */
+function recoverableWhere(partnerId: string): Prisma.PartnerSettlementItemWhereInput {
+  return {
+    partnerSettlement: { partnerId, status: 'PAID' },
+    orderItem: { order: { status: { in: [...RECOVERABLE_ORDER_STATUSES] } } },
+    recoveries: { none: { partnerSettlement: { status: { not: 'CANCELLED' } } } }
+  };
+}
+
 /**
  * Parte do time e do parceiro de um item. Usa o snapshot gravado no checkout; itens
  * anteriores à Fase 6 (sem snapshot) usam a regra vigente, registrada no repasse.
@@ -161,7 +221,11 @@ export class SettlementsService {
     private readonly ledger: LedgerService
   ) {}
 
-  private toView(row: SettlementRow, items?: SettlementItemView[]): SettlementView {
+  private toView(
+    row: SettlementRow,
+    items?: SettlementItemView[],
+    recoveries?: SettlementRecoveryView[]
+  ): SettlementView {
     return {
       id: row.id,
       partner: { id: row.partner.id, name: row.partner.displayName },
@@ -182,6 +246,7 @@ export class SettlementsService {
       transactionId: row.financialTransaction?.id ?? null,
       itemCount: row._count.items,
       ...(items ? { items } : {}),
+      ...(recoveries ? { recoveries } : {}),
       createdAt: row.createdAt.toISOString()
     };
   }
@@ -234,6 +299,11 @@ export class SettlementsService {
       },
       orderBy: { createdAt: 'asc' }
     });
+    const recoveries = await this.prisma.partnerSettlementRecovery.findMany({
+      where: { partnerSettlementId: id },
+      include: { settlementItem: { include: RECOVERY_ITEM_INCLUDE } },
+      orderBy: { createdAt: 'asc' }
+    });
 
     return this.toView(
       row,
@@ -248,8 +318,21 @@ export class SettlementsService {
         commission: moneyView(item.commissionAmount, item.currency),
         net: moneyView(item.netAmount, item.currency),
         orderStatus: item.orderItem.order.status
-      }))
+      })),
+      recoveries.map((recovery) => recoveryView(recovery.settlementItem, recovery.amount))
     );
+  }
+
+  /** Vendas estornadas depois do repasse pago, sugeridas como desconto no próximo. */
+  async recoverable(partnerId: string): Promise<SettlementRecoveryView[]> {
+    const items = await this.prisma.partnerSettlementItem.findMany({
+      where: recoverableWhere(partnerId),
+      include: RECOVERY_ITEM_INCLUDE,
+      orderBy: { createdAt: 'asc' },
+      take: 500
+    });
+
+    return items.map((item) => recoveryView(item));
   }
 
   private eligibleWhere(partnerId: string, from: string, to: string): Prisma.OrderItemWhereInput {
@@ -278,6 +361,8 @@ export class SettlementsService {
       notes?: string;
       adjustmentAmount?: Money;
       adjustmentReason?: string;
+      /** Itens de repasses pagos com pedido estornado, a descontar (DT-111). */
+      recoverItemIds?: readonly string[];
     },
     idempotencyKey: string,
     meta: RequestMeta
@@ -286,9 +371,10 @@ export class SettlementsService {
       throw AppError.validation('INVALID_PERIOD', 'O fim do período deve ser após o início.');
     }
 
-    const adjustment = input.adjustmentAmount ?? ZERO;
+    const manualAdjustment = input.adjustmentAmount ?? ZERO;
+    const recoverIds = [...new Set(input.recoverItemIds ?? [])];
 
-    if (!adjustment.isZero() && !input.adjustmentReason) {
+    if (!manualAdjustment.isZero() && !input.adjustmentReason) {
       throw AppError.validation('REASON_REQUIRED', 'Informe o motivo do ajuste.');
     }
 
@@ -331,6 +417,29 @@ export class SettlementsService {
           );
         }
 
+        // Recuperações conferidas dentro da trava do parceiro: duas criações simultâneas não
+        // descontam a mesma venda.
+        const recovered =
+          recoverIds.length === 0
+            ? []
+            : await tx.partnerSettlementItem.findMany({
+                where: { id: { in: recoverIds }, ...recoverableWhere(partnerId) },
+                select: { id: true, netAmount: true, currency: true }
+              });
+
+        if (recovered.length !== recoverIds.length) {
+          throw AppError.conflict(
+            'RECOVERY_UNAVAILABLE',
+            'Alguma venda estornada já foi descontada ou não pode mais ser recuperada. Atualize a página e tente de novo.'
+          );
+        }
+
+        const combined = adjustmentWithRecoveries(
+          manualAdjustment,
+          input.adjustmentReason,
+          recovered.map((item) => item.netAmount)
+        );
+        const adjustment = combined.amount;
         const lines = items.map((item) => ({ item, ...itemSplit(item) }));
         const totals = settlementTotals(
           lines.map((line) => ({ gross: line.item.totalAmount, commission: line.commission })),
@@ -340,7 +449,9 @@ export class SettlementsService {
         if (totals.net.lessThan(0)) {
           throw AppError.validation(
             'NEGATIVE_SETTLEMENT',
-            'O ajuste deixa o repasse negativo. Revise o valor.'
+            recovered.length > 0
+              ? 'O desconto das vendas estornadas deixa o repasse negativo. Desmarque alguma: ela continua disponível para o próximo repasse.'
+              : 'O ajuste deixa o repasse negativo. Revise o valor.'
           );
         }
 
@@ -352,7 +463,7 @@ export class SettlementsService {
             grossSalesAmount: totals.gross,
             commissionAmount: totals.commission,
             adjustmentAmount: adjustment,
-            adjustmentReason: input.adjustmentReason ?? null,
+            adjustmentReason: combined.reason,
             netPayableAmount: totals.net,
             currency: DEFAULT_CURRENCY,
             idempotencyKey: key,
@@ -372,19 +483,33 @@ export class SettlementsService {
             currency: line.item.currency
           }))
         });
+
+        if (recovered.length > 0) {
+          await tx.partnerSettlementRecovery.createMany({
+            data: recovered.map((item) => ({
+              partnerSettlementId: created.id,
+              settlementItemId: item.id,
+              amount: item.netAmount,
+              currency: item.currency
+            }))
+          });
+        }
+
         await this.audit.record(
           {
             actorUserId: actor.userId,
             action: 'settlement.created',
             entityType: 'PartnerSettlement',
             entityId: created.id,
-            reason: input.adjustmentReason ?? null,
+            reason: combined.reason,
             after: {
               partnerId,
               items: lines.length,
               gross: totals.gross.toFixed(2),
               commission: totals.commission.toFixed(2),
               adjustment: adjustment.toFixed(2),
+              recovered: recovered.length,
+              recoveredAmount: manualAdjustment.minus(adjustment).toFixed(2),
               net: totals.net.toFixed(2),
               withoutSnapshot: items.filter((item) => item.partnerAmountSnapshot === null).length
             },

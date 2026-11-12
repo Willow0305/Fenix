@@ -245,3 +245,40 @@ export function fitsDuration(interval: Interval, durationMinutes: number): boole
 export function parsePercentage(value: string): Money {
   return money(value).toDecimalPlaces(4);
 }
+
+/**
+ * Pedido estornado ou cancelado por inteiro depois de a venda ter sido repassada: o valor
+ * pago ao parceiro pode ser descontado no repasse seguinte (PEN-052, DT-111). Devolução
+ * parcial é registrada no pedido, sem dizer qual item voltou, e continua como ajuste manual.
+ */
+export const RECOVERABLE_ORDER_STATUSES = ['CANCELLED', 'REFUNDED'] as const;
+
+export function isRecoverableOrderStatus(status: string): boolean {
+  return (RECOVERABLE_ORDER_STATUSES as readonly string[]).includes(status);
+}
+
+/**
+ * Ajuste final do repasse: o informado pela diretoria menos o que é recuperado, e o motivo
+ * que junta os dois (o das vendas estornadas é escrito pelo sistema).
+ */
+export function adjustmentWithRecoveries(
+  manual: Money,
+  manualReason: string | undefined,
+  recovered: readonly Money[]
+): { amount: Money; reason: string | null } {
+  const total = recovered.reduce<Money>((sum, value) => sum.plus(value), ZERO);
+  const parts: string[] = [];
+
+  if (manualReason !== undefined && manualReason.trim() !== '') {
+    parts.push(manualReason.trim());
+  }
+
+  if (recovered.length > 0) {
+    const sales =
+      recovered.length === 1 ? '1 venda estornada' : `${recovered.length} vendas estornadas`;
+
+    parts.push(`Desconto de ${sales} depois do repasse (R$ ${total.toFixed(2).replace('.', ',')})`);
+  }
+
+  return { amount: manual.minus(total), reason: parts.length > 0 ? parts.join(' · ') : null };
+}

@@ -11,7 +11,9 @@ import {
   partnerOperational,
   SETTLEMENT_TRANSITIONS,
   settlementTotals,
-  splitCommission
+  splitCommission,
+  adjustmentWithRecoveries,
+  isRecoverableOrderStatus
 } from './partner-rules';
 
 const day = (value: string) => new Date(`${value}T00:00:00Z`);
@@ -97,6 +99,35 @@ describe('regras de parceiros', () => {
       invalidCommission({ type: 'FIXED', percentage: null, fixedAmount: null })
     ).not.toBeNull();
     expect(invalidCommission({ type: 'NONE', percentage: null, fixedAmount: null })).toBeNull();
+  });
+
+  it('recupera vendas só de pedido estornado ou cancelado por inteiro (DT-111)', () => {
+    expect(isRecoverableOrderStatus('REFUNDED')).toBe(true);
+    expect(isRecoverableOrderStatus('CANCELLED')).toBe(true);
+    expect(isRecoverableOrderStatus('DELIVERED')).toBe(false);
+    expect(isRecoverableOrderStatus('PAID')).toBe(false);
+  });
+
+  it('junta o ajuste manual com o desconto das vendas estornadas (DT-111)', () => {
+    expect(adjustmentWithRecoveries(money('0'), undefined, [])).toEqual({
+      amount: money('0'),
+      reason: null
+    });
+
+    const one = adjustmentWithRecoveries(money('0'), undefined, [money('45.5')]);
+
+    expect(one.amount.toFixed(2)).toBe('-45.50');
+    expect(one.reason).toBe('Desconto de 1 venda estornada depois do repasse (R$ 45,50)');
+
+    const mixed = adjustmentWithRecoveries(money('10'), ' Frete combinado ', [
+      money('20'),
+      money('5.25')
+    ]);
+
+    expect(mixed.amount.toFixed(2)).toBe('-15.25');
+    expect(mixed.reason).toBe(
+      'Frete combinado · Desconto de 2 vendas estornadas depois do repasse (R$ 25,25)'
+    );
   });
 
   it('totaliza repasses com ajustes positivos e negativos', () => {

@@ -687,6 +687,15 @@ Enums de estados descrevem o vocabulário inicial; transições e responsáveis 
 - Índices/restrições: UK `orderItemId`; IX `partnerSettlementId`. Valores não negativos, mesma moeda e `net = gross - commission` conforme ajustes que pertencem ao cabeçalho. O parceiro do `OrderItem` corresponde ao parceiro do repasse.
 - Exclusão/auditoria: imutável; itens de repasse não pago só são removidos no cancelamento do repasse (`DT-033`), e alteração exige cancelar e gerar novo repasse.
 
+### `PartnerSettlementRecovery` — grupo A
+
+- Finalidade: desconto, num repasse novo, de uma venda já repassada (repasse pago) cujo pedido foi estornado ou cancelado por inteiro depois (`PEN-052`, `DT-111`).
+- Campos O: `partnerSettlementId` (repasse que desconta), `settlementItemId` (item do repasse anterior), `amount` (valor pago ao parceiro pela venda), `currency`, `createdAt`.
+- Campos P: nenhum.
+- FKs: `partnerSettlementId -> PartnerSettlement` (R); `settlementItemId -> PartnerSettlementItem` (R).
+- Índices/restrições: IX `partnerSettlementId`; IX `settlementItemId`. A mesma venda só é descontada uma vez entre repasses não cancelados, conferido sob a trava do parceiro.
+- Exclusão/auditoria: imutável; gatilho no banco recusa alterar ou apagar. Repasse cancelado devolve a venda à lista de sugestões, sem apagar o registro. O total entra no `adjustmentAmount` do repasse, com motivo escrito pelo sistema, e na auditoria `settlement.created`.
+
 ## 9. Conteúdo, eventos, fórum e notificações
 
 ### `NewsCategory` — grupo M

@@ -2148,10 +2148,12 @@ model PartnerSettlement {
   createdAt          DateTime                @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt          DateTime                @updatedAt @map("updated_at") @db.Timestamptz(6)
 
-  partner              Partner                 @relation(fields: [partnerId], references: [id], onDelete: Restrict, onUpdate: Cascade)
-  createdBy            User?                   @relation("PartnerSettlementCreator", fields: [createdById], references: [id], onDelete: SetNull, onUpdate: Cascade)
-  approvedBy           User?                   @relation("PartnerSettlementApprover", fields: [approvedById], references: [id], onDelete: SetNull, onUpdate: Cascade)
+  partner              Partner                     @relation(fields: [partnerId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+  createdBy            User?                       @relation("PartnerSettlementCreator", fields: [createdById], references: [id], onDelete: SetNull, onUpdate: Cascade)
+  approvedBy           User?                       @relation("PartnerSettlementApprover", fields: [approvedById], references: [id], onDelete: SetNull, onUpdate: Cascade)
   items                PartnerSettlementItem[]
+  /// Vendas estornadas de repasses anteriores descontadas neste (PEN-052, DT-111).
+  recoveries           PartnerSettlementRecovery[]
   financialTransaction FinancialTransaction?
 
   @@index([partnerId, status, periodEnd])
@@ -2169,11 +2171,34 @@ model PartnerSettlementItem {
   currency            String   @db.Char(3)
   createdAt           DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
 
-  partnerSettlement PartnerSettlement @relation(fields: [partnerSettlementId], references: [id], onDelete: Restrict, onUpdate: Cascade)
-  orderItem         OrderItem         @relation(fields: [orderItemId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+  partnerSettlement PartnerSettlement           @relation(fields: [partnerSettlementId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+  orderItem         OrderItem                   @relation(fields: [orderItemId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+  recoveries        PartnerSettlementRecovery[]
 
   @@index([partnerSettlementId])
   @@map("partner_settlement_items")
+}
+
+/// Desconto, num repasse novo, de uma venda já repassada (repasse pago) cujo pedido foi
+/// estornado ou cancelado depois (PEN-052, DT-111). Liga o desconto à venda original para
+/// ela não ser descontada duas vezes; recuperação de repasse cancelado não conta. Registro
+/// financeiro: não é apagado nem reescrito.
+model PartnerSettlementRecovery {
+  id                  String   @id @default(uuid()) @db.Uuid
+  /// Repasse em que o valor foi descontado.
+  partnerSettlementId String   @map("partner_settlement_id") @db.Uuid
+  /// Item do repasse anterior, já pago, que está sendo recuperado.
+  settlementItemId    String   @map("settlement_item_id") @db.Uuid
+  amount              Decimal  @db.Decimal(19, 4)
+  currency            String   @db.Char(3)
+  createdAt           DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  partnerSettlement PartnerSettlement     @relation(fields: [partnerSettlementId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+  settlementItem    PartnerSettlementItem @relation(fields: [settlementItemId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+
+  @@index([partnerSettlementId])
+  @@index([settlementItemId])
+  @@map("partner_settlement_recoveries")
 }
 
 model NewsCategory {

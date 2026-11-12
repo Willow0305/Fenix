@@ -9,6 +9,8 @@ import {
   ServiceStatus
 } from '../../../generated/prisma/client';
 import {
+  ArrayMaxSize,
+  IsArray,
   IsBoolean,
   IsEmail,
   IsEnum,
@@ -273,6 +275,15 @@ export class SettlementDto {
   @MinLength(3)
   @MaxLength(1000)
   adjustmentReason?: string;
+  @ApiPropertyOptional({
+    description: 'Itens de repasses pagos com pedido estornado, a descontar (DT-111).',
+    type: [String]
+  })
+  @IsOptional()
+  @IsArray()
+  @ArrayMaxSize(500)
+  @IsUUID('all', { each: true })
+  recoverItemIds?: string[];
 }
 
 export class SettlementStatusDto {

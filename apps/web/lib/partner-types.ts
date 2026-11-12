@@ -109,6 +109,19 @@ export interface SettlementItem {
   orderStatus: string;
 }
 
+/** Venda já repassada cujo pedido foi estornado depois (PEN-052, DT-111). */
+export interface SettlementRecovery {
+  settlementItemId: string;
+  settlementId: string;
+  orderId: string;
+  orderNumber: string;
+  productName: string;
+  quantity: number;
+  orderStatus: string;
+  amount: MoneyView;
+  paidOutAt: string | null;
+}
+
 export interface Settlement {
   id: string;
   partner: { id: string; name: string };
@@ -129,6 +142,7 @@ export interface Settlement {
   transactionId: string | null;
   itemCount: number;
   items?: SettlementItem[];
+  recoveries?: SettlementRecovery[];
   createdAt: string;
 }
 

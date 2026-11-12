@@ -15,6 +15,7 @@ import {
   TextField,
   useSubmit
 } from '../../../components/ui';
+import { SettlementRecoveriesPicker } from '../../../components/settlement-recoveries';
 import { api } from '../../../lib/api-client';
 import type { Page } from '../../../lib/api-types';
 import { formatDate, formatMoney, todayCivil } from '../../../lib/format';
@@ -23,6 +24,7 @@ import {
   type Partner,
   type PartnerSalesReport,
   type Settlement,
+  type SettlementRecovery,
   SETTLEMENT_STATUS,
   type SettlementStatus
 } from '../../../lib/partner-types';
@@ -171,6 +173,13 @@ function SettlementsAdmin() {
     adjustmentReason: '',
     notes: ''
   });
+  const recoverable = useResource<SettlementRecovery[]>(
+    partnerId ? `/partners/${partnerId}/settlements/recoverable` : null
+  );
+  const [skipped, setSkipped] = useState<ReadonlySet<string>>(new Set());
+  const recoverItemIds = (recoverable.data ?? [])
+    .map((item) => item.settlementItemId)
+    .filter((id) => !skipped.has(id));
   const idempotency = useIdempotencyKey();
   const create = useSubmit(async () => {
     const adjustment = form.adjustmentAmount.trim();
@@ -183,6 +192,7 @@ function SettlementsAdmin() {
         periodEnd: form.periodEnd,
         ...(form.dueDate ? { dueDate: form.dueDate } : {}),
         ...(form.notes ? { notes: form.notes } : {}),
+        ...(recoverItemIds.length > 0 ? { recoverItemIds } : {}),
         ...(adjustment
           ? {
               adjustmentAmount: `${negative ? '-' : ''}${normalizeAmount(adjustment.replace('-', ''))}`,
@@ -275,6 +285,23 @@ function SettlementsAdmin() {
               />
             ) : null}
           </div>
+          {recoverable.data && recoverable.data.length > 0 ? (
+            <SettlementRecoveriesPicker
+              items={recoverable.data}
+              skipped={skipped}
+              onToggle={(id, include) => {
+                const next = new Set(skipped);
+
+                if (include) {
+                  next.delete(id);
+                } else {
+                  next.add(id);
+                }
+
+                setSkipped(next);
+              }}
+            />
+          ) : null}
           <div className="form-actions">
             <button type="submit" className="btn btn-primary" disabled={create.pending}>
               Gerar repasse
