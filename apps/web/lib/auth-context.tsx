@@ -14,7 +14,7 @@ import {
 import { api, parseProblem, setTokenProvider } from './api-client';
 import type { Profile } from './api-types';
 import { getQueryClient } from './query-client';
-import { startRealtime, stopRealtime } from './realtime';
+import { setAnonymousRealtime, startRealtime, stopRealtime } from './realtime';
 
 interface TokenResponse {
   readonly accessToken: string;
@@ -196,6 +196,10 @@ export function AuthProvider({ children }: { readonly children: ReactNode }) {
       clearInterval(interval);
     };
   }, [endSession]);
+
+  useEffect(() => {
+    setAnonymousRealtime(status === 'anonymous');
+  }, [status]);
 
   // Conexão em tempo real enquanto houver sessão (DT-049), dividida entre as abas (DT-116).
   // Depende só de quem está logado: recarregar o perfil não derruba a conexão.

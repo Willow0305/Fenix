@@ -237,3 +237,22 @@ export async function grantBoardRole(email: string): Promise<void> {
     await client.end();
   }
 }
+
+/**
+ * Escreve direto no banco do E2E, como uma tarefa automática ou um webhook fariam: serve
+ * para provar que a mudança chega às telas abertas sem passar pela tela (DT-116).
+ */
+export async function sql(
+  text: string,
+  params: unknown[] = []
+): Promise<Record<string, unknown>[]> {
+  const client = new Client({ connectionString: e2eDatabaseUrl() });
+
+  await client.connect();
+
+  try {
+    return (await client.query(text, params)).rows as Record<string, unknown>[];
+  } finally {
+    await client.end();
+  }
+}

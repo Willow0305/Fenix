@@ -1,4 +1,4 @@
-import type { RealtimeTopic } from '@fenix/validation';
+import { PUBLIC_TOPIC_NAMES, type RealtimeTopic } from '@fenix/validation';
 
 import { sseFrame } from '../../modules/realtime/realtime.module';
 import { PUBLIC_REALTIME_TOPICS, visibleTopics } from '../../modules/realtime/domain/topic-access';
@@ -80,6 +80,10 @@ describe('quem recebe cada assunto (DT-116)', () => {
     expect(topics.has('orders')).toBe(false);
     expect(topics.has('finance')).toBe(false);
     expect(topics.has('audit')).toBe(false);
+  });
+
+  it('a lista pública do site é a mesma que a API libera para todos', () => {
+    expect([...PUBLIC_TOPIC_NAMES].sort()).toEqual([...PUBLIC_REALTIME_TOPICS].sort());
   });
 
   it('papel com só uma área recebe essa área e o pagamento ligado a ela', () => {

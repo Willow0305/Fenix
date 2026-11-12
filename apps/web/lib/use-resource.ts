@@ -4,7 +4,9 @@ import { type QueryKey, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useCallback, useEffect, useState } from 'react';
 
 import { api, errorMessage, type RequestOptions } from './api-client';
-import { onRealtime, shouldReload } from './realtime';
+import { showsPublicTopic } from '@fenix/validation';
+
+import { onRealtime, requirePublicRealtime, shouldReload } from './realtime';
 
 export interface Resource<T> {
   readonly data: T | null;
@@ -60,6 +62,13 @@ export function useResource<T>(
       previousQuery?.queryKey[0] === path ? previous : undefined
   });
   const serializedKey = JSON.stringify(key);
+
+  // Tela com assunto público (fórum, horários de parceiros…): sem sessão, liga o fluxo
+  // público enquanto aberta (DT-116). Com sessão, o fluxo da pessoa já traz esses assuntos.
+  useEffect(
+    () => (path !== null && showsPublicTopic(path) ? requirePublicRealtime() : undefined),
+    [path]
+  );
 
   useEffect(() => {
     if (live !== 'notify' || path === null) {

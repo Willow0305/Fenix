@@ -47,6 +47,7 @@ Demonstrar que requisitos, regras, permissões, transições e atributos de qual
 | Unitária (API) | `npm test` | domínio puro (autenticação, criptografia, datas e fusos, dinheiro, mensalidades, Caixa, estoque, remessas), inicialização da aplicação | nenhuma |
 | Componentes (web) | `npm test` | formatação de datas/dinheiro, formulários acessíveis, erros e paginação | nenhuma |
 | Integração (API) | `npm run test:integration` | fluxos HTTP reais contra PostgreSQL, uma suíte por fase (`apps/api/test/phase*.int-spec.ts`) | banco exclusivo `<banco>_test`, recriado a cada execução (DT-038); uma suíte por vez, num processo auxiliar trocado ao passar de 1,5 GB de memória (DT-114) |
+| Ponta a ponta (E2E) | `npm run e2e` | telas reais em celular e computador; `realtime.spec.ts` grava direto no banco e confere que a tela aberta mostra a mudança sem recarregar, com as abas dividindo uma conexão (DT-116) | build e banco do E2E |
 | Smoke | `npm run smoke` | web, health, Swagger e OpenAPI | build |
 
 A suíte de integração cobre, para cada domínio, caso autorizado, sem autenticação, sem permissão, recurso de outro titular, estados inválidos e auditoria, além de concorrência real em pagamentos e estoque. Ela também roda no CI após aplicar as migrations. Os dados criados usam e-mails e nomes fictícios aleatórios.
@@ -240,6 +241,8 @@ Os números dependem de linha de base/volume aprovado. Cada plano informa:
 - resultado comparado à versão anterior.
 
 Cobrir no mínimo login, listagem administrativa, geração de mensalidades, confirmação de pagamento, checkout/pedido, relatório e fórum quando suas fases chegarem.
+
+**Tempo real (DT-116, `apps/api/test/realtime-load.int-spec.ts`):** 300 conexões públicas reais, vindas de 12 endereços atrás do proxy (`X-Forwarded-For`), recebem a mesma mudança gravada no banco. Resultado local em 2026-11-12 (Windows, PostgreSQL 17 em Docker, um servidor da API): p50 193 ms, p95 203 ms e máximo 204 ms do commit ao último receber; 150 ms são a janela que junta avisos seguidos. O teste falha acima de 3 s. A mesma suíte confere que o limite de 30 conexões por endereço continua valendo atrás do proxy. Memória por conexão não foi medida com confiança (a coleta de lixo do Node distorce a medida no mesmo processo) e fica para o ensaio em homologação.
 
 ## Cobertura e mutação
 

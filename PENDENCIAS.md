@@ -615,6 +615,14 @@ Prioridades:
 - **Impacto:** `apps/api/src/modules/store`, `member-cards`, `finance`; nenhum contrato de API.
 - **Situação:** resolvida em 2026-11-12 a pedido do responsável (`DT-114`): os quatro serviços divididos por assunto, com a classe original como fachada. Ver seção 12.
 
+### PEN-078 — Ensaio do tempo real em homologação
+
+- **Prioridade:** P2
+- **Bloqueia:** nada; o tempo real funciona e foi testado localmente (DT-116)
+- **Questão:** o teste de carga roda com um servidor da API, na máquina de desenvolvimento: 300 conexões recebem a mudança em cerca de 200 ms. Ficaram sem número confiável a memória por conexão (a medida no mesmo processo é distorcida pela coleta de lixo) e o efeito, com muito movimento, de toda escrita fazer `NOTIFY` (o PostgreSQL ordena os commits que avisam). Com mais de uma instância do site, cada uma guarda o próprio cache das páginas públicas, e o descarte pedido pela API chega a uma só (`/api/site-revalidate` atrás do Nginx).
+- **Recomendação:** em homologação, abrir 1.000 conexões (metade com sessão), medir memória e CPU da API e o tempo de commit com e sem os gatilhos; se o site tiver mais de uma instância, usar cache compartilhado do Next.js ou pedir o descarte a cada instância.
+- **Impacto:** `docs/14-TESTES.md`, `docs/15-DEPLOY-E-INFRAESTRUTURA.md`; se necessário, gatilhos por comando (`FOR EACH STATEMENT`) e o limite de conexões por IP.
+
 ## 11. Critério de resolução
 
 Ao resolver uma pendência:

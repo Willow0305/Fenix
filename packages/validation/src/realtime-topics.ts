@@ -42,6 +42,28 @@ export function isRealtimeTopic(value: unknown): value is RealtimeTopic {
   return typeof value === 'string' && TOPIC_SET.has(value);
 }
 
+/**
+ * Assuntos públicos: chegam a todos, inclusive visitantes sem login. A API confere, por teste,
+ * que são exatamente os que ela libera para todos (`TOPIC_ACCESS`).
+ */
+export const PUBLIC_TOPIC_NAMES: readonly RealtimeTopic[] = [
+  'teams',
+  'tryouts',
+  'store',
+  'campaigns',
+  'benefits',
+  'partners',
+  'news',
+  'events',
+  'forum',
+  'settings'
+];
+
+/** A tela que consulta `path` mostra algum assunto público? */
+export function showsPublicTopic(path: string): boolean {
+  return topicsOfPath(path).some((topic) => PUBLIC_TOPIC_NAMES.includes(topic));
+}
+
 /** Indicadores do painel e relatórios: somam quase tudo. */
 const INDICATORS: readonly RealtimeTopic[] = [
   'orders',

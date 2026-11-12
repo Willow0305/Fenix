@@ -6,6 +6,19 @@ O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) e o 
 
 ## [Não publicado]
 
+### Tempo real em todo o sistema — onda 5 de 5: prova final (2026-11-12)
+
+#### Adicionado
+
+- E2E do tempo real (celular e computador): produto mudando para o visitante, cadastro novo no Caixa em duas abas com uma conexão só, e "Há novidades" no fórum; a mudança é gravada direto no banco e a página não é recarregada (DT-116);
+- teste de carga: 300 conexões reais recebem a mesma mudança em cerca de 200 ms.
+
+#### Corrigido
+
+- sem login, o fórum e os horários de parceiros não ligavam a conexão pública e não se atualizavam sozinhos;
+- a página não abre mais a conexão pública para trocá-la logo pela da sessão enquanto o login ainda está sendo conferido;
+- E2E do pedido com cartão ou dinheiro confere o aviso visível, não a cópia para o leitor de tela (falhava às vezes).
+
 ### Tempo real em todo o sistema — onda 4 de 5: site público e comunidade (2026-11-12)
 
 #### Adicionado

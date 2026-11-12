@@ -2401,7 +2401,7 @@ Desde o NestJS 12 (`DT-055`), os pacotes do Nest são só ESM e a API em CommonJ
 
 ## DT-116 — Tempo real por assunto, avisado pelo banco
 
-- **Estado:** Aceita; ondas 1 a 4 de 5 implementadas em 2026-11-12
+- **Estado:** Aceita; implementada em 2026-11-12 (5 ondas)
 - **Data:** 2026-11-12
 - **Aprovador:** responsável do projeto ("Aprovado, seguindo as quatro recomendações apresentadas e a sequência de execução das ondas 1 a 5", 2026-11-12)
 - **Substitui em parte:** `DT-049` (o aviso `changed` genérico, só para a diretoria) e `DT-051` (o fluxo público por assunto)
@@ -2449,7 +2449,10 @@ Antes, só quem tinha `dashboard.read` recebia o aviso `changed`, e qualquer esc
    - **páginas ao vivo:** início, notícias (lista e leitura), agenda e evento, times, parceiros, benefícios e afiliação, além das que já eram ao vivo (loja, produto, carrinho, seletivas). A página busca os dados de novo mantendo a rolagem e os campos;
    - **"Há novidades":** nas páginas de leitura (notícia, lista de notícias, tópicos e conversa do fórum), o conteúdo novo não entra sozinho. Aparece "Há novidades nesta página. Atualizar", e a pessoa decide. Para não avisar a própria resposta, a tela confere em segundo plano e só avisa se o conteúdo for de fato diferente. Depois de uma queda da conexão, a tela busca de novo mesmo assim (`useResource(…, { live: 'notify' })`);
    - **visitantes:** até 30 conexões públicas por IP em cada servidor (antes, 6), porque redes de celular põem muitos visitantes atrás do mesmo IP. O aviso "Reconectando…" aparece só com sessão: para o visitante, a página continua funcionando, só sem se atualizar sozinha;
-5. **prova final:** E2E com dois navegadores, carga de conexões e documentação.
+5. **prova final** (implementada):
+   - **E2E** (`e2e/tests/realtime.spec.ts`, celular e computador): a mudança é gravada direto no banco, como numa tarefa ou num webhook, e a tela aberta mostra o novo sem recarregar (uma marca na janela prova que a página não foi recarregada). Cenários: visitante vendo o produto mudar; equipe vendo o cadastro novo no Caixa em duas abas, com a segunda aba sem conexão própria e assumindo quando a primeira fecha; fórum mostrando "Há novidades" sem trocar a lista até a pessoa pedir;
+   - **carga:** 300 conexões reais de 12 endereços recebem a mesma mudança em cerca de 200 ms (p95 203 ms), ver `docs/14-TESTES.md`;
+   - **ajustes achados na prova:** sem sessão, as telas que buscam direto na API (fórum, horários de parceiros) não ligavam o fluxo público; agora a consulta de assunto público o liga enquanto a tela está aberta (`showsPublicTopic`). O fluxo público só abre depois de a conferência do login terminar sem sessão, para não abrir e trocar logo pelo da pessoa;
 
 ### Consequências
 

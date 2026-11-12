@@ -52,6 +52,8 @@ interface Connection {
 
 let session: Session | null = null;
 let publicDemand = 0;
+/** Já se sabe que não há sessão (evita abrir o fluxo público e trocá-lo logo pelo da pessoa). */
+let anonymous = false;
 let current: Connection | null = null;
 let status: RealtimeStatus = 'off';
 let wakeUp: (() => void) | null = null;
@@ -388,7 +390,7 @@ function desiredKey(): string | null {
     return `u:${session.userId}`;
   }
 
-  return publicDemand > 0 ? 'publico' : null;
+  return anonymous && publicDemand > 0 ? 'publico' : null;
 }
 
 function installPageHooks(): void {
@@ -446,6 +448,12 @@ export function startRealtime(userId: string, getToken: () => string | null): vo
 
 export function stopRealtime(): void {
   session = null;
+  reconcile();
+}
+
+/** A conferência do login terminou sem sessão: as páginas públicas podem ligar o fluxo. */
+export function setAnonymousRealtime(value: boolean): void {
+  anonymous = value;
   reconcile();
 }
 
