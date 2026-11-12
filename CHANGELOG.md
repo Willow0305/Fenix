@@ -6,6 +6,18 @@ O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) e o 
 
 ## [Não publicado]
 
+### Tempo real em todo o sistema — onda 2 de 5: painel para toda a equipe (2026-11-12)
+
+#### Adicionado
+
+- edição de notícia, de parceiro e das configurações do time (dados públicos e de pagamento): se outra pessoa alterar o registro enquanto alguém edita, o que foi digitado continua no formulário, com o aviso "Estes dados foram alterados em outro lugar…" e a opção de descartar e ver a versão atual; sem edição pendente, o formulário acompanha a versão nova sozinho (DT-116).
+
+#### Corrigido
+
+- papéis com permissão só de agir numa área (por exemplo, conciliar o Caixa ou gerenciar planos de mensalidade) passam a receber os avisos dessa área.
+- a API mantém por 65 s a conexão ociosa reaproveitada pelo proxy, mais que o Nginx (60 s); com o padrão do Node (5 s), a API podia fechar a conexão no instante em que o proxy a reusava, e o pedido voltava com erro 500/502 (visto uma vez no E2E, na conexão de tempo real).
+- teste ponta a ponta do cartão recusado confere o aviso visível, não a cópia para o leitor de tela.
+
 ### Tempo real em todo o sistema — onda 1 de 5: fundação (2026-11-12)
 
 #### Adicionado

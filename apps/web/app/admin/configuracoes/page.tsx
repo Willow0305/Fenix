@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { useEffect, useRef, useState } from 'react';
+import { useRef, useState } from 'react';
 
 import {
   Alert,
@@ -14,10 +14,12 @@ import {
   useSubmit
 } from '../../../components/ui';
 import { api } from '../../../lib/api-client';
+import { StaleNotice } from '../../../components/stale-notice';
 import { ImageGalleryManager } from '../../../components/image-gallery-manager';
 import type { AdminTeam, BrandContext, LegalVersion } from '../../../lib/api-types';
 import { useAuth } from '../../../lib/auth-context';
 import { formatDateTime } from '../../../lib/format';
+import { useEditableCopy } from '../../../lib/use-editable-copy';
 import { useResource } from '../../../lib/use-resource';
 
 const BRAND_CONTEXTS: { context: BrandContext; label: string }[] = [
@@ -135,17 +137,16 @@ function BrandUpload({
 export default function SettingsPage() {
   const { can } = useAuth();
   const settings = useResource<AdminTeam>('/team-settings');
-  const [form, setForm] = useState<PublicForm | null>(null);
-  const [pix, setPix] = useState('');
-  const [banking, setBanking] = useState('');
-
-  useEffect(() => {
-    if (settings.data) {
-      setForm(toForm(settings.data));
-      setPix(settings.data.financial?.pixKey ?? '');
-      setBanking(settings.data.financial?.bankingDetails ?? '');
-    }
-  }, [settings.data]);
+  const publicCopy = useEditableCopy(settings.data, toForm);
+  const { form, setForm } = publicCopy;
+  const financial = useEditableCopy(settings.data, (data: AdminTeam) => ({
+    pix: data.financial?.pixKey ?? '',
+    banking: data.financial?.bankingDetails ?? ''
+  }));
+  const pix = financial.form?.pix ?? '';
+  const banking = financial.form?.banking ?? '';
+  const setPix = (value: string) => financial.setForm({ pix: value, banking });
+  const setBanking = (value: string) => financial.setForm({ pix, banking: value });
 
   const savePublic = useSubmit(async () => {
     if (!form) {
@@ -211,6 +212,7 @@ export default function SettingsPage() {
         <h2>Dados públicos</h2>
         {savePublic.message ? <Alert kind="success">{savePublic.message}</Alert> : null}
         <ErrorSummary error={savePublic.error} />
+        <StaleNotice stale={publicCopy.stale} onDiscard={publicCopy.discard} />
         <fieldset
           disabled={!editable}
           className="stack"
@@ -363,6 +365,7 @@ export default function SettingsPage() {
           </p>
           {saveFinancial.message ? <Alert kind="success">{saveFinancial.message}</Alert> : null}
           <ErrorSummary error={saveFinancial.error} />
+          <StaleNotice stale={financial.stale} onDiscard={financial.discard} />
           <TextField
             label="Chave PIX"
             maxLength={140}

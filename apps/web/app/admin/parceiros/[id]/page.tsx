@@ -2,8 +2,9 @@
 
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 
+import { StaleNotice } from '../../../../components/stale-notice';
 import { ImageUpload } from '../../../../components/image-upload';
 import {
   Alert,
@@ -32,6 +33,7 @@ import {
   PARTNER_TYPE,
   type PartnerStatus
 } from '../../../../lib/partner-types';
+import { useEditableCopy } from '../../../../lib/use-editable-copy';
 import { useResource } from '../../../../lib/use-resource';
 
 type Form = Record<string, string>;
@@ -187,15 +189,11 @@ export default function PartnerAdminPage() {
   const { id } = useParams<{ id: string }>();
   const { can } = useAuth();
   const partner = useResource<Partner>(`/partners/${id}`);
-  const [form, setForm] = useState<Form>({});
+  const editable = useEditableCopy(partner.data, toForm);
+  const form = editable.form ?? {};
+  const setForm = editable.setForm;
   const [notice, setNotice] = useState<string | null>(null);
   const [next, setNext] = useState<PartnerStatus | null>(null);
-
-  useEffect(() => {
-    if (partner.data) {
-      setForm(toForm(partner.data));
-    }
-  }, [partner.data]);
 
   const set = (key: string) => (event: { target: { value: string } }) =>
     setForm({ ...form, [key]: event.target.value });
@@ -294,6 +292,7 @@ export default function PartnerAdminPage() {
       <form className="form card" onSubmit={(event) => void save.submit(event)}>
         <h2>Cadastro</h2>
         <ErrorSummary error={save.error} />
+        <StaleNotice stale={editable.stale} onDiscard={editable.discard} />
         <fieldset disabled={ended} className="stack">
           <div className="form-grid">
             <TextField

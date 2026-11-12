@@ -2401,7 +2401,7 @@ Desde o NestJS 12 (`DT-055`), os pacotes do Nest são só ESM e a API em CommonJ
 
 ## DT-116 — Tempo real por assunto, avisado pelo banco
 
-- **Estado:** Aceita; onda 1 de 5 implementada em 2026-11-12
+- **Estado:** Aceita; ondas 1 e 2 de 5 implementadas em 2026-11-12
 - **Data:** 2026-11-12
 - **Aprovador:** responsável do projeto ("Aprovado, seguindo as quatro recomendações apresentadas e a sequência de execução das ondas 1 a 5", 2026-11-12)
 - **Substitui em parte:** `DT-049` (o aviso `changed` genérico, só para a diretoria) e `DT-051` (o fluxo público por assunto)
@@ -2438,7 +2438,7 @@ Antes, só quem tinha `dashboard.read` recebia o aviso `changed`, e qualquer esc
 ### Ondas
 
 1. **fundação** (esta): gatilhos, assuntos, quem recebe, recarga só do que mudou, conexão dividida entre as abas, ressincronização e aviso de reconexão;
-2. **painel para toda a equipe:** conferência por papel, incluindo papéis personalizados e entregador, e tarefas automáticas;
+2. **painel para toda a equipe** (implementada): papéis personalizados recebem as áreas das próprias permissões, inclusive as de agir (o teste das rotas achou `cash.reconcile` e `fees.plans.manage` sem aviso); tarefa automática avisa (teste com o fechamento de remessa pelo prazo); formulários de edição preenchidos com dados ao vivo (`useEditableCopy`) acompanham a versão nova só sem edição pendente; com edição pendente, mantêm o que foi digitado e avisam "Estes dados foram alterados em outro lugar…", com a opção de descartar. O entregador usa o link da entrega, sem login, e fica com a onda 3;
 3. **área da pessoa e pagamentos:** aviso ao dono (pedido, também sem conta, mensalidade, carteirinha, inscrição, agendamento) e o ciclo completo do PIX e do cartão confirmados pelo intermediário, com idempotência conferida;
 4. **site público e comunidade:** demais páginas em cache e "Há novidades" no fórum e nas notícias;
 5. **prova final:** E2E com dois navegadores, carga de conexões e documentação.
@@ -2449,3 +2449,4 @@ Antes, só quem tinha `dashboard.read` recebia o aviso `changed`, e qualquer esc
 - tabela nova que aparece em tela precisa de gatilho na migração dela, ou a tela não se atualiza sozinha;
 - a aba que fez a mudança também busca de novo (antes não buscava): uma consulta a mais, em troca de atualizar as outras partes da tela ligadas à mudança;
 - sem a conexão de escuta (`REALTIME=off` ou banco indisponível), os avisos do banco não chegam até ela voltar; a ressincronização na reconexão cobre o intervalo.
+- conexões longas deixaram visível uma corrida antiga: a API fechava em 5 s (padrão do Node) a conexão ociosa que o proxy reaproveita por mais tempo (Nginx, 60 s), e o pedido que saía nela voltava 500/502. A API passa a esperar 65 s (`keepAliveTimeout`, com `headersTimeout` 1 s maior).

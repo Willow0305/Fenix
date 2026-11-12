@@ -6,6 +6,7 @@ import { METHOD_METADATA, PATH_METADATA } from '@nestjs/common/constants';
 import { DiscoveryService, ModulesContainer } from '@nestjs/core';
 
 import { REQUIRED_PERMISSIONS } from '../src/modules/auth/http/auth.decorators';
+import { CampaignsService } from '../src/modules/campaigns/application/campaigns.service';
 import { NotificationsService } from '../src/modules/notifications/application/notifications.service';
 import { visibleTopics } from '../src/modules/realtime/domain/topic-access';
 import { createTestContext, createUser, login, type TestContext, tokenFor } from './helpers';
@@ -249,6 +250,31 @@ describe('Tempo real (DT-049, DT-116)', () => {
     });
 
     await stream.waitFor(changed('fees'), 'fees');
+  });
+
+  it('tarefa automática avisa: remessa fechada pelo prazo chega à equipe e ao visitante', async () => {
+    const slug = `remessa-${randomUUID().slice(0, 8)}`;
+
+    await ctx.prisma.salesCampaign.create({
+      data: {
+        name: 'Remessa vencida',
+        slug,
+        status: 'OPEN',
+        salesStartAt: new Date(Date.now() - 3 * 86_400_000),
+        salesEndAt: new Date(Date.now() - 60_000),
+        currency: 'BRL'
+      }
+    });
+
+    const staff = await open(await tokenWith(['campaigns.manage']));
+    const visitor = await open();
+
+    expect(await ctx.app.get(CampaignsService).closeExpired()).toBeGreaterThanOrEqual(1);
+    await staff.waitFor(changed('campaigns'), 'campaigns');
+    await visitor.waitFor(changed('campaigns'), 'campaigns');
+    expect((await ctx.prisma.salesCampaign.findUniqueOrThrow({ where: { slug } })).status).toBe(
+      'CLOSED'
+    );
   });
 
   it('papel personalizado recebe só as áreas das próprias permissões', async () => {

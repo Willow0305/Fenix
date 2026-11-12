@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 
 import {
   Alert,
@@ -19,6 +19,7 @@ import { Icon } from '../../../../components/icon';
 import { NewsCard } from '../../../../components/news-card';
 import { ImageGalleryManager } from '../../../../components/image-gallery-manager';
 import { ImageUpload } from '../../../../components/image-upload';
+import { StaleNotice } from '../../../../components/stale-notice';
 import { api } from '../../../../lib/api-client';
 import type { Page } from '../../../../lib/api-types';
 import {
@@ -29,6 +30,7 @@ import {
   type TeamEvent
 } from '../../../../lib/content-types';
 import { formatDateTime } from '../../../../lib/format';
+import { useEditableCopy } from '../../../../lib/use-editable-copy';
 import { useResource } from '../../../../lib/use-resource';
 
 type Form = {
@@ -52,29 +54,21 @@ export default function NewsEditPage() {
   const categories = useResource<NewsCategory[]>('/news-categories');
   const tags = useResource<NewsTag[]>('/news-tags');
   const events = useResource<Page<TeamEvent>>('/events', { pageSize: 50 });
-  const [form, setForm] = useState<Form | null>(null);
+  const { form, setForm, stale, discard } = useEditableCopy<NewsDetail, Form>(news.data, (n) => ({
+    title: n.title,
+    slug: n.slug,
+    categoryId: n.category.id,
+    summary: n.summary ?? '',
+    content: n.content,
+    eventId: n.event?.id ?? '',
+    showOnHome: n.showOnHome,
+    showOnForum: n.showOnForum,
+    isFeatured: n.isFeatured,
+    tagIds: n.tags.map((tag) => tag.id)
+  }));
   const [notice, setNotice] = useState<string | null>(null);
   const [scheduleAt, setScheduleAt] = useState('');
   const [statusAction, setStatusAction] = useState<'HIDDEN' | 'ARCHIVED' | 'DRAFT' | null>(null);
-
-  useEffect(() => {
-    const n = news.data;
-
-    if (n) {
-      setForm({
-        title: n.title,
-        slug: n.slug,
-        categoryId: n.category.id,
-        summary: n.summary ?? '',
-        content: n.content,
-        eventId: n.event?.id ?? '',
-        showOnHome: n.showOnHome,
-        showOnForum: n.showOnForum,
-        isFeatured: n.isFeatured,
-        tagIds: n.tags.map((tag) => tag.id)
-      });
-    }
-  }, [news.data]);
 
   const save = useSubmit(async () => {
     if (!form || !news.data) {
@@ -244,6 +238,7 @@ export default function NewsEditPage() {
       <form className="form card" onSubmit={(event) => void save.submit(event)}>
         <h2>Conteúdo</h2>
         <ErrorSummary error={save.error} />
+        <StaleNotice stale={stale} onDiscard={discard} />
         <fieldset disabled={status === 'ARCHIVED'} className="stack">
           <div className="form-grid">
             <TextField

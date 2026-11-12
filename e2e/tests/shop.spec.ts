@@ -170,7 +170,7 @@ test('conta confirmada paga com cartão pelo site', async ({ page, request }, in
   await expect(page.getByRole('heading', { name: /Pagar com cartão/ })).toBeVisible();
 
   await page.getByRole('button', { name: 'Simular recusado' }).click();
-  await expect(page.getByText('Limite insuficiente no cartão.')).toBeVisible();
+  await expect(page.locator('#conteudo').getByText('Limite insuficiente no cartão.')).toBeVisible();
   await page.getByLabel(/^Parcelas/).selectOption('3');
   await expectNoHorizontalScroll(page);
 

@@ -1,3 +1,5 @@
+import type { Server } from 'node:http';
+
 import { Logger } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import { ExpressAdapter, type NestExpressApplication } from '@nestjs/platform-express';
@@ -7,6 +9,7 @@ import { JsonLogger, useJsonLogs } from './common/observability/json-logger';
 import { configureApplication } from './configure-application';
 
 const DEFAULT_API_PORT = 3333;
+const KEEP_ALIVE_MS = 65_000;
 const bootstrapLogger = new Logger('Bootstrap');
 
 function resolveApiPort(rawPort: string | undefined): number {
@@ -39,6 +42,14 @@ async function bootstrap(): Promise<void> {
   // Somente loopback por padrão: o navegador chega à API pelo proxy do Next.js. Em
   // contêineres, defina API_HOST=0.0.0.0 explicitamente.
   await app.listen(resolveApiPort(process.env['API_PORT']), process.env['API_HOST'] ?? '127.0.0.1');
+
+  // Conexão ociosa reaproveitada pelo proxy (Nginx guarda por 60 s; o do Next.js, alguns
+  // segundos): a API precisa esperar mais que ele. Com o padrão do Node (5 s), a API fechava
+  // a conexão no instante em que o proxy a reusava, e o pedido voltava 500/502 (DT-116).
+  const server = app.getHttpServer() as Server;
+
+  server.keepAliveTimeout = KEEP_ALIVE_MS;
+  server.headersTimeout = KEEP_ALIVE_MS + 1_000;
 }
 
 bootstrap().catch(() => {
