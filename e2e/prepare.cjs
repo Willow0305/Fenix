@@ -3,7 +3,7 @@
  * de demonstração, e compila o site numa pasta própria. Recusa rodar em produção.
  */
 const { execSync } = require('node:child_process');
-const { rmSync } = require('node:fs');
+const { readFileSync, rmSync, writeFileSync } = require('node:fs');
 const path = require('node:path');
 
 const { Client } = require('pg');
@@ -48,8 +48,18 @@ async function main() {
   // Build limpo: o cache de dados do Next guardaria produtos do banco anterior (ids que não
   // existem mais no banco recriado) e o primeiro "Adicionar ao carrinho" falharia.
   rmSync(path.join(ROOT, 'apps', 'web', '.next-e2e'), { recursive: true, force: true });
-  // O build do Next exige NODE_ENV=production (React de produção).
-  run('npx next build', path.join(ROOT, 'apps', 'web'), { NODE_ENV: 'production' });
+  // O build do Next exige NODE_ENV=production (React de produção). Ele reescreve o
+  // `next-env.d.ts` versionado para apontar para `.next-e2e`; o original é restaurado
+  // para o E2E não deixar o repositório com alteração pendente.
+  const webDir = path.join(ROOT, 'apps', 'web');
+  const nextEnvPath = path.join(webDir, 'next-env.d.ts');
+  const nextEnv = readFileSync(nextEnvPath, 'utf8');
+
+  try {
+    run('npx next build', webDir, { NODE_ENV: 'production' });
+  } finally {
+    writeFileSync(nextEnvPath, nextEnv);
+  }
 }
 
 main().catch((error) => {

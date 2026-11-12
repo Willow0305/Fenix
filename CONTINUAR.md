@@ -4,7 +4,7 @@ Este arquivo permite que outro chat ou agente continue exatamente de onde o trab
 
 ## Prompt para colar no novo chat
 
-> Você vai continuar o desenvolvimento do sistema Fênix Vôlei no repositório `C:\Users\William\Desktop\Fenix`, branch `desenvolvimento`. Leia, nesta ordem: `CONTINUAR.md`, `AGENTS.md`, `docs/16-ROADMAP.md`, `PENDENCIAS.md` (seção 12, "Resolvidas") e `docs/27-RELATORIO-FASE-8.md`. As fases 0 a 8 estão implementadas e commitadas. Antes de qualquer novo desenvolvimento, confirme com o responsável qual pendência de produção atacar (ver `docs/27-RELATORIO-FASE-8.md` §7); a seção 5 deste guia ficou como histórico do plano executado. O responsável único do projeto autorizou todas as fases e delegou as decisões técnicas: decida sozinho usando as recomendações de `PENDENCIAS.md` e registre-as em `docs/17-DECISOES-TECNICAS.md`. Pergunte apenas o que for decisão de negócio impossível de inferir. Ao fim de cada fase: `npm run check` e `npm run test:integration` verdes, relatório `docs/2X-RELATORIO-FASE-N.md` no padrão dos anteriores, atualização de CHANGELOG, roadmap, 02-REQUISITOS (matriz de estado), 10-API e decisões, e commit com a linha `Co-Authored-By` usada nos commits anteriores. Responda sempre em português.
+> Você vai continuar o desenvolvimento do sistema Fênix Vôlei no repositório `C:\Users\William\Desktop\Fenix`, branch `dev`. Leia, nesta ordem: `CONTINUAR.md`, `AGENTS.md`, `docs/16-ROADMAP.md`, `PENDENCIAS.md` (seção 12, "Resolvidas") e `docs/27-RELATORIO-FASE-8.md`. As fases 0 a 8 estão implementadas e commitadas. Antes de qualquer novo desenvolvimento, confirme com o responsável qual pendência de produção atacar (ver `docs/27-RELATORIO-FASE-8.md` §7); a seção 5 deste guia ficou como histórico do plano executado. O responsável único do projeto autorizou todas as fases e delegou as decisões técnicas: decida sozinho usando as recomendações de `PENDENCIAS.md` e registre-as em `docs/17-DECISOES-TECNICAS.md`. Pergunte apenas o que for decisão de negócio impossível de inferir. Ao fim de cada fase: `npm run check` e `npm run test:integration` verdes, relatório `docs/2X-RELATORIO-FASE-N.md` no padrão dos anteriores, atualização de CHANGELOG, roadmap, 02-REQUISITOS (matriz de estado), 10-API e decisões, e commit com a linha `Co-Authored-By` usada nos commits anteriores. Responda sempre em português.
 
 ## 1. Contexto
 
@@ -27,7 +27,9 @@ Este arquivo permite que outro chat ou agente continue exatamente de onde o trab
 | 7 | Comunicação (notícias, eventos, fórum) | ver `git log` | `docs/26` |
 | 8 | Relatórios, auditoria final, otimizações | ver `git log` | `docs/27` |
 
-Testes: 82 unitários de API e 7 web (`npm test`), mais 71 de integração em `apps/api/test/phase1..8-*.int-spec.ts` (`npm run test:integration`).
+Testes (contagem de 2026-11-11): 344 unitários de API, 153 do site e 22 dos scripts de inicialização (`npm test`), mais 267 de integração em 49 arquivos `apps/api/test/*.int-spec.ts` (`npm run test:integration`) e os ponta a ponta de `e2e/` (`npm run e2e`).
+
+As fases 0 a 8 estão concluídas e a Fase 9 (Evolução, `docs/16`) segue em decisões incrementais: o histórico mais recente está no topo do `CHANGELOG.md` e nas últimas entradas de `docs/17-DECISOES-TECNICAS.md`.
 
 **Todas as fases do roadmap (0 a 8) estão implementadas.** O próximo trabalho depende das decisões listadas em `docs/27-RELATORIO-FASE-8.md` §7 (jurídico, provedores, backup, MFA). Não implemente funcionalidades da lista "Itens futuros sem fase autorizada" do roadmap sem autorização registrada.
 
@@ -84,9 +86,9 @@ Testes: 82 unitários de API e 7 web (`npm test`), mais 71 de integração em `a
    ```
 9. **Shell:** evite crases (template strings) dentro de `node -e "..."` no Bash, porque o shell as interpreta. Para editar documentos, escreva um `.js` temporário no scratchpad ou use a ferramenta de edição.
 10. **Antes de commitar:** `npx prettier --write apps docs` e depois `npm run check` (formatação, lint, tipos, testes, Prisma, build) e `npm run test:integration`.
-11. **Testes de integração** usam `apps/api/test/helpers.ts`: `createTestContext`, `createUser`, `login`, `tokenFor(ctx, ['board'])`, `uniqueEmail`, `PNG_1X1`. O rate limit é desligado (`THROTTLE_DISABLED`). Dados de teste ficam no mesmo banco local, então use nomes e e-mails aleatórios e não assuma tabelas vazias.
+11. **Testes de integração** usam `apps/api/test/helpers.ts`: `createTestContext`, `createUser`, `login`, `tokenFor(ctx, ['board'])`, `uniqueEmail`, `PNG_1X1`. O rate limit é desligado (`THROTTLE_DISABLED`). Os testes usam um banco próprio (`<dev>_test`, recusado se igual ao de desenvolvimento, `DT-038`), mas ele não é esvaziado entre arquivos: use nomes e e-mails aleatórios e não assuma tabelas vazias.
 12. **Dependências:** o npm 11 bloqueia install scripts. O `sharp` funciona com binários pré-compilados. Ao adicionar dependência, rode `npm audit --audit-level=high` e, se houver aviso, use `overrides` no `package.json` raiz (ver `DT-019` e o CHANGELOG). Não use pacotes somente ESM na API (Jest em CommonJS); por isso o `jose` foi descartado.
-13. **Commits** na branch `desenvolvimento`, mensagem em português no formato `feat: fase N — ...`, terminando com:
+13. **Commits** na branch `dev`, um por etapa verificada, mensagem em português no formato `feat(modulo): ...` (ou `fix`, `docs`, `test`, `ci`), terminando com:
     ```
     Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
     ```

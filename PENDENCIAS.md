@@ -517,6 +517,7 @@ Prioridades:
   - **Estilos inline (R-09):** concluído em 2026-11-01: 165 dos 247 trocados por classes utilitárias (`DT-087`); os 82 restantes são calculados ou únicos e saem aos poucos, na tela corrigida.
 - **Recomendação:** R-07 e o registro de E2E e observabilidade (`DT-086`, `README`, `docs/COMO-EXECUTAR.md`) concluídos em 2026-11-01; R-09 concluído no mesmo dia (`DT-087`). **Etapa 9 concluída**; mover para Resolvidas depois da verificação.
 - **Impacto:** `docs/16` (Etapa 9), `docs/17`, `CHANGELOG.md`, `.env.example`.
+- **Situação:** resolvida em 2026-11-11 depois da verificação (`npm run check` verde). Ver seção 12.
 
 ### PEN-067 — Cartão: "sem juros" por produto no Mercado Pago
 
@@ -656,3 +657,4 @@ As entradas acima permanecem como histórico da questão original. As decisões 
 | PEN-062 | Decidido em 2026-10-25: foto de perfil para todos os usuários cadastrados (pedido do responsável), privada por padrão; perfil público por escolha da própria pessoa; menor de 18 ou sem nascimento só com autorização do responsável registrada pela diretoria (recomendação, LGPD art. 14). | Responsável do projeto | `DT-044` |
 | PEN-073 | Decidido em 2026-11-09: manter o nome de quem recebeu só nas saídas marcadas, entradas sem nomes, e a diretoria escolhe quem assina, com o cargo. Parcial: estatuto e prazo de guarda seguem com a assessoria jurídica. | Responsável do projeto | `DT-104` |
 | PEN-074 | Decidido em 2026-11-09: sem seletiva aberta, "Quero jogar no Fênix" do Início leva ao convite de Times; carteirinha só volta com a mensalidade quitada e confirmada; seletiva lotada sai do destaque. | Responsável do projeto | `DT-104` |
+| PEN-066 | Etapa 9 concluída: E2E (56 testes em dois tamanhos de tela), logs e métricas (`DT-086`) e estilos inline (`DT-087`); verificada em 2026-11-11. | Delegada | `DT-086`, `DT-087` |

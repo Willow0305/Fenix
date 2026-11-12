@@ -6,6 +6,13 @@ O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) e o 
 
 ## [Não publicado]
 
+### Melhorias da análise do sistema (2026-11-11)
+
+#### Corrigido
+
+- `npm run e2e` não deixa mais o `apps/web/next-env.d.ts` alterado: o build do site para os testes reescrevia o arquivo apontando para `.next-e2e`; agora o original é restaurado ao fim do build.
+- `CONTINUAR.md` atualizado: branch `dev`, contagem atual de testes e banco de testes isolado (`DT-038`); `PEN-066` (Etapa 9) movida para as resolvidas.
+
 ### Fórum: advertência, suspensão e regras (2026-11-10)
 
 #### Adicionado
