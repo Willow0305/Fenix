@@ -6,7 +6,7 @@ Guia passo a passo para subir o banco, a API (backend) e o site (frontend) no se
 
 | Programa | Para quê | Como conferir no terminal |
 |---|---|---|
-| [Node.js 22 ou 24 (LTS)](https://nodejs.org/) | executa a API e o site | `node --version` |
+| [Node.js 24 (LTS), 24.9 ou mais novo](https://nodejs.org/) | executa a API e o site (o NestJS 12 só funciona como ESM, `DT-055`, `DT-115`) | `node --version` |
 | [Docker Desktop](https://www.docker.com/products/docker-desktop/) | executa o banco PostgreSQL | `docker --version` |
 | [Git](https://git-scm.com/) | controle de versões | `git --version` |
 

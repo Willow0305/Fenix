@@ -26,6 +26,7 @@ O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) e o 
 
 #### Corrigido
 
+- CI: instala o Node 24.22.0, a mesma versão da imagem Docker, e o `engines` passa a `>=24.9.0`; com o Node 22, os testes da API falhavam ao carregar o NestJS 12, que é só ESM (DT-115).
 - revisão antes do envio: o freio de login reserva cada tentativa antes de conferir a senha, com a linha do e-mail travada, e tentativas ao mesmo tempo não passam mais juntas do limite; o aviso por e-mail sai fora da resposta, para o tempo do login não revelar quem tem conta (DT-109).
 - revisão antes do envio: na rota genérica de arquivos, documento ou anexo removido continua exigindo a permissão do domínio, e documento confidencial aberto por ela fica na auditoria, como nas rotas próprias (DT-110).
 - revisão antes do envio: a tela de repasses só deixa gerar o repasse depois de carregar as vendas estornadas a descontar; antes, com a lista ainda carregando ou com erro, o repasse saía sem o desconto (DT-111).

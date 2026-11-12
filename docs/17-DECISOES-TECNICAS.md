@@ -2377,3 +2377,24 @@ A chave do QR e o endereço do site, calculados da configuração no construtor 
 ### Consequências
 
 - o maior arquivo de pedidos passa de 2.309 para 710 linhas, o de mensalidades, de 1.486 para 551, o de catálogo, de 1.394 para 526, e o de carteirinhas, de 1.492 para 480; nenhum arquivo dos quatro módulos passa de 710 linhas; o comportamento é coberto pelos testes existentes (`npm run check`, `npm run test:integration` e `npm run e2e` verdes a cada divisão).
+
+## DT-115 — Node.js 24 no CI e no campo `engines`
+
+- **Estado:** Aceita; implementada em 2026-11-12
+- **Data:** 2026-11-12
+- **Aprovador:** responsável do projeto (enviou o log do CI com falha para correção)
+
+### Contexto
+
+Desde o NestJS 12 (`DT-055`), os pacotes do Nest são só ESM e a API em CommonJS os carrega com `require`, o que o Jest só consegue a partir do Node 24.9. A imagem Docker já usava o Node 24.22.0, mas o CI continuou instalando o 22.13.0 e o `engines` aceitava `>=22.13.0`. No CI, 12 suítes de testes unitários da API falhavam ao carregar o `@nestjs/common` ("Jest's require(ESM) requires Node v24.9+"), em todo push e pull request desde a `DT-055`; o push na `dev`, ligado em 2026-11-11, só deixou isso visível.
+
+### Decisão
+
+- o CI instala o Node 24.22.0, a mesma versão da imagem Docker;
+- `engines.node` passa a `>=24.9.0`, o mínimo com que os testes da API rodam;
+- `docs/COMO-EXECUTAR.md` pede o Node 24 (24.9 ou mais novo), em vez de "22 ou 24".
+
+### Consequências
+
+- quem ainda usa Node 22 localmente vê o aviso do `npm` sobre `engines` e precisa atualizar para rodar os testes da API;
+- nenhuma mudança de código; o ambiente local (Node 24.22.0) já era o verificado.
