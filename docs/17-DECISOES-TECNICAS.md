@@ -2263,3 +2263,28 @@ Pedido com item já repassado (repasse pago) pode ser estornado ou cancelado dep
 ### Consequências
 
 - testes: regra pura (`partner-rules.spec.ts`: pedido recuperável, ajuste combinado e motivo), tela (`settlement-recoveries.spec.tsx`: lista marcada, desmarcar e marcar) e integração (`settlement-recovery.int-spec.ts`: venda estornada vira sugestão, é descontada uma vez, volta ao cancelar o repasse, ajuste manual somado, desconto repetido recusado, banco recusa apagar, desconto maior que o repasse recusado e mantido para o próximo, venda de outro parceiro recusada, só `settlements.manage` vê).
+
+## DT-112 — Índices para chaves estrangeiras usadas em consultas
+
+- **Estado:** Aceita; implementada em 2026-11-11
+- **Data:** 2026-11-11
+- **Aprovador:** responsável do projeto ("implemente todas as correções possíveis"), sobre a análise do sistema
+
+### Contexto
+
+A análise de 2026-11-11 encontrou 66 chaves estrangeiras sem índice próprio (nem como primeiro campo de um índice composto). A maioria é de autoria (`createdById`, `approvedById`…), lida só junto com o registro, e de usuários que nunca são apagados fisicamente: índice ali só custaria espaço e escrita.
+
+### Decisão
+
+Indexar só as que aparecem como filtro de consulta no código:
+
+- `order_items(product_id)`: vendas por produto e avaliação de compra;
+- `news(category_id)`: filtro público de notícias por assunto;
+- `financial_transactions(cash_closing_id)`: lançamentos de um fechamento de caixa;
+- `product_reviews(user_id)` e `forum_reactions(user_id)`: cópia dos dados e anonimização por pessoa (os índices únicos existentes começam por produto e por mensagem).
+
+As demais continuam sem índice; novas entram quando uma consulta passar a filtrar por elas (`docs/27`, revisão de índices).
+
+### Consequências
+
+- migração `20261111120000_indices_chaves_estrangeiras`, só com `CREATE INDEX` (reversível sem perda de dado); no volume de um clube, o efeito é pequeno e cresce com o histórico.

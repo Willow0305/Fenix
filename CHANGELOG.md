@@ -19,6 +19,7 @@ O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) e o 
 
 #### Alterado
 
+- cinco índices novos no banco para chaves estrangeiras usadas em consultas: vendas por produto, notícias por assunto, lançamentos de um fechamento de caixa e avaliações e reações por pessoa (cópia dos dados e anonimização) (DT-112; migração `20261111120000_indices_chaves_estrangeiras`).
 - o CI passa a rodar também em push na branch `dev`, onde o desenvolvimento acontece; antes um erro só aparecia no pull request ou no merge com a `main`. Os ponta a ponta no CI ficam como `PEN-076`.
 
 #### Corrigido

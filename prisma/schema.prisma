@@ -1451,6 +1451,8 @@ model FinancialTransaction {
   @@index([paymentMethodId, occurredAt])
   @@index([origin, status])
   @@index([reversesTransactionId])
+  /// Lançamentos de um fechamento de caixa.
+  @@index([cashClosingId])
   @@map("financial_transactions")
 }
 
@@ -1793,6 +1795,8 @@ model ProductReview {
   @@index([productId, status])
   @@index([status, createdAt])
   @@index([moderatedById])
+  /// Cópia dos dados e anonimização por pessoa.
+  @@index([userId])
   @@map("product_reviews")
 }
 
@@ -1948,6 +1952,8 @@ model OrderItem {
   @@index([productVariantId, createdAt])
   @@index([salesCampaignProductId, createdAt])
   @@index([partnerId, createdAt])
+  /// Vendas por produto (relatórios e avaliação de compra).
+  @@index([productId])
   @@map("order_items")
 }
 
@@ -2452,6 +2458,8 @@ model ForumReaction {
 
   @@unique([postId, userId])
   @@index([postId, type])
+  /// Cópia dos dados e anonimização por pessoa.
+  @@index([userId])
   @@map("forum_reactions")
 }
 
@@ -2568,6 +2576,8 @@ model News {
   @@index([showOnHome, status, publishedAt])
   @@index([showOnForum, status, publishedAt])
   @@index([eventId])
+  /// Filtro público por assunto.
+  @@index([categoryId])
   @@map("news")
 }
 
