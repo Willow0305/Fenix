@@ -60,6 +60,10 @@ import {
   type PublicValidation,
   type StaffValidation
 } from '../application/cards.service';
+import { MemberCardReader } from '../application/member-card-view';
+import { MemberCardValidationService } from '../application/member-card-validation.service';
+import { AffiliationCardsService } from '../application/affiliation-cards.service';
+import { MemberCardAdminService } from '../application/member-card-admin.service';
 import { MAX_FEE_TOLERANCE_DAYS } from '../domain/card-rules';
 
 const DATE = /^\d{4}-\d{2}-\d{2}$/;
@@ -389,7 +393,14 @@ export class BenefitsController {
 
 @Module({
   controllers: [PublicCardsController, MyCardsController, CardsController, BenefitsController],
-  providers: [CardsService, BenefitsService],
+  providers: [
+    CardsService,
+    MemberCardReader,
+    MemberCardValidationService,
+    AffiliationCardsService,
+    MemberCardAdminService,
+    BenefitsService
+  ],
   exports: [CardsService]
 })
 export class MemberCardsModule {}

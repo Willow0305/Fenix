@@ -2311,7 +2311,7 @@ A API tinha dois módulos com nomes quase iguais e assuntos diferentes: `modules
 
 ## DT-114 — Divisão dos serviços grandes da API
 
-- **Estado:** Aceita; em implementação desde 2026-11-11
+- **Estado:** Aceita; implementada em 2026-11-12
 - **Data:** 2026-11-11
 - **Aprovador:** responsável do projeto ("PEN-077, dividir os serviços grandes - faça isso pfv")
 
@@ -2358,8 +2358,20 @@ Catálogo (`store/application`):
 | `product-images.service.ts` | fotos: envio, ordem, texto alternativo, remoção |
 | `catalog.service.ts` | fachada `CatalogService` |
 
+Carteirinhas (`member-cards/application`):
+
+| Arquivo | Assunto |
+|---|---|
+| `member-card-view.ts` (`MemberCardReader`) | tipos, visual, regra da mensalidade, situação, foto, visão, "Minhas carteirinhas", criação das de atleta e diretoria |
+| `member-card-validation.service.ts` | QR ao vivo e impresso, validação pública e da diretoria, registro e limpeza das conferências |
+| `affiliation-cards.service.ts` | afiliação: ativa no pagamento, cancela no estorno, avisos de validade e divulgação |
+| `member-card-admin.service.ts` | painel: visual, regra da mensalidade atrasada, suspensão automática, visão geral, lista, ficha, mudança de situação e tarefas automáticas |
+| `cards.service.ts` | fachada `CardsService` |
+
+A chave do QR e o endereço do site, calculados da configuração no construtor original, ficam só no serviço de validação, o único que os usa.
+
 **Testes de integração:** com mais arquivos, as 50+ suítes rodando num único processo (`--runInBand`) passaram a estourar o limite de memória do Node perto do fim (a memória se acumulava de uma suíte para outra). O `test:integration` passa a usar um único processo auxiliar (`--maxWorkers=1`, ainda uma suíte por vez) que o Jest troca ao passar de 1,5 GB (`workerIdleMemoryLimit` em `jest.integration.config.cjs`). A execução ficou mais rápida (cerca de 340 s, antes cerca de 400 s).
 
 ### Consequências
 
-- o maior arquivo de pedidos passa de 2.309 para 710 linhas, o de mensalidades, de 1.486 para 551, e o de catálogo, de 1.394 para 526; o comportamento é coberto pelos testes existentes (`npm run check`, `npm run test:integration` e `npm run e2e` verdes a cada divisão).
+- o maior arquivo de pedidos passa de 2.309 para 710 linhas, o de mensalidades, de 1.486 para 551, o de catálogo, de 1.394 para 526, e o de carteirinhas, de 1.492 para 480; nenhum arquivo dos quatro módulos passa de 710 linhas; o comportamento é coberto pelos testes existentes (`npm run check`, `npm run test:integration` e `npm run e2e` verdes a cada divisão).
