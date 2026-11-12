@@ -180,6 +180,9 @@ function SettlementsAdmin() {
   const recoverItemIds = (recoverable.data ?? [])
     .map((item) => item.settlementItemId)
     .filter((id) => !skipped.has(id));
+  // Sem a lista de vendas a descontar (carregando ou com erro), o repasse sairia sem desconto.
+  const recoverableReady =
+    recoverable.data !== null && !recoverable.loading && recoverable.error === null;
   const idempotency = useIdempotencyKey();
   const create = useSubmit(async () => {
     const adjustment = form.adjustmentAmount.trim();
@@ -302,8 +305,18 @@ function SettlementsAdmin() {
               }}
             />
           ) : null}
+          {recoverable.error ? (
+            <Alert kind="error">
+              Não foi possível carregar as vendas estornadas a descontar: {recoverable.error}{' '}
+              Recarregue a página antes de gerar o repasse.
+            </Alert>
+          ) : null}
           <div className="form-actions">
-            <button type="submit" className="btn btn-primary" disabled={create.pending}>
+            <button
+              type="submit"
+              className="btn btn-primary"
+              disabled={create.pending || !recoverableReady}
+            >
               Gerar repasse
             </button>
           </div>
