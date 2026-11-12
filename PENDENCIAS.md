@@ -595,6 +595,14 @@ Prioridades:
 - **Recomendação:** a diretoria revisa e salva o texto em Painel → Fórum antes de divulgar o fórum; guardar o histórico enquanto a conta existir, junto com a moderação (`DT-035`), até a definição de retenção da `PEN-073`.
 - **Impacto:** `apps/api/src/modules/content/domain/forum-sanctions.ts`, `docs/13-SEGURANCA-E-LGPD.md`, política de privacidade.
 
+### PEN-076 — Testes ponta a ponta no CI
+
+- **Prioridade:** P2
+- **Bloqueia:** nada; os testes ponta a ponta rodam localmente com `npm run e2e`
+- **Questão:** o CI roda formatação, lint, tipos, testes unitários, integração, build e smoke, mas não os ponta a ponta. O preparo do E2E (`e2e/env.cjs`) lê `DATABASE_URL` e os segredos de sessão e cifra do `.env`, que não existe no CI, e usa o Edge (`E2E_CHANNEL`, padrão `msedge`). Um job novo não pôde ser testado no GitHub a partir do ambiente local em 2026-11-11.
+- **Recomendação:** job separado, depois do de qualidade, com segredos de teste gerados na hora (nunca reais) em variáveis de ambiente, `E2E_CHANNEL=chromium` e `npx playwright install --with-deps chromium`, guardando `var/e2e-logs` e o relatório do Playwright como artefatos na falha.
+- **Impacto:** `.github/workflows/ci.yml`, `e2e/env.cjs`, `docs/14-TESTES.md`, `docs/15-DEPLOY-E-INFRAESTRUTURA.md`.
+
 ## 11. Critério de resolução
 
 Ao resolver uma pendência:

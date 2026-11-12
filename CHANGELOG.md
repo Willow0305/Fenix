@@ -8,6 +8,10 @@ O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) e o 
 
 ### Melhorias da análise do sistema (2026-11-11)
 
+#### Alterado
+
+- o CI passa a rodar também em push na branch `dev`, onde o desenvolvimento acontece; antes um erro só aparecia no pull request ou no merge com a `main`. Os ponta a ponta no CI ficam como `PEN-076`.
+
 #### Corrigido
 
 - `npm run e2e` não deixa mais o `apps/web/next-env.d.ts` alterado: o build do site para os testes reescrevia o arquivo apontando para `.next-e2e`; agora o original é restaurado ao fim do build.

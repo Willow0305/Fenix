@@ -5,6 +5,8 @@ on:
   push:
     branches:
       - main
+      # O desenvolvimento acontece na `dev`: erro aparece no push, não só no merge.
+      - dev
 
 permissions:
   contents: read

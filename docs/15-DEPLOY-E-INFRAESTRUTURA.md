@@ -182,7 +182,7 @@ flowchart LR
 
 O gate executável de validação é `npm run check`, após `npm ci`; ele agrega formatação, lint, tipos, testes, validação Prisma e build. Em pull requests, o pipeline termina antes do deploy. Produção exige branch protegida, revisão, ambiente protegido e aprovação definida pela governança do projeto.
 
-A CI da Fase 0 também executa `npm audit --audit-level=high` e o smoke de web/API. Varredura de imagem, segredos e código será adicionada somente com ferramenta aprovada e pinada; até lá, permanece requisito do pipeline-alvo, não controle já implantado.
+A CI roda em pull requests e em push nas branches `main` e `dev` (a `dev` entrou em 2026-11-11, para o erro aparecer no push e não só no merge). Ela também executa `npm audit --audit-level=high`, o smoke de web/API e os testes de integração com PostgreSQL. Os testes ponta a ponta (`npm run e2e`) ainda rodam só localmente (`PEN-076`). Varredura de imagem, segredos e código será adicionada somente com ferramenta aprovada e pinada; até lá, permanece requisito do pipeline-alvo, não controle já implantado.
 
 ## 9. Estratégia de release
 
