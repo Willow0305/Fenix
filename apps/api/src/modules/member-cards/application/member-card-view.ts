@@ -334,7 +334,6 @@ export class MemberCardReader {
     return row;
   }
 
-  /** Atleta ativo sem carteirinha ganha uma (gratuita, DT-068 A). */
   /** Carteirinhas gratuitas: atletas ativos e quem tem o papel Diretoria (DT-068, DT-077). */
   async ensureFreeCards(): Promise<void> {
     await this.ensureAthleteCards();
@@ -380,6 +379,7 @@ export class MemberCardReader {
     return count;
   }
 
+  /** Atleta ativo sem carteirinha ganha uma (gratuita, DT-068 A). */
   async ensureAthleteCards(tx: PrismaTx | PrismaService = this.prisma): Promise<number> {
     const missing = await tx.athlete.findMany({
       where: { status: 'ACTIVE', deletedAt: null, memberCard: null },

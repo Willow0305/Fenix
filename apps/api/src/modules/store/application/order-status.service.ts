@@ -461,6 +461,10 @@ export class OrderStatusService implements OnModuleInit {
     await this.notifyStatus(tx, row, 'DELIVERED');
   }
 
+  /**
+   * O comprador cancela o próprio pedido enquanto não pagou (DT-076): sem comprovante em
+   * análise. Depois de pago, vale a desistência em 7 dias (DT-070).
+   */
   async cancelByBuyer(
     owner: { userId: string } | { orderNumber: string; code: string },
     orderId?: string

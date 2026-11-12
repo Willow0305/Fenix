@@ -82,7 +82,6 @@ export class CardsService {
     return this.admin.syncFeeBlocks(...args);
   }
 
-  /** Atleta ativo sem carteirinha ganha uma (gratuita, DT-068 A). */
   /** Carteirinhas gratuitas: atletas ativos e quem tem o papel Diretoria (DT-068, DT-077). */
   ensureFreeCards(
     ...args: Parameters<MemberCardReader['ensureFreeCards']>
@@ -100,6 +99,7 @@ export class CardsService {
     return this.reader.ensureBoardCards(...args);
   }
 
+  /** Atleta ativo sem carteirinha ganha uma (gratuita, DT-068 A). */
   ensureAthleteCards(
     ...args: Parameters<MemberCardReader['ensureAthleteCards']>
   ): ReturnType<MemberCardReader['ensureAthleteCards']> {

@@ -302,7 +302,7 @@ Fluxo previsto:
 
 O banco não armazena o binário. Limites, retenção, antivírus e provedor constam como pendências.
 
-Na rota genérica `GET /media/:id`, arquivo `PUBLIC` é aberto; os demais abrem para quem enviou e para quem tem `files.read.restricted` **e** a permissão de cada domínio em que o arquivo é usado: documento de parceiro (`partner.documents.read`), documento de atleta (`athletes.read`), anexo de lançamento do Caixa (`finance.read`), comprovante de pagamento de pedido e prova de entrega (`orders.read`) e comprovante de mensalidade (`fees.read`). Sem permissão, a resposta é 404, para não revelar que o arquivo existe (`DT-110`). As rotas dedicadas de cada domínio continuam sendo o caminho normal.
+Na rota genérica `GET /media/:id`, arquivo `PUBLIC` é aberto; os demais abrem para quem enviou e para quem tem `files.read.restricted` **e** a permissão de cada domínio em que o arquivo é usado: documento de parceiro (`partner.documents.read`), documento de atleta (`athletes.read`), anexo de lançamento do Caixa (`finance.read`), comprovante de pagamento de pedido e prova de entrega (`orders.read`) e comprovante de mensalidade (`fees.read`). A ligação continua valendo depois de o documento ou anexo ser removido, e documento de parceiro ou de atleta aberto por esta rota fica na auditoria (`media.document.read`). Sem permissão, a resposta é 404, para não revelar que o arquivo existe (`DT-110`). As rotas dedicadas de cada domínio continuam sendo o caminho normal.
 
 ## 8. OpenAPI e testes de contrato
 

@@ -26,6 +26,9 @@ O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) e o 
 
 #### Corrigido
 
+- revisão antes do envio: o freio de login reserva cada tentativa antes de conferir a senha, com a linha do e-mail travada, e tentativas ao mesmo tempo não passam mais juntas do limite; o aviso por e-mail sai fora da resposta, para o tempo do login não revelar quem tem conta (DT-109).
+- revisão antes do envio: na rota genérica de arquivos, documento ou anexo removido continua exigindo a permissão do domínio, e documento confidencial aberto por ela fica na auditoria, como nas rotas próprias (DT-110).
+- revisão antes do envio: a tela de repasses só deixa gerar o repasse depois de carregar as vendas estornadas a descontar; antes, com a lista ainda carregando ou com erro, o repasse saía sem o desconto (DT-111).
 - testes de integração não estouram mais a memória: rodam um de cada vez num processo auxiliar que o Jest troca ao passar de 1,5 GB, em vez de todos no mesmo processo (DT-114).
 - teste ponta a ponta da entrega em casa (celular): o aviso "A entrega foi registrada" aparece também na região lida pelo leitor de tela (DT-106) e o teste achava dois textos; agora confere só o aviso visível.
 - `npm run e2e` não deixa mais o `apps/web/next-env.d.ts` alterado: o build do site para os testes reescrevia o arquivo apontando para `.next-e2e`; agora o original é restaurado ao fim do build.

@@ -2210,13 +2210,14 @@ O limite de requisições do login é por IP (10 por minuto, `DT-022`, `DT-047`)
 - **regra** (`auth/domain/login-guard-rules.ts`): até a 4ª falha seguida no mesmo e-mail nada muda; na 5ª, novas tentativas ficam bloqueadas por 1 minuto, e cada falha depois de um bloqueio dobra o tempo (2, 4, 8 minutos) até 15 minutos. A sequência recomeça depois de 24 horas sem falha, no login certo e na redefinição de senha;
 - **bloqueado, a senha nem é conferida**: a resposta é 429 `LOGIN_TEMPORARILY_LOCKED`, com quanto esperar e a sugestão de redefinir a senha. Os bloqueios são curtos de propósito, para quem ataca não conseguir deixar a pessoa sem acesso por muito tempo; a redefinição continua disponível e libera na hora;
 - **sem revelar quem tem conta**: a contagem é por hash do e-mail normalizado (tabela `login_failure_counters`, migração `20261111100000_freio_login_por_conta`), sem ligação com a conta, e vale igual para e-mail sem cadastro: o bloqueio e a mensagem são os mesmos;
-- **aviso ao titular**: na primeira vez que a sequência chega a 5, se a conta existir e estiver ativa, ela recebe um e-mail com o que aconteceu, o link para redefinir a senha e a sugestão de ativar a verificação em duas etapas; auditoria `auth.login.locked`. Falha no envio não derruba o login (fica só no log, sem dado pessoal);
-- **concorrência e servidores**: a contagem é uma instrução atômica no PostgreSQL, compartilhada entre servidores, como o limite de requisições (`DT-047`);
+- **aviso ao titular**: na primeira vez que a sequência chega a 5, se a conta existir e estiver ativa, ela recebe um e-mail com o que aconteceu, o link para redefinir a senha e a sugestão de ativar a verificação em duas etapas; auditoria `auth.login.locked`. O e-mail sai fora da resposta do login: esperar pelo envio deixaria só o login de quem tem conta mais lento, e o tempo de resposta revelaria o cadastro. Falha no envio não derruba o login (fica só no log, sem dado pessoal);
+- **concorrência e servidores**: cada tentativa é **reservada antes de conferir a senha**, numa transação que trava a linha do e-mail no PostgreSQL (compartilhada entre servidores, como o limite de requisições, `DT-047`). A tentativa reservada já conta como falha, e o login certo zera a sequência logo depois; assim, tentativas feitas ao mesmo tempo esperam umas pelas outras e a 5ª reservada já bloqueia as seguintes. A conta da sequência e do bloqueio fica toda na regra pura (`reserveAttempt`), sem cópia em SQL;
 - **minimização (LGPD)**: sem IP nem navegador; a linha é apagada no login certo, na redefinição e pela tarefa `login-guard.cleanup` (de hora em hora), 24 horas depois da última falha sem bloqueio em vigor.
 
 ### Consequências
 
-- testes: regra pura (`login-guard-rules.spec.ts`: tempos, janela de 24 horas, mensagem no singular e no plural) e integração (`login-guard.int-spec.ts`: bloqueio na 5ª falha mesmo com a senha certa, mesma resposta sem cadastro, um aviso por e-mail com auditoria, bloqueio maior na falha seguinte, liberação ao vencer, redefinição de senha libera, e-mail não fica em claro e limpeza das sequências antigas);
+- testes: regra pura (`login-guard-rules.spec.ts`: tempos, janela de 24 horas, reserva da tentativa, mensagem no singular e no plural) e integração (`login-guard.int-spec.ts`: bloqueio na 5ª falha mesmo com a senha certa, dez tentativas ao mesmo tempo com só cinco conferidas, mesma resposta sem cadastro, um aviso por e-mail com auditoria, bloqueio maior na falha seguinte, liberação ao vencer, redefinição de senha libera, e-mail não fica em claro e limpeza das sequências antigas);
+- revisão de 2026-11-12 (revisão de código antes do envio): a primeira versão conferia o bloqueio e só contava a falha depois de conferir a senha, em duas instruções separadas; tentativas simultâneas passavam todas pelo limite, e um login certo no meio podia derrubar a contagem com erro. Também esperava o envio do aviso. As três coisas foram corrigidas como descrito acima;
 - continua aberta a outra metade da `PEN-053`: o cadastro ainda informa "e-mail já cadastrado", e a resposta neutra depende do envio real de e-mail (`PEN-042`, `PEN-064`).
 
 ## DT-110 — Arquivo restrito pela rota genérica exige a permissão do domínio
@@ -2232,15 +2233,16 @@ O limite de requisições do login é por IP (10 por minuto, `DT-022`, `DT-047`)
 ### Decisão
 
 - regra pura em `media/domain/media-access.ts`: na rota genérica, o arquivo não público abre para quem enviou ou para quem tem `files.read.restricted` **e** a permissão de cada domínio em que ele está em uso: documento de parceiro (`partner.documents.read`), documento de atleta (`athletes.read`), anexo de lançamento do Caixa (`finance.read`), comprovante de pagamento de pedido e prova de entrega (`orders.read`) e comprovante de mensalidade (`fees.read`). Usado em mais de um domínio, exige todas;
-- só ligações ativas contam: documento ou anexo apagado (`deletedAt`) não exige mais a permissão do domínio;
+- a ligação apagada também conta: documento ou anexo removido (`deletedAt`) continua exigindo a permissão do domínio, porque o arquivo continua sendo o mesmo documento confidencial (revisão de 2026-11-12; a primeira versão deixava de exigir);
+- documento de parceiro ou de atleta aberto pela rota genérica fica na auditoria (`media.document.read`, com os documentos ligados ao arquivo), como nas rotas dedicadas (`DT-092`) (revisão de 2026-11-12);
 - arquivo sem domínio com rota própria (como a foto de perfil privada) segue a regra anterior;
 - sem permissão, a resposta continua 404, para não revelar que o arquivo existe;
 - as rotas dedicadas (`allowOwner`) não mudam: continuam fazendo a própria checagem e auditoria.
 
 ### Consequências
 
-- a consulta das ligações só acontece quando a rota genérica serve um arquivo não público a quem não o enviou e tem `files.read.restricted`;
-- testes: regra pura (`media-access.spec.ts`: cada domínio e sua permissão, mais de um domínio, nunca sem `files.read.restricted`) e integração (`media-access.int-spec.ts`: papel só com `files.read.restricted` ou só com `partner.documents.read` recebe 404; com as duas abre; diretoria continua abrindo; documento apagado volta à regra geral).
+- a consulta das ligações (uma só, com as relações do arquivo) só acontece quando a rota genérica serve um arquivo não público a quem o enviou ou tem `files.read.restricted`;
+- testes: regra pura (`media-access.spec.ts`: cada domínio e sua permissão, mais de um domínio, nunca sem `files.read.restricted`) e integração (`media-access.int-spec.ts`: papel só com `files.read.restricted` ou só com `partner.documents.read` recebe 404; com as duas abre, e cada leitura liberada vai para a auditoria; diretoria continua abrindo; documento apagado continua exigindo a permissão do domínio).
 
 ## DT-111 — Desconto de venda de parceiro estornada depois do repasse
 

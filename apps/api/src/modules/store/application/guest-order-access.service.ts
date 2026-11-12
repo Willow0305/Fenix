@@ -44,10 +44,6 @@ export class GuestOrderAccessService {
   }
 
   /**
-   * O comprador cancela o próprio pedido enquanto não pagou (DT-076): sem comprovante em
-   * análise. Depois de pago, vale a desistência em 7 dias (DT-070).
-   */
-  /**
    * Quem está logado traz para a conta um pedido feito sem conta, com o número e o código
    * (DT-096). Pedido já de outra conta não muda.
    */
