@@ -40,7 +40,9 @@ describe('SiteRevalidateInterceptor', () => {
   function interceptor(enabled: boolean): SiteRevalidateInterceptor {
     const config = {
       values: {
-        siteRevalidate: enabled ? { url: 'http://web/api/site-revalidate', secret: 's3cr3t' } : null
+        siteRevalidate: enabled
+          ? { urls: ['http://web/api/site-revalidate'], secret: 's3cr3t' }
+          : null
       }
     } as unknown as AppConfig;
 
@@ -101,6 +103,27 @@ describe('SiteRevalidateInterceptor', () => {
     expect(fetchMock).toHaveBeenCalledTimes(1);
     expect(publish).toHaveBeenCalledTimes(1);
     expect(publish).toHaveBeenCalledWith({ topic: 'news' }, { type: 'catalog', topics: ['news'] });
+  });
+
+  it('com várias instâncias do site, descarta o cache de cada uma', async () => {
+    const config = {
+      values: {
+        siteRevalidate: {
+          urls: ['http://web-1/api/site-revalidate', 'http://web-2/api/site-revalidate'],
+          secret: 's3cr3t'
+        }
+      }
+    } as unknown as AppConfig;
+
+    new SiteRevalidateService(config, { publish, onChanges } as unknown as RealtimeService);
+    databaseChange(['store']);
+    await jest.advanceTimersByTimeAsync(1_000);
+
+    expect(fetchMock.mock.calls.map(([url]) => url)).toEqual([
+      'http://web-1/api/site-revalidate',
+      'http://web-2/api/site-revalidate'
+    ]);
+    expect(calls).toEqual(['cache', 'cache', 'aviso']);
   });
 
   it('páginas em cache são as públicas, menos o fórum', () => {

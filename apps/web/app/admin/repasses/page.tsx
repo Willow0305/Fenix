@@ -319,6 +319,11 @@ function SettlementsAdmin() {
             >
               Gerar repasse
             </button>
+            <span className="muted" role="status">
+              {!recoverableReady && recoverable.error === null
+                ? 'Carregando as vendas estornadas a descontar…'
+                : ''}
+            </span>
           </div>
         </form>
       ) : (

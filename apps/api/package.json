@@ -7,7 +7,7 @@
     "dev": "nest start --watch --path tsconfig.dev.json",
     "start": "node dist/main.js",
     "test": "node --experimental-vm-modules ../../node_modules/jest/bin/jest.js --runInBand",
-    "test:integration": "node --experimental-vm-modules ../../node_modules/jest/bin/jest.js --maxWorkers=1 --config jest.integration.config.cjs",
+    "test:integration": "node --experimental-vm-modules --expose-gc ../../node_modules/jest/bin/jest.js --maxWorkers=1 --config jest.integration.config.cjs",
     "typecheck": "tsc --noEmit -p tsconfig.build.json && tsc --noEmit -p tsconfig.spec.json",
     "prisma:generate": "prisma generate --config ../../prisma.config.ts",
     "prebuild": "npm run build --workspace=@fenix/validation && npm run prisma:generate",

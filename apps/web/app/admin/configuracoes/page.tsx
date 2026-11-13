@@ -212,7 +212,12 @@ export default function SettingsPage() {
         <h2>Dados públicos</h2>
         {savePublic.message ? <Alert kind="success">{savePublic.message}</Alert> : null}
         <ErrorSummary error={savePublic.error} />
-        <StaleNotice stale={publicCopy.stale} onDiscard={publicCopy.discard} />
+        <StaleNotice
+          stale={publicCopy.stale}
+          onDiscard={publicCopy.discard}
+          canUndo={publicCopy.canUndo}
+          onUndo={publicCopy.undo}
+        />
         <fieldset
           disabled={!editable}
           className="stack"
@@ -365,7 +370,12 @@ export default function SettingsPage() {
           </p>
           {saveFinancial.message ? <Alert kind="success">{saveFinancial.message}</Alert> : null}
           <ErrorSummary error={saveFinancial.error} />
-          <StaleNotice stale={financial.stale} onDiscard={financial.discard} />
+          <StaleNotice
+            stale={financial.stale}
+            onDiscard={financial.discard}
+            canUndo={financial.canUndo}
+            onUndo={financial.undo}
+          />
           <TextField
             label="Chave PIX"
             maxLength={140}

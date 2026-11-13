@@ -6,6 +6,20 @@ O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) e o 
 
 ## [Não publicado]
 
+### Tempo real: revisão de interface e pendências (2026-11-12)
+
+#### Corrigido
+
+- o aviso "Há novidades" cobria o logo e o menu em celular com entalhe; agora fica sempre abaixo do cabeçalho (DT-116);
+- o aviso "Reconectando…" cobria o botão de salvar fixo no rodapé dos formulários longos; agora fica acima dele;
+- no aviso de edição, "Descartar minhas alterações" pode ser desfeito: aparece "Versão atual carregada… Desfazer", até a pessoa voltar a editar;
+- a tela de repasses diz "Carregando as vendas estornadas a descontar…" enquanto o botão "Gerar repasse" espera.
+
+#### Adicionado
+
+- `SITE_REVALIDATE_URLS`: com mais de uma instância do site, a API descarta o cache das páginas públicas em cada uma (PEN-078);
+- teste de carga mede a memória da API por conexão (de 10 a 13 KiB) e o custo dos gatilhos no commit (cerca de 0,5 ms por gravação); o `test:integration` passa a rodar com `--expose-gc` para a medida de memória.
+
 ### Tempo real em todo o sistema — onda 5 de 5: prova final (2026-11-12)
 
 #### Adicionado

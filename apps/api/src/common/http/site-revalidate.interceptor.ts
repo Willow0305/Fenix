@@ -101,19 +101,26 @@ export class SiteRevalidateService implements OnApplicationShutdown {
       return;
     }
 
-    try {
-      const response = await fetch(target.url, {
-        method: 'POST',
-        headers: { 'x-revalidate-secret': target.secret },
-        signal: AbortSignal.timeout(3_000)
-      });
+    // Cada instância do site guarda o próprio cache: avisa todas, ao mesmo tempo (DT-116).
+    await Promise.all(
+      target.urls.map(async (url, index) => {
+        try {
+          const response = await fetch(url, {
+            method: 'POST',
+            headers: { 'x-revalidate-secret': target.secret },
+            signal: AbortSignal.timeout(3_000)
+          });
 
-      if (!response.ok) {
-        this.logger.warn(`O site recusou a atualização do cache (HTTP ${response.status}).`);
-      }
-    } catch {
-      this.logger.warn('Não foi possível avisar o site para atualizar o cache.');
-    }
+          if (!response.ok) {
+            this.logger.warn(
+              `O site ${index + 1} recusou a atualização do cache (HTTP ${response.status}).`
+            );
+          }
+        } catch {
+          this.logger.warn(`Não foi possível avisar o site ${index + 1} para atualizar o cache.`);
+        }
+      })
+    );
   }
 }
 

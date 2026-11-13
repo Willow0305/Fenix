@@ -132,7 +132,8 @@ export interface AppConfigValues {
   /** Proxies confiáveis para o IP real (`trust proxy` do Express). */
   readonly trustProxy: string;
   /** Rota do site que descarta o cache das páginas públicas (DT-041); null desliga. */
-  readonly siteRevalidate: { readonly url: string; readonly secret: string } | null;
+  /** Uma URL por instância do site: cada uma guarda o próprio cache (DT-116). */
+  readonly siteRevalidate: { readonly urls: readonly string[]; readonly secret: string } | null;
 }
 
 const DEV_ACCESS_SECRET = 'development-only-access-token-secret-change-me';
@@ -298,6 +299,30 @@ function loadWhatsAppCloud(env: NodeJS.ProcessEnv): WhatsAppCloudConfig {
   };
 }
 
+/**
+ * Endereços do descarte de cache do site. Com mais de uma instância do site, cada uma tem o
+ * próprio cache: `SITE_REVALIDATE_URLS` lista a base de cada uma, separadas por vírgula.
+ * Sem a lista, vale `WEB_INTERNAL_URL` (uma instância).
+ */
+export function siteRevalidateUrls(env: NodeJS.ProcessEnv): string[] {
+  const listed = (env['SITE_REVALIDATE_URLS'] ?? '')
+    .split(',')
+    .map((item) => item.trim().replace(/\/+$/, ''))
+    .filter((item) => item !== '');
+  const bases =
+    listed.length > 0 ? listed : [readString(env, 'WEB_INTERNAL_URL', 'http://127.0.0.1:3000')];
+
+  for (const base of bases) {
+    if (!/^https?:\/\/[^\s/]+/.test(base)) {
+      throw new Error(
+        'SITE_REVALIDATE_URLS inválido: use endereços http(s) separados por vírgula.'
+      );
+    }
+  }
+
+  return [...new Set(bases)].map((base) => `${base}/api/site-revalidate`);
+}
+
 export function loadAppConfig(env: NodeJS.ProcessEnv = process.env): AppConfigValues {
   const nodeEnv = env['NODE_ENV'] ?? 'development';
   const isProduction = nodeEnv === 'production';
@@ -382,10 +407,7 @@ export function loadAppConfig(env: NodeJS.ProcessEnv = process.env): AppConfigVa
     pix: loadPix(env, isProduction),
     card: loadCard(env, isProduction),
     siteRevalidate: env['SITE_REVALIDATE_SECRET']
-      ? {
-          url: `${readString(env, 'WEB_INTERNAL_URL', 'http://127.0.0.1:3000')}/api/site-revalidate`,
-          secret: env['SITE_REVALIDATE_SECRET']
-        }
+      ? { urls: siteRevalidateUrls(env), secret: env['SITE_REVALIDATE_SECRET'] }
       : null,
     allowLocalAdaptersInProduction,
     trustProxy: loadTrustProxy(env)

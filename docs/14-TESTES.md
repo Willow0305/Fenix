@@ -242,7 +242,10 @@ Os números dependem de linha de base/volume aprovado. Cada plano informa:
 
 Cobrir no mínimo login, listagem administrativa, geração de mensalidades, confirmação de pagamento, checkout/pedido, relatório e fórum quando suas fases chegarem.
 
-**Tempo real (DT-116, `apps/api/test/realtime-load.int-spec.ts`):** 300 conexões públicas reais, vindas de 12 endereços atrás do proxy (`X-Forwarded-For`), recebem a mesma mudança gravada no banco. Resultado local em 2026-11-12 (Windows, PostgreSQL 17 em Docker, um servidor da API): p50 193 ms, p95 203 ms e máximo 204 ms do commit ao último receber; 150 ms são a janela que junta avisos seguidos. O teste falha acima de 3 s. A mesma suíte confere que o limite de 30 conexões por endereço continua valendo atrás do proxy. Memória por conexão não foi medida com confiança (a coleta de lixo do Node distorce a medida no mesmo processo) e fica para o ensaio em homologação.
+**Tempo real (DT-116, `apps/api/test/realtime-load.int-spec.ts`):** 300 conexões públicas reais, vindas de 12 endereços atrás do proxy (`X-Forwarded-For`), recebem a mesma mudança gravada no banco. Resultado local em 2026-11-12 (Windows, PostgreSQL 17 em Docker, um servidor da API): p50 193 ms, p95 203 ms e máximo 204 ms do commit ao último receber; 150 ms são a janela que junta avisos seguidos. O teste falha acima de 3 s. A mesma suíte confere que o limite de 30 conexões por endereço continua valendo atrás do proxy, e mede (PEN-078):
+
+- **memória:** com 1.000 conexões abertas por uma thread à parte (heap próprio) e a coleta de lixo forçada antes de cada medida (`--expose-gc` no `test:integration`), de 10 a 13 KiB do heap da API por conexão; o teste falha acima de 64 KiB;
+- **gatilhos no commit:** 400 gravações, 10 ao mesmo tempo, levaram de 391 a 440 ms com os gatilhos e de 166 a 241 ms sem, em duas rodadas (cerca de 0,5 ms a mais por gravação, incluindo o trabalho da escuta no mesmo processo); o teste falha se ficar mais de 3 vezes mais lento.
 
 ## Cobertura e mutação
 

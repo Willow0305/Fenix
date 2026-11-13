@@ -292,7 +292,12 @@ export default function PartnerAdminPage() {
       <form className="form card" onSubmit={(event) => void save.submit(event)}>
         <h2>Cadastro</h2>
         <ErrorSummary error={save.error} />
-        <StaleNotice stale={editable.stale} onDiscard={editable.discard} />
+        <StaleNotice
+          stale={editable.stale}
+          onDiscard={editable.discard}
+          canUndo={editable.canUndo}
+          onUndo={editable.undo}
+        />
         <fieldset disabled={ended} className="stack">
           <div className="form-grid">
             <TextField

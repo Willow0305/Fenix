@@ -135,6 +135,7 @@ Variáveis implementadas (valores de exemplo em `.env.example`):
 | `SCHEDULED_JOBS` | `off` desativa as tarefas automáticas neste servidor (`ORDER_EXPIRY_JOB=off`, nome antigo, também vale) | não |
 | `THROTTLE_STORE` | `postgres` (padrão, contagem comum a todos os servidores) ou `memory` (só desenvolvimento com um servidor) (DT-047) | não |
 | `REALTIME`, `REALTIME_DATABASE_URL` | `off` desliga o tempo real; conexão direta ao PostgreSQL para o `LISTEN` quando `DATABASE_URL` passa por pooler em modo transação (DT-049). Sem o `LISTEN`, os avisos dos gatilhos do banco não chegam (DT-116). O Nginx leva `/api/v1/me/events` e `/api/v1/public/live` (com `?watch=`) sem buffer e com 1 h de espera; a API mantém a conexão ociosa por 65 s, mais que os 60 s do Nginx | não |
+| `SITE_REVALIDATE_URLS` | com mais de uma instância do site, o endereço interno de cada uma, separados por vírgula: a API descarta o cache das páginas públicas em todas (DT-116). Sem ela, vale `WEB_INTERNAL_URL` | não |
 | `THROTTLE_DISABLED` | desliga rate limit fora de produção (testes) | não |
 | `SEED_ADMIN_*` | administrador inicial criado pelo seed | apenas no primeiro deploy |
 

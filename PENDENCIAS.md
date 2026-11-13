@@ -615,14 +615,6 @@ Prioridades:
 - **Impacto:** `apps/api/src/modules/store`, `member-cards`, `finance`; nenhum contrato de API.
 - **Situação:** resolvida em 2026-11-12 a pedido do responsável (`DT-114`): os quatro serviços divididos por assunto, com a classe original como fachada. Ver seção 12.
 
-### PEN-078 — Ensaio do tempo real em homologação
-
-- **Prioridade:** P2
-- **Bloqueia:** nada; o tempo real funciona e foi testado localmente (DT-116)
-- **Questão:** o teste de carga roda com um servidor da API, na máquina de desenvolvimento: 300 conexões recebem a mudança em cerca de 200 ms. Ficaram sem número confiável a memória por conexão (a medida no mesmo processo é distorcida pela coleta de lixo) e o efeito, com muito movimento, de toda escrita fazer `NOTIFY` (o PostgreSQL ordena os commits que avisam). Com mais de uma instância do site, cada uma guarda o próprio cache das páginas públicas, e o descarte pedido pela API chega a uma só (`/api/site-revalidate` atrás do Nginx).
-- **Recomendação:** em homologação, abrir 1.000 conexões (metade com sessão), medir memória e CPU da API e o tempo de commit com e sem os gatilhos; se o site tiver mais de uma instância, usar cache compartilhado do Next.js ou pedir o descarte a cada instância.
-- **Impacto:** `docs/14-TESTES.md`, `docs/15-DEPLOY-E-INFRAESTRUTURA.md`; se necessário, gatilhos por comando (`FOR EACH STATEMENT`) e o limite de conexões por IP.
-
 ## 11. Critério de resolução
 
 Ao resolver uma pendência:
@@ -689,3 +681,4 @@ As entradas acima permanecem como histórico da questão original. As decisões 
 | PEN-054 | Decidido em 2026-11-11 com a recomendação: na rota genérica `/media/:id`, `files.read.restricted` só abre arquivo de domínio com rota própria junto com a permissão desse domínio (documento de parceiro, documento de atleta, anexo do Caixa, comprovantes e prova de entrega). | Delegada | `DT-110` |
 | PEN-052 | Decidido em 2026-11-11 com a recomendação: na criação do repasse, as vendas já repassadas cujo pedido foi estornado ou cancelado por inteiro aparecem marcadas para desconto; cada uma é descontada uma vez, ligada à venda original. Parcial: devolução parcial e prazo sem novo repasse continuam manuais. | Delegada | `DT-111` |
 | PEN-077 | Feito em 2026-11-12 a pedido do responsável: pedidos, mensalidades, catálogo e carteirinhas divididos por assunto, sem mudança de regra, com a classe original como fachada dos mesmos métodos. | Responsável do projeto | `DT-114` |
+| PEN-078 | Feito em 2026-11-12 a pedido do responsável: medidos localmente de 10 a 13 KiB do heap da API por conexão (1.000 conexões) e cerca de 0,5 ms a mais por gravação com os gatilhos (testes em `realtime-load.int-spec.ts`); `SITE_REVALIDATE_URLS` descarta o cache de cada instância do site. Repetir as medidas no servidor de produção quando houver volume real. | Responsável do projeto | `DT-116` |

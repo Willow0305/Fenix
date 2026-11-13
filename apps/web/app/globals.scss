@@ -2955,11 +2955,12 @@ details.collapsible {
   cursor: pointer;
 }
 
-// Conexão em tempo real caída (DT-116): canto inferior esquerdo, longe do botão do WhatsApp.
+// Conexão em tempo real caída (DT-116): canto inferior esquerdo, longe do botão do WhatsApp e
+// acima da barra de salvar fixa dos formulários longos (`.form-actions`, cerca de 4rem).
 .realtime-status-region {
   position: fixed;
   left: max(1rem, env(safe-area-inset-left, 0px));
-  bottom: max(1rem, env(safe-area-inset-bottom, 0px));
+  bottom: calc(max(1rem, env(safe-area-inset-bottom, 0px)) + 4rem);
   z-index: 60;
   max-width: calc(100vw - 6rem);
   pointer-events: none;
@@ -2988,10 +2989,11 @@ details.collapsible {
   }
 }
 
-// "Há novidades" em páginas de leitura (DT-116): fixo no alto, centralizado, sem cobrir o menu.
+// "Há novidades" em páginas de leitura (DT-116): fixo logo abaixo do cabeçalho, centralizado.
+// O cabeçalho tem 71px mais a área segura do topo (celular com entalhe): as duas se somam.
 .update-banner-region {
   position: fixed;
-  top: max(4.5rem, env(safe-area-inset-top, 0px));
+  top: calc(4.5rem + env(safe-area-inset-top, 0px));
   left: 50%;
   z-index: 55;
   width: max-content;

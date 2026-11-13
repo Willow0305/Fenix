@@ -1,11 +1,13 @@
 import { randomUUID } from 'node:crypto';
+import { Worker } from 'node:worker_threads';
 
 import { createTestContext, type TestContext } from './helpers';
 
 /**
  * Carga de conexões (DT-116, onda 5): 300 visitantes conectados ao mesmo tempo, vindos de 12
  * endereços atrás do proxy, recebem a mesma mudança. Mede o tempo do commit até o último
- * receber; o resultado fica registrado em docs/14-TESTES.md.
+ * receber, a memória da API por conexão e o custo dos gatilhos no commit (PEN-078); os
+ * resultados ficam registrados em docs/14-TESTES.md.
  */
 const CONNECTIONS = 300;
 const PER_ADDRESS = 25;
@@ -120,4 +122,110 @@ describe('Tempo real sob carga (DT-116)', () => {
       open.forEach((controller) => controller.abort());
     }
   });
+
+  /**
+   * Memória da API por conexão. Os clientes rodam numa thread à parte, com heap próprio, e a
+   * coleta de lixo é forçada antes de cada medida (`--expose-gc`), para o número ser só o da
+   * API. Sem `--expose-gc`, o teste não mede.
+   */
+  it('cada conexão custa pouca memória da API', async () => {
+    const gc = (globalThis as { gc?: () => void }).gc;
+
+    if (!gc) {
+      return;
+    }
+
+    const total = 1_000;
+    const settleHeap = async () => {
+      for (let i = 0; i < 3; i += 1) {
+        gc();
+        await new Promise((resolve) => setTimeout(resolve, 50));
+      }
+
+      return process.memoryUsage().heapUsed;
+    };
+    const before = await settleHeap();
+    const worker = new Worker(
+      `
+        const { parentPort, workerData } = require('node:worker_threads');
+        const controllers = [];
+        (async () => {
+          for (let i = 0; i < workerData.total; i += 1) {
+            const controller = new AbortController();
+            controllers.push(controller);
+            const response = await fetch(workerData.base + '/api/v1/public/live', {
+              headers: { 'X-Forwarded-For': '192.0.2.' + (Math.floor(i / 25) + 1) },
+              signal: controller.signal
+            });
+            if (response.status !== 200) { parentPort.postMessage({ error: response.status }); return; }
+            response.body.getReader().read().catch(() => undefined);
+          }
+          parentPort.postMessage({ ready: true });
+        })();
+        parentPort.on('message', () => { controllers.forEach((c) => c.abort()); parentPort.postMessage({ closed: true }); });
+      `,
+      { eval: true, workerData: { base, total } }
+    );
+
+    try {
+      const first = await new Promise<{ ready?: boolean; error?: number }>((resolve) =>
+        worker.once('message', resolve)
+      );
+
+      expect(first).toEqual({ ready: true });
+
+      const after = await settleHeap();
+      const perConnection = (after - before) / total;
+
+      process.stdout.write(
+        `[carga] ${total} conexões abertas: ~${(perConnection / 1024).toFixed(1)} KiB de heap da API por conexão\n`
+      );
+      expect(perConnection).toBeLessThan(64 * 1024);
+    } finally {
+      worker.postMessage('fechar');
+      await new Promise((resolve) => setTimeout(resolve, 200));
+      await worker.terminate();
+    }
+  }, 120_000);
+
+  /** Gravações concorrentes com e sem os gatilhos: quanto o aviso pesa no commit. */
+  it('os gatilhos pesam pouco no commit de gravações concorrentes', async () => {
+    const writes = 400;
+    const concurrency = 10;
+    const run = async () => {
+      const started = Date.now();
+      let next = 0;
+
+      await Promise.all(
+        Array.from({ length: concurrency }, async () => {
+          while (next < writes) {
+            next += 1;
+            await ctx.prisma.$executeRaw`
+              INSERT INTO "cost_centers" ("id", "code", "name", "created_at", "updated_at")
+              VALUES (gen_random_uuid(), ${`carga-${randomUUID()}`}, 'Carga', now(), now())`;
+          }
+        })
+      );
+
+      return Date.now() - started;
+    };
+
+    await run(); // aquece o pool de conexões
+    const withTriggers = await run();
+
+    await ctx.prisma.$executeRawUnsafe('ALTER TABLE "cost_centers" DISABLE TRIGGER USER');
+
+    let without: number;
+
+    try {
+      without = await run();
+    } finally {
+      await ctx.prisma.$executeRawUnsafe('ALTER TABLE "cost_centers" ENABLE TRIGGER USER');
+    }
+
+    process.stdout.write(
+      `[carga] ${writes} gravações, ${concurrency} ao mesmo tempo: ${withTriggers} ms com os gatilhos, ${without} ms sem\n`
+    );
+    expect(withTriggers).toBeLessThan(Math.max(without * 3, without + 2_000));
+  }, 120_000);
 });
